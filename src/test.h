@@ -30,5 +30,8 @@ struct TestSuite {
     Test *tests;
 };
 
+#ifdef TESTS
 extern TestSuite _global_tests;
-
+#else
+inline int reg_test(const char *, TestCallback) { return 0; }
+#endif

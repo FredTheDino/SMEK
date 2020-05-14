@@ -32,7 +32,7 @@ void TestSuite::add(Test test) {
 
 void TestSuite::run() {
     GameState state;
-    printf("Running\n");
+    printf("Running tests\n");
     unsigned int succeeded = 0;
     for (unsigned int i = 0; i < num_tests; i++) {
         bool success = tests[i].func(&state);

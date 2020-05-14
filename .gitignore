@@ -1,0 +1,5 @@
+# build output
+*.o
+
+# scons
+.sconsign.dblite
