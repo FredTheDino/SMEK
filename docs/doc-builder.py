@@ -1,20 +1,12 @@
 #!/usr/bin/python3
 from os import listdir as ls
 import os.path as path
+import re
 from functools import reduce
+from itertools import repeat
+from glob import glob
 from enum import Enum
 from highlighter import highlight_code, split_all
-
-def search(region, root):
-    """
-    Finds all the subdirectories of a directory, and pairs them with the name
-    of their parent directory.
-    """
-    files_in_lists = [search(f, path.join(root, f)) for f in ls(root)
-                                    if path.isdir(path.join(root, f))] +\
-                     [[(region, path.join(root, f)) for f in ls(root)
-                                    if path.isfile(path.join(root, f)) and "." in f]]
-    return reduce(lambda a, b: a + b, files_in_lists)
 
 
 # Used to describe what is in this file, the first line is also
@@ -215,9 +207,7 @@ def format_documentation(section, comment, namespace, docs):
     """
     title = find_documentation_title(section, comment, namespace)
     if namespace:
-        namespace = tag("span", "fog_" + namespace.lower() + "_", html_class="namespace")
-    else:
-        namespace = tag("span", "fog_", html_class="namespace")
+        namespace = tag("span", namespace + "::", html_class="namespace")
     return tag("div", tag("h3", namespace + title) + process_comment_section(comment.split("\n")[1:], docs),
                "block doc",
                find_documentation_id(section, comment))
@@ -238,11 +228,11 @@ def has_content(region_headings):
 
 def write_documentation(path, documentation):
     with open(path, "w") as f:
-        PREAMBLE = "<html><head><title>Fog - Documentation</title><meta charset=utf-8><link rel='icon' type='image/png' href='fog-favicon.png'><script src=\"script.js\"></script><link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\"></head><body>"
+        PREAMBLE = "<html>\n<head>\n<title>SMEK - Documentation</title>\n<meta charset=utf-8>\n<link rel='icon' type='image/png' href='favicon.png'>\n<script src=\"script.js\"></script>\n<link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\">\n</head>\n\n<body>\n"
         f.write(PREAMBLE)
         # Writing nav
         documented_code = {}
-        f.write("<nav><div class='container'><img id='logo' src='fog-logo.png'><h2>Content</h2>")
+        f.write("<nav>\n<div class='container'>\n<img id='logo' src='logo.png'>\n<h2>Content</h2>\n")
         f.write("<ul id=\"nav\">")
         for region, headings in documentation:
             if not has_content(headings): continue
@@ -291,6 +281,8 @@ def write_documentation(path, documentation):
 
 
 if __name__ == "__main__":
-    all_files = search("core", "src/")
-    documentation = find_all_comments(all_files)
-    write_documentation("tools/doc.html", documentation)
+    all_files = list(zip(repeat("core"), glob("src/**/*", recursive=True)))
+    valid_files = [(region, file) for (region, file) in all_files
+                  if not re.match(r".*\.o$", file)]
+    documentation = find_all_comments(valid_files)
+    write_documentation("docs/index.html", documentation)
