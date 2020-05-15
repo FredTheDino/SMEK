@@ -2,6 +2,8 @@
 *.o
 SMEK
 
+docs/index.html
+
 # scons
 .sconsign.dblite
 
