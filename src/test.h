@@ -1,5 +1,4 @@
 #pragma once
-#include "main.h"
 
 #ifndef TESTS
 #define TEST_CASE(name, block)
@@ -7,6 +6,8 @@
 
 #include <vector>
 #include <functional>
+
+#include "main.h"
 
 #define PP_CAT(a, b) PP_CAT_I(a, b)
 #define PP_CAT_I(a, b) PP_CAT_II(a ## b)
