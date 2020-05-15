@@ -187,9 +187,6 @@ def find_documentation_title(heading, comment, namespace):
             potential_title = line[5:].strip()
             if potential_title:
                 return potential_title
-        elif line.lstrip().startswith("struct"):
-            #NOTE(gu) can skip "struct "-part by slicing [6:line.lstrip() ...]
-            return line.lstrip()[:line.lstrip().find(" ", 7)]
         for word in line.split(" "):
             if "(" in word and "//" not in line:
                 return word[:word.index("(")].replace("*", "")
