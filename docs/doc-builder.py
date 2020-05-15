@@ -124,8 +124,8 @@ def process_comment_section(lines, docs):
     """
     Parses out code from text and applies the appropriate markup.
     """
-    out = ""
-    in_comment = False
+    out = "<p>"
+    in_comment = True
     for line in lines:
         if line.strip() == "": continue
         if line in ("FOG_EXPORT", "FOG_EXPORT_STRUCT"): continue
@@ -135,12 +135,6 @@ def process_comment_section(lines, docs):
                 out += "</p>\n"
             out += "<p>"
         if in_comment and not line.startswith("//"):
-            #TODO(gu) here we can fix so you dont always need a comment in front of code
-            # i.e. this diff
-            # ---
-            #  ///*
-            #- //
-            #  void foo();
             in_comment = False
             out += "</p>\n"
             out += "<p class='code'>"
