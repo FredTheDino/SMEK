@@ -1,8 +1,12 @@
 #pragma once
+#include "main.h"
+
+#ifndef TESTS
+#define TEST_CASE(name, block)
+#else
+
 #include <vector>
 #include <functional>
-
-#include "main.h"
 
 #define PP_CAT(a, b) PP_CAT_I(a, b)
 #define PP_CAT_I(a, b) PP_CAT_II(a ## b)
@@ -35,8 +39,6 @@ struct TestSuite {
     Test *tests;
 };
 
-#ifdef TESTS
 extern TestSuite _global_tests;
-#else
-inline int reg_test(const char *, TestCallback, const char *, unsigned int) { return 0; }
-#endif
+
+#endif  // ifdef TESTS
