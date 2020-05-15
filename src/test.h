@@ -11,6 +11,7 @@
 #define UNIQUE_NAME(base) PP_CAT(PP_CAT(base, __LINE__), __COUNTER__)
 
 #define TEST_CASE(name, block) int UNIQUE_NAME(_test_id_) = reg_test((name), [](GameState *game) -> bool block);
+#define TEST_STMT(name, stmt) int UNIQUE_NAME(_test_id_) = reg_test((name), [](GameState *game) -> bool { return stmt; });
 typedef bool(*TestCallback)(GameState *game);
 
 int reg_test(const char *name, TestCallback func);
