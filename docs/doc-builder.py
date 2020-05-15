@@ -132,11 +132,17 @@ def process_comment_section(lines, docs):
         if not in_comment and line.startswith("//"):
             in_comment = True
             if out:
-                out += "</p>"
+                out += "</p>\n"
             out += "<p>"
         if in_comment and not line.startswith("//"):
+            #TODO(gu) here we can fix so you dont always need a comment in front of code
+            # i.e. this diff
+            # ---
+            #  ///*
+            #- //
+            #  void foo();
             in_comment = False
-            out += "</p>"
+            out += "</p>\n"
             out += "<p class='code'>"
         if in_comment:
             if line == "//":
@@ -152,7 +158,7 @@ def process_comment_section(lines, docs):
             out += "<span indent=\"{}\"></span>".format("#" * indent)
             safe_code = line.replace("<", "&lt;").replace(">", "&gt;").lstrip()
             out += insert_links(highlight_code(safe_code), docs)
-            out += "<br>"
+            out += "<br>\n"
     return out.replace("<p></p>", "").strip()
 
 
@@ -172,9 +178,10 @@ def format_comment(section, comment, namespace, docs):
     Formats the code according to how a comment should be formatted.
     """
     title = find_comment_title(comment)
-    return tag("div", tag("h3", title) + process_comment_section(comment.split("\n")[1:], docs),
+    return tag("div", tag("h3", title) + "\n" +
+               process_comment_section(comment.split("\n")[1:], docs) + "\n",
                "block comment",
-               find_comment_id(section, comment))
+               find_comment_id(section, comment)) + "\n"
 
 
 def find_documentation_title(heading, comment, namespace):
@@ -213,9 +220,10 @@ def format_documentation(section, comment, namespace, docs):
     title = find_documentation_title(section, comment, namespace)
     if namespace:
         namespace = tag("span", namespace + "::", html_class="namespace")
-    return tag("div", tag("h3", namespace + title) + process_comment_section(comment.split("\n")[1:], docs),
+    return tag("div", "\n" + tag("h3", namespace + title) + "\n" +
+               process_comment_section(comment.split("\n")[1:], docs) + "\n",
                "block doc",
-               find_documentation_id(section, comment))
+               find_documentation_id(section, comment)) + "\n"
 
 
 def format_heading(heading, comment, namespace, _):
@@ -238,14 +246,14 @@ def write_documentation(path, documentation):
         # Writing nav
         documented_code = {}
         f.write("<nav>\n<div class='container'>\n<img id='logo' src='logo.png'>\n<h2>Content</h2>\n")
-        f.write("<ul id=\"nav\">")
+        f.write("<ul id=\"nav\">\n")
         for region, headings in documentation:
             if not has_content(headings): continue
             f.write(tag("li", link(region.capitalize(), "#" + region), "hide hideable"))
-            f.write("<li><ul>")
+            f.write("\n<li><ul>\n")
             for heading in headings:
                 f.write(tag("li", link(heading, "#" + make_id_friendly(heading)),  "hide hideable"))
-                f.write("<li><ul>")
+                f.write("\n<li><ul>\n")
                 for comment_type, comment, namespace in headings[heading]:
                     if not comment: continue
 
@@ -259,16 +267,16 @@ def write_documentation(path, documentation):
                         html_id = find_comment_id(heading, comment)
                     documented_code[text] = html_id
                     f.write(tag("li", link(text, "#" + html_id)))
-                f.write("</li></ul>")
+                f.write("\n</li></ul>\n")
 
-            f.write("</li></ul>")
-        f.write("</ul>")
-        f.write("</div></nav>")
+            f.write("</li></ul>\n")
+        f.write("</ul>\n")
+        f.write("</div>\n</nav>\n\n")
 
-        f.write("<article>")
+        f.write("<article>\n")
         for region, headings in documentation:
             if not has_content(headings): continue
-            f.write(tag("h1", region.capitalize(), "region heading", region))
+            f.write(tag("h1", region.capitalize(), "region heading", region) + "\n")
             for heading in headings:
                 for comment_type, comment, namespace in headings[heading]:
                     if not comment: continue
@@ -281,8 +289,8 @@ def write_documentation(path, documentation):
                     elif comment_type == COMMENT:
                         output = format_comment(*args)
                     f.write(output)
-        f.write("</article>")
-        f.write("</body></html>")
+        f.write("</article>\n")
+        f.write("</body>\n</html>")
 
 
 if __name__ == "__main__":
