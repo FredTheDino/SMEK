@@ -1,5 +1,7 @@
 #include "types.h"
 
+namespace Math {
+
 ///*
 // Returns the absolute value of a.
 template<typename T>
@@ -104,3 +106,5 @@ real to_radians(real degrees);
 ///*
 // Converts degrees to radians.
 real to_degrees(real radians);
+
+};

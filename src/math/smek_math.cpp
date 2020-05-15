@@ -2,6 +2,8 @@
 #include "smek_math.h"
 #include "../test.h"
 
+namespace Math {
+
 template<typename T>
 T abs(T a) {
     return a > 0 ? a : -a;
@@ -137,4 +139,4 @@ TEST_STMT("to_radians_2", close_enough(to_degrees(-0.01745329), -1.0f));
 TEST_STMT("to_radians_3", close_enough(to_degrees(PI), 180.0f));
 TEST_STMT("to_radians_4", close_enough(to_radians(to_degrees(123)), 123.0f));
 
-
+} // namespace Math
