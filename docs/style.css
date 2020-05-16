@@ -1,3 +1,18 @@
+:root {
+    --page-bg: #DDD; 
+    --page-fg: #000; 
+    --page-link-hover: #DDD;
+    --page-accent: #AAA;
+    --code-bg: #111;
+    --code-fg: #DDD;
+    --section-bg: #CCC;
+    --menu-section-bg: #DDD;
+    --menu-section-fg: #333;
+    --note-bg: blue;
+    --note-fg: white;
+    --highlight: #f80;
+}
+
 #logo {
     width: 75%;
     margin-left: auto;
@@ -8,7 +23,8 @@
 }
 
 body {
-    background-color: #EEE;
+    background-color: var(--page-bg);
+    color: var(--page-fg);
     font-family: sans-serif;
     padding: 0px;
     margin: 0px
@@ -62,12 +78,12 @@ nav #nav>li>li {
 }
 
 a:hover {
-    color: #EEE;
+    color: var(--page-link-hover);
 }
 
 nav, nav a {
-    background-color: #CCC;
-    color: #000;
+    background-color: var(--section-bg);
+    color: var(--page-fg);
     font-size: 1.2em;
 }
 
@@ -77,9 +93,9 @@ nav a:hover {
 
 
 nav>div>ul>li>ul, nav>div>ul>li>ul a {
-    background-color: #DDD;
+    background-color: var(--menu-section-bg);
     font-size: 1.0em;
-    color: #333;
+    color: var(--menu-section-fg);
 }
 
 nav>div>ul>li>ul>li>ul, nav>div>ul>li>ul>li>ul a {
@@ -147,8 +163,8 @@ article {
 }
 
 .note {
-    background-color: blue;
-    color: white;
+    background-color: var(--note-bg);
+    color: var(--note-fg);
     padding-left: 2px;
     padding-right: 2px;
     font-weight: bold;
@@ -163,13 +179,13 @@ article {
     padding: 1.0em;
     border-radius: 5px;
     box-shadow: 2px 2px 3px 0px rgba(0,0,0,0.31);
-    background-color: #CCC;
+    background-color: var(--section-bg);
 }
 
 .block .code {
     font-size: 1.2em;
-    background-color: #111;
-    color: #EEE;
+    background-color: var(--code-bg);
+    color: var(--code-fg);
     font-family: monospace;
     margin: 0.0em;
     padding: 0.5em;
@@ -206,8 +222,8 @@ table.member-table * {
 table.member-table th {
     padding-top: 0.4em;
     padding-bottom: 0.4em;
-    background-color: #000; /* Cool orange color */
-    color: #f80; /* Cool orange color */
+    background-color: var(--page-bg);
+    color: var(--highlight);
 }
 
 table.member-table td:nth-child(2n) {
@@ -224,7 +240,7 @@ table.member-table td:nth-child(2n) {
 
 .section.heading {
     margin-top: 1em;
-    border-bottom: 1px solid #AAA;
+    border-bottom: 1px solid var(--page-accent);
 }
 
 [indent] {

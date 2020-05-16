@@ -1,8 +1,5 @@
 #!/usr/bin/python3
-from os import listdir as ls
-import os.path as path
 import re
-from functools import reduce
 from itertools import repeat
 from glob import glob
 from enum import Enum
@@ -108,8 +105,7 @@ def make_id_friendly(string):
     Returns the string but made into something that can be used
     as an ID.
     """
-    from re import sub
-    return sub(r"[^a-z0-9]", "", string.lower())
+    return re.sub(r"[^a-z0-9]", "", string.lower())
 
 
 def insert_links(line, docs):
