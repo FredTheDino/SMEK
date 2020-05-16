@@ -108,4 +108,59 @@ real to_radians(real degrees);
 // Converts degrees to radians.
 real to_degrees(real radians);
 
+//
+// IMPLEMENTATIONS
+//
+template<typename T>
+T abs(T a) {
+    return a > 0 ? a : -a;
+}
+
+template<typename T>
+T min(T a, T b) {
+    return a > b ? b : a;
+}
+
+template<typename T>
+T max(T a, T b) {
+    return a < b ? b : a;
+}
+
+template<typename T>
+T sign(T a) {
+    return 0 <= a ? 1 : -1;
+}
+
+template<typename T>
+T sign_with_zero(T a) {
+    if (a == 0) return 0;
+    return sign(a);
+}
+
+template<typename T>
+bool close_enough(T a, T b, f32 r) {
+    return abs(a - b) < r;
+}
+
+template<typename R>
+R ceil(real a) {
+    if (a < 0)
+        return R(a);
+    else
+        return R(a) + 1;
+}
+
+template<typename R>
+R floor(real a) {
+    if (a < 0)
+        return R(a) - 1;
+    else
+        return R(a);
+}
+
+template<typename R>
+R round(real a) {
+    return floor<R>(a + 0.5);
+}
+
 }
