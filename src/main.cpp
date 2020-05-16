@@ -31,7 +31,7 @@ int main() { // Game entry point
 
         SDL_Delay(10);
 
-        GL::ClearColor(0, 1, 0, 1);
+        GL::ClearColor(0.2, 0.1, 0.3, 1);
         GL::Clear(GL::COLOR_BUFFER_BIT);
         SDL_GL_SwapWindow(_global_gs.window);
     }
