@@ -61,6 +61,7 @@ GL_FUNC(void, Clear, u32)
 
 GL_FUNC(u32, CreateShader, GLenum);
 GL_FUNC(void, CompileShader, u32);
+GL_FUNC(void, ShaderSource, u32, u32, const char **, const i32 *);
 GL_FUNC(void, GetShaderiv, u32, GLenum, i32 *);
 GL_FUNC(void, GetShaderInfoLog, u32, u32, u32 *, char *);
 
@@ -86,6 +87,7 @@ GL_FUNC(void, BindVertexArray, u32);
 GL_FUNC(void, EnableVertexAttribArray, u32);
 GL_FUNC(void, VertexAttribPointer, u32, i32, GLenum, b8, u32, const void *);
 GL_FUNC(void, DrawElements, GLenum, u32, GLenum, const void *);
+GL_FUNC(void, DrawArrays, GLenum, u32, u32);
 
 GL_FUNC(void, GenBuffers, u32, u32 *);
 GL_FUNC(void, BindBuffer, GLenum, u32);

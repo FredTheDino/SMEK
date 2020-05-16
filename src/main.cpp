@@ -19,6 +19,19 @@ int main() { // Test entry point
 int main() { // Game entry point
     GFX::init();
 
+    std::vector<Vec3> points = {
+        Vec3(-0.5, -0.5, 0.0),
+        Vec3( 0.5, -0.5, 0.0),
+        Vec3( 0.5,  0.5, 0.0),
+
+        Vec3(-0.5, -0.5, 0.0),
+        Vec3( 0.5,  0.5, 0.0),
+        Vec3(-0.5,  0.5, 0.0),
+    };
+
+    GFX::Mesh rect = GFX::Mesh::init(points);
+    GFX::Shader shader = GFX::default_shader();
+
     bool running = true;
     while (running) {
         SDL_Event event;
@@ -31,8 +44,12 @@ int main() { // Game entry point
 
         SDL_Delay(10);
 
-        GL::ClearColor(0.2, 0.1, 0.3, 1);
+        GL::ClearColor(0.2, 0.1, 0.3, 1); // We don't need to do this...
         GL::Clear(GL::cCOLOR_BUFFER_BIT);
+
+        shader.use();
+        rect.draw();
+
         SDL_GL_SwapWindow(_global_gs.window);
     }
 

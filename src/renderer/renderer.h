@@ -1,39 +1,36 @@
 #pragma once
-#include "opengl.h"
-#include "../main.h"
+#include "../math/smek_vec.h"
+
+#include <vector>
 
 namespace GFX {
 
-bool init() {
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-        ERROR("Failed to initalize SDL \"%s\"", SDL_GetError());
-        return false;
-    }
+struct Mesh {
+    u32 vao, vbo;
+    u32 draw_length;
 
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    static Mesh init(std::vector<Vec3> points);
 
-    const int width = 640;
-    const int height = 480;
-    _global_gs.window = SDL_CreateWindow("SMEK - The new begining",
-            SDL_WINDOWPOS_UNDEFINED,
-            SDL_WINDOWPOS_UNDEFINED,
-            width,
-            height,
-            SDL_WINDOW_OPENGL);
+    void draw();
+};
 
-    if (_global_gs.window == NULL) {
-        ERROR("Failed to create OpenGL window \"%s\"", SDL_GetError());
-        return false;
-    }
 
-    _global_gs.gl_context = SDL_GL_CreateContext(_global_gs.window);
+struct Shader {
+    i32 program_id;
 
-    return GL::load_procs();
-}
+    void use();
 
-void deinit() {
-    SDL_Quit();
-}
+    bool is_valid() { return program_id != -1; }
+};
+
+Shader default_shader();
+
+///*
+// Initalize the graphics pipeline.
+bool init();
+
+///*
+// Destroy the graphics pipeline.
+void deinit();
 
 } // namespace GFX

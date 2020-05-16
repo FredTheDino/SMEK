@@ -64,14 +64,6 @@ real dot(const T &a, const T &b);
 template<typename T>
 bool _close_enough_vec(const T &a, const T &b, real r);
 
-bool close_enough(const Vec2 &a, const Vec2 &b, real r=0.001) {
-    return _close_enough_vec(a, b, r);
-}
-
-bool close_enough(const Vec3 &a, const Vec3 &b, real r=0.001) {
-    return _close_enough_vec(a, b, r);
-}
-
-bool close_enough(const Vec4 &a, const Vec4 &b, real r=0.001) {
-    return _close_enough_vec(a, b, r);
-}
+bool close_enough(const Vec2 &a, const Vec2 &b, real r=0.001);
+bool close_enough(const Vec3 &a, const Vec3 &b, real r=0.001);
+bool close_enough(const Vec4 &a, const Vec4 &b, real r=0.001);

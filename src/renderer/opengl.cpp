@@ -31,6 +31,7 @@ bool load_procs() {
     GL_LOAD(Clear);
 
     GL_LOAD(CreateShader);
+    GL_LOAD(ShaderSource);
     GL_LOAD(CompileShader);
     GL_LOAD(GetShaderiv);
     GL_LOAD(GetShaderInfoLog);
@@ -57,6 +58,7 @@ bool load_procs() {
     GL_LOAD(EnableVertexAttribArray);
     GL_LOAD(VertexAttribPointer);
     GL_LOAD(DrawElements);
+    GL_LOAD(DrawArrays);
 
     GL_LOAD(GenBuffers);
     GL_LOAD(BindBuffer);

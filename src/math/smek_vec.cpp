@@ -81,3 +81,15 @@ bool _close_enough_vec(const T &a, const T &b, real r) {
         result &= Math::close_enough(a._[i], b._[i], r);
     return result;
 }
+
+bool close_enough(const Vec2 &a, const Vec2 &b, real r) {
+    return _close_enough_vec(a, b, r);
+}
+
+bool close_enough(const Vec3 &a, const Vec3 &b, real r) {
+    return _close_enough_vec(a, b, r);
+}
+
+bool close_enough(const Vec4 &a, const Vec4 &b, real r) {
+    return _close_enough_vec(a, b, r);
+}
