@@ -87,16 +87,16 @@ real atan(real a) { return std::atan(a); }
 real atan2(real x, real y) { return std::atan2(y, x); }
 
 template<typename R>
-R cell(real a) {
+R ceil(real a) {
     if (a < 0)
         return R(a);
     else
         return R(a) + 1;
 }
 
-TEST_STMT("cell", cell<i32>(0.01f) == 1);
-TEST_STMT("cell", cell<i32>(-0.01f) == 0);
-TEST_STMT("cell", cell<i32>(20.445f) == 21);
+TEST_STMT("ceil", ceil<i32>(0.01f) == 1);
+TEST_STMT("ceil", ceil<i32>(-0.01f) == 0);
+TEST_STMT("ceil", ceil<i32>(20.445f) == 21);
 
 template<typename R>
 R floor(real a) {

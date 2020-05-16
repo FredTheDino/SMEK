@@ -88,7 +88,7 @@ real atan2(real x, real y);
 ///*
 // Returns a rounded up to the nearest integer.
 template<typename R>
-R cell(real a);
+R ceil(real a);
 
 ///*
 // Returns a rounded down to the nearest integer.
