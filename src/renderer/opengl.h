@@ -2,35 +2,35 @@
 
 namespace GL {
 
-constexpr u32 ARRAY_BUFFER = 0x8892;
-constexpr u32 BLEND = 0x0BE2;
-constexpr u32 COMPILE_STATUS = 0x8B81;
-constexpr u32 DEBUG_OUTPUT = 0x92E0;
-constexpr u32 DEBUG_TYPE_ERROR = 0x824C;
-constexpr u32 DEPTH_BUFFER_BIT = 0x00000100;
-constexpr u32 COLOR_BUFFER_BIT = 0x00004000;
-constexpr u32 FLOAT = 0x1406;
-constexpr u32 FRAGMENT_SHADER = 0x8B30;
-constexpr u32 FRAMEBUFFER = 0x8D40;
-constexpr u32 FRAMEBUFFER_COMPLETE = 0x8CD5;
-constexpr u32 INT = 0x1404;
-constexpr u32 LINK_STATUS = 0x8B82;
-// constexpr u32 RED = 0x1903; // If we want this, we'll have to rename a macro.
-constexpr u32 RENDERBUFFER = 0x8D41;
-constexpr u32 RG = 0x8227;
-constexpr u32 RGB = 0x1907;
-constexpr u32 RGBA = 0x1908;
-constexpr u32 SRC_ALPHA = 0x0302;
-constexpr u32 STATIC_DRAW = 0x88E4;
-constexpr u32 STREAM_DRAW = 0x88E0;
-constexpr u32 TEXTURE0 = 0x84C0;
-constexpr u32 TEXTURE1 = 0x84C1;
-constexpr u32 TEXTURE_2D = 0x0DE1;
-constexpr u32 TEXTURE_2D_ARRAY = 0x8C1A;
-constexpr u32 TRIANGLES = 0x0004;
-constexpr u32 UNIFORM_BUFFER = 0x8A11;
-constexpr u32 UNSIGNED_BYTE = 0x1401;
-constexpr u32 VERTEX_SHADER = 0x8B31;
+constexpr u32 cARRAY_BUFFER = 0x8892;
+constexpr u32 cBLEND = 0x0BE2;
+constexpr u32 cCOMPILE_STATUS = 0x8B81;
+constexpr u32 cDEBUG_OUTPUT = 0x92E0;
+constexpr u32 cDEBUG_TYPE_ERROR = 0x824C;
+constexpr u32 cDEPTH_BUFFER_BIT = 0x00000100;
+constexpr u32 cCOLOR_BUFFER_BIT = 0x00004000;
+constexpr u32 cFLOAT = 0x1406;
+constexpr u32 cFRAGMENT_SHADER = 0x8B30;
+constexpr u32 cFRAMEBUFFER = 0x8D40;
+constexpr u32 cFRAMEBUFFER_COMPLETE = 0x8CD5;
+constexpr u32 cINT = 0x1404;
+constexpr u32 cLINK_STATUS = 0x8B82;
+constexpr u32 cRED = 0x1903;
+constexpr u32 cRENDERBUFFER = 0x8D41;
+constexpr u32 cRG = 0x8227;
+constexpr u32 cRGB = 0x1907;
+constexpr u32 cRGBA = 0x1908;
+constexpr u32 cSRC_ALPHA = 0x0302;
+constexpr u32 cSTATIC_DRAW = 0x88E4;
+constexpr u32 cSTREAM_DRAW = 0x88E0;
+constexpr u32 cTEXTURE0 = 0x84C0;
+constexpr u32 cTEXTURE1 = 0x84C1;
+constexpr u32 cTEXTURE_2D = 0x0DE1;
+constexpr u32 cTEXTURE_2D_ARRAY = 0x8C1A;
+constexpr u32 cTRIANGLES = 0x0004;
+constexpr u32 cUNIFORM_BUFFER = 0x8A11;
+constexpr u32 cUNSIGNED_BYTE = 0x1401;
+constexpr u32 cVERTEX_SHADER = 0x8B31;
 
 #define GL_FUNC(ret, name, ...)\
     typedef ret (* _ ## name ## _func)(__VA_ARGS__);\
