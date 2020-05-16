@@ -6,7 +6,8 @@ AddOption("--tests",
           help="Compile with tests")
 
 env = Environment()
-env.Replace(CXX="g++")
+env.Replace(CXX="clang++")
+env.Append(CXXFLAGS="-Wall")
 
 source = glob("src/**/*.c*", recursive=True)
 

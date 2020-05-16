@@ -71,9 +71,8 @@ real dot(const T &a, const T &b) {
     return result;
 }
 
-using Math::close_enough;
-TEST_STMT("vec_dot", close_enough<real>(dot(Vec2(0, 1), Vec2(1, 0)), 0.0, 0.001));
-TEST_STMT("vec_dot", close_enough<real>(dot(Vec4(0, 1), Vec4(1, 0)), 0.0, 0.001));
+TEST_STMT("vec_dot", Math::close_enough<real>(dot(Vec2(0, 1), Vec2(1, 0)), 0.0, 0.001));
+TEST_STMT("vec_dot", Math::close_enough<real>(dot(Vec4(0, 1), Vec4(1, 0)), 0.0, 0.001));
 
 template<typename T>
 bool _close_enough_vec(const T &a, const T &b, real r) {

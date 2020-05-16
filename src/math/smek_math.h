@@ -108,4 +108,4 @@ real to_radians(real degrees);
 // Converts degrees to radians.
 real to_degrees(real radians);
 
-};
+}

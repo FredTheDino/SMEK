@@ -2,10 +2,6 @@
 
 #include "test.h"
 
-TEST_CASE("Zero", { return 0; });
-TEST_CASE("One", { return 1; });
-TEST_CASE("Two", { return 0; });
-
 int main() {
     std::printf("Hello world!\n");
 #ifdef TESTS
