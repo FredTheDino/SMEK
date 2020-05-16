@@ -20,13 +20,9 @@ int main() { // Game entry point
     GFX::init();
 
     std::vector<Vec3> points = {
-        Vec3(-0.5, -0.5, 0.0),
-        Vec3( 0.5, -0.5, 0.0),
-        Vec3( 0.5,  0.5, 0.0),
-
-        Vec3(-0.5, -0.5, 0.0),
-        Vec3( 0.5,  0.5, 0.0),
         Vec3(-0.5,  0.5, 0.0),
+        Vec3( 0.0, -0.5, 0.0),
+        Vec3( 0.5,  0.5, 0.0),
     };
 
     GFX::Mesh rect = GFX::Mesh::init(points);
