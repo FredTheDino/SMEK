@@ -2,8 +2,9 @@
 
 #include "test.h"
 
-TEST_CASE("First", { return std::printf("Hello I am a test.\n"); });
-TEST_CASE("Second", { return std::printf("Hello I am also a test\n"); });
+TEST_CASE("Zero", { return 0; });
+TEST_CASE("One", { return 1; });
+TEST_CASE("Two", { return 0; });
 
 int main() {
     std::printf("Hello world!\n");

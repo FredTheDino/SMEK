@@ -1,4 +1,9 @@
 #pragma once
+
+#ifndef TESTS
+#define TEST_CASE(name, block)
+#else
+
 #include <vector>
 #include <functional>
 
@@ -10,16 +15,19 @@
 
 #define UNIQUE_NAME(base) PP_CAT(PP_CAT(base, __LINE__), __COUNTER__)
 
-#define TEST_CASE(name, block) int UNIQUE_NAME(_test_id_) = reg_test((name), [](GameState *game) -> bool block);
-#define TEST_STMT(name, stmt) int UNIQUE_NAME(_test_id_) = reg_test((name), [](GameState *game) -> bool { return stmt; });
+#define TEST_CASE(name, block) static int UNIQUE_NAME(_test_id_) = reg_test((name), [](GameState *game) -> bool block, __FILE__, __LINE__);
+#define TEST_STMT(name, stmt) static int UNIQUE_NAME(_test_id_) = reg_test((name), [](GameState *game) -> bool { return stmt; });
+
 typedef bool(*TestCallback)(GameState *game);
 
-int reg_test(const char *name, TestCallback func);
+int reg_test(const char *name, TestCallback func, const char *file, unsigned int line);
 
 struct Test {
     unsigned int id;
     const char *name;
     TestCallback func;
+    const char *file;
+    unsigned int line;
 };
 
 struct TestSuite {
@@ -31,8 +39,6 @@ struct TestSuite {
     Test *tests;
 };
 
-#ifdef TESTS
 extern TestSuite _global_tests;
-#else
-inline int reg_test(const char *, TestCallback) { return 0; }
-#endif
+
+#endif  // ifdef TESTS
