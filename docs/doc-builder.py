@@ -124,7 +124,7 @@ def process_comment_section(lines, docs):
     in_comment = True
     for line in lines:
         if line.strip() == "": continue
-        if line in ("FOG_EXPORT", "FOG_EXPORT_STRUCT"): continue
+        if line in ("SMEK_EXPORT", "SMEK_EXPORT_STRUCT"): continue
         if not in_comment and line.startswith("//"):
             in_comment = True
             if out:
