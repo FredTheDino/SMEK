@@ -1,7 +1,5 @@
 #include "smek_vec.h"
 #include "../test.h"
-#include <stdio.h>
-
 
 template<typename T>
 constexpr int DIM() {
@@ -68,13 +66,12 @@ TEST_STMT("vec_hadamard", close_enough(hadamard(Vec2(1, 2), Vec2(3, 4)), Vec2(3,
 
 template<typename T>
 real dot(const T &a, const T &b) {
-    real result;
+    real result = 0;
     for (u32 i = 0; i < DIM<T>(); i++) result += a._[i] * b._[i];
     return result;
 }
 
 using Math::close_enough;
-#include <stdio.h>
 TEST_STMT("vec_dot", close_enough<real>(dot(Vec2(0, 1), Vec2(1, 0)), 0.0, 0.001));
 TEST_STMT("vec_dot", close_enough<real>(dot(Vec4(0, 1), Vec4(1, 0)), 0.0, 0.001));
 
