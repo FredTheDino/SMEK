@@ -13,7 +13,7 @@ TEST_STMT("vec_comp", DIM<Vec4>() == 4);
 template<typename T>
 T operator +(const T &a, const T &b) {
     T result;
-    for (u32 i = 0; i < DIM<T>(); i++) result._[i] = a._[i] + b._[i];
+    for (i32 i = 0; i < DIM<T>(); i++) result._[i] = a._[i] + b._[i];
     return result;
 }
 
@@ -23,7 +23,7 @@ TEST_STMT("vec_add", close_enough(Vec4() + Vec4(1, 1, 1), Vec4(1, 1, 1)));
 template<typename T>
 T operator -(const T &a, const T &b) {
     T result;
-    for (u32 i = 0; i < DIM<T>(); i++) result._[i] = a._[i] - b._[i];
+    for (i32 i = 0; i < DIM<T>(); i++) result._[i] = a._[i] - b._[i];
     return result;
 }
 
@@ -34,7 +34,7 @@ TEST_STMT("vec_sub", close_enough(Vec4() - Vec4(1, 1, 1), Vec4(-1, -1, -1)));
 template<typename T>
 T operator *(const T &a, const real &s) {
     T result;
-    for (u32 i = 0; i < DIM<T>(); i++) result._[i] = a._[i] * s;
+    for (i32 i = 0; i < DIM<T>(); i++) result._[i] = a._[i] * s;
     return result;
 }
 
@@ -58,7 +58,7 @@ TEST_STMT("vec_div", close_enough(Vec4(3, 3, 3, 9) / 3, Vec4(1, 1, 1, 3)));
 template<typename T>
 T hadamard(const T &a, const T &b) {
     T result;
-    for (u32 i = 0; i < DIM<T>(); i++) result._[i] = a._[i] * b._[i];
+    for (i32 i = 0; i < DIM<T>(); i++) result._[i] = a._[i] * b._[i];
     return result;
 }
 
@@ -67,7 +67,7 @@ TEST_STMT("vec_hadamard", close_enough(hadamard(Vec2(1, 2), Vec2(3, 4)), Vec2(3,
 template<typename T>
 real dot(const T &a, const T &b) {
     real result = 0;
-    for (u32 i = 0; i < DIM<T>(); i++) result += a._[i] * b._[i];
+    for (i32 i = 0; i < DIM<T>(); i++) result += a._[i] * b._[i];
     return result;
 }
 
@@ -77,7 +77,7 @@ TEST_STMT("vec_dot", Math::close_enough<real>(dot(Vec4(0, 1), Vec4(1, 0)), 0.0, 
 template<typename T>
 bool _close_enough_vec(const T &a, const T &b, real r) {
     bool result = true;
-    for (u32 i = 0; i < DIM<T>(); i++)
+    for (i32 i = 0; i < DIM<T>(); i++)
         result &= Math::close_enough(a._[i], b._[i], r);
     return result;
 }
