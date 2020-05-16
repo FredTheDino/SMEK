@@ -1,0 +1,252 @@
+:root {
+    --page-bg: #DDD; 
+    --page-fg: #000; 
+    --page-link-hover: #DDD;
+    --page-accent: #AAA;
+    --code-bg: #111;
+    --code-fg: #DDD;
+    --section-bg: #CCC;
+    --menu-section-bg: #DDD;
+    --menu-section-fg: #333;
+    --note-bg: blue;
+    --note-fg: white;
+    --highlight: #f80;
+}
+
+#logo {
+    width: 75%;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 1em;
+    padding-bottom: 0.25em;
+    display: block;
+}
+
+body {
+    background-color: var(--page-bg);
+    color: var(--page-fg);
+    font-family: sans-serif;
+    padding: 0px;
+    margin: 0px
+}
+
+nav {
+    left: 0;
+    top: 0;
+    width: 30%;
+    max-width: 16.5em;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    position: fixed;
+    font-family: Monospace;
+}
+
+nav h2 {
+    margin-top: 0.5em;
+    padding-left: 0.5em;
+    border-bottom: 2px dashed rgba(0, 0, 0, 0.4);
+    margin-bottom: 0.1em;
+}
+
+nav {
+    direction: rtl;
+    box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75);
+}
+
+.container {
+    direction: ltr;
+}
+
+nav a {
+    text-decoration: none;
+}
+
+nav ul {
+    list-style: none;
+    margin-top: 0.1em;
+    padding: 0px;
+    padding-left: 0.1em;
+}
+
+nav #nav>li {
+    border-bottom: 2px dashed rgba(0, 0, 0, 0.1);
+}
+
+nav #nav>li>li {
+    padding-left: 0.3em;
+}
+
+a:hover {
+    color: var(--page-link-hover);
+}
+
+nav, nav a {
+    background-color: var(--section-bg);
+    color: var(--page-fg);
+    font-size: 1.2em;
+}
+
+nav a:hover {
+    text-shadow: 0px 0px 4px #000;
+}
+
+
+nav>div>ul>li>ul, nav>div>ul>li>ul a {
+    background-color: var(--menu-section-bg);
+    font-size: 1.0em;
+    color: var(--menu-section-fg);
+}
+
+nav>div>ul>li>ul>li>ul, nav>div>ul>li>ul>li>ul a {
+    font-size: 0.9em;
+}
+
+.hidable::hover {
+    border-bottom: 2px dashed rgba(255, 255, 255, 0.2);
+}
+
+.hideable.hide::before {
+    font-family: monospace;
+    font-size: 1.0em;
+    margin-top: -0.5em;
+    padding-top: 0.05em;
+    padding-bottom: 0.05em;
+    padding: 0.1em;
+    border-radius: 1em;
+    content: " + ";
+}
+
+.hideable::before {
+    font-family: monospace;
+    font-size: 1.0em;
+    margin-top: -0.5em;
+    padding-top: 0.05em;
+    padding-bottom: 0.05em;
+    padding: 0.1em;
+    border-radius: 1em;
+    content: " -";
+}
+
+nav>div>ul>li>ul>li>ul a::before {
+    content: "• ";
+}
+
+.hide + * {
+    display: none;
+}
+
+article {
+    position: absolute;
+    right: 0;
+    min-width: 65%;
+    width: calc(100% - 17em);
+}
+
+.namespace {
+    font-style: bold;
+    color: rgba(0, 0, 0, 0.66);
+    padding-left: 2px;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.code-link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 2px dashed rgba(255, 255, 255, 0.2);
+    padding-bottom: 0.1em;
+}
+
+.code-link:hover {
+    border-bottom: 2px dashed rgba(255, 255, 255, 0.5);
+}
+
+.note {
+    background-color: var(--note-bg);
+    color: var(--note-fg);
+    padding-left: 2px;
+    padding-right: 2px;
+    font-weight: bold;
+}
+
+.note:before {
+    content: "NOTE:";
+}
+
+.block {
+    margin: 1.0em;
+    padding: 1.0em;
+    border-radius: 5px;
+    box-shadow: 2px 2px 3px 0px rgba(0,0,0,0.31);
+    background-color: var(--section-bg);
+}
+
+.block .code {
+    font-size: 1.2em;
+    background-color: var(--code-bg);
+    color: var(--code-fg);
+    font-family: monospace;
+    margin: 0.0em;
+    padding: 0.5em;
+
+}
+
+table, table * {
+    border: 0px;
+    padding: 0px;
+    margin: 0px;
+}
+
+table.member-table {
+    width: 100%;
+}
+
+table.member-table td:nth-child(1) {
+    padding-left: 1em;
+}
+
+table.member-table td:nth-child(3) {
+    padding-right: 1em;
+}
+
+table.member-table tr:nth-child(2n) {
+    background-color: rgba(0, 0, 1, 0.1);
+}
+
+table.member-table * {
+    padding: 0.2em;
+    height: 3em;
+}
+
+table.member-table th {
+    padding-top: 0.4em;
+    padding-bottom: 0.4em;
+    background-color: var(--page-bg);
+    color: var(--highlight);
+}
+
+table.member-table td:nth-child(2n) {
+    text-align: center;
+    font-family: monospace;
+    font-size: 1.2em;
+}
+
+.region.heading {
+    text-align: center;
+    font-size: 3em;
+    margin-top: 1.5em;
+}
+
+.section.heading {
+    margin-top: 1em;
+    border-bottom: 1px solid var(--page-accent);
+}
+
+[indent] {
+    color: rgba(0, 0, 0, 0);
+}
+
+[indent]::after {
+    content: attr(indent);
+}

@@ -2,8 +2,11 @@
 *.o
 SMEK
 
+docs/index.html
+
 # scons
 .sconsign.dblite
 
 # Misc
 tags
+__pycache__/

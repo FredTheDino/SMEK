@@ -19,4 +19,8 @@ smek = env.Program(target="SMEK", source=source)
 Default(smek)
 AlwaysBuild(Alias("run", smek, smek[0].abspath))
 
+docs = Alias("docs", "", "docs/doc-builder.py")
+AlwaysBuild(docs)
+
 env.Clean(smek, glob("src/**/*.o", recursive=True))  # always remove *.o
+env.Clean(docs, "docs/index.html")
