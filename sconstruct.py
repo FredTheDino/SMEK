@@ -57,4 +57,4 @@ AlwaysBuild(docs)
 
 env.Clean(smek, glob("bin/**/*.o", recursive=True))  # always remove *.o
 env.Clean(docs, "docs/index.html")
-env.Clean(assets, "assets.bin")
+env.Clean(assets, "bin/assets.bin")

@@ -120,7 +120,7 @@ if __name__ == "__main__":
     data_offset = HEADER_OFFSET + HEADER_SIZE * num_assets
 
     if VERBOSE: print("\n=== WRITING DATA ===")
-    with open("assets.bin", "wb") as f:
+    with open("bin/assets.bin", "wb") as f:
         if VERBOSE: print("== File header ==")
         if VERBOSE: print("writing file header: {}, {}, {}".format(hex(num_assets), hex(HEADER_OFFSET), hex(data_offset)))
         f.write(struct.pack("QQQ", num_assets, HEADER_OFFSET, data_offset))
