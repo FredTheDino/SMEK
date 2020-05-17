@@ -1,5 +1,6 @@
-from glob import glob
+import os
 import re
+from glob import glob
 from subprocess import Popen, PIPE
 
 # TODO(ed): Fix for Windows
@@ -15,15 +16,12 @@ AddOption("--tests",
 
 VariantDir("bin", "src", duplicate=0)
 
-env = Environment()
+env = Environment(ENV=os.environ)
 env.Replace(CXX="g++")
 env.Append(CXXFLAGS="-Wall")
 env.Append(CXXFLAGS="-ggdb")
 env.Append(CXXFLAGS=shell(["sdl2-config", "--cflags"]))
 env.Append(LINKFLAGS=shell(["sdl2-config", "--libs"]))
-
-import os
-env.Append(ENV={"XDG_RUNTIME_DIR": os.environ["XDG_RUNTIME_DIR"]})
 
 source = glob("src/**/*.c*", recursive=True)
 
