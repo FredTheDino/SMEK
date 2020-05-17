@@ -26,18 +26,22 @@ Header format:
 - I Type (texture, font, sprite etc)
 - Q Name hash
 - Q Data hash
-- I Data size
+- Q Data size
 - Q Data offset (first asset = 0)
 
 """
 
 VERBOSE = os.environ.get("VERBOSE", None)
 
-HEADER_OFFSET = struct.calcsize("QQQ")
-HEADER_SIZE = struct.calcsize("IQQIQ")
+FILE_HEADER_FMT = "QQQ"
+ASSET_HEADER_FMT = "IQQQQ"
+
+HEADER_OFFSET = struct.calcsize(FILE_HEADER_FMT)
+HEADER_SIZE = struct.calcsize(ASSET_HEADER_FMT)
 
 TYPE_NONE = 0
-TYPE_SPRITE = 1
+TYPE_TEXTURE = 1
+TYPE_STRING = 2
 
 
 def default_header():
@@ -49,13 +53,14 @@ def default_header():
         "data_offset": 0,
     }
 
-def sprite_asset(name, path):
-    """
+def sprite_asset(path):
+    """Load an image.
 
     Data format:
     - I  Pixel width
     - I  Pixel height
     - I  Color channels
+    - P  Data pointer
     - B> Data """
 
     im = Image.open(path)
@@ -74,12 +79,13 @@ def sprite_asset(name, path):
     for pixel in list(im.getdata()):
         data += [*pixel]
 
-    header = default_header()
-    header["type"] = TYPE_SPRITE
-    header["data_size"] = len(data)
+    fmt = "IIIP{}B".format(len(data))
 
-    fmt = "III{}B".format(len(data))
-    return header, struct.pack(fmt, w, h, c, *data)
+    header = default_header()
+    header["type"] = TYPE_TEXTURE
+    header["data_size"] = struct.calcsize(fmt)
+
+    return header, struct.pack(fmt, w, h, c, 0, *data)
 
 
 if __name__ == "__main__":
@@ -96,6 +102,7 @@ if __name__ == "__main__":
 
     headers = []
     data = []
+    names = []
 
     asset_files = glob("res/*.*")
     print("=== FINDING ASSETS ===")
@@ -105,7 +112,7 @@ if __name__ == "__main__":
         print(asset + " -> ", end="")
         if ext in extensions:
             print(name)
-            asset_header, asset_data = extensions[ext](name, asset)
+            asset_header, asset_data = extensions[ext](asset)
             if asset_header and asset_data:
                 num_assets += 1
                 asset_header["data_offset"] = cur_asset_offset
@@ -114,19 +121,21 @@ if __name__ == "__main__":
                 cur_asset_offset += asset_header["data_size"]
                 headers.append(asset_header)
                 data.append(asset_data)
+                names.append(name)
         else:
             print("Extension {} not supported".format(ext))
 
     data_offset = HEADER_OFFSET + HEADER_SIZE * num_assets
 
-    if VERBOSE: print("\n=== WRITING DATA ===")
+    print("\n=== WRITING DATA ===")
+    print("\n".join(names))
     with open("bin/assets.bin", "wb") as f:
         if VERBOSE: print("== File header ==")
         if VERBOSE: print("writing file header: {}, {}, {}".format(hex(num_assets), hex(HEADER_OFFSET), hex(data_offset)))
-        f.write(struct.pack("QQQ", num_assets, HEADER_OFFSET, data_offset))
+        f.write(struct.pack(FILE_HEADER_FMT, num_assets, HEADER_OFFSET, data_offset))
         if VERBOSE: print("== Headers ==")
         for h in headers:
-            f.write(struct.pack("IQQIQ", *h.values()))
+            f.write(struct.pack(ASSET_HEADER_FMT, *h.values()))
             if VERBOSE: print("writing header {} as {}".format(h, [hex(val) for val in [*h.values()]]))
         if VERBOSE: print("== Data ==")
         for d in data:
