@@ -83,23 +83,8 @@ Mat Mat::perspective(real fov, real near, real far) {
     result._[0][0] = s;
     result._[1][1] = s;
     result._[2][2] = -far / (far - near);
-#if 1
     result._[2][3] = -far * near / (far - near);
     result._[3][2] = -1;
-#else
-    result._[3][2] = -far * near / (far - near);
-    result._[2][3] = -1;
-#endif
-
-    static bool only_first = true;
-    if (only_first) {
-        only_first = false;
-        Vec4 p = Vec4(0, 0, 0.0, 1.0);
-        LOG("\nA %f %f %f %f", p.x, p.y, p.z, p.w);
-        log_matrix(result);
-        p = p * result;
-        LOG("\nB %f %f %f %f", p.x, p.y, p.z, p.w);
-    }
     return result;
 }
 
