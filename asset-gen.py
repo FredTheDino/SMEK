@@ -76,7 +76,7 @@ def sprite_asset(path):
         return None, None
 
     data = []
-    for pixel in list(im.getdata()):
+    for pixel in im.getdata():
         data += [*pixel]
 
     fmt = "IIIP{}B".format(len(data))

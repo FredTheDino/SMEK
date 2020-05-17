@@ -100,14 +100,6 @@ void load(const char *path) {
             read<u8>(file, data_ptr->image.data, size);
             LOG("read<u8>: %ld %#lx\n", ftell(file), ftell(file));
 
-            printf("found image %03ux%03ux%1u: ",
-                    data_ptr->image.width,
-                    data_ptr->image.height,
-                    data_ptr->image.channels);
-            for (u32 p = 0; p < size; p++) {
-                printf(" %3u", data_ptr->image.data[p]);
-            }
-            printf("\n");
             free(data_ptr->image.data);
         } break;
         case AssetType::STRING: {
@@ -118,7 +110,6 @@ void load(const char *path) {
             read<char>(file, data_ptr->string.data, size);
             LOG("read<char>: %ld %#lx\n", ftell(file), ftell(file));
 
-            printf("found string '%s'\n", data_ptr->string.data);
             free(data_ptr->string.data);
         } break;
         default:
