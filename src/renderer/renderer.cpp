@@ -160,6 +160,8 @@ bool init() {
 
     // TODO(ed): Error checking.
     shader = compile_shader(dump_file("master.glsl"));
+
+    GL::Enable(GL::cDEPTH_TEST);
     return true;
 }
 

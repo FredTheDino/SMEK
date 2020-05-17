@@ -30,6 +30,8 @@ struct Mat {
         return m;
     }
 
+    real *data() { return &_[0][0]; }
+
     static Mat scale(real scale);
     static Mat translate(real dx, real dy, real dz);
     static Mat translate(Vec3 delta);

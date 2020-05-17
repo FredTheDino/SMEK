@@ -9,6 +9,7 @@ constexpr u32 cCOMPILE_STATUS = 0x8B81;
 constexpr u32 cDEBUG_OUTPUT = 0x92E0;
 constexpr u32 cDEBUG_TYPE_ERROR = 0x824C;
 constexpr u32 cDEPTH_BUFFER_BIT = 0x00000100;
+constexpr u32 cDEPTH_TEST = 0x0B71;
 constexpr u32 cCOLOR_BUFFER_BIT = 0x00004000;
 constexpr u32 cFLOAT = 0x1406;
 constexpr u32 cFRAGMENT_SHADER = 0x8B30;
