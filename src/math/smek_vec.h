@@ -61,6 +61,8 @@ T hadamard(const T &a, const T &b);
 template<typename T>
 real dot(const T &a, const T &b);
 
+Vec3 cross(const Vec3 &a, const Vec3 &b);
+
 template<typename T>
 bool _close_enough_vec(const T &a, const T &b, real r);
 

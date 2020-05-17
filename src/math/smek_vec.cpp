@@ -74,6 +74,15 @@ real dot(const T &a, const T &b) {
 TEST_STMT("vec_dot", Math::close_enough<real>(dot(Vec2(0, 1), Vec2(1, 0)), 0.0, 0.001));
 TEST_STMT("vec_dot", Math::close_enough<real>(dot(Vec4(0, 1), Vec4(1, 0)), 0.0, 0.001));
 
+Vec3 cross(const Vec3 &a, const Vec3 &b) {
+    return Vec3(a.y * b.z - b.y * a.z,
+                a.z * b.x - b.x * a.x,
+                a.x * b.y - b.x * a.y);
+}
+
+TEST_STMT("vec_dot", close_enough(cross(Vec3(1, 0, 0), Vec3(0, 1, 0)), Vec3(0, 0, 1)));
+
+
 template<typename T>
 bool _close_enough_vec(const T &a, const T &b, real r) {
     bool result = true;
