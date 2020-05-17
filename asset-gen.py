@@ -96,14 +96,14 @@ def string_asset(path):
     - P  Data pointer
     - s> Data """
 
-    data = "".join(open(path, "r").readlines())
-    fmt = "QP{}s".format(len(data))  #TODO(gu) include +1 for \0?
+    data = "".join(open(path, "r").readlines()).rstrip()
+    fmt = "QP{}s".format(len(data) + 1)
 
     header = default_header()
     header["type"] = TYPE_STRING
     header["data_size"] = struct.calcsize(fmt)
 
-    return header, struct.pack(fmt, len(data), 0, str.encode(data, "ascii"))
+    return header, struct.pack(fmt, len(data)+1, 0, str.encode(data, "ascii"))
 
 if __name__ == "__main__":
     extensions = {

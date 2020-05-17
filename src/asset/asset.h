@@ -14,15 +14,15 @@ typedef enum {
     NUM_TYPES,
 } AssetType;
 
-// read directly from file
 struct FileHeader {
+    // read from file
     u64 num_assets;
     u64 header_offset;
     u64 data_offset;
 };
 
-// read directly from file
 struct AssetHeader {
+    // read from file
     AssetType type;
     u64 name_hash;
     u64 data_hash;
@@ -30,8 +30,8 @@ struct AssetHeader {
     u64 data_offset;
 };
 
-// read directly from file
 struct Image {
+    // read from file
     u32 width;
     u32 height;
     u32 channels;
@@ -42,18 +42,15 @@ struct Image {
     }
 };
 
-// read directly from file
 struct StringAsset {
+    // read from file
     u64 size;
     char *data;
 };
 
-// read directly from file
-struct AssetData {
-    union {
-        Image image;
-        StringAsset string;
-    };
+union AssetData {
+    Image image;
+    StringAsset string;
 };
 
 // not read directly from file
@@ -64,18 +61,6 @@ struct Asset {
     u64 name_hash;
     u64 data_hash;
 };
-
-///*
-u64 asset_hash(const char *str);  //TODO(gu)
-
-///*
-// Return the asset id for the specified name-hash.
-// NO_ASSET if no asset is found.
-AssetID fetch_id(const char *str);
-
-///*
-// Fetch the specified image from the asset file as a pointer. 
-Image *fetch_image(AssetID id);
 
 ///*
 void load(const char *path);

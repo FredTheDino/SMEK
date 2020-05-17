@@ -94,7 +94,7 @@ void load(const char *path) {
         switch (header.type) {
         case AssetType::TEXTURE: {
             read<Image>(file, data_ptr);
-            LOG("read<Image>%ld %#lx\n", ftell(file), ftell(file));
+            LOG("read<Image>: %ld %#lx\n", ftell(file), ftell(file));
             u64 size = data_ptr->image.size();
             data_ptr->image.data = (u8 *) malloc(sizeof(u8[size]));
             read<u8>(file, data_ptr->image.data, size);
@@ -104,7 +104,7 @@ void load(const char *path) {
         } break;
         case AssetType::STRING: {
             read<StringAsset>(file, data_ptr);
-            LOG("read<StringAsset>%ld %#lx\n", ftell(file), ftell(file));
+            LOG("read<StringAsset>: %ld %#lx\n", ftell(file), ftell(file));
             u32 size = data_ptr->string.size;
             data_ptr->string.data = (char *) malloc(sizeof(char[size]));
             read<char>(file, data_ptr->string.data, size);
