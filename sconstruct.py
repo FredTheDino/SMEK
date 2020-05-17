@@ -42,6 +42,7 @@ else:
 
 if GetOption("verbose"):
     env.Append(ENV={"VERBOSE": "1"})
+    env.Append(CPPDEFINES="VERBOSE")
 
 # for variant_dir
 source = [re.sub("^src/", "bin/", f) for f in source]

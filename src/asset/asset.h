@@ -9,6 +9,7 @@ namespace Asset {
 typedef enum {
     NONE = 0,
     TEXTURE = 1,
+    STRING = 2,
 
     NUM_TYPES,
 } AssetType;
@@ -42,9 +43,16 @@ struct Image {
 };
 
 // read directly from file
+struct StringAsset {
+    u64 size;
+    char *data;
+};
+
+// read directly from file
 struct AssetData {
     union {
         Image image;
+        StringAsset string;
     };
 };
 

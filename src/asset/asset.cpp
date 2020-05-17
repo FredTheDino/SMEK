@@ -56,42 +56,49 @@ size_t read(FILE *file, void *ptr, size_t num=1) {
 }
 
 void load(const char *path) {
+#ifdef VERBOSE
+#define LOG(...) printf(__VA_ARGS__)
+#else
+#define LOG(...)
+#endif
     FILE *file = fopen(path, "rb");
     if (!file) return;
 
-    //printf("%ld %#lx\n", ftell(file), ftell(file));
+    LOG("%ld %#lx\n", ftell(file), ftell(file));
     read<FileHeader>(file, &system.file_header, 1);
-    //printf("read<FileHeader>: %ld %#lx\n", ftell(file), ftell(file));
+    LOG("read<FileHeader>: %ld %#lx\n", ftell(file), ftell(file));
     u64 num_assets = system.file_header.num_assets;
     system.num_assets = num_assets;
 
     system.headers = (AssetHeader *) malloc(sizeof(AssetHeader) * num_assets);
     read<AssetHeader>(file, system.headers, num_assets);
-    //printf("read<AssetHeader>: %ld %#lx\n", ftell(file), ftell(file));
+    LOG("read<AssetHeader>: %ld %#lx\n", ftell(file), ftell(file));
 
-    // for (u64 asset = 0; asset < num_assets; asset++) {
-    //     printf("%u %lu %lu %lu %lu\n",
-    //             system.headers[asset].type,
-    //             system.headers[asset].name_hash,
-    //             system.headers[asset].data_hash,
-    //             system.headers[asset].data_size,
-    //             system.headers[asset].data_offset);
-    // }
+#ifdef VERBOSE
+    for (u64 asset = 0; asset < num_assets; asset++) {
+        printf("%u %20lu %20lu %lu %#lx\n",
+                system.headers[asset].type,
+                system.headers[asset].name_hash,
+                system.headers[asset].data_hash,
+                system.headers[asset].data_size,
+                system.headers[asset].data_offset);
+    }
+#endif
 
     system.data = (AssetData *) malloc(sizeof(AssetData) * num_assets);
     for (u64 asset = 0; asset < num_assets; asset++) {
         AssetHeader header = system.headers[asset];
         AssetData *data_ptr = &system.data[asset];
         fseek(file, system.file_header.data_offset + header.data_offset, SEEK_SET);
-        //printf("fseek: %ld %#lx\n", ftell(file), ftell(file));
-        read<AssetData>(file, data_ptr);
-        //printf("read<AssetData>%ld %#lx\n", ftell(file), ftell(file));
+        LOG("fseek: %ld %#lx\n", ftell(file), ftell(file));
         switch (header.type) {
         case AssetType::TEXTURE: {
+            read<Image>(file, data_ptr);
+            LOG("read<Image>%ld %#lx\n", ftell(file), ftell(file));
             u64 size = data_ptr->image.size();
             data_ptr->image.data = (u8 *) malloc(sizeof(u8[size]));
             read<u8>(file, data_ptr->image.data, size);
-            //printf("read<u8>: %ld %#lx\n", ftell(file), ftell(file));
+            LOG("read<u8>: %ld %#lx\n", ftell(file), ftell(file));
 
             printf("found image %03ux%03ux%1u: ",
                     data_ptr->image.width,
@@ -102,6 +109,17 @@ void load(const char *path) {
             }
             printf("\n");
             free(data_ptr->image.data);
+        } break;
+        case AssetType::STRING: {
+            read<StringAsset>(file, data_ptr);
+            LOG("read<StringAsset>%ld %#lx\n", ftell(file), ftell(file));
+            u32 size = data_ptr->string.size;
+            data_ptr->string.data = (char *) malloc(sizeof(char[size]));
+            read<char>(file, data_ptr->string.data, size);
+            LOG("read<char>: %ld %#lx\n", ftell(file), ftell(file));
+
+            printf("found string '%s'\n", data_ptr->string.data);
+            free(data_ptr->string.data);
         } break;
         default:
             break;

@@ -88,10 +88,29 @@ def sprite_asset(path):
     return header, struct.pack(fmt, w, h, c, 0, *data)
 
 
+def string_asset(path):
+    """Load an UTF-8 text file.
+
+    Data format:
+    - I  Number of characters
+    - P  Data pointer
+    - s> Data """
+
+    data = "".join(open(path, "r").readlines())
+    fmt = "QP{}s".format(len(data))  #TODO(gu) include +1 for \0?
+
+    header = default_header()
+    header["type"] = TYPE_STRING
+    header["data_size"] = struct.calcsize(fmt)
+
+    return header, struct.pack(fmt, len(data), 0, str.encode(data, "ascii"))
+
 if __name__ == "__main__":
     extensions = {
         "png": sprite_asset,
         "jpg": sprite_asset,
+        "txt": string_asset,
+        "glsl": string_asset,
         #"wav": sound_asset,
     }
 
