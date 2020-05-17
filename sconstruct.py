@@ -14,6 +14,11 @@ AddOption("--tests",
           action="store_true",
           help="Compile with tests")
 
+AddOption("--verbose",
+          dest="verbose",
+          action="store_true",
+          help="Print verbose output. Not fully respected.")
+
 VariantDir("bin", "src", duplicate=0)
 
 env = Environment(ENV=os.environ)
@@ -23,6 +28,11 @@ env.Append(CXXFLAGS="-ggdb")
 env.Append(CXXFLAGS=shell(["sdl2-config", "--cflags"]))
 env.Append(LINKFLAGS=shell(["sdl2-config", "--libs"]))
 
+env.Append(CXXFLAGS="-Wno-sign-compare")
+
+assets = env.Alias("assets", "", "./asset-gen.py")
+AlwaysBuild(assets)
+
 source = glob("src/**/*.c*", recursive=True)
 
 if GetOption("tests"):
@@ -30,10 +40,16 @@ if GetOption("tests"):
 else:
     source.remove("src/test.cpp")
 
+if GetOption("verbose"):
+    env.Append(ENV={"VERBOSE": "1"})
+
+# for variant_dir
 source = [re.sub("^src/", "bin/", f) for f in source]
 
-smek = env.Program(target="bin/SMEK", source=source, variant_dir="bin")
+smek = env.Program(target="bin/SMEK", source=source)
+Depends(smek, assets)
 Default(smek)
+
 AlwaysBuild(env.Alias("run", smek, smek[0].abspath))
 
 docs = env.Alias("docs", "", "docs/doc-builder.py")
@@ -41,3 +57,4 @@ AlwaysBuild(docs)
 
 env.Clean(smek, glob("bin/**/*.o", recursive=True))  # always remove *.o
 env.Clean(docs, "docs/index.html")
+env.Clean(assets, "assets.bin")
