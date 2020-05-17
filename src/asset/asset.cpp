@@ -15,33 +15,7 @@ struct System {
     u64 num_assets;
 } system = {};
 
-AssetData *raw_fetch(AssetID id, AssetType type) {
-    if (system.file_header.num_assets < id) {
-        // invalid asset id
-        return nullptr;
-    }
-    if (type == AssetType::NONE || system.headers[id].type == type) {
-        return &system.data[id];  //TODO(gu) ??
-    } else {
-        // invalid type
-        return nullptr;
-    }
-}
-
-Image *fetch_image(AssetID id) {
-    return &raw_fetch(id, AssetType::TEXTURE)->image;
-}
-
-AssetID fetch_id(const char *str) {
-    AssetHeader *headers = system.headers;
-    // u64 name_hash = hash(str);
-    u64 name_hash = 0;
-    for (u64 i = 0; i < system.file_header.num_assets; i++) {
-        if (headers[i].name_hash == name_hash) return i;
-    }
-    return NO_ASSET;
-}
-
+//TODO(gu) re-implement
 template <typename T>
 size_t read(FILE *file, void *ptr, size_t num=1) {
     if (!num) return 0;
@@ -111,6 +85,32 @@ void load(const char *path) {
             LOG("read<char>: %ld %#lx\n", ftell(file), ftell(file));
 
             free(data_ptr->string.data);
+        } break;
+        case AssetType::MODEL: {
+            read<Model>(file, data_ptr);
+            LOG("read<Model>: %ld %#lx\n", ftell(file), ftell(file));
+            u32 points_per_face = data_ptr->model.points_per_face;
+            u32 num_faces = data_ptr->model.num_faces;
+            u32 size = 8 * points_per_face * num_faces;  // 3+2+3 values per point
+            data_ptr->model.data = (f32 *) malloc(sizeof(f32[size]));
+            read<f32>(file, data_ptr->model.data, size);
+            LOG("read<f32>: %ld %#lx\n", ftell(file), ftell(file));
+            f32 *data = data_ptr->model.data;
+
+            for (u32 i = 0; i < size; i += 8*3) {
+                ModelFace face = {};
+                face.vertices[0].position = Vec3(data[0], data[1], data[2]);
+                face.vertices[0].texture = Vec2(data[3], data[4]);
+                face.vertices[0].normal = Vec3(data[5], data[6], data[7]);
+                face.vertices[1].position = Vec3(data[8], data[9], data[10]);
+                face.vertices[1].texture = Vec2(data[11], data[12]);
+                face.vertices[1].normal = Vec3(data[13], data[14], data[15]);
+                face.vertices[2].position = Vec3(data[16], data[17], data[18]);
+                face.vertices[2].texture = Vec2(data[19], data[20]);
+                face.vertices[2].normal = Vec3(data[21], data[22], data[23]);
+            }
+
+            free(data_ptr->model.data);
         } break;
         default:
             break;

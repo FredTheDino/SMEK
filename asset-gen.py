@@ -42,6 +42,7 @@ HEADER_SIZE = struct.calcsize(ASSET_HEADER_FMT)
 TYPE_NONE = 0
 TYPE_TEXTURE = 1
 TYPE_STRING = 2
+TYPE_MODEL = 3
 
 
 def default_header():
@@ -105,12 +106,68 @@ def string_asset(path):
 
     return header, struct.pack(fmt, len(data)+1, 0, str.encode(data, "ascii"))
 
+def model_asset(path):
+    """Load a .obj model-file.
+
+    Data format:
+    - I  Points per face
+    - I  Number of faces
+    - P  Data pointer
+    - f> Data
+
+    Not included but present in file:
+    - s   material library
+    - s   material name
+    - s   object name
+    - s   smoothing group
+    """
+
+    vertices         = []
+    texture_vertices = []
+    normal_vertices  = []
+    faces            = []
+
+    for line in open(path, "r"):
+        if line.startswith("#"):
+            continue
+        line = line.split("#")[0].strip()
+        if line.startswith("v "):
+            vertices.append([float(f) for f in line[2:].split(" ")])
+        elif line.startswith("vt "):
+            texture_vertices.append([float(f) for f in line[3:].split(" ")])
+        elif line.startswith("vn "):
+            normal_vertices.append([float(f) for f in line[3:].split(" ")])
+        elif line.startswith("f "):
+            faces.append([[int(i) for i in v.split("/")] for v in line[2:].split(" ")])
+        else:
+            print("Unable to parse line '{}' in file {}".format(line, path))
+            continue
+
+    points_per_face = len(faces[0])
+    num_faces = len(faces)
+
+    data = []
+    for face in faces:
+        for p in range(points_per_face):
+            data += vertices[face[p][0]-1]
+            data += texture_vertices[face[p][1]-1]
+            data += normal_vertices[face[p][2]-1]
+
+    fmt = "IIP{}f".format(len(data))
+
+    header = default_header()
+    header["type"] = TYPE_MODEL
+    header["data_size"] = struct.calcsize(fmt)
+
+    return header, struct.pack(fmt, points_per_face, num_faces, 0, *data)
+
 if __name__ == "__main__":
     extensions = {
         "png": sprite_asset,
         "jpg": sprite_asset,
         "txt": string_asset,
         "glsl": string_asset,
+        "obj": model_asset,
         #"wav": sound_asset,
     }
 

@@ -1,4 +1,4 @@
-#include "../math/smek_math.h"
+#include "../math/smek_vec.h"
 
 using AssetID = u64;
 
@@ -6,10 +6,21 @@ const AssetID NO_ASSET = 0xFFFFFFFF;
 
 namespace Asset {
 
+struct Vertex {
+    Vec3 position;
+    Vec2 texture;
+    Vec3 normal;
+};
+
+struct ModelFace {
+    Vertex vertices[3];
+};
+
 typedef enum {
     NONE = 0,
     TEXTURE = 1,
     STRING = 2,
+    MODEL = 3,
 
     NUM_TYPES,
 } AssetType;
@@ -48,9 +59,17 @@ struct StringAsset {
     char *data;
 };
 
+struct Model {
+    // read from file
+    u32 points_per_face;
+    u32 num_faces;
+    f32 *data;
+};
+
 union AssetData {
     Image image;
     StringAsset string;
+    Model model;
 };
 
 // not read directly from file
