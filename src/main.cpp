@@ -10,7 +10,8 @@ GameState _global_gs;
 #ifdef TESTS
 
 int main() { // Test entry point
-    _global_tests.run();
+    if(!_global_tests.run())
+        return 1;
     return 0;
 }
 
