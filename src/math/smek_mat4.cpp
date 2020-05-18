@@ -71,10 +71,15 @@ TEST_CASE("mat_mul", {
                                      4, 2, 8, 6));
 });
 
-Mat look_in(Vec3 direction, Vec3 up) {
-    // TODO(ed): Add normalization and finish this
-    Mat result;
-    return result;
+Mat Mat::look_towards(Vec3 from, Vec3 to, Vec3 up) {
+    Vec3 w = normalized(from - to);
+    Vec3 u = cross(w, normalized(up));
+    Vec3 v = cross(w, u);
+    Mat m = Mat::from(u.x, v.x, w.x, from.x,
+                      u.y, v.y, w.y, from.y,
+                      u.z, v.z, w.z, from.z,
+                      0.0, 0.0, 0.0, 1.0);
+    return m;
 }
 
 Mat Mat::perspective(real fov, real near, real far) {

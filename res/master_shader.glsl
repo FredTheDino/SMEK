@@ -24,7 +24,7 @@ out vec4 color;
 
 in vec3 pass_color;
 void main() {
-    color = vec4(pass_color * (sin(mod(t * 1.232, 2 * 3.14)) * 0.2 + 0.4), 1);
+    color = vec4(pass_color, 1);
 }
 
 #endif
