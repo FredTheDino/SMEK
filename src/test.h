@@ -32,7 +32,7 @@ struct Test {
 
 struct TestSuite {
     void add(Test test);
-    bool run();
+    unsigned int run();
 
     unsigned int cap_tests;
     unsigned int num_tests;
