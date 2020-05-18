@@ -1,3 +1,28 @@
+#ifdef NO_COLOR
+#define RESET
+
+#define BLACK
+#define RED
+#define GREEN
+#define YELLOW
+#define BLUE
+#define MAGENTA
+#define CYAN
+#define WHITE
+
+#define BOLDBLACK
+#define BOLDRED
+#define BOLDGREEN
+#define BOLDYELLOW
+#define BOLDBLUE
+#define BOLDMAGENTA
+#define BOLDCYAN
+#define BOLDWHITE
+
+// Clears current line. Return to the start of this line with '\r'.
+#define CLEAR
+
+#else
 #define RESET       "\033[0m"
 
 #define BLACK       "\033[30m"
@@ -20,3 +45,12 @@
 
 // Clears current line. Return to the start of this line with '\r'.
 #define CLEAR "\033[2K"
+#endif
+
+#if 0
+////
+// This flag disables all color output if you want to compile and run in
+// something that doesn't support color text output.
+#define NO_COLOR
+
+#endif
