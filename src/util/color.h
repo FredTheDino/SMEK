@@ -46,3 +46,11 @@
 // Clears current line. Return to the start of this line with '\r'.
 #define CLEAR "\033[2K"
 #endif
+
+#if 0
+////
+// This flag disables all color output if you want to compile and run in
+// something that doesn't support color text output.
+#define NO_COLOR
+
+#endif
