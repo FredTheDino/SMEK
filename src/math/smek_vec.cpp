@@ -80,7 +80,7 @@ Vec3 cross(const Vec3 &a, const Vec3 &b) {
                 a.x * b.y - b.x * a.y);
 }
 
-TEST_STMT("vec_dot", close_enough(cross(Vec3(1, 0, 0), Vec3(0, 1, 0)), Vec3(0, 0, 1)));
+TEST_STMT("vec_cross", close_enough(cross(Vec3(1, 0, 0), Vec3(0, 1, 0)), Vec3(0, 0, 1)));
 
 
 template<typename T>
