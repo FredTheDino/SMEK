@@ -34,9 +34,9 @@ void _smek_info_log(const char *file, u32 line, const char *message, ...) {
 
 void _smek_unreachable(const char *file, u32 line) {
     std::fprintf(stderr, RED "%s" RESET "|" RED "%d" RESET ": Unreachable\n", file, line);
-    std::fprintf(stderr, BOLDRED "| " RESET " End of Transmission" RESET "\n");
+    std::fprintf(stderr, BOLDRED "| " RESET " End of Transmission\n");
 
-    std::exit('H'); // U for Unreachable
+    std::exit('U'); // U for Unreachable
 }
 
 void _smek_assert(const char *file, u32 line, bool passed, const char *msg, const char *expr) {
@@ -44,7 +44,7 @@ void _smek_assert(const char *file, u32 line, bool passed, const char *msg, cons
 
     std::fprintf(stderr, RED "%s" RESET "|" RED "%d" RESET ": ASSERT(%s)\n", file, line, expr);
     std::fprintf(stderr, BOLDRED "| " RESET "%s\n", msg);
-    std::fprintf(stderr, BOLDRED "| " RESET "End of Transmission" RESET "\n");
+    std::fprintf(stderr, BOLDRED "| " RESET "End of Transmission\n");
 
     std::exit('A'); // A for Assert
 }
