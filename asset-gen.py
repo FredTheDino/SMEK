@@ -1,37 +1,64 @@
 #!/usr/bin/env python3
-import os
+"""Asset-file generator.
+
+This module takes all supported asset files in the
+res/-folder and packages them into a binary file
+intended to be read as C-style structs.
+
+The assets are parsed by functions which all
+return a (header, data)-tuple. A header template
+is returned by default_header() and additional
+parameters cannot be added. The data consists of
+already packed bytes according to any arbitrary
+C-struct format. All data is packaged using the
+`struct`-module from the Python standard library.
+
+The following specification uses the same letters
+for formats as https://docs.python.org/3/library/struct.html.
+
+Format of binary file:
+  - File header
+  - Asset headers
+  - Asset data
+
+Format of file header:
+- Q Number of assets
+- Q Adress of first header-byte
+- Q Adress of first data-byte
+
+Format of asset header:
+- I Type (texture, font, sprite etc)
+- Q Name hash
+- Q Data hash
+- Q Data size                     [bytes]
+- Q Data offset (first asset = 0) [bytes]
+
+Format of asset data is arbitrary. In addition to
+the formats specified by `struct`-documentation,
+the data format specifies "variable amount" as >.
+For example, images specifies the following
+format:
+
+    - I  Pixel width
+    - I  Pixel height
+    - I  Color channels
+    - P  Data pointer
+    - B> Data
+
+In this case, the length of the data can be
+calculated with width * height * channels. A
+variable amount of data should never be sent
+without a means of calculating the length before
+reading it, which means you should not depend on,
+for example, a terminating 0x00.
+"""
 import re
 import struct
 import pyhash
 from glob import glob
 from PIL import Image
-"""
-Format:
--------------------
-  File header
--------------------
-  Asset headers
--------------------
-  Asset data
--------------------
 
-###################
-
-File header:
-- Q Number of assets
-- Q Header offset
-- Q Data offset
-
-Header format:
-- I Type (texture, font, sprite etc)
-- Q Name hash
-- Q Data hash
-- Q Data size
-- Q Data offset (first asset = 0)
-
-"""
-
-VERBOSE = os.environ.get("VERBOSE", None)
+VERBOSE = False  # set to True to debug asset headers
 
 FILE_HEADER_FMT = "QQQ"
 ASSET_HEADER_FMT = "IQQQQ"
@@ -46,6 +73,10 @@ TYPE_MODEL = 3
 
 
 def default_header():
+    """Return a default header.
+
+    Any additional parameters will invalidate the
+    binary file."""
     return {
         "type": TYPE_NONE,
         "name_hash": 0,
@@ -90,7 +121,7 @@ def sprite_asset(path):
 
 
 def string_asset(path):
-    """Load an UTF-8 text file.
+    """Load an ASCII text file.
 
     Data format:
     - I  Number of characters
@@ -207,12 +238,12 @@ if __name__ == "__main__":
     print("\n".join(names))
     with open("bin/assets.bin", "wb") as f:
         if VERBOSE: print("== File header ==")
-        if VERBOSE: print("writing file header: {}, {}, {}".format(hex(num_assets), hex(HEADER_OFFSET), hex(data_offset)))
+        if VERBOSE: print("Writing file header: {}, {}, {}".format(hex(num_assets), hex(HEADER_OFFSET), hex(data_offset)))
         f.write(struct.pack(FILE_HEADER_FMT, num_assets, HEADER_OFFSET, data_offset))
         if VERBOSE: print("== Headers ==")
         for h in headers:
             f.write(struct.pack(ASSET_HEADER_FMT, *h.values()))
-            if VERBOSE: print("writing header {} as {}".format(h, [hex(val) for val in [*h.values()]]))
+            if VERBOSE: print("Writing header {} as {}".format(h, [hex(val) for val in [*h.values()]]))
         if VERBOSE: print("== Data ==")
         for d in data:
             f.write(d)
