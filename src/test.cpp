@@ -39,10 +39,10 @@ unsigned int TestSuite::run() {
     std::printf("Running %d tests\n", num_tests);
     unsigned int succeeded = 0;
 
-    GameState state;
     for (unsigned int i = 0; i < num_tests; i++) {
         std::printf(CLEAR "\r%d/%d:  " YELLOW "testing" RESET " %s\r",
                 i+1, num_tests, tests[i].name);
+        GameState state;
         if (tests[i].func(&state)) {
             succeeded++;
         } else {

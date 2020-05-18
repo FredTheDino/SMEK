@@ -37,6 +37,6 @@ TEST_STMT("vec_length_squared", Math::close_enough<real>(length_squared(Vec2(1, 
 TEST_STMT("vec_length_squared", Math::close_enough<real>(length_squared(Vec4(1, 2, 3, 4)), 30.0, 0.001));
 TEST_STMT("vec_mul", close_enough(0 * Vec4(1, 1, 3, 7), Vec4()));
 TEST_STMT("vec_mul", close_enough(Vec2(1, 1) * 3, Vec2(3, 3)));
-TEST_STMT("vec_normalized", close_enough(normalized(Vec4(1, 1, 1, 1)), Vec4(0.25, 0.25, 0.25, 0.25), 0.001));
+TEST_STMT("vec_normalized", close_enough(normalized(Vec4(1, 1, 1, 1)), Vec4(0.5, 0.5, 0.5, 0.5), 0.001));
 TEST_STMT("vec_sub", close_enough(Vec2(3, 4) - Vec2(1, -2), Vec2(2, 6)));
 TEST_STMT("vec_sub", close_enough(Vec4() - Vec4(1, 1, 1), Vec4(-1, -1, -1)));

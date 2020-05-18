@@ -42,10 +42,10 @@ Shader default_shader();
 
 ///*
 // Initalize the graphics pipeline.
-bool init(const char *shader_source);
+bool init(GameState *gs, const char *shader_source);
 
 ///*
 // Destroy the graphics pipeline.
-void deinit();
+void deinit(GameState *gs);
 
 } // namespace GFX

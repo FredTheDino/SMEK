@@ -141,7 +141,7 @@ void Texture::bind(u32 texture_slot) {
     GL::ActiveTexture(GL::cTEXTURE0 + 79); // Hardcoded since it's the "minimum maximum".
 }
 
-bool init(const char *shader_source) {
+bool init(GameState *gs, const char *shader_source) {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         ERROR("Failed to initalize SDL \"%s\"", SDL_GetError());
         return false;
@@ -152,19 +152,22 @@ bool init(const char *shader_source) {
 
     const int width = 640;
     const int height = 480;
-    _global_gs.window = SDL_CreateWindow("SMEK - The new begining",
+    gs->window = SDL_CreateWindow("SMEK - The new begining",
             SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED,
             width,
             height,
-            SDL_WINDOW_OPENGL);
+            SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
 
-    if (_global_gs.window == NULL) {
+    if (gs->window == NULL) {
         ERROR("Failed to create OpenGL window \"%s\"", SDL_GetError());
         return false;
     }
 
-    _global_gs.gl_context = SDL_GL_CreateContext(_global_gs.window);
+    gs->gl_context = SDL_GL_CreateContext(gs->window);
+    SDL_GL_MakeCurrent(gs->window, gs->gl_context);
+    if (gs != &_global_gs)
+        SDL_ShowWindow(gs->window);
 
     if (!GL::load_procs()) {
         ERROR("Failed to load OpenGL function.");
@@ -177,7 +180,11 @@ bool init(const char *shader_source) {
     return true;
 }
 
-void deinit() {
+void deinit(GameState *gs) {
+
+    SDL_DestroyWindow(gs->window);
+    SDL_GL_DeleteContext(gs->gl_context);
+
     SDL_Quit();
 }
 
