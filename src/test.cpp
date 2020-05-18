@@ -35,7 +35,7 @@ void TestSuite::add(Test test) {
     tests[num_tests++] = test;
 }
 
-void TestSuite::run() {
+unsigned int TestSuite::run() {
     std::printf("Running %d tests\n", num_tests);
     unsigned int succeeded = 0;
 
@@ -56,5 +56,7 @@ void TestSuite::run() {
         std::printf(RED "Failed:" RESET " %d\n", num_tests - succeeded);
 
     delete[] tests;
+
+    return num_tests - succeeded;
 }
 
