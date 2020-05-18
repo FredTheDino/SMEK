@@ -36,7 +36,7 @@ Shader default_shader() {
     return shader;
 }
 
-Shader compile_shader(const char *source) {
+Shader Shader::compile(const char *source) {
     auto shader_error_check = [](u32 shader) -> bool {
         i32 success;
         GL::GetShaderiv(shader, GL::cCOMPILE_STATUS, &success);
@@ -108,6 +108,37 @@ Shader compile_shader(const char *source) {
     }
 
     return {program};
+}
+
+Texture Texture::upload(u32 width, u32 height, u32 components, u8 *data, Sampling sampling) {
+    // TODO(ed): Asserts, they would be nice to have.
+    u32 texture;
+    GL::GenTextures(1, &texture);
+    GL::BindTexture(GL::cTEXTURE_2D, texture);
+
+    GL::GLenum format;
+    if (components == 1) format = GL::cRED;
+    if (components == 2) format = GL::cRG;
+    if (components == 3) format = GL::cRGB;
+    if (components == 4) format = GL::cRGBA;
+    GL::TexImage2D(GL::cTEXTURE_2D, 0, GL::cRGBA, width, height, 0, format, GL::cUNSIGNED_BYTE, data);
+    GL::GLenum gl_sampling;
+    if (sampling == Sampling::LINEAR) gl_sampling = GL::cLINEAR;
+    else if (sampling == Sampling::NEAREST) gl_sampling = GL::cNEAREST;
+    else ;// TODO(ed): Unreachable
+    GL::TexParameteri(GL::cTEXTURE_2D, GL::cTEXTURE_MIN_FILTER, gl_sampling);
+    GL::TexParameteri(GL::cTEXTURE_2D, GL::cTEXTURE_MAG_FILTER, gl_sampling);
+
+    GL::TexParameteri(GL::cTEXTURE_2D, GL::cTEXTURE_WRAP_S, GL::cCLAMP_TO_EDGE);
+    GL::TexParameteri(GL::cTEXTURE_2D, GL::cTEXTURE_WRAP_T, GL::cCLAMP_TO_EDGE);
+    return { texture };
+}
+
+void Texture::bind(u32 texture_slot) {
+    // TODO(ed): Assert texture_slot < 80;
+    GL::ActiveTexture(GL::cTEXTURE0 + texture_slot);
+    GL::BindTexture(GL::cTEXTURE_2D, texture_id);
+    GL::ActiveTexture(GL::cTEXTURE0 + 79); // Hardcoded since it's the "minimum maximum".
 }
 
 bool init(const char *shader_source) {

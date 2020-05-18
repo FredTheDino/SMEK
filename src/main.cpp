@@ -59,6 +59,14 @@ int main() { // Game entry point
     GFX::Mesh rect = GFX::Mesh::init(points);
     GFX::Shader shader = GFX::default_shader();
 
+    u8 image[] = {
+        255, 0, 0, 255,   0, 0, 0, 255,  0, 0, 255, 255,
+        255, 255, 0, 255,   0, 255, 0, 255,  0, 0, 255, 255,
+        255, 255, 255, 255,   0, 0, 0, 0,  0, 0, 0, 255,
+    };
+
+    auto texture = GFX::Texture::upload(3, 3, 4, image, GFX::Texture::Sampling::NEAREST);
+
     bool running = true;
     while (running) {
         SDL_Event event;
@@ -87,6 +95,10 @@ int main() { // Game entry point
 
 
         shader.use();
+
+        auto tex_loc = GL::GetUniformLocation(shader.program_id, "tex");
+        texture.bind(0);
+        GL::Uniform1i(tex_loc, 0);
 
         auto model_loc = GL::GetUniformLocation(shader.program_id, "model");
         Mat model_matrix = Mat::translate(Math::cos(time) * 0.2, Math::sin(time) * 0.2, -0.5) * Mat::scale(0.001);

@@ -34,6 +34,14 @@ constexpr u32 cUNIFORM_BUFFER = 0x8A11;
 constexpr u32 cUNSIGNED_BYTE = 0x1401;
 constexpr u32 cVERTEX_SHADER = 0x8B31;
 
+constexpr u32 cNEAREST = 0x2600;
+constexpr u32 cLINEAR = 0x2601;
+constexpr u32 cTEXTURE_MIN_FILTER = 0x2800;
+constexpr u32 cTEXTURE_MAG_FILTER = 0x2801;
+constexpr u32 cTEXTURE_WRAP_S = 0x2802;
+constexpr u32 cTEXTURE_WRAP_T = 0x2803;
+constexpr u32 cCLAMP_TO_EDGE = 0x812F;
+
 #ifdef _SMEK_GL_IMPLEMENT
 #define GL_FUNC(ret, name, ...)\
     typedef ret (* _ ## name ## _func)(__VA_ARGS__);\
