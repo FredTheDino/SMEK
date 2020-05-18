@@ -141,7 +141,7 @@ void Texture::bind(u32 texture_slot) {
     GL::ActiveTexture(GL::cTEXTURE0 + 79); // Hardcoded since it's the "minimum maximum".
 }
 
-bool init(GameState *gs, const char *shader_source) {
+bool init(GameState *gs, const char *shader_source, int width, int height) {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         ERROR("Failed to initalize SDL \"%s\"", SDL_GetError());
         return false;
@@ -150,8 +150,6 @@ bool init(GameState *gs, const char *shader_source) {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 
-    const int width = 640;
-    const int height = 480;
     gs->window = SDL_CreateWindow("SMEK - The new begining",
             SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED,

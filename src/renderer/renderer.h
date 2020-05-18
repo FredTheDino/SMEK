@@ -42,7 +42,7 @@ Shader default_shader();
 
 ///*
 // Initalize the graphics pipeline.
-bool init(GameState *gs, const char *shader_source);
+bool init(GameState *gs, const char *shader_source, int width=480, int height=680);
 
 ///*
 // Destroy the graphics pipeline.
