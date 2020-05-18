@@ -1,5 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+
+#include "../util/log.h"
 
 #include "asset.h"
 
@@ -30,23 +31,18 @@ size_t read(FILE *file, void *ptr, size_t num=1) {
 }
 
 void load(const char *path) {
-#ifdef VERBOSE
-#define LOG(...) printf(__VA_ARGS__)
-#else
-#define LOG(...)
-#endif
     FILE *file = fopen(path, "rb");
     if (!file) return;
 
-    LOG("%ld %#lx\n", ftell(file), ftell(file));
+    LOG("%ld %#lx", ftell(file), ftell(file));
     read<FileHeader>(file, &system.file_header, 1);
-    LOG("read<FileHeader>: %ld %#lx\n", ftell(file), ftell(file));
+    LOG("read<FileHeader>: %ld %#lx", ftell(file), ftell(file));
     u64 num_assets = system.file_header.num_assets;
     system.num_assets = num_assets;
 
-    system.headers = (AssetHeader *) malloc(sizeof(AssetHeader) * num_assets);
+    system.headers = new AssetHeader[num_assets];
     read<AssetHeader>(file, system.headers, num_assets);
-    LOG("read<AssetHeader>: %ld %#lx\n", ftell(file), ftell(file));
+    LOG("read<AssetHeader>: %ld %#lx", ftell(file), ftell(file));
 
 #ifdef VERBOSE
     for (u64 asset = 0; asset < num_assets; asset++) {
@@ -59,42 +55,42 @@ void load(const char *path) {
     }
 #endif
 
-    system.data = (AssetData *) malloc(sizeof(AssetData) * num_assets);
+    system.data = new AssetData[num_assets];
     for (u64 asset = 0; asset < num_assets; asset++) {
         AssetHeader header = system.headers[asset];
         AssetData *data_ptr = &system.data[asset];
         fseek(file, system.file_header.data_offset + header.data_offset, SEEK_SET);
-        LOG("fseek: %ld %#lx\n", ftell(file), ftell(file));
+        LOG("fseek: %ld %#lx", ftell(file), ftell(file));
         switch (header.type) {
         case AssetType::TEXTURE: {
             read<Image>(file, data_ptr);
-            LOG("read<Image>: %ld %#lx\n", ftell(file), ftell(file));
+            LOG("read<Image>: %ld %#lx", ftell(file), ftell(file));
             u64 size = data_ptr->image.size();
-            data_ptr->image.data = (u8 *) malloc(sizeof(u8[size]));
+            data_ptr->image.data = new u8[size];
             read<u8>(file, data_ptr->image.data, size);
-            LOG("read<u8>: %ld %#lx\n", ftell(file), ftell(file));
+            LOG("read<u8>: %ld %#lx", ftell(file), ftell(file));
 
-            free(data_ptr->image.data);
+            delete[] data_ptr->image.data;
         } break;
         case AssetType::STRING: {
             read<StringAsset>(file, data_ptr);
-            LOG("read<StringAsset>: %ld %#lx\n", ftell(file), ftell(file));
+            LOG("read<StringAsset>: %ld %#lx", ftell(file), ftell(file));
             u32 size = data_ptr->string.size;
-            data_ptr->string.data = (char *) malloc(sizeof(char[size]));
+            data_ptr->string.data = new char[size];
             read<char>(file, data_ptr->string.data, size);
-            LOG("read<char>: %ld %#lx\n", ftell(file), ftell(file));
+            LOG("read<char>: %ld %#lx", ftell(file), ftell(file));
 
-            free(data_ptr->string.data);
+            delete[] data_ptr->string.data;
         } break;
         case AssetType::MODEL: {
             read<Model>(file, data_ptr);
-            LOG("read<Model>: %ld %#lx\n", ftell(file), ftell(file));
+            LOG("read<Model>: %ld %#lx", ftell(file), ftell(file));
             u32 points_per_face = data_ptr->model.points_per_face;
             u32 num_faces = data_ptr->model.num_faces;
             u32 size = 8 * points_per_face * num_faces;  // 3+2+3 values per point
-            data_ptr->model.data = (f32 *) malloc(sizeof(f32[size]));
+            data_ptr->model.data = new f32[size];
             read<f32>(file, data_ptr->model.data, size);
-            LOG("read<f32>: %ld %#lx\n", ftell(file), ftell(file));
+            LOG("read<f32>: %ld %#lx", ftell(file), ftell(file));
             f32 *data = data_ptr->model.data;
 
             for (u32 i = 0; i < size; i += 8*3) {
@@ -110,7 +106,7 @@ void load(const char *path) {
                 face.vertices[2].normal = Vec3(data[21], data[22], data[23]);
             }
 
-            free(data_ptr->model.data);
+            delete[] data_ptr->model.data;
         } break;
         default:
             break;
