@@ -53,6 +53,7 @@ reading it, which means you should not depend on,
 for example, a terminating 0x00.
 """
 import re
+import sys
 import struct
 import pyhash
 from glob import glob
@@ -229,6 +230,8 @@ if __name__ == "__main__":
     }
 
     hasher = pyhash.metro_64()
+    seen_name_hashes = set()
+    seen_data_hashes = set()
 
     num_assets = 0
     cur_asset_offset = 0
@@ -253,8 +256,18 @@ if __name__ == "__main__":
             if asset_header and asset_data:
                 num_assets += 1
                 asset_header["data_offset"] = cur_asset_offset
-                asset_header["name_hash"] = asset_hash(name)
-                asset_header["data_hash"] = hasher(asset_data)
+                name_hash = asset_hash(name)
+                data_hash = hasher(asset_data)
+                if name_hash in seen_name_hashes:
+                    print("Name hash collision!\n{} {}".format(name, name_hash))
+                    sys.exit(1)
+                if data_hash in seen_data_hashes:
+                    print("Data hash collision!\n{} {}".format(name, data_hash))
+                    sys.exit(1)
+                seen_name_hashes.add(name_hash)
+                seen_data_hashes.add(data_hash)
+                asset_header["name_hash"] = name_hash
+                asset_header["data_hash"] = data_hash
                 cur_asset_offset += asset_header["data_size"]
                 headers.append(asset_header)
                 data.append(asset_data)
