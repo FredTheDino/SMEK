@@ -74,7 +74,9 @@ TYPE_SHADER = 4
 
 
 def ll(x):
+    """Overflow unsigned long."""
     return x % (2**64)
+
 
 def asset_hash(string):
     h = 5351
@@ -104,7 +106,8 @@ def sprite_asset(path):
     - I  Pixel height
     - I  Color channels
     - P  Data pointer
-    - B> Data """
+    - B> Data
+    """
 
     im = Image.open(path)
     w, h = im.size
@@ -137,7 +140,8 @@ def string_asset(path):
     Data format:
     - I  Number of characters
     - P  Data pointer
-    - s> Data """
+    - s> Data
+    """
 
     data = "".join(open(path, "r").readlines()).rstrip()
     fmt = "QP{}s".format(len(data) + 1)
@@ -150,6 +154,10 @@ def string_asset(path):
 
 
 def shader_asset(path):
+    """Load a shader.
+
+    Format is the same as for strings but with another type.
+    """
     header, data = string_asset(path)
     header["type"] = TYPE_SHADER
     return header, data
@@ -170,7 +178,6 @@ def model_asset(path):
     - s   object name
     - s   smoothing group
     """
-
     vertices         = []
     texture_vertices = []
     normal_vertices  = []
@@ -217,7 +224,6 @@ if __name__ == "__main__":
         "txt": string_asset,
         "glsl": shader_asset,
         "obj": model_asset,
-        #"wav": sound_asset,
     }
 
     hasher = pyhash.metro_64()
