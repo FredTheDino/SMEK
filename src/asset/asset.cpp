@@ -33,6 +33,10 @@ AssetData *_raw_fetch(AssetType type, AssetID id) {
     return &_global_gs.asset_system.data[id];
 }
 
+Image *fetch_image(AssetID id) {
+    return &_raw_fetch(AssetType::TEXTURE, id)->image;
+}
+
 StringAsset *fetch_string_asset(AssetID id) {
     return &_raw_fetch(AssetType::STRING, id)->string;
 }
@@ -77,8 +81,6 @@ void load(const char *path) {
             u64 size = data_ptr->image.size();
             data_ptr->image.data = new u8[size];
             read<u8>(file, data_ptr->image.data, size);
-
-            delete[] data_ptr->image.data;
         } break;
         case AssetType::STRING: {
             read<StringAsset>(file, data_ptr);
