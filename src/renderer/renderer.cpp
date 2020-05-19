@@ -1,5 +1,5 @@
 #include "../main.h"
-#include "../util/log.h"
+#include "../util/util.h"
 #include "opengl.h"
 #include "renderer.h"
 
@@ -36,7 +36,7 @@ Shader default_shader() {
     return shader;
 }
 
-Shader compile_shader(const char *source) {
+Shader Shader::compile(const char *source) {
     auto shader_error_check = [](u32 shader) -> bool {
         i32 success;
         GL::GetShaderiv(shader, GL::cCOMPILE_STATUS, &success);
@@ -66,16 +66,13 @@ Shader compile_shader(const char *source) {
         source
     };
 
-    // TODO(ed): Defer would be nice here.
-
     u32 vertex_shader = GL::CreateShader(GL::cVERTEX_SHADER);
+    defer { GL::DeleteShader(vertex_shader); };
+
     GL::ShaderSource(vertex_shader, sizeof(vertex_source) / sizeof(vertex_source[0]), vertex_source, NULL);
     GL::CompileShader(vertex_shader);
 
-    if (!shader_error_check(vertex_shader)) {
-        GL::DeleteShader(vertex_shader);
-        return {-1};
-    }
+    if (!shader_error_check(vertex_shader)) return {-1};
 
     // Fragment
     const char *fragment_source[] = {
@@ -85,22 +82,16 @@ Shader compile_shader(const char *source) {
     };
 
     u32 fragment_shader = GL::CreateShader(GL::cFRAGMENT_SHADER);
+    defer { GL::DeleteShader(fragment_shader); };
     GL::ShaderSource(fragment_shader, sizeof(fragment_source) / sizeof(fragment_source[0]), fragment_source, NULL);
     GL::CompileShader(fragment_shader);
 
-    if (!shader_error_check(fragment_shader)) {
-        GL::DeleteShader(vertex_shader);
-        GL::DeleteShader(fragment_shader);
-        return {-1};
-    }
+    if (!shader_error_check(fragment_shader)) return {-1};
 
     i32 program = GL::CreateProgram();
     GL::AttachShader(program, vertex_shader);
     GL::AttachShader(program, fragment_shader);
     GL::LinkProgram(program);
-
-    GL::DeleteShader(vertex_shader);
-    GL::DeleteShader(fragment_shader);
 
     if (!program_error_check(program)) {
         GL::DeleteProgram(program);
@@ -110,7 +101,40 @@ Shader compile_shader(const char *source) {
     return {program};
 }
 
-bool init(const char *shader_source) {
+Texture Texture::upload(u32 width, u32 height, u32 components, u8 *data, Sampling sampling) {
+
+    u32 texture;
+    GL::GenTextures(1, &texture);
+    GL::BindTexture(GL::cTEXTURE_2D, texture);
+
+    GL::GLenum format;
+    if (components == 1) format = GL::cRED;
+    else if (components == 2) format = GL::cRG;
+    else if (components == 3) format = GL::cRGB;
+    else if (components == 4) format = GL::cRGBA;
+    else ASSERT(false, "Invalid number of components (%d)", components);
+    GL::TexImage2D(GL::cTEXTURE_2D, 0, GL::cRGBA, width, height, 0, format, GL::cUNSIGNED_BYTE, data);
+    GL::GLenum gl_sampling;
+    if (sampling == Sampling::LINEAR) gl_sampling = GL::cLINEAR;
+    else if (sampling == Sampling::NEAREST) gl_sampling = GL::cNEAREST;
+    else ASSERT(false, "Unsupported sampling (%d)", components);
+;
+    GL::TexParameteri(GL::cTEXTURE_2D, GL::cTEXTURE_MIN_FILTER, gl_sampling);
+    GL::TexParameteri(GL::cTEXTURE_2D, GL::cTEXTURE_MAG_FILTER, gl_sampling);
+
+    GL::TexParameteri(GL::cTEXTURE_2D, GL::cTEXTURE_WRAP_S, GL::cCLAMP_TO_EDGE);
+    GL::TexParameteri(GL::cTEXTURE_2D, GL::cTEXTURE_WRAP_T, GL::cCLAMP_TO_EDGE);
+    return { texture };
+}
+
+void Texture::bind(u32 texture_slot) {
+    ASSERT(texture_slot < 80, "Invalid texture slots. (%d)", texture_slot);
+    GL::ActiveTexture(GL::cTEXTURE0 + texture_slot);
+    GL::BindTexture(GL::cTEXTURE_2D, texture_id);
+    GL::ActiveTexture(GL::cTEXTURE0 + 79); // Hardcoded since it's the "minimum maximum".
+}
+
+bool init(GameState *gs, const char *shader_source, int width, int height) {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         ERROR("Failed to initalize SDL \"%s\"", SDL_GetError());
         return false;
@@ -119,34 +143,45 @@ bool init(const char *shader_source) {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 
-    const int width = 640;
-    const int height = 480;
-    _global_gs.window = SDL_CreateWindow("SMEK - The new begining",
+    gs->window = SDL_CreateWindow("SMEK - The new begining",
             SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED,
             width,
             height,
-            SDL_WINDOW_OPENGL);
+            SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
 
-    if (_global_gs.window == NULL) {
+    if (gs->window == NULL) {
         ERROR("Failed to create OpenGL window \"%s\"", SDL_GetError());
         return false;
     }
 
-    _global_gs.gl_context = SDL_GL_CreateContext(_global_gs.window);
+    gs->gl_context = SDL_GL_CreateContext(gs->window);
+    SDL_GL_MakeCurrent(gs->window, gs->gl_context);
 
     if (!GL::load_procs()) {
         ERROR("Failed to load OpenGL function.");
         return false;
     }
 
-    shader = compile_shader(shader_source);
+    if (gs == global_gamestate()) {
+        GL::ClearColor(0, 0, 0, 0);
+        GL::Clear(GL::cCOLOR_BUFFER_BIT);
+        SDL_ShowWindow(gs->window);
+        SDL_GL_SwapWindow(gs->window);
+    }
+
+
+    shader = Shader::compile(shader_source);
 
     GL::Enable(GL::cDEPTH_TEST);
     return true;
 }
 
-void deinit() {
+void deinit(GameState *gs) {
+
+    SDL_DestroyWindow(gs->window);
+    SDL_GL_DeleteContext(gs->gl_context);
+
     SDL_Quit();
 }
 

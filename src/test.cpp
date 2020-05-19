@@ -43,6 +43,7 @@ unsigned int TestSuite::run() {
         GameState state = {};
         std::printf(CLEAR "\r%d/%d:  " YELLOW "testing" RESET " %s\r",
                 i+1, num_tests, tests[i].name);
+        GameState state;
         if (tests[i].func(&state)) {
             succeeded++;
         } else {

@@ -35,7 +35,7 @@ struct Mat {
     static Mat scale(real scale);
     static Mat translate(real dx, real dy, real dz);
     static Mat translate(Vec3 delta);
-    static Mat look_in(Vec3 direction, Vec3 up);
+    static Mat look_towards(Vec3 from, Vec3 to, Vec3 up);
     static Mat perspective(real fov, real near, real far);
 };
 
@@ -44,6 +44,4 @@ Mat operator *(const Mat &a, const Mat &b);
 Vec4 operator *(const Vec4 &v, const Mat &m);
 
 Vec3 operator *(const Vec3 &v, const Mat &m);
-
-// TODO(ed): Perspective, translation, rotation, scale.
 

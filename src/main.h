@@ -11,4 +11,4 @@ struct GameState {
     Asset::System asset_system = {};
 };
 
-extern GameState _global_gs;
+GameState *global_gamestate();
