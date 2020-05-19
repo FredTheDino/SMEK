@@ -4,6 +4,7 @@
 #include "test.h"
 #include "renderer/opengl.h"
 #include "renderer/renderer.h"
+#include "asset/asset.h"
 
 GameState _global_gs;
 
@@ -19,7 +20,9 @@ int main() { // Test entry point
 #include "math/smek_math.h"
 
 int main() { // Game entry point
-    GFX::init();
+    Asset::load("bin/assets.bin");
+
+    GFX::init(Asset::fetch_shader(Asset::fetch_id("MASTER_SHADER"))->data);
 
     std::vector<Vec3> XX = {
         Vec3(-1.0, -1.0, 1.0),

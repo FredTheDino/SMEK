@@ -3,24 +3,6 @@
 #include "opengl.h"
 #include "renderer.h"
 
-#include <fstream>
-
-static char *dump_file(const char *file_path) {
-    // TODO(ed): Error handling.
-    std::ifstream in(file_path, std::ios_base::ate);
-    if (in) {
-        auto size = in.tellg();
-        char *buffer = new char [static_cast<u32>(size) + 1];
-        buffer[size] = 0;
-        in.seekg(std::ios_base::beg);
-        in.read(buffer, size);
-        in.close();
-        return buffer;
-    }
-    ERROR("Failed to read \"%s\"", file_path);
-    return nullptr;
-}
-
 namespace GFX {
 
 Shader shader;
@@ -128,7 +110,7 @@ Shader compile_shader(const char *source) {
     return {program};
 }
 
-bool init() {
+bool init(const char *shader_source) {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         ERROR("Failed to initalize SDL \"%s\"", SDL_GetError());
         return false;
@@ -158,7 +140,7 @@ bool init() {
         return false;
     }
 
-    shader = compile_shader(dump_file("master.glsl"));
+    shader = compile_shader(shader_source);
 
     GL::Enable(GL::cDEPTH_TEST);
     return true;

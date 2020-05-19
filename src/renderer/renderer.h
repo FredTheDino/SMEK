@@ -27,7 +27,7 @@ Shader default_shader();
 
 ///*
 // Initalize the graphics pipeline.
-bool init();
+bool init(const char *shader_source);
 
 ///*
 // Destroy the graphics pipeline.
