@@ -26,9 +26,9 @@ env.Replace(CXX="g++")
 env.Append(CXXFLAGS="-Wall")
 env.Append(CXXFLAGS="-ggdb")
 env.Append(CXXFLAGS="-O0")
-env.Append(CXXFLAGS="-rdynamic") # Gives backtrace information
 env.Append(CXXFLAGS=shell(["sdl2-config", "--cflags"]))
 env.Append(LINKFLAGS=shell(["sdl2-config", "--libs"]))
+env.Append(LINKFLAGS="-rdynamic") # Gives backtrace information
 
 assets = env.Alias("assets", "", "./asset-gen.py")
 AlwaysBuild(assets)
