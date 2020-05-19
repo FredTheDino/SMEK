@@ -13,8 +13,12 @@ void _smek_info_log(const char *file, u32 line, const char *message, ...);
 
 #define UNREACHABLE _smek_unreachable(__FILE__, __LINE__)
 void _smek_unreachable(const char *file, u32 line);
+
+// https://stackoverflow.com/a/5891370/4904628
+// Tested with clang++ as well.
+
 #define STR(x) #x
-#define ASSERT(pass, msg) _smek_assert(__FILE__, __LINE__, pass, msg, STR(pass))
-void _smek_assert(const char *file, u32 line, bool passed, const char *msg, const char *expr);
-#define CHECK(pass, msg) _smek_check(__FILE__, __LINE__, pass, msg, STR(pass))
-bool _smek_check(const char *file, u32 line, bool passed, const char *msg, const char *expr);
+#define ASSERT(pass, msg, ...) _smek_assert(__FILE__, __LINE__, pass, STR(pass), msg, ##__VA_ARGS__)
+void _smek_assert(const char *file, u32 line, bool passed, const char *expr, const char *msg, ...);
+#define CHECK(pass, msg, ...) _smek_check(__FILE__, __LINE__, pass, STR(pass), msg, ##__VA_ARGS__)
+bool _smek_check(const char *file, u32 line, bool passed, const char *expr, const char *msg, ...);
