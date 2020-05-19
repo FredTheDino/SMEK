@@ -16,6 +16,35 @@ struct System {
     u64 num_assets;
 } system = {};
 
+unsigned long djb2_hash(const char *string) {
+    unsigned long h = 5381;
+    int c;
+    while (c = *string++)
+        h = ((h << 5) + h) + c;  // h*33 + c
+    return h;
+}
+
+AssetID fetch_id(const char *name) {
+    u64 name_hash = djb2_hash(name);
+    for (u32 asset = 0; asset < system.num_assets; asset++) {
+        if (system.headers[asset].name_hash == name_hash) {
+            return asset;
+        }
+    }
+    WARN("Unable to find asset with name %s", name);
+    return NO_ASSET;
+}
+
+AssetData *_raw_fetch(AssetType type, AssetID id) {
+    ASSERT(id < system.num_assets, "Invalid asset id");
+    ASSERT(system.headers[id].type == type, "Type missmatch");
+    return &system.data[id];
+}
+
+StringAsset *fetch_string_asset(AssetID id) {
+    return &_raw_fetch(AssetType::STRING, id)->string;
+}
+
 //TODO(gu) re-implement
 template <typename T>
 size_t read(FILE *file, void *ptr, size_t num=1) {
@@ -79,7 +108,6 @@ void load(const char *path) {
             LOG("Reading %ld bytes", size);
             read<char>(file, data_ptr->string.data, size);
 
-            delete[] data_ptr->string.data;
         } break;
         case AssetType::MODEL: {
             LOG("Reading Model at %#lx", ftell(file));

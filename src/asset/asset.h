@@ -84,4 +84,10 @@ struct Asset {
 ///*
 void load(const char *path);
 
+///*
+AssetID fetch_id(const char *name);
+
+///*
+StringAsset *fetch_string_asset(AssetID id);
+
 }  // namespace Asset

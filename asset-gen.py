@@ -72,6 +72,18 @@ TYPE_STRING = 2
 TYPE_MODEL = 3
 
 
+def djb2_hash(string):
+    """Hash a string according to djb2.
+
+    Borrowed from http://www.cse.yorku.ca/~oz/hash.html
+    """
+    h = 5381
+    for c in string:
+        h = ((h << 5) + h) + ord(c)  # hash*33 + c
+    print(string, h % (2**64 - 1))
+    return h % (2**64 - 1)
+
+
 def default_header():
     """Return a default header.
 
@@ -223,7 +235,7 @@ if __name__ == "__main__":
             if asset_header and asset_data:
                 num_assets += 1
                 asset_header["data_offset"] = cur_asset_offset
-                asset_header["name_hash"] = hasher(name)
+                asset_header["name_hash"] = djb2_hash(name)
                 asset_header["data_hash"] = hasher(asset_data)
                 cur_asset_offset += asset_header["data_size"]
                 headers.append(asset_header)

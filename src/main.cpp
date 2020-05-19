@@ -21,6 +21,7 @@ int main() { // Test entry point
 
 int main() { // Game entry point
     Asset::load("bin/assets.bin");
+    LOG("Welcome to Arch Linux!\n%s", Asset::fetch_string_asset(Asset::fetch_id("ARCH"))->data);
 
     GFX::init();
 
