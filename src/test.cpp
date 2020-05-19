@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <stdexcept>
 
 #include "util/color.h"
 
@@ -43,8 +44,11 @@ unsigned int TestSuite::run() {
         GameState state = {};
         std::printf(CLEAR "\r%d/%d:  " YELLOW "testing" RESET " %s\r",
                 i+1, num_tests, tests[i].name);
-        GameState state;
-        if (tests[i].func(&state)) {
+        bool success = false;
+        try {
+            success = tests[i].func(&state);
+        } catch (const std::runtime_error &ex) { /* Empty */ }
+        if (success) {
             succeeded++;
         } else {
             std::printf(CLEAR "\r" RED "f" RESET " %s (%s @ %d)\n",

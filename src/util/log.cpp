@@ -3,6 +3,10 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstdarg>
+#include <stdexcept>
+#include <execinfo.h>
+#include <unistd.h>
+
 
 void _smek_error_log(const char *file, u32 line, const char *message, ...) {
     std::fprintf(stderr, RED "! %s" RESET "|" BLUE "%d" RESET ": ", file, line);
@@ -22,6 +26,13 @@ void _smek_warn_log(const char *file, u32 line, const char *message, ...) {
     std::fprintf(stderr, "\n");
 }
 
+#define HALT(msg) \
+    {\
+        void *array[128]; size_t size;\
+        size = backtrace(array, sizeof(array) / sizeof(array[0]));\
+        backtrace_symbols_fd(array, size, STDERR_FILENO);\
+        throw std::runtime_error(msg);\
+    }
 
 void _smek_info_log(const char *file, u32 line, const char *message, ...) {
     std::fprintf(stderr, GREEN " %s" RESET "|" BLUE "%d" RESET ": ", file, line);
@@ -36,7 +47,7 @@ void _smek_unreachable(const char *file, u32 line) {
     std::fprintf(stderr, RED "%s" RESET "|" RED "%d" RESET ": Unreachable\n", file, line);
     std::fprintf(stderr, BOLDRED "| " RESET " End of Transmission\n");
 
-    std::exit('U'); // U for Unreachable
+    HALT("Unreachable!");
 }
 
 void _smek_assert(const char *file, u32 line, bool passed, const char *expr, const char *msg, ...) {
@@ -50,7 +61,7 @@ void _smek_assert(const char *file, u32 line, bool passed, const char *expr, con
     va_end(args);
     std::fprintf(stderr, "\n" BOLDRED "| " RESET "End of Transmission\n");
 
-    std::exit('A'); // A for Assert
+    HALT("Assert!");
 }
 
 bool _smek_check(const char *file, u32 line, bool passed, const char *expr, const char *msg, ...) {
