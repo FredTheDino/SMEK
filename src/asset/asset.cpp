@@ -56,7 +56,6 @@ size_t read(FILE *file, void *ptr, size_t num=1) {
 }
 
 void load(const char *path) {
-    LOG("Reading asset file %s", path);
     FILE *file = fopen(path, "rb");
     if (!file) return;
 
