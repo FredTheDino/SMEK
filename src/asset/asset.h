@@ -102,10 +102,16 @@ struct System {
 };
 
 ///*
+bool valid_asset(AssetID id);
+
+///*
 void load(const char *path);
 
 ///*
 AssetID fetch_id(const char *name);
+
+///*
+Image *fetch_image(AssetID id);
 
 ///*
 StringAsset *fetch_string_asset(AssetID id);

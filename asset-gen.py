@@ -2,8 +2,20 @@
 """Asset-file generator.
 
 This module takes all supported asset files in the
-res/-folder and packages them into a binary file
-intended to be read as C-style structs.
+res/-folder and packages them into binary files
+intended to be read as C-style structs. Assets in
+subfolders are packaged into different binary
+files. Take for example the following structure.
+
+res/
+├── master_shader.glsl
+└── test/
+   └── alphabet.txt
+
+Two asset files will be created.
+
+- bin/assets.bin,      containing master_shader.glsl,
+- bin/assets-test.bin, containing alphabet.txt.
 
 The assets are parsed by functions which all
 return a (header, data)-tuple. A header template
@@ -58,6 +70,7 @@ import struct
 import pyhash
 from glob import glob
 from PIL import Image
+from collections import defaultdict
 
 VERBOSE = False  # set to True to debug asset headers
 
@@ -198,7 +211,7 @@ def model_asset(path):
         elif line.startswith("f "):
             faces.append([[int(i) for i in v.split("/")] for v in line[2:].split(" ")])
         else:
-            print("Unable to parse line '{}' in file {}".format(line, path))
+            print("  Unable to parse line '{}' in file {}".format(line, path))
             continue
 
     points_per_face = len(faces[0])
@@ -219,19 +232,18 @@ def model_asset(path):
 
     return header, struct.pack(fmt, points_per_face, num_faces, 0, *data)
 
+EXTENSIONS = {
+    "png": sprite_asset,
+    "jpg": sprite_asset,
+    "txt": string_asset,
+    "glsl": shader_asset,
+    "obj": model_asset,
+}
 
-if __name__ == "__main__":
-    extensions = {
-        "png": sprite_asset,
-        "jpg": sprite_asset,
-        "txt": string_asset,
-        "glsl": shader_asset,
-        "obj": model_asset,
-    }
-
+def pack(asset_files, out_file):
+    print("=== PACKING INTO {} ===".format(out_file))
     hasher = pyhash.metro_64()
     seen_name_hashes = set()
-    seen_data_hashes = set()
 
     num_assets = 0
     cur_asset_offset = 0
@@ -240,9 +252,9 @@ if __name__ == "__main__":
     data = []
     names = []
 
-    asset_files = glob("res/*.*")
-    print("=== FINDING ASSETS ===")
     for asset in asset_files:
+        if asset.count(".") != 1:
+            continue
         ext = asset.split(".")[-1]
         name = re.sub(r"[^A-Z0-9]", "_", ""
                       .join(asset
@@ -250,24 +262,21 @@ if __name__ == "__main__":
                             .split(".")[:-1])
                       .upper())
         print(asset + " -> ", end="")
-        if ext in extensions:
+        if ext in EXTENSIONS:
             print(name)
-            asset_header, asset_data = extensions[ext](asset)
+            asset_header, asset_data = EXTENSIONS[ext](asset)
             if asset_header and asset_data:
                 num_assets += 1
                 asset_header["data_offset"] = cur_asset_offset
                 name_hash = asset_hash(name)
-                data_hash = hasher(asset_data)
+                if VERBOSE:
+                    print(name, name_hash)
                 if name_hash in seen_name_hashes:
-                    print("Name hash collision!\n{} {}".format(name, name_hash))
-                    sys.exit(1)
-                if data_hash in seen_data_hashes:
-                    print("Data hash collision!\n{} {}".format(name, data_hash))
+                    print("Name hash collision!}")
                     sys.exit(1)
                 seen_name_hashes.add(name_hash)
-                seen_data_hashes.add(data_hash)
                 asset_header["name_hash"] = name_hash
-                asset_header["data_hash"] = data_hash
+                asset_header["data_hash"] = hasher(asset_data)
                 cur_asset_offset += asset_header["data_size"]
                 headers.append(asset_header)
                 data.append(asset_data)
@@ -277,23 +286,32 @@ if __name__ == "__main__":
 
     data_offset = HEADER_OFFSET + HEADER_SIZE * num_assets
 
-    print("\n=== WRITING DATA ===")
+    print("=== PACKING THE FOLLOWING ASSETS ===")
     print("\n".join(names))
-    with open("bin/assets.bin", "wb") as f:
-        if VERBOSE:
-            print("== File header ==")
+    with open(out_file, "wb") as f:
         if VERBOSE:
             print("{}, {}, {}".format(hex(num_assets),
                                       hex(HEADER_OFFSET),
                                       hex(data_offset)))
         f.write(struct.pack(FILE_HEADER_FMT, num_assets, HEADER_OFFSET, data_offset))
-        if VERBOSE:
-            print("== Headers ==")
         for h in headers:
             f.write(struct.pack(ASSET_HEADER_FMT, *h.values()))
             if VERBOSE:
                 print("Writing header {} as {}".format(h, [hex(val) for val in [*h.values()]]))
-        if VERBOSE:
-            print("== Data ==")
         for d in data:
             f.write(d)
+
+
+if __name__ == "__main__":
+    global_asset_files = []
+    asset_files = defaultdict(list)
+
+    for f in glob("res/**/*", recursive=True):
+        if f.count("/") == 1:
+            global_asset_files.append(f)
+        else:
+            asset_files["bin/assets-{}.bin".format("-".join(f.split("/")[1:-1]))].append(f)
+    pack(global_asset_files, "bin/assets.bin")
+    for out, assets in asset_files.items():
+        print()
+        pack(assets, out)

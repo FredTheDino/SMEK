@@ -1,6 +1,5 @@
 # build output
-*.o
-assets.bin
+bin
 SMEK
 
 docs/index.html
