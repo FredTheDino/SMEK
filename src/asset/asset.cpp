@@ -16,28 +16,29 @@ struct System {
     u64 num_assets;
 } system = {};
 
-unsigned long djb2_hash(const char *string) {
-    unsigned long h = 5381;
-    int c;
-    while (c = *string++)
-        h = ((h << 5) + h) + c;  // h*33 + c
-    return h;
+u64 hash(const char *string) {
+    u64 hash = 5351;
+    while (*string) {
+        char c = (*string++);
+        hash = hash * c + c;
+    }
+    return hash;
 }
 
 AssetID fetch_id(const char *name) {
-    u64 name_hash = djb2_hash(name);
+    u64 name_hash = hash(name);
     for (u32 asset = 0; asset < system.num_assets; asset++) {
         if (system.headers[asset].name_hash == name_hash) {
             return asset;
         }
     }
-    WARN("Unable to find asset with name %s", name);
+    WARN("Unable to find asset with name %s (hash is %lu)", name, name_hash);
     return NO_ASSET;
 }
 
 AssetData *_raw_fetch(AssetType type, AssetID id) {
-    ASSERT(id < system.num_assets, "Invalid asset id");
-    ASSERT(system.headers[id].type == type, "Type missmatch");
+    ASSERT(id < system.num_assets, "Invalid asset id '%lu'", id);
+    ASSERT(system.headers[id].type == type, "Type mismatch, type=%ld, id=%ld", type, id);
     return &system.data[id];
 }
 
