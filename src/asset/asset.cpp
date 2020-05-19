@@ -46,6 +46,10 @@ StringAsset *fetch_string_asset(AssetID id) {
     return &_raw_fetch(AssetType::STRING, id)->string;
 }
 
+Shader *fetch_shader(AssetID id) {
+    return &_raw_fetch(AssetType::SHADER, id)->shader;
+}
+
 //TODO(gu) re-implement
 template <typename T>
 size_t read(FILE *file, void *ptr, size_t num=1) {
@@ -108,7 +112,6 @@ void load(const char *path) {
             data_ptr->string.data = new char[size];
             LOG("Reading %ld bytes", size);
             read<char>(file, data_ptr->string.data, size);
-
         } break;
         case AssetType::MODEL: {
             LOG("Reading Model at %#lx", ftell(file));
@@ -135,6 +138,14 @@ void load(const char *path) {
             }
 
             delete[] data_ptr->model.data;
+        } break;
+        case AssetType::SHADER: {
+            LOG("Reading shader at %#lx", ftell(file));
+            read<Shader>(file, data_ptr);
+            u32 size = data_ptr->shader.size;
+            data_ptr->shader.data = new char[size];
+            LOG("Reading %ld bytes", size);
+            read<char>(file, data_ptr->shader.data, size);
         } break;
         default:
             ERROR("Unknown asset type %d for id %d in asset file %s", header.type, asset, path);

@@ -21,6 +21,7 @@ typedef enum {
     TEXTURE = 1,
     STRING = 2,
     MODEL = 3,
+    SHADER = 4,
 
     NUM_TYPES,
 } AssetType;
@@ -59,6 +60,12 @@ struct StringAsset {
     char *data;
 };
 
+struct Shader {
+    // read from file
+    u64 size;
+    char *data;
+};
+
 struct Model {
     // read from file
     u32 points_per_face;
@@ -69,6 +76,7 @@ struct Model {
 union AssetData {
     Image image;
     StringAsset string;
+    Shader shader;
     Model model;
 };
 
@@ -89,5 +97,8 @@ AssetID fetch_id(const char *name);
 
 ///*
 StringAsset *fetch_string_asset(AssetID id);
+
+///*
+Shader *fetch_shader(AssetID id);
 
 }  // namespace Asset

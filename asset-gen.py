@@ -70,6 +70,7 @@ TYPE_NONE = 0
 TYPE_TEXTURE = 1
 TYPE_STRING = 2
 TYPE_MODEL = 3
+TYPE_SHADER = 4
 
 
 def ll(x):
@@ -147,6 +148,13 @@ def string_asset(path):
 
     return header, struct.pack(fmt, len(data)+1, 0, str.encode(data, "ascii"))
 
+
+def shader_asset(path):
+    header, data = string_asset(path)
+    header["type"] = TYPE_SHADER
+    return header, data
+
+
 def model_asset(path):
     """Load a .obj model-file.
 
@@ -207,7 +215,7 @@ if __name__ == "__main__":
         "png": sprite_asset,
         "jpg": sprite_asset,
         "txt": string_asset,
-        "glsl": string_asset,
+        "glsl": shader_asset,
         "obj": model_asset,
         #"wav": sound_asset,
     }
