@@ -7,6 +7,7 @@
 #include "asset/asset.h"
 
 GameState _global_gs;
+GameState *global_gamestate() { return &_global_gs; }
 
 #ifdef TESTS
 

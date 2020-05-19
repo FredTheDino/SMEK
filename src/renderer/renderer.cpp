@@ -164,8 +164,9 @@ bool init(GameState *gs, const char *shader_source, int width, int height) {
 
     gs->gl_context = SDL_GL_CreateContext(gs->window);
     SDL_GL_MakeCurrent(gs->window, gs->gl_context);
-    if (gs != &_global_gs)
+    if (gs == global_gamestate()) {
         SDL_ShowWindow(gs->window);
+    }
 
     if (!GL::load_procs()) {
         ERROR("Failed to load OpenGL function.");

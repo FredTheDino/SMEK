@@ -1,5 +1,6 @@
 #pragma once
 #include "../math/smek_vec.h"
+#include "../main.h"
 
 #include <vector>
 
@@ -42,7 +43,7 @@ Shader default_shader();
 
 ///*
 // Initalize the graphics pipeline.
-bool init(GameState *gs, const char *shader_source, int width=480, int height=680);
+bool init(GameState *gs, const char *shader_source, int width=680, int height=480);
 
 ///*
 // Destroy the graphics pipeline.
