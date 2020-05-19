@@ -82,6 +82,15 @@ Mat Mat::look_towards(Vec3 from, Vec3 to, Vec3 up) {
     return m;
 }
 
+TEST_STMT("mat_look_towards",
+    close_enough(Mat::look_towards(Vec3(0, 1, 0), Vec3(1, 1, 0), Vec3(0, 1, 0)),
+                 Mat::from( 0,  0, -1, 0,
+                            0, -1,  0, 1,
+                           -1,  0,  0, 0,
+                            0,  0,  0, 1)
+        )
+);
+
 Mat Mat::perspective(real fov, real near, real far) {
     real s = 1.0 / Math::tan(fov / 2);
     Mat result = {};

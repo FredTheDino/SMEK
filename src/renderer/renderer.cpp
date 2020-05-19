@@ -1,5 +1,5 @@
 #include "../main.h"
-#include "../util/log.h"
+#include "../util/util.h"
 #include "opengl.h"
 #include "renderer.h"
 
@@ -67,7 +67,7 @@ Shader Shader::compile(const char *source) {
     };
 
     u32 vertex_shader = GL::CreateShader(GL::cVERTEX_SHADER);
-    Defer { GL::DeleteShader(vertex_shader); };
+    defer { GL::DeleteShader(vertex_shader); };
 
     GL::ShaderSource(vertex_shader, sizeof(vertex_source) / sizeof(vertex_source[0]), vertex_source, NULL);
     GL::CompileShader(vertex_shader);
@@ -82,7 +82,7 @@ Shader Shader::compile(const char *source) {
     };
 
     u32 fragment_shader = GL::CreateShader(GL::cFRAGMENT_SHADER);
-    Defer { GL::DeleteShader(fragment_shader); };
+    defer { GL::DeleteShader(fragment_shader); };
     GL::ShaderSource(fragment_shader, sizeof(fragment_source) / sizeof(fragment_source[0]), fragment_source, NULL);
     GL::CompileShader(fragment_shader);
 
