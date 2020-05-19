@@ -8,7 +8,7 @@
 namespace Asset {
 
 bool valid_asset(AssetID id) {
-    return id < _global_gs.asset_system.num_assets;
+    return id < global_gamestate()->asset_system.num_assets;
 }
 
 u64 hash(const char *string) {
