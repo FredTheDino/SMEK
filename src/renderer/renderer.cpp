@@ -173,7 +173,7 @@ bool init(GameState *gs, const char *shader_source, int width, int height) {
         return false;
     }
 
-    shader = compile_shader(shader_source);
+    shader = Shader::compile(shader_source);
 
     GL::Enable(GL::cDEPTH_TEST);
     return true;

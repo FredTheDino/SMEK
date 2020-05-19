@@ -21,13 +21,9 @@ int main() { // Test entry point
 #include "math/smek_math.h"
 
 int main() { // Game entry point
-<<<<<<< HEAD
     Asset::load("bin/assets.bin");
 
-    GFX::init(Asset::fetch_shader(Asset::fetch_id("MASTER_SHADER"))->data);
-=======
-    GFX::init(&_global_gs);
->>>>>>> 617ad97... Defer and rendering tests
+    GFX::init(&_global_gs, Asset::fetch_shader(Asset::fetch_id("MASTER_SHADER"))->data);
 
     std::vector<Vec3> XX = {
         Vec3(-1.0, -1.0, 1.0),
