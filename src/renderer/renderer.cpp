@@ -3,24 +3,6 @@
 #include "opengl.h"
 #include "renderer.h"
 
-#include <fstream>
-
-static char *dump_file(const char *file_path) {
-    // TODO(ed): Error handling.
-    std::ifstream in(file_path, std::ios_base::ate);
-    if (in) {
-        auto size = in.tellg();
-        char *buffer = new char [static_cast<u32>(size) + 1];
-        buffer[size] = 0;
-        in.seekg(std::ios_base::beg);
-        in.read(buffer, size);
-        in.close();
-        return buffer;
-    }
-    ERROR("Failed to read \"%s\"", file_path);
-    return nullptr;
-}
-
 namespace GFX {
 
 Shader shader;
