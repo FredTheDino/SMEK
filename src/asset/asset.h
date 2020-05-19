@@ -102,6 +102,9 @@ struct System {
 };
 
 ///*
+bool valid_asset(AssetID id);
+
+///*
 void load(const char *path);
 
 ///*
