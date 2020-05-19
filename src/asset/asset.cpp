@@ -3,18 +3,9 @@
 #include "../util/log.h"
 
 #include "asset.h"
+#include "../main.h"
 
 namespace Asset {
-
-struct System {
-    // read directly from file
-    FileHeader  file_header;
-    AssetHeader *headers;
-    AssetData   *data;
-
-    // not read directly from file
-    u64 num_assets;
-} system = {};
 
 u64 hash(const char *string) {
     u64 hash = 5351;
@@ -27,8 +18,8 @@ u64 hash(const char *string) {
 
 AssetID fetch_id(const char *name) {
     u64 name_hash = hash(name);
-    for (u32 asset = 0; asset < system.num_assets; asset++) {
-        if (system.headers[asset].name_hash == name_hash) {
+    for (u32 asset = 0; asset < _global_gs.asset_system.num_assets; asset++) {
+        if (_global_gs.asset_system.headers[asset].name_hash == name_hash) {
             return asset;
         }
     }
@@ -37,9 +28,9 @@ AssetID fetch_id(const char *name) {
 }
 
 AssetData *_raw_fetch(AssetType type, AssetID id) {
-    ASSERT(id < system.num_assets, "Invalid asset id '%lu'", id);
-    ASSERT(system.headers[id].type == type, "Type mismatch, type=%ld, id=%ld", type, id);
-    return &system.data[id];
+    ASSERT(id < _global_gs.asset_system.num_assets, "Invalid asset id '%lu'", id);
+    ASSERT(_global_gs.asset_system.headers[id].type == type, "Type mismatch, type=%ld, id=%ld", type, id);
+    return &_global_gs.asset_system.data[id];
 }
 
 StringAsset *fetch_string_asset(AssetID id) {
@@ -69,18 +60,18 @@ void load(const char *path) {
     FILE *file = fopen(path, "rb");
     if (!file) return;
 
-    read<FileHeader>(file, &system.file_header, 1);
-    u64 num_assets = system.file_header.num_assets;
-    system.num_assets = num_assets;
+    read<FileHeader>(file, &_global_gs.asset_system.file_header, 1);
+    u64 num_assets = _global_gs.asset_system.file_header.num_assets;
+    _global_gs.asset_system.num_assets = num_assets;
 
-    system.headers = new AssetHeader[num_assets];
-    read<AssetHeader>(file, system.headers, num_assets);
+    _global_gs.asset_system.headers = new AssetHeader[num_assets];
+    read<AssetHeader>(file, _global_gs.asset_system.headers, num_assets);
 
-    system.data = new AssetData[num_assets];
+    _global_gs.asset_system.data = new AssetData[num_assets];
     for (u64 asset = 0; asset < num_assets; asset++) {
-        AssetHeader header = system.headers[asset];
-        AssetData *data_ptr = &system.data[asset];
-        fseek(file, system.file_header.data_offset + header.data_offset, SEEK_SET);
+        AssetHeader header = _global_gs.asset_system.headers[asset];
+        AssetData *data_ptr = &_global_gs.asset_system.data[asset];
+        fseek(file, _global_gs.asset_system.file_header.data_offset + header.data_offset, SEEK_SET);
         switch (header.type) {
         case AssetType::TEXTURE: {
             read<Image>(file, data_ptr);

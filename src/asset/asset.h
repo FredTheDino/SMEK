@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../math/smek_vec.h"
 
 using AssetID = u64;
@@ -87,6 +89,16 @@ struct Asset {
 
     u64 name_hash;
     u64 data_hash;
+};
+
+struct System {
+    // read directly from file
+    FileHeader  file_header;
+    AssetHeader *headers;
+    AssetData   *data;
+
+    // not read directly from file
+    u64 num_assets;
 };
 
 ///*
