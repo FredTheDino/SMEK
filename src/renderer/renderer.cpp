@@ -128,7 +128,7 @@ Shader compile_shader(const char *source) {
     return {program};
 }
 
-bool init() {
+bool init(const char *shader_source) {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         ERROR("Failed to initalize SDL \"%s\"", SDL_GetError());
         return false;
@@ -158,7 +158,7 @@ bool init() {
         return false;
     }
 
-    shader = compile_shader(dump_file("master.glsl"));
+    shader = compile_shader(shader_source);
 
     GL::Enable(GL::cDEPTH_TEST);
     return true;
