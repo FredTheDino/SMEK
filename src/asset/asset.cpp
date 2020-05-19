@@ -69,21 +69,12 @@ void load(const char *path) {
     FILE *file = fopen(path, "rb");
     if (!file) return;
 
-    LOG("Reading file header");
     read<FileHeader>(file, &system.file_header, 1);
     u64 num_assets = system.file_header.num_assets;
     system.num_assets = num_assets;
 
-    LOG("Reading %d asset headers", num_assets);
     system.headers = new AssetHeader[num_assets];
     read<AssetHeader>(file, system.headers, num_assets);
-
-    for (u64 asset = 0; asset < num_assets; asset++) {
-        LOG("Found asset with type %u, name %020lu, data %020lu",
-            system.headers[asset].type,
-            system.headers[asset].name_hash,
-            system.headers[asset].data_hash);
-    }
 
     system.data = new AssetData[num_assets];
     for (u64 asset = 0; asset < num_assets; asset++) {
@@ -92,35 +83,25 @@ void load(const char *path) {
         fseek(file, system.file_header.data_offset + header.data_offset, SEEK_SET);
         switch (header.type) {
         case AssetType::TEXTURE: {
-            LOG("Reading Texture at %#lx", ftell(file));
             read<Image>(file, data_ptr);
             u64 size = data_ptr->image.size();
             data_ptr->image.data = new u8[size];
-            LOG("Reading %ld bytes (%dx%dx%d)",
-                size,
-                data_ptr->image.height,
-                data_ptr->image.width,
-                data_ptr->image.channels);
             read<u8>(file, data_ptr->image.data, size);
 
             delete[] data_ptr->image.data;
         } break;
         case AssetType::STRING: {
-            LOG("Reading String at %#lx", ftell(file));
             read<StringAsset>(file, data_ptr);
             u32 size = data_ptr->string.size;
             data_ptr->string.data = new char[size];
-            LOG("Reading %ld bytes", size);
             read<char>(file, data_ptr->string.data, size);
         } break;
         case AssetType::MODEL: {
-            LOG("Reading Model at %#lx", ftell(file));
             read<Model>(file, data_ptr);
             u32 points_per_face = data_ptr->model.points_per_face;
             u32 num_faces = data_ptr->model.num_faces;
             u32 size = 8 * points_per_face * num_faces;  // 3+2+3 values per point
             data_ptr->model.data = new f32[size];
-            LOG("Reading %ld bytes (%d faces)", size, num_faces);
             read<f32>(file, data_ptr->model.data, size);
             f32 *data = data_ptr->model.data;
 
@@ -140,11 +121,9 @@ void load(const char *path) {
             delete[] data_ptr->model.data;
         } break;
         case AssetType::SHADER: {
-            LOG("Reading shader at %#lx", ftell(file));
             read<Shader>(file, data_ptr);
             u32 size = data_ptr->shader.size;
             data_ptr->shader.data = new char[size];
-            LOG("Reading %ld bytes", size);
             read<char>(file, data_ptr->shader.data, size);
         } break;
         default:
