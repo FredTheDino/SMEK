@@ -66,16 +66,13 @@ Shader Shader::compile(const char *source) {
         source
     };
 
-    // TODO(ed): Defer would be nice here.
-
     u32 vertex_shader = GL::CreateShader(GL::cVERTEX_SHADER);
+    Defer { GL::DeleteShader(vertex_shader); };
+
     GL::ShaderSource(vertex_shader, sizeof(vertex_source) / sizeof(vertex_source[0]), vertex_source, NULL);
     GL::CompileShader(vertex_shader);
 
-    if (!shader_error_check(vertex_shader)) {
-        GL::DeleteShader(vertex_shader);
-        return {-1};
-    }
+    if (!shader_error_check(vertex_shader)) return {-1};
 
     // Fragment
     const char *fragment_source[] = {
@@ -85,22 +82,16 @@ Shader Shader::compile(const char *source) {
     };
 
     u32 fragment_shader = GL::CreateShader(GL::cFRAGMENT_SHADER);
+    Defer { GL::DeleteShader(fragment_shader); };
     GL::ShaderSource(fragment_shader, sizeof(fragment_source) / sizeof(fragment_source[0]), fragment_source, NULL);
     GL::CompileShader(fragment_shader);
 
-    if (!shader_error_check(fragment_shader)) {
-        GL::DeleteShader(vertex_shader);
-        GL::DeleteShader(fragment_shader);
-        return {-1};
-    }
+    if (!shader_error_check(fragment_shader)) return {-1};
 
     i32 program = GL::CreateProgram();
     GL::AttachShader(program, vertex_shader);
     GL::AttachShader(program, fragment_shader);
     GL::LinkProgram(program);
-
-    GL::DeleteShader(vertex_shader);
-    GL::DeleteShader(fragment_shader);
 
     if (!program_error_check(program)) {
         GL::DeleteProgram(program);
@@ -111,21 +102,23 @@ Shader Shader::compile(const char *source) {
 }
 
 Texture Texture::upload(u32 width, u32 height, u32 components, u8 *data, Sampling sampling) {
-    // TODO(ed): Asserts, they would be nice to have.
+
     u32 texture;
     GL::GenTextures(1, &texture);
     GL::BindTexture(GL::cTEXTURE_2D, texture);
 
     GL::GLenum format;
     if (components == 1) format = GL::cRED;
-    if (components == 2) format = GL::cRG;
-    if (components == 3) format = GL::cRGB;
-    if (components == 4) format = GL::cRGBA;
+    else if (components == 2) format = GL::cRG;
+    else if (components == 3) format = GL::cRGB;
+    else if (components == 4) format = GL::cRGBA;
+    else ASSERT(false, "Invalid number of components (%d)", components);
     GL::TexImage2D(GL::cTEXTURE_2D, 0, GL::cRGBA, width, height, 0, format, GL::cUNSIGNED_BYTE, data);
     GL::GLenum gl_sampling;
     if (sampling == Sampling::LINEAR) gl_sampling = GL::cLINEAR;
     else if (sampling == Sampling::NEAREST) gl_sampling = GL::cNEAREST;
-    else ;// TODO(ed): Unreachable
+    else ASSERT(false, "Unsupported sampling (%d)", components);
+;
     GL::TexParameteri(GL::cTEXTURE_2D, GL::cTEXTURE_MIN_FILTER, gl_sampling);
     GL::TexParameteri(GL::cTEXTURE_2D, GL::cTEXTURE_MAG_FILTER, gl_sampling);
 
@@ -135,7 +128,7 @@ Texture Texture::upload(u32 width, u32 height, u32 components, u8 *data, Samplin
 }
 
 void Texture::bind(u32 texture_slot) {
-    // TODO(ed): Assert texture_slot < 80;
+    ASSERT(texture_slot < 80, "Invalid texture slots. (%d)", texture_slot);
     GL::ActiveTexture(GL::cTEXTURE0 + texture_slot);
     GL::BindTexture(GL::cTEXTURE_2D, texture_id);
     GL::ActiveTexture(GL::cTEXTURE0 + 79); // Hardcoded since it's the "minimum maximum".

@@ -45,5 +45,3 @@ Vec4 operator *(const Vec4 &v, const Mat &m);
 
 Vec3 operator *(const Vec3 &v, const Mat &m);
 
-// TODO(ed): Perspective, translation, rotation, scale.
-
