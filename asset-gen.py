@@ -82,7 +82,7 @@ def asset_hash(string):
     h = 5351
     for c in string:
         h = ll(ll(h * ord(c)) + ord(c))
-    return h;
+    return h
 
 
 def default_header():
@@ -97,6 +97,7 @@ def default_header():
         "data_size": 0,
         "data_offset": 0,
     }
+
 
 def sprite_asset(path):
     """Load an image.
@@ -178,10 +179,10 @@ def model_asset(path):
     - s   object name
     - s   smoothing group
     """
-    vertices         = []
+    vertices = []
     texture_vertices = []
-    normal_vertices  = []
-    faces            = []
+    normal_vertices = []
+    faces = []
 
     for line in open(path, "r"):
         if line.startswith("#"):
@@ -217,6 +218,7 @@ def model_asset(path):
 
     return header, struct.pack(fmt, points_per_face, num_faces, 0, *data)
 
+
 if __name__ == "__main__":
     extensions = {
         "png": sprite_asset,
@@ -239,7 +241,11 @@ if __name__ == "__main__":
     print("=== FINDING ASSETS ===")
     for asset in asset_files:
         ext = asset.split(".")[-1]
-        name = re.sub(r"[^A-Z0-9]", "_", "".join(asset.split("/")[-1].split(".")[:-1]).upper())
+        name = re.sub(r"[^A-Z0-9]", "_", ""
+                      .join(asset
+                            .split("/")[-1]
+                            .split(".")[:-1])
+                      .upper())
         print(asset + " -> ", end="")
         if ext in extensions:
             print(name)
@@ -261,13 +267,20 @@ if __name__ == "__main__":
     print("\n=== WRITING DATA ===")
     print("\n".join(names))
     with open("bin/assets.bin", "wb") as f:
-        if VERBOSE: print("== File header ==")
-        if VERBOSE: print("Writing file header: {}, {}, {}".format(hex(num_assets), hex(HEADER_OFFSET), hex(data_offset)))
+        if VERBOSE:
+            print("== File header ==")
+        if VERBOSE:
+            print("{}, {}, {}".format(hex(num_assets),
+                                      hex(HEADER_OFFSET),
+                                      hex(data_offset)))
         f.write(struct.pack(FILE_HEADER_FMT, num_assets, HEADER_OFFSET, data_offset))
-        if VERBOSE: print("== Headers ==")
+        if VERBOSE:
+            print("== Headers ==")
         for h in headers:
             f.write(struct.pack(ASSET_HEADER_FMT, *h.values()))
-            if VERBOSE: print("Writing header {} as {}".format(h, [hex(val) for val in [*h.values()]]))
-        if VERBOSE: print("== Data ==")
+            if VERBOSE:
+                print("Writing header {} as {}".format(h, [hex(val) for val in [*h.values()]]))
+        if VERBOSE:
+            print("== Data ==")
         for d in data:
             f.write(d)
