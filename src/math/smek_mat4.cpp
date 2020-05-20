@@ -72,21 +72,30 @@ TEST_CASE("mat_mul", {
 });
 
 Mat Mat::look_at(Vec3 from, Vec3 to, Vec3 up) {
-    Vec3 w = normalized(from - to);
-    Vec3 u = cross(w, normalized(up));
-    Vec3 v = cross(u, w);
-    Mat m = Mat::from(u.x, v.x, w.x, from.x,
-                      u.y, v.y, w.y, from.y,
-                      u.z, v.z, w.z, from.z,
+    Vec3 z = normalized(to - from);
+    Vec3 x = cross(normalized(up), z);
+    Vec3 y = cross(z, x);
+    Mat m = Mat::from(x.x, y.x, z.x, -dot(x, from),
+                      x.y, y.y, z.y, -dot(y, from),
+                      x.z, y.z, z.z, -dot(z, from),
                       0.0, 0.0, 0.0, 1.0);
     return m;
 }
 
 TEST_STMT("mat_look_at",
     close_enough(Mat::look_at(Vec3(0, 1, 0), Vec3(1, 1, 0), Vec3(0, 1, 0)),
-                 Mat::from( 0,  0, -1, 0,
-                            0,  1,  0, 1,
+                 Mat::from( 0,  0,  1, 0,
+                            0,  1,  0,-1,
                            -1,  0,  0, 0,
+                            0,  0,  0, 1)
+        )
+);
+
+TEST_STMT("mat_look_at",
+    close_enough(Mat::look_at(Vec3(0, 0, 0), Vec3(0, 0, -1), Vec3(0, 1, 0)),
+                 Mat::from(-1,  0,  0, 0,
+                            0,  1,  0, 0,
+                            0,  0, -1, 0,
                             0,  0,  0, 1)
         )
 );
