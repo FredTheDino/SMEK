@@ -72,7 +72,7 @@ from glob import glob
 from PIL import Image
 from collections import defaultdict
 
-VERBOSE = False  # set to True to debug asset headers
+VERBOSE = True  # set to True to debug asset headers
 
 FILE_HEADER_FMT = "QQQ"
 ASSET_HEADER_FMT = "IQQQQ"
@@ -286,8 +286,8 @@ def pack(asset_files, out_file):
 
     data_offset = HEADER_OFFSET + HEADER_SIZE * num_assets
 
-    print("=== PACKING THE FOLLOWING ASSETS ===")
-    print("\n".join(names))
+    if VERBOSE: print("=== PACKING THE FOLLOWING ASSETS ===")
+    if VERBOSE: print("\n".join(names))
     with open(out_file, "wb") as f:
         if VERBOSE:
             print("{}, {}, {}".format(hex(num_assets),
@@ -303,15 +303,44 @@ def pack(asset_files, out_file):
 
 
 if __name__ == "__main__":
-    global_asset_files = []
-    asset_files = defaultdict(list)
+    from argparse import ArgumentParser as AP
+    parser = AP(description="Processes assets and packs them into"\
+                            "a binary format for the SMEK game.")
+    parser.add_argument("-f", "--files", nargs="+", help="The data files to parse")
+    parser.add_argument("-o", "--out", help="The result file to store in")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Makes the output verbose and noisy")
+    parser.add_argument("-e", "--extensions", action="store_true", help="Prints out the valid extensions, ovrrides all other options")
+    args = parser.parse_args()
 
-    for f in glob("res/**/*", recursive=True):
-        if f.count("/") == 1:
-            global_asset_files.append(f)
-        else:
-            asset_files["bin/assets-{}.bin".format("-".join(f.split("/")[1:-1]))].append(f)
-    pack(global_asset_files, "bin/assets.bin")
-    for out, assets in asset_files.items():
-        print()
-        pack(assets, out)
+    if args.extensions:
+        print(" ".join(EXTENSIONS.keys()))
+        from sys import exit
+        exit(0)
+
+    auto_mode = True
+    if args.files:
+        auto_mode = False
+        sources = args.files
+    else:
+        sources = glob("res/**/*", recursive=True)
+
+    if args.out:
+        output_file = args.out
+    else:
+        output_file = "assets"
+
+    VERBOSE = args.verbose
+
+    if auto_mode:
+        asset_files = defaultdict(list)
+        global_asset_files = []
+        for f in sources:
+            if f.count("/") == 1:
+                global_asset_files.append(f)
+            else:
+                asset_files["{}-{}".format(output_file, "-".join(f.split("/")[1:-1]))].append(f)
+        pack(global_asset_files, output_file + ".bin")
+        for out, assets in asset_files.items():
+            pack(assets, out + ".bin")
+    else:
+        pack(sources, output_file)
