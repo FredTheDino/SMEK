@@ -12,6 +12,7 @@ TEST_CASE("rendering_init", {
     const u32 window_dim = 100;
     GFX::init(game, shader->data, window_dim, window_dim);
     defer { GFX::deinit(game); };
+    GL::Finish();
 
     const u32 slize_dim = 10;
     const u32 buffer_size = slize_dim * slize_dim + slize_dim;
@@ -51,6 +52,7 @@ TEST_CASE("rendering_triangle", {
 
     SDL_ShowWindow(game->window);
     SDL_GL_SwapWindow(game->window);
+    GL::Finish();
 
     const u32 slize_dim = 10;
     const u32 buffer_size = slize_dim;

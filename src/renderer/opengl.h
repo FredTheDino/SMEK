@@ -103,8 +103,8 @@ GL_FUNC(void, BindBuffer, GLenum, u32);
 GL_FUNC(void, BufferData, GLenum, u64, const void *, GLenum);
 
 GL_FUNC(void, ReadPixels, i32, i32, u32, u32, GLenum, GLenum, void *);
+GL_FUNC(void, Finish(void);
 
-///*
 // Loads the actual OpenGL function pointers.
 bool load_procs();
 
