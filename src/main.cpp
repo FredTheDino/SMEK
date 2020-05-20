@@ -25,7 +25,7 @@ int main() { // Game entry point
 
     GFX::init(&_global_gs, Asset::fetch_shader("MASTER_SHADER")->data);
 
-    GFX::Mesh mesh = GFX::Mesh::init(Asset::fetch_model("MONKEY")->positions());
+    GFX::Mesh mesh = GFX::Mesh::init(Asset::fetch_model("MONKEY"));
     GFX::Shader shader = GFX::default_shader();
 
     u8 image[] = {

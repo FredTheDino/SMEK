@@ -74,9 +74,7 @@ struct Model {
     // read from file
     u32 points_per_face;
     u32 num_faces;
-    f32 *data;
-
-    std::vector<Vec3> positions();
+    Vertex *data;
 };
 
 union AssetData {

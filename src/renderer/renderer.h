@@ -12,7 +12,7 @@ struct Mesh {
     u32 vao, vbo;
     u32 draw_length;
 
-    static Mesh init(std::vector<Vec3> points);
+    static Mesh init(Asset::Model *model);
 
     void draw();
 };

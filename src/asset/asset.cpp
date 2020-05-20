@@ -69,16 +69,6 @@ Model *fetch_model(const char *name) {
     return &_raw_fetch(AssetType::MODEL, fetch_id(name))->model;
 }
 
-std::vector<Vec3> Model::positions() {
-    std::vector<Vec3> positions = {};
-    for (u32 i = 0; i < 8 * points_per_face * num_faces; i += 8*3) {
-        positions.push_back(Vec3(data[i + 0],  data[i + 1],  data[i + 2]));
-        positions.push_back(Vec3(data[i + 8],  data[i + 9],  data[i + 10]));
-        positions.push_back(Vec3(data[i + 16], data[i + 17], data[i + 18]));
-    }
-    return positions;
-}
-
 //TODO(gu) re-implement
 template <typename T>
 size_t read(FILE *file, void *ptr, size_t num=1) {
@@ -124,25 +114,10 @@ void load(const char *path) {
         } break;
         case AssetType::MODEL: {
             read<Model>(file, data_ptr);
-            u32 points_per_face = data_ptr->model.points_per_face;
             u32 num_faces = data_ptr->model.num_faces;
-            u32 size = 8 * points_per_face * num_faces;  // 3+2+3 values per point
-            data_ptr->model.data = new f32[size];
-            read<f32>(file, data_ptr->model.data, size);
-#if 0
-            for (u32 i = 0; i < size; i += 8*3) {
-                ModelFace face = {};
-                face.vertices[0].position = Vec3(data[0], data[1], data[2]);
-                face.vertices[0].texture = Vec2(data[3], data[4]);
-                face.vertices[0].normal = Vec3(data[5], data[6], data[7]);
-                face.vertices[1].position = Vec3(data[8], data[9], data[10]);
-                face.vertices[1].texture = Vec2(data[11], data[12]);
-                face.vertices[1].normal = Vec3(data[13], data[14], data[15]);
-                face.vertices[2].position = Vec3(data[16], data[17], data[18]);
-                face.vertices[2].texture = Vec2(data[19], data[20]);
-                face.vertices[2].normal = Vec3(data[21], data[22], data[23]);
-            }
-#endif
+            u32 size = num_faces * 3;
+            data_ptr->model.data = new Vertex[size];
+            read<Vertex>(file, data_ptr->model.data, size);
         } break;
         case AssetType::SHADER: {
             read<Shader>(file, data_ptr);

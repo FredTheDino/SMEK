@@ -9,7 +9,8 @@ Shader shader;
 
 void Shader::use() { GL::UseProgram(program_id); }
 
-Mesh Mesh::init(std::vector<Vec3> points) {
+Mesh Mesh::init(Asset::Model *model) {
+    using Asset::Vertex;
     u32 vao, vbo;
 
     GL::GenVertexArrays(1, &vao);
@@ -18,12 +19,18 @@ Mesh Mesh::init(std::vector<Vec3> points) {
     GL::BindVertexArray(vao);
 
     GL::BindBuffer(GL::cARRAY_BUFFER, vbo);
-    GL::BufferData(GL::cARRAY_BUFFER, sizeof(Vec3) * points.size(), &points[0], GL::cSTATIC_DRAW);
+    GL::BufferData(GL::cARRAY_BUFFER, sizeof(Vertex) * model->num_faces * 3, model->data, GL::cSTATIC_DRAW);
 
     GL::EnableVertexAttribArray(0);
-    GL::VertexAttribPointer(0, 3, GL::cFLOAT, 0, sizeof(Vec3), (void *) 0);
+    GL::VertexAttribPointer(0, 3, GL::cFLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, position));
 
-    return {vao, vbo, static_cast<u32>(points.size())};
+    GL::EnableVertexAttribArray(1);
+    GL::VertexAttribPointer(1, 2, GL::cFLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, texture));
+
+    GL::EnableVertexAttribArray(2);
+    GL::VertexAttribPointer(2, 3, GL::cFLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, normal));
+
+    return {vao, vbo, model->num_faces * 3};;
 }
 
 void Mesh::draw() {
