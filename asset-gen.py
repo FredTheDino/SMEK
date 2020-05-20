@@ -72,8 +72,6 @@ from glob import glob
 from PIL import Image
 from collections import defaultdict
 
-VERBOSE = True  # set to True to debug asset headers
-
 FILE_HEADER_FMT = "QQQ"
 ASSET_HEADER_FMT = "IQQQQ"
 
@@ -211,7 +209,7 @@ def model_asset(path):
         elif line.startswith("f "):
             faces.append([[int(i) for i in v.split("/")] for v in line[2:].split(" ")])
         else:
-            print("  Unable to parse line '{}' in file {}".format(line, path))
+            if VERBOSE: print("  Unable to parse line '{}' in file {}".format(line, path))
             continue
 
     points_per_face = len(faces[0])
@@ -274,7 +272,7 @@ def pack(asset_files, out_file):
                 if VERBOSE:
                     print(name, name_hash)
                 if name_hash in seen_name_hashes:
-                    print("Name hash collision!}")
+                    print(f"Name hash collision! ({name})")
                     sys.exit(1)
                 seen_name_hashes.add(name_hash)
                 asset_header["name_hash"] = name_hash
