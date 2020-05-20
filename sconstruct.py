@@ -4,10 +4,12 @@ import re
 from glob import glob
 from subprocess import Popen, PIPE
 
-# TODO(ed): Fix for Windows
+
 def shell(command):
+    """Runs a command as if it were in the shell."""
     proc = Popen(command, stdout=PIPE)
     return proc.communicate()[0].decode()
+
 
 AddOption("--tests",
           dest="tests",
@@ -27,7 +29,7 @@ env.Append(CXXFLAGS="-ggdb")
 env.Append(CXXFLAGS="-O0")
 env.Append(CXXFLAGS=shell(["sdl2-config", "--cflags"]))
 env.Append(LINKFLAGS=shell(["sdl2-config", "--libs"]))
-env.Append(LINKFLAGS="-rdynamic") # Gives backtrace information
+env.Append(LINKFLAGS="-rdynamic")  # Gives backtrace information
 
 if GetOption("verbose"):
     env.Append(ENV={"VERBOSE": "1"})
@@ -42,8 +44,7 @@ else:
     source.remove("src/test.cpp")
     build_dir = "bin/debug/"
 
-asset_gen = Builder(action="./asset-gen.py -o $TARGET -f $SOURCES",
-                    suffix='.bin')#, src_suffix=shell(["./asset-gen.py", "--extensions"]).split())
+asset_gen = Builder(action="./asset-gen.py -o $TARGET -f $SOURCES", suffix='.bin')
 env.Append(BUILDERS={"Assets": asset_gen})
 assets = [env.Assets(build_dir + "assets.bin", glob("res/*.*", recursive=True))]
 if GetOption("tests"):

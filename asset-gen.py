@@ -232,6 +232,7 @@ def model_asset(path):
 
     return header, struct.pack(fmt, points_per_face, num_faces, 0, *data)
 
+
 EXTENSIONS = {
     "png": sprite_asset,
     "jpg": sprite_asset,
@@ -239,6 +240,7 @@ EXTENSIONS = {
     "glsl": shader_asset,
     "obj": model_asset,
 }
+
 
 def pack(asset_files, out_file):
     print("=== PACKING INTO {} ===".format(out_file))
@@ -286,8 +288,9 @@ def pack(asset_files, out_file):
 
     data_offset = HEADER_OFFSET + HEADER_SIZE * num_assets
 
-    if VERBOSE: print("=== PACKING THE FOLLOWING ASSETS ===")
-    if VERBOSE: print("\n".join(names))
+    if VERBOSE:
+        print("=== PACKING THE FOLLOWING ASSETS ===")
+        print("\n".join(names))
     with open(out_file, "wb") as f:
         if VERBOSE:
             print("{}, {}, {}".format(hex(num_assets),
@@ -304,8 +307,7 @@ def pack(asset_files, out_file):
 
 if __name__ == "__main__":
     from argparse import ArgumentParser as AP
-    parser = AP(description="Processes assets and packs them into"\
-                            "a binary format for the SMEK game.")
+    parser = AP(description="Processes assets and packs them into a binary format for the SMEK game.")
     parser.add_argument("-f", "--files", nargs="+", help="The data files to parse")
     parser.add_argument("-o", "--out", help="The result file to store in")
     parser.add_argument("-v", "--verbose", action="store_true", help="Makes the output verbose and noisy")
