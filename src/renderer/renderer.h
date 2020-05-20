@@ -15,7 +15,6 @@ struct Mesh {
     void draw();
 };
 
-
 struct Shader {
     i32 program_id;
 

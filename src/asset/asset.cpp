@@ -49,6 +49,20 @@ Shader *fetch_shader(AssetID id) {
     return &_raw_fetch(AssetType::SHADER, id)->shader;
 }
 
+Model *fetch_model(AssetID id) {
+    return &_raw_fetch(AssetType::MODEL, id)->model;
+}
+
+std::vector<Vec3> Model::positions() {
+    std::vector<Vec3> positions = {};
+    for (u32 i = 0; i < 8 * points_per_face * num_faces; i += 8*3) {
+        positions.push_back(Vec3(data[i+0],  data[i+1],  data[i+2]));
+        positions.push_back(Vec3(data[i+8],  data[i+9],  data[i+10]));
+        positions.push_back(Vec3(data[i+16], data[i+17], data[i+18]));
+    }
+    return positions;
+}
+
 //TODO(gu) re-implement
 template <typename T>
 size_t read(FILE *file, void *ptr, size_t num=1) {
@@ -99,8 +113,7 @@ void load(const char *path) {
             u32 size = 8 * points_per_face * num_faces;  // 3+2+3 values per point
             data_ptr->model.data = new f32[size];
             read<f32>(file, data_ptr->model.data, size);
-            f32 *data = data_ptr->model.data;
-
+#if 0
             for (u32 i = 0; i < size; i += 8*3) {
                 ModelFace face = {};
                 face.vertices[0].position = Vec3(data[0], data[1], data[2]);
@@ -113,8 +126,7 @@ void load(const char *path) {
                 face.vertices[2].texture = Vec2(data[19], data[20]);
                 face.vertices[2].normal = Vec3(data[21], data[22], data[23]);
             }
-
-            delete[] data_ptr->model.data;
+#endif
         } break;
         case AssetType::SHADER: {
             read<Shader>(file, data_ptr);
@@ -123,7 +135,7 @@ void load(const char *path) {
             read<char>(file, data_ptr->shader.data, size);
         } break;
         default:
-            ERROR("Unknown asset type %d for id %d in asset file %s", header.type, asset, path);
+            ERROR("Unknown asset type %d for id %ld in asset file %s", header.type, asset, path);
             break;
         }
     }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "../math/smek_vec.h"
 
 using AssetID = u64;
@@ -73,6 +75,8 @@ struct Model {
     u32 points_per_face;
     u32 num_faces;
     f32 *data;
+
+    std::vector<Vec3> positions();
 };
 
 union AssetData {
@@ -118,5 +122,8 @@ StringAsset *fetch_string_asset(AssetID id);
 
 ///*
 Shader *fetch_shader(AssetID id);
+
+///*
+Model *fetch_model(AssetID id);
 
 }  // namespace Asset

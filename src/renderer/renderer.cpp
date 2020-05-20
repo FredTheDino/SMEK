@@ -102,7 +102,6 @@ Shader Shader::compile(const char *source) {
 }
 
 Texture Texture::upload(u32 width, u32 height, u32 components, u8 *data, Sampling sampling) {
-
     u32 texture;
     GL::GenTextures(1, &texture);
     GL::BindTexture(GL::cTEXTURE_2D, texture);
@@ -118,7 +117,7 @@ Texture Texture::upload(u32 width, u32 height, u32 components, u8 *data, Samplin
     if (sampling == Sampling::LINEAR) gl_sampling = GL::cLINEAR;
     else if (sampling == Sampling::NEAREST) gl_sampling = GL::cNEAREST;
     else UNREACHABLE("Unsupported sampling (%d)", components);
-;
+
     GL::TexParameteri(GL::cTEXTURE_2D, GL::cTEXTURE_MIN_FILTER, gl_sampling);
     GL::TexParameteri(GL::cTEXTURE_2D, GL::cTEXTURE_MAG_FILTER, gl_sampling);
 
@@ -170,7 +169,6 @@ bool init(GameState *gs, const char *shader_source, int width, int height) {
         SDL_GL_SwapWindow(gs->window);
     }
 
-
     shader = Shader::compile(shader_source);
 
     GL::Enable(GL::cDEPTH_TEST);
@@ -178,7 +176,6 @@ bool init(GameState *gs, const char *shader_source, int width, int height) {
 }
 
 void deinit(GameState *gs) {
-
     SDL_DestroyWindow(gs->window);
     SDL_GL_DeleteContext(gs->gl_context);
 
