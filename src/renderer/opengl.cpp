@@ -64,6 +64,8 @@ bool load_procs() {
     GL_LOAD(BindBuffer);
     GL_LOAD(BufferData);
 
+    GL_LOAD(ReadPixels);
+
     return success;
 }
 

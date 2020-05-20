@@ -178,6 +178,7 @@ bool init(GameState *gs, const char *shader_source, int width, int height) {
 }
 
 void deinit(GameState *gs) {
+    // TODO(ed): Destroy the other allocated stuff here to, but it isn't needed.
 
     SDL_DestroyWindow(gs->window);
     SDL_GL_DeleteContext(gs->gl_context);

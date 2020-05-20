@@ -57,7 +57,7 @@ int main() { // Game entry point
 #endif
     };
 
-    GFX::Mesh rect = GFX::Mesh::init(points);
+    GFX::Mesh cube = GFX::Mesh::init(points);
     GFX::Shader shader = GFX::default_shader();
 
     u8 image[] = {
@@ -104,12 +104,12 @@ int main() { // Game entry point
         auto model_loc = GL::GetUniformLocation(shader.program_id, "model");
         Mat model_matrix = Mat::translate(Math::cos(time) * 0.2, Math::sin(time) * 0.2, -0.5) * Mat::scale(0.001);
         GL::UniformMatrix4fv(model_loc, 1, false, model_matrix.data());
-        rect.draw();
+        cube.draw();
 
         model_loc = GL::GetUniformLocation(shader.program_id, "model");
         model_matrix = Mat::translate(0, 0, -0.5) * Mat::scale(0.0005);
         GL::UniformMatrix4fv(model_loc, 1, false, model_matrix.data());
-        rect.draw();
+        cube.draw();
 
 
         SDL_GL_SwapWindow(_global_gs.window);
