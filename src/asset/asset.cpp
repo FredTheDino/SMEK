@@ -72,9 +72,9 @@ Model *fetch_model(const char *name) {
 std::vector<Vec3> Model::positions() {
     std::vector<Vec3> positions = {};
     for (u32 i = 0; i < 8 * points_per_face * num_faces; i += 8*3) {
-        positions.push_back(Vec3(data[i+0],  data[i+1],  data[i+2]));
-        positions.push_back(Vec3(data[i+8],  data[i+9],  data[i+10]));
-        positions.push_back(Vec3(data[i+16], data[i+17], data[i+18]));
+        positions.push_back(Vec3(data[i + 0],  data[i + 1],  data[i + 2]));
+        positions.push_back(Vec3(data[i + 8],  data[i + 9],  data[i + 10]));
+        positions.push_back(Vec3(data[i + 16], data[i + 17], data[i + 18]));
     }
     return positions;
 }
