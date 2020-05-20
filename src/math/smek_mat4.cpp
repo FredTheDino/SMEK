@@ -79,7 +79,6 @@ Mat Mat::look_at(Vec3 from, Vec3 to, Vec3 up) {
                       u.y, v.y, w.y, from.y,
                       u.z, v.z, w.z, from.z,
                       0.0, 0.0, 0.0, 1.0);
-    log_matrix(m);
     return m;
 }
 
