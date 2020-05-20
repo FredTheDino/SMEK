@@ -91,7 +91,7 @@ int main() { // Game entry point
         auto view_loc = GL::GetUniformLocation(shader.program_id, "view");
         Mat view_matrix = Mat::perspective(PI / 4, 0.01, 1.0);
         view_matrix = view_matrix * Mat::look_at(Vec3(0, 0, 0),
-                    Vec3(Math::cos(time) * 0.2, Math::sin(time) * 0.0, -0.5), Vec3(0, 1, 0));
+                    Vec3(Math::cos(time) * 0.2, Math::sin(time) * 0.0, 0.5), Vec3(0, 1, 0));
         GL::UniformMatrix4fv(view_loc, 1, false, view_matrix.data());
 
 
