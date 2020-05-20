@@ -112,12 +112,12 @@ Texture Texture::upload(u32 width, u32 height, u32 components, u8 *data, Samplin
     else if (components == 2) format = GL::cRG;
     else if (components == 3) format = GL::cRGB;
     else if (components == 4) format = GL::cRGBA;
-    else ASSERT(false, "Invalid number of components (%d)", components);
+    else UNREACHABLE("Invalid number of components (%d)", components);
     GL::TexImage2D(GL::cTEXTURE_2D, 0, GL::cRGBA, width, height, 0, format, GL::cUNSIGNED_BYTE, data);
     GL::GLenum gl_sampling;
     if (sampling == Sampling::LINEAR) gl_sampling = GL::cLINEAR;
     else if (sampling == Sampling::NEAREST) gl_sampling = GL::cNEAREST;
-    else ASSERT(false, "Unsupported sampling (%d)", components);
+    else UNREACHABLE("Unsupported sampling (%d)", components);
 ;
     GL::TexParameteri(GL::cTEXTURE_2D, GL::cTEXTURE_MIN_FILTER, gl_sampling);
     GL::TexParameteri(GL::cTEXTURE_2D, GL::cTEXTURE_MAG_FILTER, gl_sampling);
