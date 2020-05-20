@@ -50,7 +50,6 @@ TEST_CASE("rendering_triangle", {
     shader.use();
     cube.draw();
 
-    SDL_ShowWindow(game->window);
     SDL_GL_SwapWindow(game->window);
     GL::Finish();
 
