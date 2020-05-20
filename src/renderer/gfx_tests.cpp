@@ -12,13 +12,13 @@ TEST_CASE("rendering_init", {
     const u32 window_dim = 100;
     GFX::init(game, shader->data, window_dim, window_dim);
     defer { GFX::deinit(game); };
-    GL::Finish();
 
     const u32 slize_dim = 10;
     const u32 buffer_size = slize_dim * slize_dim + slize_dim;
     const u32 start = window_dim / 2 - slize_dim / 2;
     u8 data[buffer_size];
     GL::ReadPixels(start, start, slize_dim, slize_dim, GL::cRED, GL::cUNSIGNED_BYTE, data);
+    GL::Finish();
 
     bool success = true;
     for (u32 i = 0; i < buffer_size / 2; i++)
@@ -51,13 +51,13 @@ TEST_CASE("rendering_triangle", {
     cube.draw();
 
     SDL_GL_SwapWindow(game->window);
-    GL::Finish();
 
     const u32 slize_dim = 10;
     const u32 buffer_size = slize_dim;
     const u32 start = window_dim / 2 - slize_dim / 2;
     u8 data[buffer_size];
     GL::ReadPixels(start, start, slize_dim, 1, GL::cRED, GL::cUNSIGNED_BYTE, data);
+    GL::Finish();
 
     bool success = true;
     for (u32 x = 0; x < slize_dim; x++) {
