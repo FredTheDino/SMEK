@@ -126,6 +126,10 @@ Texture Texture::upload(u32 width, u32 height, u32 components, u8 *data, Samplin
     return { texture };
 }
 
+Texture Texture::upload(Asset::Image *image, Sampling sampling) {
+    return upload(image->width, image->height, image->components, image->data, sampling);
+}
+
 void Texture::bind(u32 texture_slot) {
     ASSERT(texture_slot < 80, "Invalid texture slots. (%d)", texture_slot);
     GL::ActiveTexture(GL::cTEXTURE0 + texture_slot);

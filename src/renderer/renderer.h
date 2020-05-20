@@ -2,6 +2,8 @@
 #include "../math/smek_vec.h"
 #include "../main.h"
 
+#include "../asset/asset.h"
+
 #include <vector>
 
 namespace GFX {
@@ -36,6 +38,7 @@ struct Texture {
     void bind(u32 texture_slot=0);
 
     static Texture upload(u32 width, u32 height, u32 components, u8 *data, Sampling sampling);
+    static Texture upload(Asset::Image *image, Sampling sampling);
 };
 
 Shader default_shader();

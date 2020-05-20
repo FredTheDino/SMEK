@@ -50,11 +50,11 @@ struct Image {
     // read from file
     u32 width;
     u32 height;
-    u32 channels;
+    u32 components;
     u8  *data;
 
     u64 size() const {
-        return width * height * channels;
+        return width * height * components;
     }
 };
 

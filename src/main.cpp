@@ -25,7 +25,7 @@ int main() { // Game entry point
 
     GFX::init(&_global_gs, Asset::fetch_shader(Asset::fetch_id("MASTER_SHADER"))->data);
 
-    GFX::Mesh monkey = GFX::Mesh::init(Asset::fetch_model(Asset::fetch_id("MONKEY"))->positions());
+    GFX::Mesh mesh = GFX::Mesh::init(Asset::fetch_model(Asset::fetch_id("MONKEY"))->positions());
     GFX::Shader shader = GFX::default_shader();
 
     u8 image[] = {
@@ -34,7 +34,8 @@ int main() { // Game entry point
         255, 255, 255, 255,   255, 255, 255, 255,   255, 255, 255, 255,
     };
 
-    auto texture = GFX::Texture::upload(3, 3, 4, image, GFX::Texture::Sampling::NEAREST);
+    //auto texture = GFX::Texture::upload(3, 3, 4, image, GFX::Texture::Sampling::NEAREST);
+    auto texture = GFX::Texture::upload(Asset::fetch_image(Asset::fetch_id("RGBA")), GFX::Texture::Sampling::NEAREST);
 
     bool running = true;
     while (running) {
@@ -72,12 +73,12 @@ int main() { // Game entry point
         auto model_loc = GL::GetUniformLocation(shader.program_id, "model");
         Mat model_matrix = Mat::translate(Math::cos(time) * 0.2, Math::sin(time) * 0.2, -0.5) * Mat::scale(0.001);
         GL::UniformMatrix4fv(model_loc, 1, false, model_matrix.data());
-        monkey.draw();
+        mesh.draw();
 
         model_loc = GL::GetUniformLocation(shader.program_id, "model");
         model_matrix = Mat::translate(0, 0, -0.5) * Mat::scale(0.0005);
         GL::UniformMatrix4fv(model_loc, 1, false, model_matrix.data());
-        monkey.draw();
+        mesh.draw();
 
 
         SDL_GL_SwapWindow(_global_gs.window);

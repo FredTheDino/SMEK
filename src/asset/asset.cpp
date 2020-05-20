@@ -135,7 +135,7 @@ void load(const char *path) {
             read<char>(file, data_ptr->shader.data, size);
         } break;
         default:
-            ERROR("Unknown asset type %d for id %ld in asset file %s", header.type, asset, path);
+            ERROR("Unknown asset type %d for id %lu in asset file %s", header.type, asset, path);
             break;
         }
     }
@@ -161,12 +161,12 @@ TEST_CASE("asset 1x1x3 png white", {
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
 
-    return image->width    == 1
-        && image->height   == 1
-        && image->channels == 3
-        && image->data[0]  == 255
-        && image->data[1]  == 255
-        && image->data[2]  == 255
+    return image->width      == 1
+        && image->height     == 1
+        && image->components == 3
+        && image->data[0]    == 255
+        && image->data[1]    == 255
+        && image->data[2]    == 255
         ;
 });
 
@@ -176,9 +176,9 @@ TEST_CASE("asset 2x1x4 png", {
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
 
-    return image->width    == 2
-        && image->height   == 1
-        && image->channels == 4
+    return image->width      == 2
+        && image->height     == 1
+        && image->components == 4
         ;
 });
 
@@ -188,9 +188,9 @@ TEST_CASE("asset 1x2x4 png", {
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
 
-    return image->width    == 1
-        && image->height   == 2
-        && image->channels == 4
+    return image->width      == 1
+        && image->height     == 2
+        && image->components == 4
         ;
 });
 
@@ -200,13 +200,13 @@ TEST_CASE("asset 1x1x4 png white", {
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
 
-    return image->width    == 1
-        && image->height   == 1
-        && image->channels == 4
-        && image->data[0]  == 255
-        && image->data[1]  == 255
-        && image->data[2]  == 255
-        && image->data[3]  == 255
+    return image->width      == 1
+        && image->height     == 1
+        && image->components == 4
+        && image->data[0]    == 255
+        && image->data[1]    == 255
+        && image->data[2]    == 255
+        && image->data[3]    == 255
         ;
 });
 
@@ -216,13 +216,13 @@ TEST_CASE("asset 1x1x4 png red", {
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
 
-    return image->width    == 1
-        && image->height   == 1
-        && image->channels == 4
-        && image->data[0]  == 255
-        && image->data[1]  == 0
-        && image->data[2]  == 0
-        && image->data[3]  == 255
+    return image->width      == 1
+        && image->height     == 1
+        && image->components == 4
+        && image->data[0]    == 255
+        && image->data[1]    == 0
+        && image->data[2]    == 0
+        && image->data[3]    == 255
         ;
 });
 
@@ -232,13 +232,13 @@ TEST_CASE("asset 1x1x4 png green", {
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
 
-    return image->width    == 1
-        && image->height   == 1
-        && image->channels == 4
-        && image->data[0]  == 0
-        && image->data[1]  == 255
-        && image->data[2]  == 0
-        && image->data[3]  == 255
+    return image->width      == 1
+        && image->height     == 1
+        && image->components == 4
+        && image->data[0]    == 0
+        && image->data[1]    == 255
+        && image->data[2]    == 0
+        && image->data[3]    == 255
         ;
 });
 
@@ -248,13 +248,13 @@ TEST_CASE("asset 1x1x4 png blue", {
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
 
-    return image->width    == 1
-        && image->height   == 1
-        && image->channels == 4
-        && image->data[0]  == 0
-        && image->data[1]  == 0
-        && image->data[2]  == 255
-        && image->data[3]  == 255
+    return image->width      == 1
+        && image->height     == 1
+        && image->components == 4
+        && image->data[0]    == 0
+        && image->data[1]    == 0
+        && image->data[2]    == 255
+        && image->data[3]    == 255
         ;
 });
 
@@ -264,10 +264,10 @@ TEST_CASE("asset 1x1x4 png transparent", {
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
 
-    return image->width    == 1
-        && image->height   == 1
-        && image->channels == 4
-        && image->data[3]  == 0
+    return image->width      == 1
+        && image->height     == 1
+        && image->components == 4
+        && image->data[3]    == 0
         ;
 });
 
@@ -277,11 +277,11 @@ TEST_CASE("asset 1x1x3 jpg white", {
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
 
-    return image->width    == 1
-        && image->height   == 1
-        && image->channels == 3
-        && image->data[0]  == 255
-        && image->data[1]  == 255
-        && image->data[2]  == 255
+    return image->width      == 1
+        && image->height     == 1
+        && image->components == 3
+        && image->data[0]    == 255
+        && image->data[1]    == 255
+        && image->data[2]    == 255
         ;
 });
