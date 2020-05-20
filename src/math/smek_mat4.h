@@ -35,7 +35,7 @@ struct Mat {
     static Mat scale(real scale);
     static Mat translate(real dx, real dy, real dz);
     static Mat translate(Vec3 delta);
-    static Mat look_towards(Vec3 from, Vec3 to, Vec3 up);
+    static Mat look_at(Vec3 from, Vec3 to, Vec3 up);
     static Mat perspective(real fov, real near, real far);
 };
 

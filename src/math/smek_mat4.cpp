@@ -71,7 +71,7 @@ TEST_CASE("mat_mul", {
                                      4, 2, 8, 6));
 });
 
-Mat Mat::look_towards(Vec3 from, Vec3 to, Vec3 up) {
+Mat Mat::look_at(Vec3 from, Vec3 to, Vec3 up) {
     Vec3 w = normalized(from - to);
     Vec3 u = cross(w, normalized(up));
     Vec3 v = cross(w, u);
@@ -83,7 +83,7 @@ Mat Mat::look_towards(Vec3 from, Vec3 to, Vec3 up) {
 }
 
 TEST_STMT("mat_look_towards",
-    close_enough(Mat::look_towards(Vec3(0, 1, 0), Vec3(1, 1, 0), Vec3(0, 1, 0)),
+    close_enough(Mat::look_at(Vec3(0, 1, 0), Vec3(1, 1, 0), Vec3(0, 1, 0)),
                  Mat::from( 0,  0, -1, 0,
                             0, -1,  0, 1,
                            -1,  0,  0, 0,
