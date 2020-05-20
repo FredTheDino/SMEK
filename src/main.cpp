@@ -21,7 +21,7 @@ int main() { // Test entry point
 #include "math/smek_math.h"
 
 int main() { // Game entry point
-    Asset::load("bin/assets.bin");
+    Asset::load("assets.bin");
 
     GFX::init(&_global_gs, Asset::fetch_shader(Asset::fetch_id("MASTER_SHADER"))->data);
 
