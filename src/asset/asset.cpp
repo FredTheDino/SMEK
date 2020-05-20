@@ -53,6 +53,22 @@ Model *fetch_model(AssetID id) {
     return &_raw_fetch(AssetType::MODEL, id)->model;
 }
 
+Image *fetch_image(const char *name) {
+    return &_raw_fetch(AssetType::TEXTURE, fetch_id(name))->image;
+}
+
+StringAsset *fetch_string_asset(const char *name) {
+    return &_raw_fetch(AssetType::STRING, fetch_id(name))->string;
+}
+
+Shader *fetch_shader(const char *name) {
+    return &_raw_fetch(AssetType::SHADER, fetch_id(name))->shader;
+}
+
+Model *fetch_model(const char *name) {
+    return &_raw_fetch(AssetType::MODEL, fetch_id(name))->model;
+}
+
 std::vector<Vec3> Model::positions() {
     std::vector<Vec3> positions = {};
     for (u32 i = 0; i < 8 * points_per_face * num_faces; i += 8*3) {

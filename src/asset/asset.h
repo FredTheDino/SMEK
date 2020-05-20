@@ -126,4 +126,9 @@ Shader *fetch_shader(AssetID id);
 ///*
 Model *fetch_model(AssetID id);
 
+Image *fetch_image(const char *name);
+StringAsset *fetch_string_asset(const char *name);
+Shader *fetch_shader(const char *name);
+Model *fetch_model(const char *name);
+
 }  // namespace Asset

@@ -23,9 +23,9 @@ int main() { // Test entry point
 int main() { // Game entry point
     Asset::load("bin/assets.bin");
 
-    GFX::init(&_global_gs, Asset::fetch_shader(Asset::fetch_id("MASTER_SHADER"))->data);
+    GFX::init(&_global_gs, Asset::fetch_shader("MASTER_SHADER")->data);
 
-    GFX::Mesh mesh = GFX::Mesh::init(Asset::fetch_model(Asset::fetch_id("MONKEY"))->positions());
+    GFX::Mesh mesh = GFX::Mesh::init(Asset::fetch_model("MONKEY")->positions());
     GFX::Shader shader = GFX::default_shader();
 
     u8 image[] = {
@@ -35,7 +35,7 @@ int main() { // Game entry point
     };
 
     //auto texture = GFX::Texture::upload(3, 3, 4, image, GFX::Texture::Sampling::NEAREST);
-    auto texture = GFX::Texture::upload(Asset::fetch_image(Asset::fetch_id("RGBA")), GFX::Texture::Sampling::NEAREST);
+    auto texture = GFX::Texture::upload(Asset::fetch_image("RGBA"), GFX::Texture::Sampling::NEAREST);
 
     bool running = true;
     while (running) {
