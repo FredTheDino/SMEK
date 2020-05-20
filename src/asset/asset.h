@@ -4,9 +4,18 @@
 
 #include "../math/smek_vec.h"
 
-using AssetID = u64;
+struct AssetID {
+    AssetID(const char *);
+    AssetID(u64 id): id(id) {}
 
-const AssetID NO_ASSET = 0xFFFFFFFF;
+    static AssetID NONE();
+
+    u64 id;
+
+    operator u64() const {
+        return id;
+    }
+};
 
 namespace Asset {
 
@@ -123,10 +132,5 @@ Shader *fetch_shader(AssetID id);
 
 ///*
 Model *fetch_model(AssetID id);
-
-Image *fetch_image(const char *name);
-StringAsset *fetch_string_asset(const char *name);
-Shader *fetch_shader(const char *name);
-Model *fetch_model(const char *name);
 
 }  // namespace Asset

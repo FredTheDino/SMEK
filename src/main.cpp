@@ -28,12 +28,6 @@ int main() { // Game entry point
     GFX::Mesh mesh = GFX::Mesh::init(Asset::fetch_model("MONKEY"));
     GFX::Shader shader = GFX::default_shader();
 
-    u8 image[] = {
-        255, 255, 255, 255,   255, 255, 255, 255,   255, 255, 255, 255,
-        255, 255, 255, 255,   255, 255, 255, 255,   255, 255, 255, 255,
-        255, 255, 255, 255,   255, 255, 255, 255,   255, 255, 255, 255,
-    };
-
     //auto texture = GFX::Texture::upload(3, 3, 4, image, GFX::Texture::Sampling::NEAREST);
     auto texture = GFX::Texture::upload(Asset::fetch_image("RGBA"), GFX::Texture::Sampling::NEAREST);
 

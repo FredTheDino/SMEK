@@ -5,13 +5,22 @@
 #include "asset.h"
 #include "../main.h"
 
+AssetID AssetID::NONE() {
+    return 0xFFFFFFFF;
+}
+
+AssetID::AssetID(const char *str) {
+    *this = Asset::fetch_id(str);
+}
+
+
 namespace Asset {
 
 bool valid_asset(AssetID id) {
-    return id < global_gamestate()->asset_system.num_assets;
+    return id.id < global_gamestate()->asset_system.num_assets;
 }
 
-u64 hash(const char *string) {
+static u64 hash(const char *string) {
     u64 hash = 5351;
     while (*string) {
         char c = (*string++);
@@ -28,8 +37,9 @@ AssetID fetch_id(const char *name) {
         }
     }
     WARN("Unable to find asset with name %s (hash is %lu)", name, name_hash);
-    return NO_ASSET;
+    return AssetID::NONE();
 }
+
 
 AssetData *_raw_fetch(AssetType type, AssetID id) {
     ASSERT(id < global_gamestate()->asset_system.num_assets, "Invalid asset id '%lu'", id);
@@ -51,22 +61,6 @@ Shader *fetch_shader(AssetID id) {
 
 Model *fetch_model(AssetID id) {
     return &_raw_fetch(AssetType::MODEL, id)->model;
-}
-
-Image *fetch_image(const char *name) {
-    return &_raw_fetch(AssetType::TEXTURE, fetch_id(name))->image;
-}
-
-StringAsset *fetch_string_asset(const char *name) {
-    return &_raw_fetch(AssetType::STRING, fetch_id(name))->string;
-}
-
-Shader *fetch_shader(const char *name) {
-    return &_raw_fetch(AssetType::SHADER, fetch_id(name))->shader;
-}
-
-Model *fetch_model(const char *name) {
-    return &_raw_fetch(AssetType::MODEL, fetch_id(name))->model;
 }
 
 //TODO(gu) re-implement
