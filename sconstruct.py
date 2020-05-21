@@ -61,14 +61,16 @@ smek = env.Program(target=build_dir + "SMEK", source=source)
 Depends(smek, asset_alias)
 Default(smek)
 
-run_cmd = "cd " + build_dir + ";" + smek[0].abspath
+run_cmd = "(set -o pipefail; "  # propagate exit codes from earlier pipes
+run_cmd += "cd " + build_dir + ";" + smek[0].abspath
 if shutil.which("c++filt"):
     # Swap stdout and stderr, de-mangle with c++filt, then swap back.
     # https://serverfault.com/questions/63705/how-to-pipe-stderr-without-piping-stdout
     run_cmd += " 3>&1 1>&2 2>&3 | c++filt 3>&2 2>&1 1>&3 | c++filt"
 else:
     # c++filt should be installed but just in case
-    run_cmd += "&& echo \"c++filt not found, function names may be mangled\""
+    run_cmd += "; echo \"c++filt not found, function names may be mangled\""
+run_cmd += ")"
 
 AlwaysBuild(env.Alias("run", smek, run_cmd))
 
