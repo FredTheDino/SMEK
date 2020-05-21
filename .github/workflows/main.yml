@@ -10,13 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     container: archlinux:latest
     steps:
-        - uses: actions/checkout@v2
-        - run: |
-            pacman -Syy
-            pacman --noconfirm -S binutils gcc python python-pip sdl2 scons
-            python3 -m pip install --user --upgrade pip setuptools wheel
-            python3 -m pip install --user pyhash pillow
-          name: Install dependencies
-        - run: |
-            scons -Q --tests run
-          name: Run tests
+      - uses: actions/checkout@v2
+      - run: |
+          pacman -Syy
+          pacman --noconfirm -S binutils gcc python python-pip sdl2 scons
+          python3 -m pip install --user --upgrade pip setuptools wheel
+          python3 -m pip install --user pyhash pillow
+        name: Install dependencies
+      - run: |
+          scons -Q --tests run
+        name: Run tests
