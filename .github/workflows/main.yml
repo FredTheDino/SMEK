@@ -1,4 +1,5 @@
-name: CI
+name: Tests
+
 on:
   push:
     branches: [ master ]
@@ -11,12 +12,12 @@ jobs:
     container: archlinux:latest
     steps:
       - uses: actions/checkout@v2
-      - run: |
+      - name: Install dependencies
+        run: |
           pacman -Syy
           pacman --noconfirm -S binutils gcc python python-pip sdl2 scons
-          python3 -m pip install --user --upgrade pip setuptools wheel
-          python3 -m pip install --user pyhash pillow
-        name: Install dependencies
-      - run: |
+          python3 -m pip install --user --upgrade pip setuptools
+          python3 -m pip install --user pillow
+      - name: Run tests
+        run: |
           scons -Q --tests run
-        name: Run tests
