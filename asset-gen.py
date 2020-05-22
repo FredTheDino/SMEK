@@ -67,7 +67,6 @@ for example, a terminating 0x00.
 import re
 import sys
 import struct
-import pyhash
 from glob import glob
 from PIL import Image
 from collections import defaultdict
@@ -90,10 +89,17 @@ def ll(x):
     return x % (2**64)
 
 
-def asset_hash(string):
+def hash_string(string):
     h = 5351
     for c in string:
         h = ll(ll(h * ord(c)) + ord(c))
+    return h
+
+
+def hash_bytes(bytes):
+    h = 5351
+    for b in bytes:
+        h = ll(ll(h * b) + b)
     return h
 
 
@@ -242,7 +248,6 @@ EXTENSIONS = {
 
 def pack(asset_files, out_file):
     print("=== PACKING INTO {} ===".format(out_file))
-    hasher = pyhash.metro_64()
     seen_name_hashes = set()
 
     num_assets = 0
@@ -268,7 +273,7 @@ def pack(asset_files, out_file):
             if asset_header and asset_data:
                 num_assets += 1
                 asset_header["data_offset"] = cur_asset_offset
-                name_hash = asset_hash(name)
+                name_hash = hash_string(name)
                 if VERBOSE:
                     print(name, name_hash)
                 if name_hash in seen_name_hashes:
@@ -276,7 +281,7 @@ def pack(asset_files, out_file):
                     sys.exit(1)
                 seen_name_hashes.add(name_hash)
                 asset_header["name_hash"] = name_hash
-                asset_header["data_hash"] = hasher(asset_data)
+                asset_header["data_hash"] = hash_bytes(asset_data)
                 cur_asset_offset += asset_header["data_size"]
                 headers.append(asset_header)
                 data.append(asset_data)
