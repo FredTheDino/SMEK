@@ -5,51 +5,112 @@
 #include <cstdarg>
 #include <stdexcept>
 #include <execinfo.h>
+#include <cxxabi.h>
 #include <unistd.h>
 
+#define STREAM stderr
+#define STREAM_FILENO STDERR_FILENO
 
-void _smek_error_log(const char *file, u32 line, const char *func, const char *message, ...) {
-    std::fprintf(stderr, RED "! %s" RESET "|%s|" BLUE "%d" RESET ": ", file, func, line);
-    va_list args;
-    va_start(args, message);
-    std::vfprintf(stderr, message, args);
-    va_end(args);
-    std::fprintf(stderr, "\n");
+// Kinda borrowed from https://panthema.net/2008/0901-stacktrace-demangled/
+static inline void print_stacktrace(unsigned int max_frames=63) {
+    void* addrlist[max_frames+1];
+
+    int addrlen = backtrace(addrlist, sizeof(addrlist) / sizeof(void*));
+
+    // filename(function+address)
+    char **symbollist = backtrace_symbols(addrlist, addrlen);
+
+    size_t funcnamesize = 256;
+    char *funcname = new char[funcnamesize];
+
+    // Iterate over the returned symbol lines. The first is this function,
+    // the second is either _assert or _unreachable. The last two are _start
+    // and libc_start.
+    for (int i = 2; i < addrlen-2; i++) {
+        char *begin_name = 0, *begin_offset = 0, *end_offset = 0;
+
+        // Find parentheses and +address offset surrounding the mangled name:
+        // ./module(function+0x15c) [0x8048a6d]
+        for (char *p = symbollist[i]; *p; ++p) {
+            if (*p == '(') {
+                begin_name = p;
+            } else if (*p == '+') {
+                begin_offset = p;
+            } else if (*p == ')' && begin_offset) {
+                end_offset = p;
+                break;
+            }
+        }
+
+        if (begin_name && begin_offset && end_offset && begin_name < begin_offset) {
+            *begin_name++ = '\0';
+            *begin_offset++ = '\0';
+            *end_offset = '\0';
+
+            // Mangled name is in [begin_name, begin_offset) and caller offset
+            // is in [begin_offset, end_offset). Now apply __cxa_demangle().
+
+            int status;
+            char *ret = abi::__cxa_demangle(begin_name,
+                                            funcname, &funcnamesize, &status);
+            if (status == 0) {
+                funcname = ret; // Use possibly realloc()-ed string
+                std::fprintf(STREAM, "  %s\n", funcname);
+            } else {
+                // Demangling failed. Output function name as a C function with no arguments.
+                std::fprintf(STREAM, "  %s()\n", begin_name);
+            }
+        }
+        else {
+            // Couldn't parse the line? print the whole line.
+            std::fprintf(STREAM, "%s\n", symbollist[i]);
+        }
+    }
+    std::free(symbollist);
+    delete[] funcname;
 }
 
-void _smek_warn_log(const char *file, u32 line, const char *func, const char *message, ...) {
-    std::fprintf(stderr, YELLOW "? %s" RESET "|%s|" BLUE "%d" RESET ": ", file, func, line);
+void _smek_log_err(const char *file, u32 line, const char *func, const char *message, ...) {
+    std::fprintf(STREAM, RED "E %s" RESET " @ %d (%s): ", file, line, func);
     va_list args;
     va_start(args, message);
-    std::vfprintf(stderr, message, args);
+    std::vfprintf(STREAM, message, args);
     va_end(args);
-    std::fprintf(stderr, "\n");
+    std::fprintf(STREAM, "\n");
+}
+
+void _smek_log_warn(const char *file, u32 line, const char *func, const char *message, ...) {
+    std::fprintf(STREAM, YELLOW "W %s" RESET " @ %d (%s): ", file, line, func);
+    va_list args;
+    va_start(args, message);
+    std::vfprintf(STREAM, message, args);
+    va_end(args);
+    std::fprintf(STREAM, "\n");
+}
+
+void _smek_log_info(const char *file, u32 line, const char *func, const char *message, ...) {
+    std::fprintf(STREAM, WHITE "I %s" RESET " @ %d (%s): ", file, line, func);
+    va_list args;
+    va_start(args, message);
+    std::vfprintf(STREAM, message, args);
+    va_end(args);
+    std::fprintf(STREAM, "\n");
 }
 
 #define HALT(msg) \
     {\
-        void *array[128]; size_t size;\
-        size = backtrace(array, sizeof(array) / sizeof(array[0]));\
-        backtrace_symbols_fd(array, size, STDERR_FILENO);\
+        print_stacktrace();           \
         throw std::runtime_error(msg);\
     }
 
-void _smek_info_log(const char *file, u32 line, const char *func, const char *message, ...) {
-    std::fprintf(stderr, GREEN " %s" RESET "|%s|" BLUE "%d" RESET ": ", file, func, line);
-    va_list args;
-    va_start(args, message);
-    std::vfprintf(stderr, message, args);
-    va_end(args);
-    std::fprintf(stderr, "\n");
-}
-
 void _smek_unreachable(const char *file, u32 line, const char *func, const char *message, ...) {
-    std::fprintf(stderr, RED "%s" RESET "|%s|" RED "%d" RESET ": Unreachable\n", file, func, line);
+    std::fprintf(STREAM, RED "U %s" RESET " @ %d (%s) unreachable:\n", file, line, func);
+    std::fprintf(STREAM, BOLDRED "| " RESET);
     va_list args;
     va_start(args, message);
-    std::vfprintf(stderr, message, args);
+    std::vfprintf(STREAM, message, args);
     va_end(args);
-    std::fprintf(stderr, "\n" BOLDRED "| " RESET " End of Transmission\n");
+    std::fprintf(STREAM, "\n" BOLDRED "|" RESET " Stacktrace:\n");
 
     HALT("Unreachable!");
 }
@@ -57,26 +118,26 @@ void _smek_unreachable(const char *file, u32 line, const char *func, const char 
 void _smek_assert(const char *file, u32 line, const char *func, bool passed, const char *expr, const char *msg, ...) {
     if (passed) return;
 
-    std::fprintf(stderr, RED "%s" RESET "|%s|" RED "%d" RESET ": ASSERT(%s)\n", file, func, line, expr);
-    std::fprintf(stderr, BOLDRED "| " RESET);
+    std::fprintf(STREAM, RED "A %s" RESET " @ %d (%s) assert(%s):\n", file, line, func, expr);
+    std::fprintf(STREAM, BOLDRED "| " RESET);
     va_list args;
     va_start(args, msg);
-    std::vfprintf(stderr, msg, args);
+    std::vfprintf(STREAM, msg, args);
     va_end(args);
-    std::fprintf(stderr, "\n" BOLDRED "| " RESET "End of Transmission\n");
+    std::fprintf(STREAM, "\n" BOLDRED "|" RESET " Stacktrace:\n");
 
     HALT("Assert!");
 }
 
 bool _smek_check(const char *file, u32 line, const char *func, bool passed, const char *expr, const char *msg, ...) {
     if (!passed) {
-        std::fprintf(stderr, YELLOW "%s" RESET "|%s|" BLUE "%d" RESET ": %s\n", file, func, line, expr);
-        std::fprintf(stderr, YELLOW "| " RESET);
+        std::fprintf(STREAM, YELLOW "C" RESET " %s @ %d (%s) check(%s):\n", file, line, func, expr);
+        std::fprintf(STREAM, YELLOW "| " RESET);
         va_list args;
         va_start(args, msg);
-        std::vfprintf(stderr, msg, args);
+        std::vfprintf(STREAM, msg, args);
         va_end(args);
-        std::fprintf(stderr, "\n");
+        std::fprintf(STREAM, "\n");
     }
     return passed;
 }
