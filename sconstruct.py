@@ -88,6 +88,9 @@ AlwaysBuild(env.Alias("run", smek, run_cmd))
 docs = env.Alias("docs", "", "docs/doc-builder.py")
 AlwaysBuild(docs)
 
+if shutil.which("ctags"):
+    AlwaysBuild(env.Alias("tags", "", "ctags -R src"))
+
 env.Clean(smek, glob("bin/**/*.o", recursive=True))  # always remove *.o
 env.Clean(docs, "docs/index.html")
 env.Clean(assets, glob("bin/**/assets*.bin"))
