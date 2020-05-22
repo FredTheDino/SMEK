@@ -1,4 +1,4 @@
-#include "../main.h"
+#include "../game.h"
 #include "../util/util.h"
 #include "opengl.h"
 #include "renderer.h"
@@ -163,7 +163,7 @@ bool init(GameState *gs, const char *shader_source, int width, int height) {
         return false;
     }
 
-    if (gs == global_gamestate()) {
+    if (gs == GAMESTATE()) {
         GL::ClearColor(0, 0, 0, 0);
         GL::Clear(GL::cCOLOR_BUFFER_BIT);
         SDL_ShowWindow(gs->window);

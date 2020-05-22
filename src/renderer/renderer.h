@@ -1,6 +1,6 @@
 #pragma once
 #include "../math/smek_vec.h"
-#include "../main.h"
+#include "../game.h"
 
 #include <vector>
 

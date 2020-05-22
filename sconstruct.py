@@ -27,6 +27,7 @@ env.Replace(CXX="g++")
 env.Append(CXXFLAGS="-Wall")
 env.Append(CXXFLAGS="-ggdb")
 env.Append(CXXFLAGS="-O0")
+env.Append(CXXFLAGS="-Wno-unused")
 env.Append(CXXFLAGS=shell(["sdl2-config", "--cflags"]))
 env.Append(LINKFLAGS=shell(["sdl2-config", "--libs"]))
 env.Append(LINKFLAGS="-rdynamic")  # Gives backtrace information
@@ -89,6 +90,7 @@ docs = env.Alias("docs", "", "docs/doc-builder.py")
 AlwaysBuild(docs)
 
 if shutil.which("ctags"):
+    print("Building tags!")
     AlwaysBuild(env.Alias("tags", "", "ctags -R src"))
 
 env.Clean(smek, glob("bin/**/*.o", recursive=True))  # always remove *.o
