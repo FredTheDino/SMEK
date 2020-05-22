@@ -30,6 +30,7 @@ env.Append(CXXFLAGS="-O0")
 env.Append(CXXFLAGS="-Wno-unused")
 env.Append(CXXFLAGS=shell(["sdl2-config", "--cflags"]))
 env.Append(LINKFLAGS=shell(["sdl2-config", "--libs"]))
+env.Append(LINKFLAGS="-ldl")
 env.Append(LINKFLAGS="-rdynamic")  # Gives backtrace information
 
 if GetOption("verbose"):
@@ -44,6 +45,7 @@ if GetOption("tests"):
 else:
     source.remove("src/test.cpp")
     build_dir = "bin/debug/"
+source.remove("src/platform.cpp")  # The platform layer
 
 VariantDir(build_dir, "src", duplicate=0)
 source = [re.sub("^src/", build_dir, f) for f in source]
@@ -69,8 +71,10 @@ else:
 
 env.Alias("assets", assets)
 
-smek = env.Program(target=build_dir + "SMEK", source=source)
+smek = env.Program(target=build_dir + "SMEK", source=[build_dir + "platform.cpp"])
+libsmek = env.SharedLibrary(target=build_dir + "libSMEK", source=source)
 Depends(smek, assets)
+Depends(smek, libsmek)
 Default(smek)
 
 run_cmd = "(set -o pipefail; "  # propagate exit codes from earlier pipes
@@ -90,9 +94,9 @@ docs = env.Alias("docs", "", "docs/doc-builder.py")
 AlwaysBuild(docs)
 
 if shutil.which("ctags"):
-    print("Building tags!")
     AlwaysBuild(env.Alias("tags", "", "ctags -R src"))
 
 env.Clean(smek, glob("bin/**/*.o", recursive=True))  # always remove *.o
+env.Clean(libsmek, glob("bin/**/libSMEK*", recursive=True))
 env.Clean(docs, "docs/index.html")
 env.Clean(assets, glob("bin/**/assets*.bin"))

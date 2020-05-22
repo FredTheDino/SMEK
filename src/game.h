@@ -2,6 +2,7 @@
 #include "SDL2/SDL.h"
 
 #include "asset/asset.h"
+#include "renderer/renderer.h"
 
 ///*
 struct GameState {
@@ -9,6 +10,9 @@ struct GameState {
     SDL_GLContext gl_context;
     float time;
     Asset::System asset_system = {};
+    GFX::Renderer renderer = {};
+
+    bool running;
 };
 
 ///*
@@ -21,7 +25,7 @@ GameState *GAMESTATE();
 // Initalizes the game by setting up the renderer and
 // things like that. The gamestate is expected to have
 // a GLContext on it.
-void init_game(GameState *gamestate);
+extern "C" void init_game(GameState *gamestate);
 typedef void(*GameInitFunc)(GameState *);
 
 enum class GameStateUpdateMode {
@@ -32,8 +36,15 @@ enum class GameStateUpdateMode {
 using GSUM = GameStateUpdateMode;
 
 ///*
+// Reloads eventual global state, if you can get away with storing
+// things on the global game state you should, but this is usefull
+// for cirtain callbacks and opengl function pointers.
+extern "C" void reload_game(GameState *gamestate);
+typedef void(*GameReloadFunc)(GameState *);
+
+///*
 // Steps the game one frame forward. Doesn't have side-effects
 // outside of the GameState object, but the new one is returned.
-GameState update_game(float time, GameState *gamestate, GSUM mode=GSUM::UPDATE_AND_RENDER);
-typedef GameState(*GameUpdateFunc)(float time, GameState *, GSUM);
+extern "C" GameState update_game(GameState *gamestate, GSUM mode=GSUM::UPDATE_AND_RENDER);
+typedef GameState(*GameUpdateFunc)(GameState *, GSUM);
 

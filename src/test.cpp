@@ -36,6 +36,10 @@ void TestSuite::add(Test test) {
     tests[num_tests++] = test;
 }
 
+int main() { // Test entry point
+    return _global_tests.run();
+}
+
 unsigned int TestSuite::run() {
     std::printf("Running %d tests\n", num_tests);
     unsigned int succeeded = 0;
