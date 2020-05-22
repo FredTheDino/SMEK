@@ -33,6 +33,11 @@ AddOption("--ci",
           action="store_true",
           help="Print without \\r.")
 
+AddOption("--report",
+          dest="report",
+          action="store_true",
+          help="Save a tests-report. Only makes sense with --tests.")
+
 env = Environment(ENV=os.environ)
 env.Replace(CXX="g++")
 env.Append(CXXFLAGS="-Wall")
@@ -51,6 +56,11 @@ if not GetOption("color"):
 
 if GetOption("ci"):
     env.Append(CPPDEFINES="CI")
+
+if GetOption("report") and GetOption("tests"):
+    env.Append(CPPDEFINES="REPORT")
+elif GetOption("report"):
+    print("Writing report does not make sense without tests.")
 
 source = glob("src/**/*.c*", recursive=True)
 
@@ -95,5 +105,6 @@ docs = env.Alias("docs", "", "docs/doc-builder.py")
 AlwaysBuild(docs)
 
 env.Clean(smek, glob("bin/**/*.o", recursive=True))  # always remove *.o
+env.Clean(smek, glob("bin/**/report.txt", recursive=True))
 env.Clean(docs, "docs/index.html")
 env.Clean(assets, glob("bin/**/assets*.bin"))
