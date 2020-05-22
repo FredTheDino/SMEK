@@ -6,7 +6,7 @@
 #include "opengl.h"
 
 TEST_CASE("rendering_init", {
-    Asset::load("assets-test.bin");
+    Asset::load("assets-tests.bin");
     AssetID id = Asset::fetch_id("SIMPLE_SHADER");
     Asset::Shader *shader = Asset::fetch_shader(id);
     const u32 window_dim = 100;
@@ -28,7 +28,7 @@ TEST_CASE("rendering_init", {
 });
 
 TEST_CASE("rendering_triangle", {
-    Asset::load("assets-test.bin");
+    Asset::load("assets-tests.bin");
     AssetID id = Asset::fetch_id("SIMPLE_SHADER");
     Asset::Shader *shader_asset = Asset::fetch_shader(id);
     const u32 window_dim = 100;
