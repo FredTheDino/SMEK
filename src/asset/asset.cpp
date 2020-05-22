@@ -135,7 +135,7 @@ void load(const char *path) {
 #include <cstring>
 
 TEST_CASE("asset text", {
-    Asset::load("assets-test.bin");
+    Asset::load("assets-tests.bin");
     AssetID id = Asset::fetch_id("ALPHABET");
 
     return std::strcmp(Asset::fetch_string_asset(id)->data,
@@ -144,7 +144,7 @@ TEST_CASE("asset text", {
 });
 
 TEST_CASE("asset 1x1x3 png white", {
-    Asset::load("bin/assets-test.bin");
+    Asset::load("assets-tests.bin");
     AssetID id = Asset::fetch_id("ONE_BY_ONE_RGB_PNG_WHITE");
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
@@ -159,7 +159,7 @@ TEST_CASE("asset 1x1x3 png white", {
 });
 
 TEST_CASE("asset 2x1x4 png", {
-    Asset::load("bin/assets-test.bin");
+    Asset::load("assets-tests.bin");
     AssetID id = Asset::fetch_id("TWO_BY_ONE");
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
@@ -171,7 +171,7 @@ TEST_CASE("asset 2x1x4 png", {
 });
 
 TEST_CASE("asset 1x2x4 png", {
-    Asset::load("assets-test.bin");
+    Asset::load("assets-tests.bin");
     AssetID id = Asset::fetch_id("ONE_BY_TWO");
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
@@ -183,7 +183,7 @@ TEST_CASE("asset 1x2x4 png", {
 });
 
 TEST_CASE("asset 1x1x4 png white", {
-    Asset::load("assets-test.bin");
+    Asset::load("assets-tests.bin");
     AssetID id = Asset::fetch_id("ONE_BY_ONE_RGBA_PNG_WHITE");
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
@@ -199,7 +199,7 @@ TEST_CASE("asset 1x1x4 png white", {
 });
 
 TEST_CASE("asset 1x1x4 png red", {
-    Asset::load("assets-test.bin");
+    Asset::load("assets-tests.bin");
     AssetID id = Asset::fetch_id("ONE_BY_ONE_RGBA_PNG_RED");
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
@@ -215,7 +215,7 @@ TEST_CASE("asset 1x1x4 png red", {
 });
 
 TEST_CASE("asset 1x1x4 png green", {
-    Asset::load("assets-test.bin");
+    Asset::load("assets-tests.bin");
     AssetID id = Asset::fetch_id("ONE_BY_ONE_RGBA_PNG_GREEN");
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
@@ -231,7 +231,7 @@ TEST_CASE("asset 1x1x4 png green", {
 });
 
 TEST_CASE("asset 1x1x4 png blue", {
-    Asset::load("assets-test.bin");
+    Asset::load("assets-tests.bin");
     AssetID id = Asset::fetch_id("ONE_BY_ONE_RGBA_PNG_BLUE");
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
@@ -247,7 +247,7 @@ TEST_CASE("asset 1x1x4 png blue", {
 });
 
 TEST_CASE("asset 1x1x4 png transparent", {
-    Asset::load("assets-test.bin");
+    Asset::load("assets-tests.bin");
     AssetID id = Asset::fetch_id("ONE_BY_ONE_RGBA_PNG_TRANS");
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
@@ -260,7 +260,7 @@ TEST_CASE("asset 1x1x4 png transparent", {
 });
 
 TEST_CASE("asset 1x1x3 jpg white", {
-    Asset::load("assets-test.bin");
+    Asset::load("assets-tests.bin");
     AssetID id = Asset::fetch_id("ONE_BY_ONE_JPG_WHITE");
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);

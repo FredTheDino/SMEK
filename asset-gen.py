@@ -117,7 +117,7 @@ def default_header():
     }
 
 
-def sprite_asset(path):
+def sprite_asset(path, verbose):
     """Load an image.
 
     Data format:
@@ -153,7 +153,7 @@ def sprite_asset(path):
     return header, struct.pack(fmt, w, h, c, 0, *data)
 
 
-def string_asset(path):
+def string_asset(path, verbose):
     """Load an ASCII text file.
 
     Data format:
@@ -172,17 +172,17 @@ def string_asset(path):
     return header, struct.pack(fmt, len(data)+1, 0, str.encode(data, "ascii"))
 
 
-def shader_asset(path):
+def shader_asset(path, verbose):
     """Load a shader.
 
     Format is the same as for strings but with another type.
     """
-    header, data = string_asset(path)
+    header, data = string_asset(path, verbose)
     header["type"] = TYPE_SHADER
     return header, data
 
 
-def model_asset(path):
+def model_asset(path, verbose):
     """Load a .obj model-file.
 
     Data format:
@@ -215,7 +215,7 @@ def model_asset(path):
         elif line.startswith("f "):
             faces.append([[int(i) for i in v.split("/")] for v in line[2:].split(" ")])
         else:
-            if VERBOSE: print("  Unable to parse line '{}' in file {}".format(line, path))
+            if verbose: print("  Unable to parse line '{}' in file {}".format(line, path))
             continue
 
     points_per_face = len(faces[0])
@@ -246,7 +246,7 @@ EXTENSIONS = {
 }
 
 
-def pack(asset_files, out_file):
+def pack(asset_files, out_file, verbose=False):
     print("=== PACKING INTO {} ===".format(out_file))
     seen_name_hashes = set()
 
@@ -268,18 +268,17 @@ def pack(asset_files, out_file):
                       .upper())
         print(asset + " -> ", end="")
         if ext in EXTENSIONS:
-            print(name)
-            asset_header, asset_data = EXTENSIONS[ext](asset)
+            name_hash = hash_string(name)
+            if verbose:
+                print(f"{name} ({name_hash})")
+            if name_hash in seen_name_hashes:
+                print(f"\nName hash collision! ({name})")
+                sys.exit(1)
+            seen_name_hashes.add(name_hash)
+            asset_header, asset_data = EXTENSIONS[ext](asset, verbose)
             if asset_header and asset_data:
                 num_assets += 1
                 asset_header["data_offset"] = cur_asset_offset
-                name_hash = hash_string(name)
-                if VERBOSE:
-                    print(name, name_hash)
-                if name_hash in seen_name_hashes:
-                    print(f"Name hash collision! ({name})")
-                    sys.exit(1)
-                seen_name_hashes.add(name_hash)
                 asset_header["name_hash"] = name_hash
                 asset_header["data_hash"] = hash_bytes(asset_data)
                 cur_asset_offset += asset_header["data_size"]
@@ -291,18 +290,14 @@ def pack(asset_files, out_file):
 
     data_offset = HEADER_OFFSET + HEADER_SIZE * num_assets
 
-    if VERBOSE:
+    if verbose:
         print("=== PACKING THE FOLLOWING ASSETS ===")
         print("\n".join(names))
     with open(out_file, "wb") as f:
-        if VERBOSE:
-            print("{}, {}, {}".format(hex(num_assets),
-                                      hex(HEADER_OFFSET),
-                                      hex(data_offset)))
         f.write(struct.pack(FILE_HEADER_FMT, num_assets, HEADER_OFFSET, data_offset))
         for h in headers:
             f.write(struct.pack(ASSET_HEADER_FMT, *h.values()))
-            if VERBOSE:
+            if verbose:
                 print("Writing header {} as {}".format(h, [hex(val) for val in [*h.values()]]))
         for d in data:
             f.write(d)
@@ -312,7 +307,7 @@ if __name__ == "__main__":
     from argparse import ArgumentParser as AP
     parser = AP(description="Processes assets and packs them into a binary format for the SMEK game.")
     parser.add_argument("-f", "--files", nargs="+", help="The data files to parse")
-    parser.add_argument("-o", "--out", help="The result file to store in")
+    parser.add_argument("-o", "--out", help="The result file to store in", default="assets")
     parser.add_argument("-v", "--verbose", action="store_true", help="Makes the output verbose and noisy")
     parser.add_argument("-e", "--extensions", action="store_true", help="Prints out the valid extensions, ovrrides all other options")
     args = parser.parse_args()
@@ -329,12 +324,8 @@ if __name__ == "__main__":
     else:
         sources = glob("res/**/*", recursive=True)
 
-    if args.out:
-        output_file = args.out
-    else:
-        output_file = "assets"
-
-    VERBOSE = args.verbose
+    output_file = args.out
+    verbose = args.verbose
 
     if auto_mode:
         asset_files = defaultdict(list)
@@ -344,8 +335,8 @@ if __name__ == "__main__":
                 global_asset_files.append(f)
             else:
                 asset_files["{}-{}".format(output_file, "-".join(f.split("/")[1:-1]))].append(f)
-        pack(global_asset_files, output_file + ".bin")
+        pack(global_asset_files, output_file + ".bin", verbose)
         for out, assets in asset_files.items():
             pack(assets, out + ".bin")
     else:
-        pack(sources, output_file)
+        pack(sources, output_file, verbose)
