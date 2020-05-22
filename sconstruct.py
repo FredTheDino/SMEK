@@ -22,6 +22,12 @@ AddOption("--verbose",
           action="store_true",
           help="Print verbose output. Not fully respected.")
 
+AddOption("--no-color",
+          dest="color",
+          action="store_false",
+          default=True,
+          help="Remove all color from output.")
+
 env = Environment(ENV=os.environ)
 env.Replace(CXX="g++")
 env.Append(CXXFLAGS="-Wall")
@@ -34,6 +40,9 @@ env.Append(LINKFLAGS="-rdynamic")  # Gives backtrace information
 if GetOption("verbose"):
     env.Append(CPPDEFINES="VERBOSE")
     env.Append(ASSETS_VERBOSE="--verbose")
+
+if not GetOption("color"):
+    env.Append(CPPDEFINES="NO_COLOR")
 
 source = glob("src/**/*.c*", recursive=True)
 
