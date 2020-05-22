@@ -28,6 +28,11 @@ AddOption("--no-color",
           default=True,
           help="Remove all color from output.")
 
+AddOption("--ci",
+          dest="ci",
+          action="store_true",
+          help="Print without \\r.")
+
 env = Environment(ENV=os.environ)
 env.Replace(CXX="g++")
 env.Append(CXXFLAGS="-Wall")
@@ -43,6 +48,9 @@ if GetOption("verbose"):
 
 if not GetOption("color"):
     env.Append(CPPDEFINES="NO_COLOR")
+
+if GetOption("ci"):
+    env.Append(CPPDEFINES="CI")
 
 source = glob("src/**/*.c*", recursive=True)
 

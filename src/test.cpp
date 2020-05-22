@@ -36,13 +36,22 @@ void TestSuite::add(Test test) {
     tests[num_tests++] = test;
 }
 
+#define STREAM stderr
+#ifdef CI
+#define PRE ""
+#define POST "\n"
+#else
+#define PRE CLEAR "\r"
+#define POST "\r"
+#endif
+
 unsigned int TestSuite::run() {
-    std::printf("Running %d tests\n", num_tests);
+    std::fprintf(STREAM, "Running %d tests\n", num_tests);
     unsigned int succeeded = 0;
 
     for (unsigned int i = 0; i < num_tests; i++) {
         GameState state = {};
-        std::printf(CLEAR "\r%d/%d:  " YELLOW "testing" RESET " %s\r",
+        std::fprintf(STREAM, PRE "%d/%d: %s" POST,
                 i+1, num_tests, tests[i].name);
         bool success = false;
         try {
@@ -51,14 +60,15 @@ unsigned int TestSuite::run() {
         if (success) {
             succeeded++;
         } else {
-            std::printf(CLEAR "\r" RED "f" RESET " %s (%s @ %d)\n",
-                    tests[i].name, tests[i].file, tests[i].line);
+            std::fprintf(STREAM, PRE BOLDRED "| %s" RESET " failed (%s @ %d)\n",
+                        tests[i].name, tests[i].file, tests[i].line);
         }
     }
-    std::fprintf(stderr, CLEAR);
-    std::fprintf(stderr, GREEN "Passed:" RESET " %d\n", succeeded);
+    std::fprintf(STREAM, PRE);
+
+    std::fprintf(STREAM, GREEN "Passed: " RESET "%d\n", succeeded);
     if (succeeded != num_tests)
-        std::fprintf(stderr, RED "Failed:" RESET " %d\n", num_tests - succeeded);
+        std::fprintf(STREAM, RED "Failed: " RESET "%d\n", num_tests - succeeded);
 
     delete[] tests;
 
