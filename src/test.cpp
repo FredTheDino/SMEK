@@ -55,10 +55,10 @@ unsigned int TestSuite::run() {
                     tests[i].name, tests[i].file, tests[i].line);
         }
     }
-    std::printf(CLEAR);
-    std::printf(GREEN "Passed:" RESET " %d\n", succeeded);
+    std::fprintf(stderr, CLEAR);
+    std::fprintf(stderr, GREEN "Passed:" RESET " %d\n", succeeded);
     if (succeeded != num_tests)
-        std::printf(RED "Failed:" RESET " %d\n", num_tests - succeeded);
+        std::fprintf(stderr, RED "Failed:" RESET " %d\n", num_tests - succeeded);
 
     delete[] tests;
 
