@@ -31,12 +31,12 @@ AddOption("--no-color",
 AddOption("--ci",
           dest="ci",
           action="store_true",
-          help="Print without \\r.")
+          help="Print tests-output without \\r.")
 
 AddOption("--report",
           dest="report",
           action="store_true",
-          help="Save a tests-report. Only makes sense with --tests.")
+          help="Save a tests-report. Only makes sense when running tests.")
 
 env = Environment(ENV=os.environ)
 env.Replace(CXX="g++")
