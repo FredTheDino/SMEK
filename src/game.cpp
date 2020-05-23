@@ -10,7 +10,12 @@
 #include "math/smek_math.h"
 
 GameState *_global_gs;
+#ifdef TESTS
+GameState *GAMESTATE() { UNREACHABLE("Test depends on global gamestate."); }
+#else
 GameState *GAMESTATE() { return _global_gs; }
+#endif
+
 
 
 GFX::Mesh rect;
