@@ -3,12 +3,12 @@
 #include "../util/log.h"
 
 #include "asset.h"
-#include "../main.h"
+#include "../game.h"
 
 namespace Asset {
 
 bool valid_asset(AssetID id) {
-    return id < global_gamestate()->asset_system.num_assets;
+    return id < GAMESTATE()->asset_system.num_assets;
 }
 
 u64 hash(const char *string) {
@@ -22,8 +22,8 @@ u64 hash(const char *string) {
 
 AssetID fetch_id(const char *name) {
     u64 name_hash = hash(name);
-    for (u32 asset = 0; asset < global_gamestate()->asset_system.num_assets; asset++) {
-        if (global_gamestate()->asset_system.headers[asset].name_hash == name_hash) {
+    for (u32 asset = 0; asset < GAMESTATE()->asset_system.num_assets; asset++) {
+        if (GAMESTATE()->asset_system.headers[asset].name_hash == name_hash) {
             return asset;
         }
     }
@@ -32,9 +32,9 @@ AssetID fetch_id(const char *name) {
 }
 
 AssetData *_raw_fetch(AssetType type, AssetID id) {
-    ASSERT(id < global_gamestate()->asset_system.num_assets, "Invalid asset id '%lu'", id);
-    ASSERT(global_gamestate()->asset_system.headers[id].type == type, "Type mismatch, type=%ld, id=%ld", type, id);
-    return &global_gamestate()->asset_system.data[id];
+    ASSERT(id < GAMESTATE()->asset_system.num_assets, "Invalid asset id '%lu'", id);
+    ASSERT(GAMESTATE()->asset_system.headers[id].type == type, "Type mismatch, type=%ld, id=%ld", type, id);
+    return &GAMESTATE()->asset_system.data[id];
 }
 
 Image *fetch_image(AssetID id) {
@@ -67,18 +67,18 @@ void load(const char *path) {
     FILE *file = fopen(path, "rb");
     if (!file) return;
 
-    read<FileHeader>(file, &global_gamestate()->asset_system.file_header, 1);
-    u64 num_assets = global_gamestate()->asset_system.file_header.num_assets;
-    global_gamestate()->asset_system.num_assets = num_assets;
+    read<FileHeader>(file, &GAMESTATE()->asset_system.file_header, 1);
+    u64 num_assets = GAMESTATE()->asset_system.file_header.num_assets;
+    GAMESTATE()->asset_system.num_assets = num_assets;
 
-    global_gamestate()->asset_system.headers = new AssetHeader[num_assets];
-    read<AssetHeader>(file, global_gamestate()->asset_system.headers, num_assets);
+    GAMESTATE()->asset_system.headers = new AssetHeader[num_assets];
+    read<AssetHeader>(file, GAMESTATE()->asset_system.headers, num_assets);
 
-    global_gamestate()->asset_system.data = new AssetData[num_assets];
+    GAMESTATE()->asset_system.data = new AssetData[num_assets];
     for (u64 asset = 0; asset < num_assets; asset++) {
-        AssetHeader header = global_gamestate()->asset_system.headers[asset];
-        AssetData *data_ptr = &global_gamestate()->asset_system.data[asset];
-        fseek(file, global_gamestate()->asset_system.file_header.data_offset + header.data_offset, SEEK_SET);
+        AssetHeader header = GAMESTATE()->asset_system.headers[asset];
+        AssetData *data_ptr = &GAMESTATE()->asset_system.data[asset];
+        fseek(file, GAMESTATE()->asset_system.file_header.data_offset + header.data_offset, SEEK_SET);
         switch (header.type) {
         case AssetType::TEXTURE: {
             read<Image>(file, data_ptr);
