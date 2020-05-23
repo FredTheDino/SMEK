@@ -5,6 +5,9 @@
 
 #include "test.h"
 
+static GameState *_test_gs;
+GameState *GAMESTATE() { return _test_gs; }
+
 TestSuite _global_tests = {};
 
 int reg_test(const char *name, TestCallback func, const char *file, unsigned int line) {
@@ -46,6 +49,7 @@ unsigned int TestSuite::run() {
 
     for (unsigned int i = 0; i < num_tests; i++) {
         GameState state = {};
+        _test_gs = &state;
         std::printf(CLEAR "\r%d/%d:  " YELLOW "testing" RESET " %s\r",
                 i+1, num_tests, tests[i].name);
         bool success = false;
