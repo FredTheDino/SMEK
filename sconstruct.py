@@ -102,11 +102,6 @@ AlwaysBuild(env.Alias("tests", tests, create_run_command(tests_dir, tests)))
 docs = env.Alias("docs", "", "docs/doc-builder.py")
 AlwaysBuild(docs)
 
-if shutil.which("ctags"):
-    ctags = env.Alias("tags", "", "ctags -R src")
-    Depends(smek, ctags)
-    AlwaysBuild(ctags)
-
 env.Clean(smek, glob("bin/**/*.o", recursive=True))  # always remove *.o
 env.Clean(tests, glob("bin/**/*.o", recursive=True))  # always remove *.o
 env.Clean(libsmek, glob("bin/**/libSMEK*", recursive=True))

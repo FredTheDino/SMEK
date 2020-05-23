@@ -94,7 +94,6 @@ int main() { // Game entrypoint
     const int RELOAD_TIME = 1; // Set this to a higher number to prevent constant disk-checks.
 
     while (gs.running) {
-        // TODO(ed): Add a delay for when to actually reload it.
         frame++;
         if (frame == RELOAD_TIME) {
             frame = 0;

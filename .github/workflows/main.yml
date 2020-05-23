@@ -20,4 +20,4 @@ jobs:
           python3 -m pip install --user pillow
       - name: Run tests
         run: |
-          scons -Q -j8 tests
+          scons -Q tests
