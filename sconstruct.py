@@ -116,6 +116,7 @@ AlwaysBuild(docs)
 
 env.Clean(smek, glob("bin/**/*.o", recursive=True))  # always remove *.o
 env.Clean(tests, glob("bin/**/*.o", recursive=True))  # always remove *.o
+env.Clean(smek, glob("bin/**/report.txt", recursive=True))
 env.Clean(tests, glob("bin/**/report.txt", recursive=True))
 env.Clean(libsmek, glob("bin/**/libSMEK*", recursive=True))
 env.Clean(docs, "docs/index.html")

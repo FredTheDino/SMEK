@@ -53,10 +53,19 @@ int main() { // Test entry point
 
 unsigned int TestSuite::run() {
     //TODO(gu) command line flag
+    FILE *report;
 #ifdef REPORT
-    FILE *report = std::fopen("report.txt", "w");  // TODO(gu) absolute path
+    report = std::fopen("report.txt", "w");  // TODO(gu) absolute path
+    if (!report) {
+        std::fprintf(STREAM, "Unable to write report, aborting\n");
+        return 1;
+    }
 #else
-    FILE *report = nullptr;
+    report = std::fopen("/dev/null", "w");
+    if (!report) {
+        std::fprintf(STREAM, "Unable to open /dev/null... What's up?\n");
+        return 1;
+    }
 #endif
 
     std::fprintf(STREAM, "Running %d tests\n", num_tests);
@@ -66,21 +75,18 @@ unsigned int TestSuite::run() {
         GameState state = {};
         _test_gs = &state;
         std::fprintf(STREAM, PRE "%d/%d: %s" POST, i+1, num_tests, tests[i].name);
-        if (report)
-            std::fprintf(report, "%d/%d: %s\n", i+1, num_tests, tests[i].name);
+        std::fprintf(report, "%d/%d: %s\n", i+1, num_tests, tests[i].name);
         bool success = false;
         try {
             success = tests[i].func(&state, report);
         } catch (const std::runtime_error &ex) { /* Empty */ }
         if (success) {
             succeeded++;
-            if (report)
-                std::fprintf(report, "test '%s' success\n\n", tests[i].name);
+            std::fprintf(report, "test '%s' success\n\n", tests[i].name);
         } else {
             std::fprintf(STREAM, PRE BOLDRED "| %s" RESET " failed (%s @ %d)\n",
                          tests[i].name, tests[i].file, tests[i].line);
-            if (report)
-                std::fprintf(report, "test '%s' failed\n\n", tests[i].name);
+            std::fprintf(report, "test '%s' failed\n\n", tests[i].name);
         }
     }
     std::fprintf(STREAM, PRE);
@@ -89,15 +95,9 @@ unsigned int TestSuite::run() {
     if (succeeded != num_tests)
         std::fprintf(STREAM, RED "Failed: " RESET "%d\n", num_tests - succeeded);
 
-    if (report)
-        std::fprintf(report, "Tests done: %d/%d passed\n", succeeded, num_tests);
+    std::fprintf(report, "Tests done: %d/%d passed\n", succeeded, num_tests);
 
-#ifdef REPORT
-    if (!report)
-        std::fprintf(STREAM, RED "Unable to write report\n" RESET);
-    else
-        std::fclose(report);
-#endif
+    std::fclose(report);
     delete[] tests;
 
     return num_tests - succeeded;
