@@ -97,12 +97,6 @@ void _smek_log_info(const char *file, u32 line, const char *func, const char *me
     std::fprintf(STREAM, "\n");
 }
 
-#define HALT(msg) \
-    {\
-        print_stacktrace();           \
-        throw std::runtime_error(msg);\
-    }
-
 void _smek_unreachable(const char *file, u32 line, const char *func, const char *message, ...) {
     std::fprintf(STREAM, RED "U %s" RESET " @ %d (%s) unreachable:\n", file, line, func);
     std::fprintf(STREAM, BOLDRED "| " RESET);
@@ -111,8 +105,9 @@ void _smek_unreachable(const char *file, u32 line, const char *func, const char 
     std::vfprintf(STREAM, message, args);
     va_end(args);
     std::fprintf(STREAM, "\n" BOLDRED "|" RESET " Stacktrace:\n");
+    print_stacktrace();
 
-    HALT("Unreachable!");
+    throw std::runtime_error("Unreachable");
 }
 
 void _smek_assert(const char *file, u32 line, const char *func, bool passed, const char *expr, const char *msg, ...) {
@@ -125,8 +120,9 @@ void _smek_assert(const char *file, u32 line, const char *func, bool passed, con
     std::vfprintf(STREAM, msg, args);
     va_end(args);
     std::fprintf(STREAM, "\n" BOLDRED "|" RESET " Stacktrace:\n");
+    print_stacktrace();
 
-    HALT("Assert!");
+    throw std::runtime_error("Assert");
 }
 
 bool _smek_check(const char *file, u32 line, const char *func, bool passed, const char *expr, const char *msg, ...) {
