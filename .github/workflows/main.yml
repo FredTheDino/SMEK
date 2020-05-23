@@ -20,4 +20,19 @@ jobs:
           python3 -m pip install --user pillow
       - name: Run tests
         run: |
-          scons -Q --tests run --ci
+          scons -Q --tests run --ci --report
+      - name: Upload build
+        if: ${{ !success() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: build
+          path: |
+            bin/tests/SMEK
+            bin/tests/assets*.bin
+      - name: Upload report
+        if: ${{ !success() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: report
+          path: |
+            bin/tests/report.txt
