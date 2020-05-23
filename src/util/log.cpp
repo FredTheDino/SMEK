@@ -9,7 +9,6 @@
 #include <unistd.h>
 
 #define STREAM stderr
-#define STREAM_FILENO STDERR_FILENO
 
 // Kinda borrowed from https://panthema.net/2008/0901-stacktrace-demangled/
 static inline void print_stacktrace(unsigned int max_frames=63) {
@@ -71,7 +70,7 @@ static inline void print_stacktrace(unsigned int max_frames=63) {
 }
 
 void _smek_log_err(const char *file, u32 line, const char *func, const char *message, ...) {
-    std::fprintf(STREAM, RED "E %s" RESET " @ %d (%s): ", file, line, func);
+    std::fprintf(STREAM, RED "E %s" RESET " @ %03d (%s): ", file, line, func);
     va_list args;
     va_start(args, message);
     std::vfprintf(STREAM, message, args);
@@ -80,7 +79,7 @@ void _smek_log_err(const char *file, u32 line, const char *func, const char *mes
 }
 
 void _smek_log_warn(const char *file, u32 line, const char *func, const char *message, ...) {
-    std::fprintf(STREAM, YELLOW "W %s" RESET " @ %d (%s): ", file, line, func);
+    std::fprintf(STREAM, YELLOW "W %s" RESET " @ %03d (%s): ", file, line, func);
     va_list args;
     va_start(args, message);
     std::vfprintf(STREAM, message, args);
@@ -89,7 +88,7 @@ void _smek_log_warn(const char *file, u32 line, const char *func, const char *me
 }
 
 void _smek_log_info(const char *file, u32 line, const char *func, const char *message, ...) {
-    std::fprintf(STREAM, WHITE "I %s" RESET " @ %d (%s): ", file, line, func);
+    std::fprintf(STREAM, WHITE "I %s" RESET " @ %03d (%s): ", file, line, func);
     va_list args;
     va_start(args, message);
     std::vfprintf(STREAM, message, args);
@@ -98,7 +97,7 @@ void _smek_log_info(const char *file, u32 line, const char *func, const char *me
 }
 
 void _smek_unreachable(const char *file, u32 line, const char *func, const char *message, ...) {
-    std::fprintf(STREAM, RED "U %s" RESET " @ %d (%s) unreachable:\n", file, line, func);
+    std::fprintf(STREAM, RED "U %s" RESET " @ %03d (%s) unreachable:\n", file, line, func);
     std::fprintf(STREAM, BOLDRED "| " RESET);
     va_list args;
     va_start(args, message);
@@ -113,7 +112,7 @@ void _smek_unreachable(const char *file, u32 line, const char *func, const char 
 void _smek_assert(const char *file, u32 line, const char *func, bool passed, const char *expr, const char *msg, ...) {
     if (passed) return;
 
-    std::fprintf(STREAM, RED "A %s" RESET " @ %d (%s) assert(%s):\n", file, line, func, expr);
+    std::fprintf(STREAM, RED "A %s" RESET " @ %03d (%s) assert(%s):\n", file, line, func, expr);
     std::fprintf(STREAM, BOLDRED "| " RESET);
     va_list args;
     va_start(args, msg);
@@ -127,7 +126,7 @@ void _smek_assert(const char *file, u32 line, const char *func, bool passed, con
 
 bool _smek_check(const char *file, u32 line, const char *func, bool passed, const char *expr, const char *msg, ...) {
     if (!passed) {
-        std::fprintf(STREAM, YELLOW "C" RESET " %s @ %d (%s) check(%s):\n", file, line, func, expr);
+        std::fprintf(STREAM, YELLOW "C" RESET " %s @ %03d (%s) check(%s):\n", file, line, func, expr);
         std::fprintf(STREAM, YELLOW "| " RESET);
         va_list args;
         va_start(args, msg);

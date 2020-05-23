@@ -56,16 +56,10 @@ unsigned int TestSuite::run() {
     FILE *report;
 #ifdef REPORT
     report = std::fopen("report.txt", "w");  // TODO(gu) absolute path
-    if (!report) {
-        std::fprintf(STREAM, "Unable to write report, aborting\n");
-        return 1;
-    }
+    if (!report)
+        std::fprintf(STREAM, "Unable to open report\n");
 #else
-    report = std::fopen("/dev/null", "w");
-    if (!report) {
-        std::fprintf(STREAM, "Unable to open /dev/null... What's up?\n");
-        return 1;
-    }
+    report = nullptr;
 #endif
 
     std::fprintf(STREAM, "Running %d tests\n", num_tests);
@@ -74,19 +68,19 @@ unsigned int TestSuite::run() {
     for (unsigned int i = 0; i < num_tests; i++) {
         GameState state = {};
         _test_gs = &state;
-        std::fprintf(STREAM, PRE "%d/%d: %s" POST, i+1, num_tests, tests[i].name);
-        std::fprintf(report, "%d/%d: %s\n", i+1, num_tests, tests[i].name);
+        std::fprintf(STREAM, PRE "%2d: %s" POST, i+1, tests[i].name);
+        LOG_TESTS("%2d: %s\n", i+1, tests[i].name);
         bool success = false;
         try {
             success = tests[i].func(&state, report);
         } catch (const std::runtime_error &ex) { /* Empty */ }
         if (success) {
             succeeded++;
-            std::fprintf(report, "test '%s' success\n\n", tests[i].name);
+            LOG_TESTS("test '%s' success\n\n", tests[i].name);
         } else {
             std::fprintf(STREAM, PRE BOLDRED "| %s" RESET " failed (%s @ %d)\n",
                          tests[i].name, tests[i].file, tests[i].line);
-            std::fprintf(report, "test '%s' failed\n\n", tests[i].name);
+            LOG_TESTS("test '%s' failed\n\n", tests[i].name);
         }
     }
     std::fprintf(STREAM, PRE);
@@ -95,9 +89,10 @@ unsigned int TestSuite::run() {
     if (succeeded != num_tests)
         std::fprintf(STREAM, RED "Failed: " RESET "%d\n", num_tests - succeeded);
 
-    std::fprintf(report, "Tests done: %d/%d passed\n", succeeded, num_tests);
+    LOG_TESTS("Tests done: %d/%d passed\n", succeeded, num_tests);
 
-    std::fclose(report);
+    if (report)
+        std::fclose(report);
     delete[] tests;
 
     return num_tests - succeeded;
