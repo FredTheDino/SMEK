@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include "game.h"
 #include "util/log.h"
-#include "util/log.cpp" // I know, just meh.
 #include "input.h"
 #include <unordered_map>
 
@@ -126,6 +125,8 @@ struct GameInput {
     }
 };
 
+#ifndef TESTS
+#include "util/log.cpp" // I know, just meh.
 int main() { // Game entrypoint
     if (!load_gamelib()) {
         UNREACHABLE("Failed to load the linked library the first time!");
@@ -178,3 +179,52 @@ int main() { // Game entrypoint
     }
     return 0;
 }
+#endif
+
+#define SOME_ACTION ((Ac) 0)
+
+#define DEFAULT_INPUT_TEST \
+    GameInput input;\
+    const u32 button_1 = 2;\
+    const u32 button_2 = 5;\
+    const u32 button_3 = 232;\
+    input.bind(SOME_ACTION, 0, button_1,  1.0);\
+    input.bind(SOME_ACTION, 1, button_2, -1.0)
+
+#include "test.h"
+TEST_CASE("platform_input", {
+    DEFAULT_INPUT_TEST;
+    input.update_press(button_3, true);
+    return input.state[0] == 0.0;
+});
+
+TEST_CASE("platform_input", {
+    DEFAULT_INPUT_TEST;
+    input.update_press(button_1, true);
+    return input.state[0] == 1.0;
+});
+
+TEST_CASE("platform_input", {
+    DEFAULT_INPUT_TEST;
+    input.update_press(button_1, true);
+    input.update_press(button_1, false);
+    input.update_press(button_3, true);
+    input.update_press(button_1, true);
+    return input.state[0] == 1.0;
+});
+
+TEST_CASE("platform_input", {
+    DEFAULT_INPUT_TEST;
+    input.update_press(button_3, true);
+    input.update_press(button_2, true);
+    input.update_press(button_3, false);
+    return input.state[0] == -1.0;
+});
+
+TEST_CASE("platform_input", {
+    DEFAULT_INPUT_TEST;
+    input.update_press(button_1, false);
+    input.update_press(button_1, false);
+    input.update_press(button_1, false);
+    return input.state[0] == 0.0;
+});
