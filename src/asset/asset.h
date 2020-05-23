@@ -1,10 +1,21 @@
 #pragma once
 
+#include <vector>
+
 #include "../math/smek_vec.h"
 
-using AssetID = u64;
+struct AssetID {
+    AssetID(const char *);
+    AssetID(u64 id): id(id) {}
 
-const AssetID NO_ASSET = 0xFFFFFFFF;
+    static AssetID NONE();
+
+    u64 id;
+
+    operator u64() const {
+        return id;
+    }
+};
 
 namespace Asset {
 
@@ -48,11 +59,11 @@ struct Image {
     // read from file
     u32 width;
     u32 height;
-    u32 channels;
+    u32 components;
     u8  *data;
 
     u64 size() const {
-        return width * height * channels;
+        return width * height * components;
     }
 };
 
@@ -72,7 +83,7 @@ struct Model {
     // read from file
     u32 points_per_face;
     u32 num_faces;
-    f32 *data;
+    Vertex *data;
 };
 
 union AssetData {
@@ -118,5 +129,8 @@ StringAsset *fetch_string_asset(AssetID id);
 
 ///*
 Shader *fetch_shader(AssetID id);
+
+///*
+Model *fetch_model(AssetID id);
 
 }  // namespace Asset

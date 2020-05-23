@@ -7,7 +7,8 @@ namespace GFX {
 
 void Shader::use() { GL::UseProgram(program_id); }
 
-Mesh Mesh::init(std::vector<Vec3> points) {
+Mesh Mesh::init(Asset::Model *model) {
+    using Asset::Vertex;
     u32 vao, vbo;
 
     GL::GenVertexArrays(1, &vao);
@@ -16,12 +17,18 @@ Mesh Mesh::init(std::vector<Vec3> points) {
     GL::BindVertexArray(vao);
 
     GL::BindBuffer(GL::cARRAY_BUFFER, vbo);
-    GL::BufferData(GL::cARRAY_BUFFER, sizeof(Vec3) * points.size(), &points[0], GL::cSTATIC_DRAW);
+    GL::BufferData(GL::cARRAY_BUFFER, sizeof(Vertex) * model->num_faces * 3, model->data, GL::cSTATIC_DRAW);
 
     GL::EnableVertexAttribArray(0);
-    GL::VertexAttribPointer(0, 3, GL::cFLOAT, 0, sizeof(Vec3), (void *) 0);
+    GL::VertexAttribPointer(0, 3, GL::cFLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, position));
 
-    return {vao, vbo, static_cast<u32>(points.size())};
+    GL::EnableVertexAttribArray(1);
+    GL::VertexAttribPointer(1, 2, GL::cFLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, texture));
+
+    GL::EnableVertexAttribArray(2);
+    GL::VertexAttribPointer(2, 3, GL::cFLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, normal));
+
+    return {vao, vbo, model->num_faces * 3};;
 }
 
 void Mesh::draw() {
@@ -100,7 +107,6 @@ Shader Shader::compile(const char *source) {
 }
 
 Texture Texture::upload(u32 width, u32 height, u32 components, u8 *data, Sampling sampling) {
-
     u32 texture;
     GL::GenTextures(1, &texture);
     GL::BindTexture(GL::cTEXTURE_2D, texture);
@@ -116,13 +122,17 @@ Texture Texture::upload(u32 width, u32 height, u32 components, u8 *data, Samplin
     if (sampling == Sampling::LINEAR) gl_sampling = GL::cLINEAR;
     else if (sampling == Sampling::NEAREST) gl_sampling = GL::cNEAREST;
     else UNREACHABLE("Unsupported sampling (%d)", components);
-;
+
     GL::TexParameteri(GL::cTEXTURE_2D, GL::cTEXTURE_MIN_FILTER, gl_sampling);
     GL::TexParameteri(GL::cTEXTURE_2D, GL::cTEXTURE_MAG_FILTER, gl_sampling);
 
     GL::TexParameteri(GL::cTEXTURE_2D, GL::cTEXTURE_WRAP_S, GL::cCLAMP_TO_EDGE);
     GL::TexParameteri(GL::cTEXTURE_2D, GL::cTEXTURE_WRAP_T, GL::cCLAMP_TO_EDGE);
     return { texture };
+}
+
+Texture Texture::upload(Asset::Image *image, Sampling sampling) {
+    return upload(image->width, image->height, image->components, image->data, sampling);
 }
 
 void Texture::bind(u32 texture_slot) {
@@ -182,7 +192,6 @@ bool reload(GameState *gs) {
 }
 
 void deinit(GameState *gs) {
-
     SDL_DestroyWindow(gs->window);
     SDL_GL_DeleteContext(gs->gl_context);
 

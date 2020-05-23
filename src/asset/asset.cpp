@@ -5,13 +5,22 @@
 #include "asset.h"
 #include "../game.h"
 
+AssetID AssetID::NONE() {
+    return 0xFFFFFFFF;
+}
+
+AssetID::AssetID(const char *str) {
+    *this = Asset::fetch_id(str);
+}
+
+
 namespace Asset {
 
 bool valid_asset(AssetID id) {
-    return id < GAMESTATE()->asset_system.num_assets;
+    return id.id < GAMESTATE()->asset_system.num_assets;
 }
 
-u64 hash(const char *string) {
+static u64 hash(const char *string) {
     u64 hash = 5351;
     while (*string) {
         char c = (*string++);
@@ -28,8 +37,9 @@ AssetID fetch_id(const char *name) {
         }
     }
     WARN("Unable to find asset with name %s (hash is %lu)", name, name_hash);
-    return NO_ASSET;
+    return AssetID::NONE();
 }
+
 
 AssetData *_raw_fetch(AssetType type, AssetID id) {
     ASSERT(id < GAMESTATE()->asset_system.num_assets, "Invalid asset id '%lu'", id);
@@ -47,6 +57,10 @@ StringAsset *fetch_string_asset(AssetID id) {
 
 Shader *fetch_shader(AssetID id) {
     return &_raw_fetch(AssetType::SHADER, id)->shader;
+}
+
+Model *fetch_model(AssetID id) {
+    return &_raw_fetch(AssetType::MODEL, id)->model;
 }
 
 //TODO(gu) re-implement
@@ -94,27 +108,10 @@ void load(const char *path) {
         } break;
         case AssetType::MODEL: {
             read<Model>(file, data_ptr);
-            u32 points_per_face = data_ptr->model.points_per_face;
             u32 num_faces = data_ptr->model.num_faces;
-            u32 size = 8 * points_per_face * num_faces;  // 3+2+3 values per point
-            data_ptr->model.data = new f32[size];
-            read<f32>(file, data_ptr->model.data, size);
-            f32 *data = data_ptr->model.data;
-
-            for (u32 i = 0; i < size; i += 8*3) {
-                ModelFace face = {};
-                face.vertices[0].position = Vec3(data[0], data[1], data[2]);
-                face.vertices[0].texture = Vec2(data[3], data[4]);
-                face.vertices[0].normal = Vec3(data[5], data[6], data[7]);
-                face.vertices[1].position = Vec3(data[8], data[9], data[10]);
-                face.vertices[1].texture = Vec2(data[11], data[12]);
-                face.vertices[1].normal = Vec3(data[13], data[14], data[15]);
-                face.vertices[2].position = Vec3(data[16], data[17], data[18]);
-                face.vertices[2].texture = Vec2(data[19], data[20]);
-                face.vertices[2].normal = Vec3(data[21], data[22], data[23]);
-            }
-
-            delete[] data_ptr->model.data;
+            u32 size = num_faces * 3;
+            data_ptr->model.data = new Vertex[size];
+            read<Vertex>(file, data_ptr->model.data, size);
         } break;
         case AssetType::SHADER: {
             read<Shader>(file, data_ptr);
@@ -123,7 +120,7 @@ void load(const char *path) {
             read<char>(file, data_ptr->shader.data, size);
         } break;
         default:
-            ERROR("Unknown asset type %d for id %d in asset file %s", header.type, asset, path);
+            ERROR("Unknown asset type %d for id %lu in asset file %s", header.type, asset, path);
             break;
         }
     }
@@ -149,12 +146,12 @@ TEST_CASE("asset 1x1x3 png white", {
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
 
-    return image->width    == 1
-        && image->height   == 1
-        && image->channels == 3
-        && image->data[0]  == 255
-        && image->data[1]  == 255
-        && image->data[2]  == 255
+    return image->width      == 1
+        && image->height     == 1
+        && image->components == 3
+        && image->data[0]    == 255
+        && image->data[1]    == 255
+        && image->data[2]    == 255
         ;
 });
 
@@ -164,9 +161,9 @@ TEST_CASE("asset 2x1x4 png", {
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
 
-    return image->width    == 2
-        && image->height   == 1
-        && image->channels == 4
+    return image->width      == 2
+        && image->height     == 1
+        && image->components == 4
         ;
 });
 
@@ -176,9 +173,9 @@ TEST_CASE("asset 1x2x4 png", {
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
 
-    return image->width    == 1
-        && image->height   == 2
-        && image->channels == 4
+    return image->width      == 1
+        && image->height     == 2
+        && image->components == 4
         ;
 });
 
@@ -188,13 +185,13 @@ TEST_CASE("asset 1x1x4 png white", {
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
 
-    return image->width    == 1
-        && image->height   == 1
-        && image->channels == 4
-        && image->data[0]  == 255
-        && image->data[1]  == 255
-        && image->data[2]  == 255
-        && image->data[3]  == 255
+    return image->width      == 1
+        && image->height     == 1
+        && image->components == 4
+        && image->data[0]    == 255
+        && image->data[1]    == 255
+        && image->data[2]    == 255
+        && image->data[3]    == 255
         ;
 });
 
@@ -204,13 +201,13 @@ TEST_CASE("asset 1x1x4 png red", {
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
 
-    return image->width    == 1
-        && image->height   == 1
-        && image->channels == 4
-        && image->data[0]  == 255
-        && image->data[1]  == 0
-        && image->data[2]  == 0
-        && image->data[3]  == 255
+    return image->width      == 1
+        && image->height     == 1
+        && image->components == 4
+        && image->data[0]    == 255
+        && image->data[1]    == 0
+        && image->data[2]    == 0
+        && image->data[3]    == 255
         ;
 });
 
@@ -220,13 +217,13 @@ TEST_CASE("asset 1x1x4 png green", {
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
 
-    return image->width    == 1
-        && image->height   == 1
-        && image->channels == 4
-        && image->data[0]  == 0
-        && image->data[1]  == 255
-        && image->data[2]  == 0
-        && image->data[3]  == 255
+    return image->width      == 1
+        && image->height     == 1
+        && image->components == 4
+        && image->data[0]    == 0
+        && image->data[1]    == 255
+        && image->data[2]    == 0
+        && image->data[3]    == 255
         ;
 });
 
@@ -236,13 +233,13 @@ TEST_CASE("asset 1x1x4 png blue", {
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
 
-    return image->width    == 1
-        && image->height   == 1
-        && image->channels == 4
-        && image->data[0]  == 0
-        && image->data[1]  == 0
-        && image->data[2]  == 255
-        && image->data[3]  == 255
+    return image->width      == 1
+        && image->height     == 1
+        && image->components == 4
+        && image->data[0]    == 0
+        && image->data[1]    == 0
+        && image->data[2]    == 255
+        && image->data[3]    == 255
         ;
 });
 
@@ -252,10 +249,10 @@ TEST_CASE("asset 1x1x4 png transparent", {
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
 
-    return image->width    == 1
-        && image->height   == 1
-        && image->channels == 4
-        && image->data[3]  == 0
+    return image->width      == 1
+        && image->height     == 1
+        && image->components == 4
+        && image->data[3]    == 0
         ;
 });
 
@@ -265,11 +262,11 @@ TEST_CASE("asset 1x1x3 jpg white", {
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
 
-    return image->width    == 1
-        && image->height   == 1
-        && image->channels == 3
-        && image->data[0]  == 255
-        && image->data[1]  == 255
-        && image->data[2]  == 255
+    return image->width      == 1
+        && image->height     == 1
+        && image->components == 3
+        && image->data[0]    == 255
+        && image->data[1]    == 255
+        && image->data[2]    == 255
         ;
 });

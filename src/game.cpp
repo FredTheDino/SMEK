@@ -14,7 +14,7 @@ GameState *_global_gs;
 GameState *GAMESTATE() { return _global_gs; }
 #endif
 
-GFX::Mesh rect;
+GFX::Mesh mesh;
 GFX::Shader shader;
 GFX::Texture texture;
 
@@ -22,7 +22,7 @@ void init_game(GameState *gamestate) {
     _global_gs = gamestate;
     Asset::load("assets.bin");
 
-    GFX::init(GAMESTATE(), Asset::fetch_shader(Asset::fetch_id("MASTER_SHADER"))->data, 600, 600);
+    GFX::init(GAMESTATE(), Asset::fetch_shader("MASTER_SHADER")->data, 600, 600);
 
     GAMESTATE()->running = true;
 }
@@ -31,48 +31,9 @@ void reload_game(GameState *game) {
     _global_gs = game;
     GFX::reload(game);
 
-    std::vector<Vec3> XX = {
-        Vec3(-1.0, -1.0, 1.0),
-        Vec3(-1.0, 1.0, 1.0),
-        Vec3(-1.0, -1.0, -1.0),
-        Vec3(-1.0, 1.0, -1.0),
-        Vec3(1.0, -1.0, 1.0),
-        Vec3(1.0, 1.0, 1.0),
-        Vec3(1.0, -1.0, -1.0),
-        Vec3(1.0, 1.0, -1.0)
-    };
-
-    std::vector<Vec3> points = {
-#if 1
-        XX[1], XX[2], XX[0],
-        XX[3], XX[6], XX[2],
-        XX[7], XX[4], XX[6],
-        XX[5], XX[0], XX[4],
-        XX[6], XX[0], XX[2],
-        XX[3], XX[5], XX[7],
-        XX[1], XX[3], XX[2],
-        XX[3], XX[7], XX[6],
-        XX[7], XX[5], XX[4],
-        XX[5], XX[1], XX[0],
-        XX[6], XX[4], XX[0],
-        XX[3], XX[1], XX[5],
-#else
-        Vec3(-0.5, -0.5, 0.0),
-        Vec3( 0.0,  0.5, 0.0),
-        Vec3( 0.5, -0.5, 0.0),
-#endif
-    };
-    rect = GFX::Mesh::init(points);
+    mesh = GFX::Mesh::init(Asset::fetch_model("MONKEY"));
     shader = GFX::default_shader();
-
-    u8 image[] = {
-        255, 0, 0, 255,   0, 0, 0, 255,  0, 0, 255, 255,
-        255, 255, 0, 255,   0, 255, 0, 255,  0, 0, 255, 255,
-        255, 255, 255, 255,   0, 0, 0, 0,  0, 0, 0, 255,
-    };
-
-    texture = GFX::Texture::upload(3, 3, 4, image, GFX::Texture::Sampling::NEAREST);
-
+    texture = GFX::Texture::upload(Asset::fetch_image("RGBA"), GFX::Texture::Sampling::NEAREST);
 }
 
 GameState update_game(GameState *game, GSUM mode) { // Game entry point
@@ -117,18 +78,18 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
     auto model_loc = GL::GetUniformLocation(shader.program_id, "model");
     Mat model_matrix = Mat::translate(Math::cos(time) * 0.2, Math::sin(time) * 0.2, -0.5) * Mat::scale(0.1);
     GL::UniformMatrix4fv(model_loc, 1, true, model_matrix.data());
-    rect.draw();
+    mesh.draw();
 
 #if 0
     model_matrix = Mat::translate(-Math::cos(time) * 0.2, -Math::sin(time) * 0.2, -0.5) * Mat::scale(0.1);
     GL::UniformMatrix4fv(model_loc, 1, true, model_matrix.data());
-    rect.draw();
+    mesh.draw();
 #endif
 
     model_loc = GL::GetUniformLocation(shader.program_id, "model");
     model_matrix = Mat::translate(0, 0, -0.6) * Mat::scale(0.1);
     GL::UniformMatrix4fv(model_loc, 1, true, model_matrix.data());
-    rect.draw();
+    mesh.draw();
 
 
     SDL_GL_SwapWindow(GAMESTATE()->window);
