@@ -3,7 +3,7 @@
 #include "../util/log.h"
 
 #include "asset.h"
-#include "../main.h"
+#include "../game.h"
 
 AssetID AssetID::NONE() {
     return 0xFFFFFFFF;
@@ -17,7 +17,7 @@ AssetID::AssetID(const char *str) {
 namespace Asset {
 
 bool valid_asset(AssetID id) {
-    return id.id < global_gamestate()->asset_system.num_assets;
+    return id.id < GAMESTATE()->asset_system.num_assets;
 }
 
 static u64 hash(const char *string) {
@@ -31,8 +31,8 @@ static u64 hash(const char *string) {
 
 AssetID fetch_id(const char *name) {
     u64 name_hash = hash(name);
-    for (u32 asset = 0; asset < global_gamestate()->asset_system.num_assets; asset++) {
-        if (global_gamestate()->asset_system.headers[asset].name_hash == name_hash) {
+    for (u32 asset = 0; asset < GAMESTATE()->asset_system.num_assets; asset++) {
+        if (GAMESTATE()->asset_system.headers[asset].name_hash == name_hash) {
             return asset;
         }
     }
@@ -42,9 +42,9 @@ AssetID fetch_id(const char *name) {
 
 
 AssetData *_raw_fetch(AssetType type, AssetID id) {
-    ASSERT(id < global_gamestate()->asset_system.num_assets, "Invalid asset id '%lu'", id);
-    ASSERT(global_gamestate()->asset_system.headers[id].type == type, "Type mismatch, type=%ld, id=%ld", type, id);
-    return &global_gamestate()->asset_system.data[id];
+    ASSERT(id < GAMESTATE()->asset_system.num_assets, "Invalid asset id '%lu'", id);
+    ASSERT(GAMESTATE()->asset_system.headers[id].type == type, "Type mismatch, type=%ld, id=%ld", type, id);
+    return &GAMESTATE()->asset_system.data[id];
 }
 
 Image *fetch_image(AssetID id) {
@@ -81,18 +81,18 @@ void load(const char *path) {
     FILE *file = fopen(path, "rb");
     if (!file) return;
 
-    read<FileHeader>(file, &global_gamestate()->asset_system.file_header, 1);
-    u64 num_assets = global_gamestate()->asset_system.file_header.num_assets;
-    global_gamestate()->asset_system.num_assets = num_assets;
+    read<FileHeader>(file, &GAMESTATE()->asset_system.file_header, 1);
+    u64 num_assets = GAMESTATE()->asset_system.file_header.num_assets;
+    GAMESTATE()->asset_system.num_assets = num_assets;
 
-    global_gamestate()->asset_system.headers = new AssetHeader[num_assets];
-    read<AssetHeader>(file, global_gamestate()->asset_system.headers, num_assets);
+    GAMESTATE()->asset_system.headers = new AssetHeader[num_assets];
+    read<AssetHeader>(file, GAMESTATE()->asset_system.headers, num_assets);
 
-    global_gamestate()->asset_system.data = new AssetData[num_assets];
+    GAMESTATE()->asset_system.data = new AssetData[num_assets];
     for (u64 asset = 0; asset < num_assets; asset++) {
-        AssetHeader header = global_gamestate()->asset_system.headers[asset];
-        AssetData *data_ptr = &global_gamestate()->asset_system.data[asset];
-        fseek(file, global_gamestate()->asset_system.file_header.data_offset + header.data_offset, SEEK_SET);
+        AssetHeader header = GAMESTATE()->asset_system.headers[asset];
+        AssetData *data_ptr = &GAMESTATE()->asset_system.data[asset];
+        fseek(file, GAMESTATE()->asset_system.file_header.data_offset + header.data_offset, SEEK_SET);
         switch (header.type) {
         case AssetType::TEXTURE: {
             read<Image>(file, data_ptr);
@@ -132,7 +132,7 @@ void load(const char *path) {
 #include <cstring>
 
 TEST_CASE("asset text", {
-    Asset::load("bin/assets-test.bin");
+    Asset::load("assets-tests.bin");
     AssetID id = Asset::fetch_id("ALPHABET");
 
     return std::strcmp(Asset::fetch_string_asset(id)->data,
@@ -141,7 +141,7 @@ TEST_CASE("asset text", {
 });
 
 TEST_CASE("asset 1x1x3 png white", {
-    Asset::load("bin/assets-test.bin");
+    Asset::load("assets-tests.bin");
     AssetID id = Asset::fetch_id("ONE_BY_ONE_RGB_PNG_WHITE");
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
@@ -156,7 +156,7 @@ TEST_CASE("asset 1x1x3 png white", {
 });
 
 TEST_CASE("asset 2x1x4 png", {
-    Asset::load("bin/assets-test.bin");
+    Asset::load("assets-tests.bin");
     AssetID id = Asset::fetch_id("TWO_BY_ONE");
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
@@ -168,7 +168,7 @@ TEST_CASE("asset 2x1x4 png", {
 });
 
 TEST_CASE("asset 1x2x4 png", {
-    Asset::load("bin/assets-test.bin");
+    Asset::load("assets-tests.bin");
     AssetID id = Asset::fetch_id("ONE_BY_TWO");
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
@@ -180,7 +180,7 @@ TEST_CASE("asset 1x2x4 png", {
 });
 
 TEST_CASE("asset 1x1x4 png white", {
-    Asset::load("bin/assets-test.bin");
+    Asset::load("assets-tests.bin");
     AssetID id = Asset::fetch_id("ONE_BY_ONE_RGBA_PNG_WHITE");
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
@@ -196,7 +196,7 @@ TEST_CASE("asset 1x1x4 png white", {
 });
 
 TEST_CASE("asset 1x1x4 png red", {
-    Asset::load("bin/assets-test.bin");
+    Asset::load("assets-tests.bin");
     AssetID id = Asset::fetch_id("ONE_BY_ONE_RGBA_PNG_RED");
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
@@ -212,7 +212,7 @@ TEST_CASE("asset 1x1x4 png red", {
 });
 
 TEST_CASE("asset 1x1x4 png green", {
-    Asset::load("bin/assets-test.bin");
+    Asset::load("assets-tests.bin");
     AssetID id = Asset::fetch_id("ONE_BY_ONE_RGBA_PNG_GREEN");
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
@@ -228,7 +228,7 @@ TEST_CASE("asset 1x1x4 png green", {
 });
 
 TEST_CASE("asset 1x1x4 png blue", {
-    Asset::load("bin/assets-test.bin");
+    Asset::load("assets-tests.bin");
     AssetID id = Asset::fetch_id("ONE_BY_ONE_RGBA_PNG_BLUE");
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
@@ -244,7 +244,7 @@ TEST_CASE("asset 1x1x4 png blue", {
 });
 
 TEST_CASE("asset 1x1x4 png transparent", {
-    Asset::load("bin/assets-test.bin");
+    Asset::load("assets-tests.bin");
     AssetID id = Asset::fetch_id("ONE_BY_ONE_RGBA_PNG_TRANS");
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);
@@ -257,7 +257,7 @@ TEST_CASE("asset 1x1x4 png transparent", {
 });
 
 TEST_CASE("asset 1x1x3 jpg white", {
-    Asset::load("bin/assets-test.bin");
+    Asset::load("assets-tests.bin");
     AssetID id = Asset::fetch_id("ONE_BY_ONE_JPG_WHITE");
     if (!Asset::valid_asset(id)) return false;
     Asset::Image *image = Asset::fetch_image(id);

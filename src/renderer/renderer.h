@@ -1,10 +1,11 @@
 #pragma once
 #include "../math/smek_vec.h"
-#include "../main.h"
 
 #include "../asset/asset.h"
 
 #include <vector>
+
+struct GameState;
 
 namespace GFX {
 
@@ -43,9 +44,18 @@ struct Texture {
 
 Shader default_shader();
 
+struct Renderer {
+    Shader shader;
+};
+
 ///*
 // Initalize the graphics pipeline.
 bool init(GameState *gs, const char *shader_source, int width=680, int height=480);
+
+///*
+// Reloads opengl function pointers and such, which is faster
+// to setup-again than to copy over.
+bool reload(GameState *gs);
 
 ///*
 // Destroy the graphics pipeline.

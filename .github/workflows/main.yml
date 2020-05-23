@@ -1,0 +1,23 @@
+name: Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          pacman -Syy
+          pacman --noconfirm -S binutils gcc python python-pip sdl2 scons
+          python3 -m pip install --user --upgrade pip setuptools
+          python3 -m pip install --user pillow
+      - name: Run tests
+        run: |
+          scons -Q tests

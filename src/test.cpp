@@ -5,6 +5,9 @@
 
 #include "test.h"
 
+static GameState *_test_gs;
+GameState *GAMESTATE() { return _test_gs; }
+
 TestSuite _global_tests = {};
 
 int reg_test(const char *name, TestCallback func, const char *file, unsigned int line) {
@@ -36,12 +39,17 @@ void TestSuite::add(Test test) {
     tests[num_tests++] = test;
 }
 
+int main() { // Test entry point
+    return _global_tests.run();
+}
+
 unsigned int TestSuite::run() {
     std::printf("Running %d tests\n", num_tests);
     unsigned int succeeded = 0;
 
     for (unsigned int i = 0; i < num_tests; i++) {
         GameState state = {};
+        _test_gs = &state;
         std::printf(CLEAR "\r%d/%d:  " YELLOW "testing" RESET " %s\r",
                 i+1, num_tests, tests[i].name);
         bool success = false;
@@ -55,10 +63,10 @@ unsigned int TestSuite::run() {
                     tests[i].name, tests[i].file, tests[i].line);
         }
     }
-    std::printf(CLEAR);
-    std::printf(GREEN "Passed:" RESET " %d\n", succeeded);
+    std::fprintf(stderr, CLEAR);
+    std::fprintf(stderr, GREEN "Passed:" RESET " %d\n", succeeded);
     if (succeeded != num_tests)
-        std::printf(RED "Failed:" RESET " %d\n", num_tests - succeeded);
+        std::fprintf(stderr, RED "Failed:" RESET " %d\n", num_tests - succeeded);
 
     delete[] tests;
 

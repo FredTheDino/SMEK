@@ -1,11 +1,9 @@
-#include "../main.h"
+#include "../game.h"
 #include "../util/util.h"
 #include "opengl.h"
 #include "renderer.h"
 
 namespace GFX {
-
-Shader shader;
 
 void Shader::use() { GL::UseProgram(program_id); }
 
@@ -40,7 +38,7 @@ void Mesh::draw() {
 }
 
 Shader default_shader() {
-    return shader;
+    return GAMESTATE()->renderer.shader;
 }
 
 Shader Shader::compile(const char *source) {
@@ -167,22 +165,29 @@ bool init(GameState *gs, const char *shader_source, int width, int height) {
 
     gs->gl_context = SDL_GL_CreateContext(gs->window);
     SDL_GL_MakeCurrent(gs->window, gs->gl_context);
-
     if (!GL::load_procs()) {
         ERROR("Failed to load OpenGL function.");
         return false;
     }
 
-    if (gs == global_gamestate()) {
-        GL::ClearColor(0, 0, 0, 0);
-        GL::Clear(GL::cCOLOR_BUFFER_BIT);
-        SDL_ShowWindow(gs->window);
-        SDL_GL_SwapWindow(gs->window);
+    GL::Enable(GL::cDEPTH_TEST);
+    GL::ClearColor(0, 0, 0, 0);
+    GL::Clear(GL::cCOLOR_BUFFER_BIT);
+    SDL_ShowWindow(gs->window);
+    SDL_GL_SwapWindow(gs->window);
+
+    gs->renderer.shader = Shader::compile(shader_source);
+    return true;
+}
+
+bool reload(GameState *gs) {
+    SDL_GL_MakeCurrent(gs->window, gs->gl_context);
+
+    if (!GL::load_procs()) {
+        ERROR("Failed to reload OpenGL function.");
+        return false;
     }
 
-    shader = Shader::compile(shader_source);
-
-    GL::Enable(GL::cDEPTH_TEST);
     return true;
 }
 
