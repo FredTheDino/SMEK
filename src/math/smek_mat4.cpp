@@ -53,7 +53,7 @@ TEST_CASE("mat_mul", {
     Mat m = Mat::scale(2) * Mat::scale(5);
     bool success = true;
     for (u32 i = 0; i < 4; i++) {
-        for (u32 j = 0; j < 4; j++) {
+        for (u32 j = 0; j < 3; j++) {
             success &= m._[i][j] == 10 * (i == j);
         }
     }
@@ -65,19 +65,37 @@ TEST_CASE("mat_mul", {
                       4, 3, 2, 1,
                       3, 4, 1, 2,
                       2, 1, 4, 3) * Mat::scale(2);
-    return close_enough(r, Mat::from(2, 4, 6, 8,
-                                     8, 6, 4, 2,
-                                     6, 8, 2, 4,
-                                     4, 2, 8, 6));
+    return close_enough(r, Mat::from(2, 4, 6, 4,
+                                     8, 6, 4, 1,
+                                     6, 8, 2, 2,
+                                     4, 2, 8, 3));
+});
+
+TEST_CASE("mat_mul", {
+    Mat a = Mat::from(0, 1, 1, 0,
+                      0, 0, 0, 0,
+                      1, 0, 0, 0,
+                      0, 1, 0, 1);
+
+    Mat b = Mat::from(0, 0, 0, 1,
+                      1, 0, 1, 1,
+                      0, 1, 0, 1,
+                      0, 0, 1, 0);
+
+    Mat c = a * b;
+    return close_enough(c, Mat::from(1, 1, 1, 2,
+                                     0, 0, 0, 0,
+                                     0, 0, 0, 1,
+                                     1, 0, 2, 1));
 });
 
 Mat Mat::look_at(Vec3 from, Vec3 to, Vec3 up) {
-    Vec3 z = normalized(to - from);
+    Vec3 z = normalized(from - to);
     Vec3 x = cross(normalized(up), z);
     Vec3 y = cross(z, x);
-    Mat m = Mat::from(x.x, y.x, z.x, -dot(x, from),
-                      x.y, y.y, z.y, -dot(y, from),
-                      x.z, y.z, z.z, -dot(z, from),
+    Mat m = Mat::from(x.x, x.y, x.z, -dot(x, from),
+                      y.x, y.y, y.z, -dot(y, from),
+                      z.x, z.y, z.z, -dot(z, from),
                       0.0, 0.0, 0.0, 1.0);
     return m;
 }
@@ -85,17 +103,17 @@ Mat Mat::look_at(Vec3 from, Vec3 to, Vec3 up) {
 TEST_STMT("mat_look_at",
     close_enough(Mat::look_at(Vec3(0, 1, 0), Vec3(1, 1, 0), Vec3(0, 1, 0)),
                  Mat::from( 0,  0,  1, 0,
-                            0,  1,  0,-1,
-                           -1,  0,  0, 0,
-                            0,  0,  0, 1)
+                            0,  1,  0, -1,
+                           -1,  0,  0,  0,
+                            0,  0,  0,  1)
         )
 );
 
 TEST_STMT("mat_look_at",
     close_enough(Mat::look_at(Vec3(0, 0, 0), Vec3(0, 0, -1), Vec3(0, 1, 0)),
-                 Mat::from(-1,  0,  0, 0,
+                 Mat::from( 1,  0,  0, 0,
                             0,  1,  0, 0,
-                            0,  0, -1, 0,
+                            0,  0,  1, 0,
                             0,  0,  0, 1)
         )
 );
@@ -108,6 +126,7 @@ Mat Mat::perspective(real fov, real near, real far) {
     result._[2][2] = -far / (far - near);
     result._[2][3] = -far * near / (far - near);
     result._[3][2] = -1;
+    result._[3][3] =  0;
     return result;
 }
 
@@ -132,8 +151,9 @@ TEST_STMT("mat_translation",
 
 Mat Mat::scale(real scale) {
     Mat result = {};
-    for (u32 i = 0; i < 4; i++)
+    for (u32 i = 0; i < 3; i++)
         result._[i][i] = scale;
+    result._[3][3] = 1.0;
     return result;
 }
 
