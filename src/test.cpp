@@ -68,19 +68,19 @@ unsigned int TestSuite::run() {
     for (unsigned int i = 0; i < num_tests; i++) {
         GameState state = {};
         _test_gs = &state;
-        std::fprintf(STREAM, PRE "%2d: %s" POST, i+1, tests[i].name);
-        LOG_TESTS("%2d: %s\n", i+1, tests[i].name);
+        std::fprintf(STREAM, PRE "%02d: %s" POST, i+1, tests[i].name);
+        LOG_TESTS("%02d: %s", i+1, tests[i].name);
         bool success = false;
         try {
             success = tests[i].func(&state, report);
         } catch (const std::runtime_error &ex) { /* Empty */ }
         if (success) {
             succeeded++;
-            LOG_TESTS("test '%s' success\n\n", tests[i].name);
+            LOG_TESTS("test '%s' success\n", tests[i].name);
         } else {
             std::fprintf(STREAM, PRE BOLDRED "| %s" RESET " failed (%s @ %d)\n",
                          tests[i].name, tests[i].file, tests[i].line);
-            LOG_TESTS("test '%s' failed\n\n", tests[i].name);
+            LOG_TESTS("test '%s' failed\n", tests[i].name);
         }
     }
     std::fprintf(STREAM, PRE);
@@ -89,7 +89,7 @@ unsigned int TestSuite::run() {
     if (succeeded != num_tests)
         std::fprintf(STREAM, RED "Failed: " RESET "%d\n", num_tests - succeeded);
 
-    LOG_TESTS("Tests done: %d/%d passed\n", succeeded, num_tests);
+    LOG_TESTS("Tests done: %d/%d passed", succeeded, num_tests);
 
     if (report)
         std::fclose(report);
