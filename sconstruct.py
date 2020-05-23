@@ -16,6 +16,22 @@ AddOption("--verbose",
           action="store_true",
           help="Print verbose output. Not fully respected.")
 
+AddOption("--no-color",
+          dest="color",
+          action="store_false",
+          default=True,
+          help="Remove all color from output.")
+
+AddOption("--ci",
+          dest="ci",
+          action="store_true",
+          help="Print tests-output without \\r.")
+
+AddOption("--report",
+          dest="report",
+          action="store_true",
+          help="Save a tests-report. Only makes sense when running tests.")
+
 env = Environment(ENV=os.environ)
 env.Replace(CXX="g++")
 env.Append(CXXFLAGS="-Wall")
@@ -30,6 +46,15 @@ env.Append(LINKFLAGS="-rdynamic")  # Gives backtrace information
 if GetOption("verbose"):
     env.Append(CPPDEFINES="VERBOSE")
     env.Append(ASSETS_VERBOSE="--verbose")
+
+if not GetOption("color"):
+    env.Append(CPPDEFINES="NO_COLOR")
+
+if GetOption("ci"):
+    env.Append(CPPDEFINES="CI")
+
+if GetOption("report"):
+    env.Append(CPPDEFINES="REPORT")
 
 smek_dir = "bin/debug/"
 VariantDir(smek_dir, "src", duplicate=0)
@@ -77,27 +102,16 @@ tests_source = [re.sub("^src/", tests_dir, f) for f in source]
 tests = tests_env.Program(target=tests_dir + "tests", source=tests_source)
 Depends(tests, tests_assets)
 
-def create_run_command(run_dir, program):
-    run_cmd = "(set -o pipefail; "  # propagate exit codes from earlier pipes
-    run_cmd += "cd " + run_dir + "; " + program[0].abspath
-    if shutil.which("c++filt"):
-        # Swap stdout and stderr, de-mangle with c++filt, then swap back.
-        # https://serverfault.com/questions/63705/how-to-pipe-stderr-without-piping-stdout
-        run_cmd += " 3>&1 1>&2 2>&3 | c++filt 3>&2 2>&1 1>&3 | c++filt"
-    else:
-        # c++filt should be installed but just in case
-        run_cmd += "; echo \"c++filt not found, function names may be mangled\""
-    run_cmd += ")"
-    return run_cmd
-
-AlwaysBuild(env.Alias("run", smek, create_run_command(smek_dir, smek)))
-AlwaysBuild(env.Alias("tests", tests, create_run_command(tests_dir, tests)))
+AlwaysBuild(env.Alias("run", smek, "cd " + smek_dir + "; " + smek[0].abspath))
+AlwaysBuild(env.Alias("tests", tests, "cd " + tests_dir + "; " + tests[0].abspath))
 
 docs = env.Alias("docs", "", "docs/doc-builder.py")
 AlwaysBuild(docs)
 
 env.Clean(smek, glob("bin/**/*.o", recursive=True))  # always remove *.o
 env.Clean(tests, glob("bin/**/*.o", recursive=True))  # always remove *.o
+env.Clean(smek, glob("bin/**/report.txt", recursive=True))
+env.Clean(tests, glob("bin/**/report.txt", recursive=True))
 env.Clean(libsmek, glob("bin/**/libSMEK*", recursive=True))
 env.Clean(docs, "docs/index.html")
 env.Clean(assets, glob("bin/**/assets*.bin"))
