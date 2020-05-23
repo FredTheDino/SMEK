@@ -60,6 +60,7 @@ def all_asset_targets(build_dir):
     assets = [env.Assets(build_dir + "assets.bin", global_asset_files)]
     for out_file, files in asset_files.items():
         assets.append(env.Assets(build_dir + out_file + ".bin", files))
+    return assets
 
 tests_assets = env.Assets(tests_dir + "assets-tests.bin", glob("res/tests/*.*"))
 assets = all_asset_targets(smek_dir)
