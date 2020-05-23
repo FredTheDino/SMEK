@@ -21,7 +21,7 @@ void init_game(GameState *gamestate) {
     _global_gs = gamestate;
     Asset::load("assets.bin");
 
-    GFX::init(GAMESTATE(), Asset::fetch_shader(Asset::fetch_id("MASTER_SHADER"))->data);
+    GFX::init(GAMESTATE(), Asset::fetch_shader(Asset::fetch_id("MASTER_SHADER"))->data, 600, 600);
 
     GAMESTATE()->running = true;
 }
@@ -110,6 +110,12 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
     Mat model_matrix = Mat::translate(Math::cos(time) * 0.2, Math::sin(time) * 0.2, -0.5) * Mat::scale(0.001);
     GL::UniformMatrix4fv(model_loc, 1, false, model_matrix.data());
     rect.draw();
+
+#if 1
+    model_matrix = Mat::translate(-Math::cos(time) * 0.2, -Math::sin(time) * 0.2, -0.5) * Mat::scale(0.001);
+    GL::UniformMatrix4fv(model_loc, 1, false, model_matrix.data());
+    rect.draw();
+#endif
 
     model_loc = GL::GetUniformLocation(shader.program_id, "model");
     model_matrix = Mat::translate(0, 0, -0.5) * Mat::scale(0.0005);

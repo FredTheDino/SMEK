@@ -15,6 +15,7 @@ struct GameLibrary {
     void *handle;
 
     int last_time;
+    int reload_frame_delay;
 } game_lib = {};
 
 int get_file_edit_time(const char *path) {
@@ -35,11 +36,16 @@ bool load_gamelib() {
 
     int edit_time = get_file_edit_time(path);
     if (edit_time == game_lib.last_time)
-        return true;
+        return false;
+
+    if (game_lib.reload_frame_delay) {
+        game_lib.reload_frame_delay--;
+        return false;
+    }
 
     void *tmp = dlopen(path, RTLD_NOW);
     if (!tmp) {
-        return game_lib.handle != nullptr;
+        return false;
     }
 
     dlerror(); // Clear all errors.
@@ -47,37 +53,32 @@ bool load_gamelib() {
     if (const char *error = dlerror()) {
         dlclose(tmp);
         WARN("Failed to load symbol. (%s)", error);
-        return game_lib.handle != nullptr;
+        return false;
     }
-    dlclose(tmp);
+    dlclose(tmp); // If it isn't unloaded here, the same library is loaded.
 
-    // TODO(ed): Do this move all at once. To avoid potentiall raceconditions.
+    // TODO(ed): Add locks in when they are needed
     if (game_lib.handle) { dlclose(game_lib.handle); }
 
-    void *lib;
-    do {
-        lib = dlopen(path, RTLD_NOW);
-        WARN("Reloading DLL");
-    } while (lib == nullptr);
+    void *lib = dlopen(path, RTLD_NOW);
+    ASSERT(lib, "Failed to open library safely");
 
     game_lib.handle = lib;
     game_lib.init = (GameInitFunc) dlsym(lib, "init_game");
     if (!game_lib.init) {
         UNREACHABLE("Failed to load \"init_game\" (%s)", dlerror());
-        return false;
     }
     game_lib.update = (GameUpdateFunc) dlsym(lib, "update_game");
     if (!game_lib.update) {
         UNREACHABLE("Failed to load \"init_update\" (%s)", dlerror());
-        return false;
     }
     game_lib.reload = (GameReloadFunc) dlsym(lib, "reload_game");
     if (!game_lib.update) {
         UNREACHABLE("Failed to load \"init_update\" (%s)", dlerror());
-        return false;
     }
 
     game_lib.last_time = edit_time;
+    game_lib.reload_frame_delay = 10;
     return true;
 }
 
@@ -88,15 +89,18 @@ int main() { // Game entrypoint
     GameState gs;
     game_lib.init(&gs);
     game_lib.reload(&gs);
+
     int frame = 0;
-    const int RELOAD_TIME = 10;
+    const int RELOAD_TIME = 1; // Set this to a higher number to prevent constant disk-checks.
+
     while (gs.running) {
         // TODO(ed): Add a delay for when to actually reload it.
         frame++;
         if (frame == RELOAD_TIME) {
             frame = 0;
-            if (!load_gamelib()) {
-                UNREACHABLE("Faild to reload the library");
+            if (load_gamelib()) {
+                LOG("PLATFORM LAYER RELOAD!");
+                game_lib.reload(&gs);
             }
             game_lib.reload(&gs);
         }
