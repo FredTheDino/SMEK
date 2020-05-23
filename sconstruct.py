@@ -69,15 +69,17 @@ source = glob("src/**/*.c*", recursive=True)
 source.remove("src/platform.cpp")  # The platform layer
 
 smek_source = [re.sub("^src/", smek_dir, f) for f in source]
+smek_source.remove(smek_dir + "test.cpp")
 smek = env.Program(target=smek_dir + "SMEK", source=[smek_dir + "platform.cpp"])
 libsmek = env.SharedLibrary(target=smek_dir + "libSMEK", source=smek_source)
 Depends(smek, assets)
 Depends(smek, libsmek)
 Default(smek)
 
-env.Append(CPPDEFINES="TESTS")
+tests_env = env.Clone()
+tests_env.Append(CPPDEFINES="TESTS")
 tests_source = [re.sub("^src/", tests_dir, f) for f in source]
-tests = env.Program(target=tests_dir + "tests", source=tests_source)
+tests = tests_env.Program(target=tests_dir + "tests", source=tests_source)
 Depends(tests, tests_assets)
 
 def create_run_command(run_dir, program):

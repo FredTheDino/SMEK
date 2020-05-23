@@ -102,7 +102,6 @@ int main() { // Game entrypoint
                 LOG("PLATFORM LAYER RELOAD!");
                 game_lib.reload(&gs);
             }
-            game_lib.reload(&gs);
         }
 
         gs = game_lib.update(&gs, GSUM::UPDATE_AND_RENDER);
