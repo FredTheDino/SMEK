@@ -19,12 +19,12 @@ struct GameLibrary {
 } game_lib = {};
 
 int get_file_edit_time(const char *path) {
-	struct stat attr;
-	// Check for success
-	if (stat(path, &attr)) {
-		return -1;
-	}
-	return attr.st_ctime;
+    struct stat attr;
+    // Check for success
+    if (stat(path, &attr)) {
+        return -1;
+    }
+    return attr.st_ctime;
 }
 
 bool load_gamelib() {
