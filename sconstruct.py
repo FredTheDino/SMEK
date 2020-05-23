@@ -11,12 +11,6 @@ def shell(command):
     proc = Popen(command, stdout=PIPE)
     return proc.communicate()[0].decode()
 
-
-AddOption("--tests",
-          dest="tests",
-          action="store_true",
-          help="Compile with tests")
-
 AddOption("--verbose",
           dest="verbose",
           action="store_true",
