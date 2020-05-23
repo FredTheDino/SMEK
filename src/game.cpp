@@ -94,11 +94,18 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
     auto t_loc = GL::GetUniformLocation(shader.program_id, "t");
     GL::Uniform1f(t_loc, time);
 
+    auto proj_loc = GL::GetUniformLocation(shader.program_id, "proj");
+    Mat proj_matrix = Mat::perspective(PI / 3, 0.01, 3.0);
+    GL::UniformMatrix4fv(proj_loc, 1, true, proj_matrix.data());
+
     auto view_loc = GL::GetUniformLocation(shader.program_id, "view");
-    Mat view_matrix = Mat::perspective(PI / 4, 0.01, 1.0);
-    view_matrix = view_matrix * Mat::look_at(Vec3(0, 0, 0),
-                Vec3(Math::cos(time) * 0.2, Math::sin(time) * 0.0, 0.5), Vec3(0, 1, 0));
-    GL::UniformMatrix4fv(view_loc, 1, false, view_matrix.data());
+
+    Vec3 from = Vec3(0.5, 0.5, 0.1);
+
+    Vec3 target = Vec3(Math::cos(time) * 0.2, Math::sin(time) * 0.0, -0.5);
+    Vec3 up = Vec3(0, 1, 0);
+    Mat view_matrix = Mat::look_at(from, target, up);
+    GL::UniformMatrix4fv(view_loc, 1, true, view_matrix.data());
 
 
     shader.use();
@@ -108,19 +115,19 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
     GL::Uniform1i(tex_loc, 0);
 
     auto model_loc = GL::GetUniformLocation(shader.program_id, "model");
-    Mat model_matrix = Mat::translate(Math::cos(time) * 0.2, Math::sin(time) * 0.2, -0.5) * Mat::scale(0.001);
-    GL::UniformMatrix4fv(model_loc, 1, false, model_matrix.data());
+    Mat model_matrix = Mat::translate(Math::cos(time) * 0.2, Math::sin(time) * 0.2, -0.5) * Mat::scale(0.1);
+    GL::UniformMatrix4fv(model_loc, 1, true, model_matrix.data());
     rect.draw();
 
-#if 1
-    model_matrix = Mat::translate(-Math::cos(time) * 0.2, -Math::sin(time) * 0.2, -0.5) * Mat::scale(0.001);
-    GL::UniformMatrix4fv(model_loc, 1, false, model_matrix.data());
+#if 0
+    model_matrix = Mat::translate(-Math::cos(time) * 0.2, -Math::sin(time) * 0.2, -0.5) * Mat::scale(0.1);
+    GL::UniformMatrix4fv(model_loc, 1, true, model_matrix.data());
     rect.draw();
 #endif
 
     model_loc = GL::GetUniformLocation(shader.program_id, "model");
-    model_matrix = Mat::translate(0, 0, -0.5) * Mat::scale(0.0005);
-    GL::UniformMatrix4fv(model_loc, 1, false, model_matrix.data());
+    model_matrix = Mat::translate(0, 0, -0.6) * Mat::scale(0.1);
+    GL::UniformMatrix4fv(model_loc, 1, true, model_matrix.data());
     rect.draw();
 
 
