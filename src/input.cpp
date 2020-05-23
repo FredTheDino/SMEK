@@ -4,6 +4,14 @@
 
 namespace Input {
 
+void rebind(Action name, u32 slot, f32 value) {
+    GAMESTATE()->input.rebind_func(name, slot, value);
+}
+
+void bind(Action name, u32 slot, u32 button, f32 value) {
+    GAMESTATE()->input.bind_func(name, slot, button, value);
+}
+
 static f32 get_current(Action name) {
     return GAMESTATE()->input.current_frame[(u32) name];
 }

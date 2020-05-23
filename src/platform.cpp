@@ -97,24 +97,39 @@ struct GameInput {
     Button action_to_input[(u32) Ac::NUM_ACTIONS][2] = {};
     std::unordered_map<Button, ButtonPress> input_to_action;
     f32 state[(u32) Ac::NUM_ACTIONS] = {};
-    bool rebinding;
 
-    void bind(Ac action, u32 id, Button button, f32 value=1.0) {
-        ASSERT(id < LEN(action_to_input[0]), "Invalid binding id, max %d. (%d)", LEN(action_to_input[0]), id);
+    bool rebinding;
+    Ac rebind_action;
+    u32 rebind_slot;
+    f32 rebind_value;
+
+    void bind(Ac action, u32 slot, Button button, f32 value=1.0) {
+        ASSERT(slot < LEN(action_to_input[0]), "Invalid binding slot, max %d. (%d)",
+               LEN(action_to_input[0]), slot);
         if (input_to_action.count(button))
             WARN("Button cannot be bound to multiple actions (%d)", button);
-        action_to_input[(u32) action][id] = button;
+        action_to_input[(u32) action][slot] = button;
         input_to_action[button] = { action, value };
     }
 
-    void unbind(Ac action, u32 id) {
-        ASSERT(id < LEN(action_to_input[0]), "Invalid binding id, max %d. (%d)", LEN(action_to_input[0]), id);
+    bool unbind(Ac action, u32 slot) {
+        ASSERT(slot < LEN(action_to_input[0]), "Invalid binding slot, max %d. (%d)",
+               LEN(action_to_input[0]), slot);
 
-        Button button = action_to_input[(u32) action][id];
-        action_to_input[(u32) action][id] = -1;
+        Button button = action_to_input[(u32) action][slot];
+        action_to_input[(u32) action][slot] = 0;
 
-        if (button == -1) { WARN("Trying to unbind unbound button. (%d)", action); return; }
+        if (button == 0) { return false; }
         input_to_action.erase(button);
+        return true;
+    }
+
+    bool eaten_by_rebind(Button button) {
+        if (!rebinding) return false;
+        rebinding = false;
+        unbind(rebind_action, rebind_slot);
+        bind(rebind_action, rebind_slot, button, rebind_value);
+        return true;
     }
 
     void update_press(Button button, bool down) {
@@ -123,7 +138,22 @@ struct GameInput {
             state[(u32) press.action] = down * press.value;
         }
     }
-};
+} global_input = {};
+
+// See documentation in input.h
+void platform_rebind(Ac action, u32 slot, f32 value) {
+    ASSERT(slot < LEN(global_input.action_to_input[0]), "Invalid binding slot, max %d. (%d)",
+           LEN(global_input.action_to_input[0]), slot);
+    global_input.rebinding = true;
+    global_input.rebind_action = action;
+    global_input.rebind_slot = slot;
+    global_input.rebind_value = value;
+}
+
+void platform_bind(Ac action, u32 slot, u32 button, f32 value) {
+    global_input.unbind(action, slot);
+    global_input.bind(action, slot, button, value);
+}
 
 #ifndef TESTS
 #include "util/log.cpp" // I know, just meh.
@@ -132,18 +162,14 @@ int main() { // Game entrypoint
         UNREACHABLE("Failed to load the linked library the first time!");
     }
     GameState gs;
-    GameInput input;
+    gs.input.rebind_func = platform_rebind;
+    gs.input.bind_func = platform_bind;
 
     game_lib.init(&gs);
     game_lib.reload(&gs);
 
     int frame = 0;
     const int RELOAD_TIME = 1; // Set this to a higher number to prevent constant disk-checks.
-
-    input.bind(Ac::AButton, 0, SDLK_a, 1.0);
-    input.bind(Ac::AButton, 1, SDLK_s, 0.1);
-    input.bind(Ac::BButton, 0, SDLK_b, 1.0);
-    input.bind(Ac::BButton, 1, SDLK_n, 0.1);
 
     while (gs.running) {
         // Check for reloading of library
@@ -166,13 +192,15 @@ int main() { // Game entrypoint
                 SDL_KeyboardEvent key = event.key;
                 if (key.repeat) continue;
                 GameInput::Button button = key.keysym.sym;
-                input.update_press(button, key.state == SDL_PRESSED);
+                bool down = key.state == SDL_PRESSED;
+                if (down && global_input.eaten_by_rebind(button)) continue;
+                global_input.update_press(button, down);
             }
         }
 
         for (u32 i = 0; i < (u32) Ac::NUM_ACTIONS; i++) {
             gs.input.last_frame[i] = gs.input.current_frame[i];
-            gs.input.current_frame[i] = input.state[i];
+            gs.input.current_frame[i] = global_input.state[i];
         }
 
         gs = game_lib.update(&gs, GSUM::UPDATE_AND_RENDER);

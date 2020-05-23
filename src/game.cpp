@@ -25,6 +25,12 @@ void init_game(GameState *gamestate) {
     GFX::init(GAMESTATE(), Asset::fetch_shader("MASTER_SHADER")->data, 600, 600);
 
     GAMESTATE()->running = true;
+
+    Input::bind(Ac::AButton, 0, SDLK_a, 1.0);
+    Input::bind(Ac::AButton, 1, SDLK_s, 0.1);
+    Input::bind(Ac::BButton, 0, SDLK_b, 1.0);
+    Input::bind(Ac::BButton, 1, SDLK_n, 0.1);
+    Input::bind(Ac::Rebind, 1, SDLK_r);
 }
 
 void reload_game(GameState *game) {
@@ -37,9 +43,12 @@ void reload_game(GameState *game) {
 }
 
 GameState update_game(GameState *game, GSUM mode) { // Game entry point
-
     GL::ClearColor(0.2, 0.1, 0.3, 1); // We don't need to do this...
     GL::Clear(GL::cCOLOR_BUFFER_BIT | GL::cDEPTH_BUFFER_BIT);
+
+    if (Input::pressed(Ac::Rebind)) {
+        Input::rebind(Ac::AButton);
+    }
 
     real time = SDL_GetTicks() / 1000.0;
 
