@@ -54,10 +54,10 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
 
     static f32 x = 0;
 
-    if (Input::pressed(Input::Action::AButton))
-        x += 0.5;
-    if (Input::pressed(Input::Action::BButton))
-        x -= 0.5;
+    if (Input::pressed(Ac::AButton))
+        x += Input::value(Ac::AButton);
+    if (Input::pressed(Ac::BButton))
+        x -= Input::value(Ac::BButton);
 
     Vec3 from = Vec3(x, 0.5, 0.1);
 

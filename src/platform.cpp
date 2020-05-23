@@ -89,20 +89,26 @@ bool load_gamelib() {
 
 struct GameInput {
     using Button = i32;
-    Button action_to_input[(u32) Input::Action::NUM_INPUTS][2] = {};
-    std::unordered_map<Button, Input::Action> input_to_action;
-    f32 state[(u32) Input::Action::NUM_INPUTS] = {};
+
+    struct ButtonPress {
+        Ac action;
+        f32 value;
+    };
+
+    Button action_to_input[(u32) Ac::NUM_ACTIONS][2] = {};
+    std::unordered_map<Button, ButtonPress> input_to_action;
+    f32 state[(u32) Ac::NUM_ACTIONS] = {};
     bool rebinding;
 
-    void bind(Input::Action action, u32 id, Button button) {
+    void bind(Ac action, u32 id, Button button, f32 value=1.0) {
         ASSERT(id < LEN(action_to_input[0]), "Invalid binding id, max %d. (%d)", LEN(action_to_input[0]), id);
         if (input_to_action.count(button))
             WARN("Button cannot be bound to multiple actions (%d)", button);
         action_to_input[(u32) action][id] = button;
-        input_to_action[button] = action;
+        input_to_action[button] = { action, value };
     }
 
-    void unbind(Input::Action action, u32 id) {
+    void unbind(Ac action, u32 id) {
         ASSERT(id < LEN(action_to_input[0]), "Invalid binding id, max %d. (%d)", LEN(action_to_input[0]), id);
 
         Button button = action_to_input[(u32) action][id];
@@ -112,9 +118,10 @@ struct GameInput {
         input_to_action.erase(button);
     }
 
-    void update(Button button, f32 button_state) {
+    void update_press(Button button, bool down) {
         if (input_to_action.count(button)) {
-            state[(u32) input_to_action[button]] = button_state;
+            ButtonPress press = input_to_action[button];
+            state[(u32) press.action] = down * press.value;
         }
     }
 };
@@ -132,10 +139,10 @@ int main() { // Game entrypoint
     int frame = 0;
     const int RELOAD_TIME = 1; // Set this to a higher number to prevent constant disk-checks.
 
-    input.bind(Input::Action::AButton, 0, SDLK_a);
-    input.bind(Input::Action::AButton, 1, SDLK_s);
-    input.bind(Input::Action::BButton, 0, SDLK_b);
-    input.bind(Input::Action::BButton, 1, SDLK_n);
+    input.bind(Ac::AButton, 0, SDLK_a, 1.0);
+    input.bind(Ac::AButton, 1, SDLK_s, 0.1);
+    input.bind(Ac::BButton, 0, SDLK_b, 1.0);
+    input.bind(Ac::BButton, 1, SDLK_n, 0.1);
 
     while (gs.running) {
         // Check for reloading of library
@@ -158,12 +165,11 @@ int main() { // Game entrypoint
                 SDL_KeyboardEvent key = event.key;
                 if (key.repeat) continue;
                 GameInput::Button button = key.keysym.sym;
-                f32 down = (key.state == SDL_PRESSED);
-                input.update(button, down);
+                input.update_press(button, key.state == SDL_PRESSED);
             }
         }
 
-        for (u32 i = 0; i < (u32) Input::Action::NUM_INPUTS; i++) {
+        for (u32 i = 0; i < (u32) Ac::NUM_ACTIONS; i++) {
             gs.input.last_frame[i] = gs.input.current_frame[i];
             gs.input.current_frame[i] = input.state[i];
         }

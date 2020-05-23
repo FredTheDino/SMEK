@@ -27,4 +27,8 @@ bool pressed(Action name) {
     return get_last(name) == 0.0 && down(name);
 }
 
+f32 value(Action name) {
+    return get_current(name);
+}
+
 }
