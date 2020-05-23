@@ -5,6 +5,9 @@
 
 #include "test.h"
 
+static GameState *_test_gs;
+GameState *GAMESTATE() { return _test_gs; }
+
 TestSuite _global_tests = {};
 
 int reg_test(const char *name, TestCallback func, const char *file, unsigned int line) {
@@ -35,6 +38,10 @@ void TestSuite::add(Test test) {
     tests[num_tests++] = test;
 }
 
+int main() { // Test entry point
+    return _global_tests.run();
+}
+
 #define STREAM stderr
 #ifdef CI
 #define PRE ""
@@ -57,6 +64,7 @@ unsigned int TestSuite::run() {
 
     for (unsigned int i = 0; i < num_tests; i++) {
         GameState state = {};
+        _test_gs = &state;
         std::fprintf(STREAM, PRE "%d/%d: %s" POST, i+1, num_tests, tests[i].name);
         if (report)
             std::fprintf(report, "%d/%d: %s\n", i+1, num_tests, tests[i].name);

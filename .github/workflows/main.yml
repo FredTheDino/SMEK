@@ -20,7 +20,7 @@ jobs:
           python3 -m pip install --user pillow
       - name: Run tests
         run: |
-          scons -Q --tests run --ci --report
+          scons -Q tests --ci --report
       - name: Upload build
         if: ${{ !success() }}
         uses: actions/upload-artifact@v2
