@@ -2,6 +2,11 @@
 #include "game.h"
 #include "util/log.h"
 #include "util/log.cpp" // I know, just meh.
+#include "input.h"
+#include <unordered_map>
+
+// Returns the length of a statically allocated list.
+#define LEN(a) (sizeof(a) / sizeof(a[0]))
 
 // This is very UNIX-y
 #include <dlfcn.h>
@@ -82,24 +87,66 @@ bool load_gamelib() {
     return true;
 }
 
+struct GameInput {
+    using Button = i32;
+    Button action_to_input[(u32) Input::Action::NUM_INPUTS][2] = {};
+    std::unordered_map<Button, Input::Action> input_to_action;
+
+    void bind(Input::Action action, u32 id, Button button) {
+        ASSERT(id < LEN(action_to_input[0]), "Invalid binding id, max %d. (%d)", LEN(action_to_input[0]), id);
+        if (input_to_action.count(button))
+            WARN("Button cannot be bound to multiple actions (%d)", button);
+        action_to_input[(u32) action][id] = button;
+        input_to_action[button] = action;
+    }
+
+    void unbind(Input::Action action, u32 id) {
+        ASSERT(id < LEN(action_to_input[0]), "Invalid binding id, max %d. (%d)", LEN(action_to_input[0]), id);
+
+        Button button = action_to_input[(u32) action][id];
+        action_to_input[(u32) action][id] = -1;
+
+        if (button == -1) { WARN("Trying to unbind unbound button. (%d)", action); return; }
+        input_to_action.erase(button);
+    }
+
+    bool rebinding;
+};
+
 int main() { // Game entrypoint
     if (!load_gamelib()) {
         UNREACHABLE("Failed to load the linked library the first time!");
     }
     GameState gs;
+    GameInput input;
+
     game_lib.init(&gs);
     game_lib.reload(&gs);
 
     int frame = 0;
     const int RELOAD_TIME = 1; // Set this to a higher number to prevent constant disk-checks.
 
+    input.bind(Input::Action::AButton, 0, SDLK_a);
+    input.bind(Input::Action::AButton, 1, SDLK_s);
+    input.bind(Input::Action::BButton, 0, SDLK_b);
+    input.bind(Input::Action::BButton, 1, SDLK_n);
+
     while (gs.running) {
-        frame++;
-        if (frame == RELOAD_TIME) {
+        // Check for reloading of library
+        if (++frame == RELOAD_TIME) {
             frame = 0;
             if (load_gamelib()) {
                 LOG("PLATFORM LAYER RELOAD!");
                 game_lib.reload(&gs);
+            }
+        }
+
+        // Read in input
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_WINDOWEVENT) {
+                if (event.window.event == SDL_WINDOWEVENT_CLOSE)
+                    gs.running = false;
             }
         }
 

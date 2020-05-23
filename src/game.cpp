@@ -37,15 +37,6 @@ void reload_game(GameState *game) {
 }
 
 GameState update_game(GameState *game, GSUM mode) { // Game entry point
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_WINDOWEVENT) {
-            if (event.window.event == SDL_WINDOWEVENT_CLOSE)
-                GAMESTATE()->running = false;
-        }
-    }
-
-    SDL_Delay(10);
 
     GL::ClearColor(0.2, 0.1, 0.3, 1); // We don't need to do this...
     GL::Clear(GL::cCOLOR_BUFFER_BIT | GL::cDEPTH_BUFFER_BIT);
