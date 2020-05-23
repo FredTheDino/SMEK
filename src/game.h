@@ -36,9 +36,9 @@ enum class GameStateUpdateMode {
 using GSUM = GameStateUpdateMode;
 
 ///*
-// Reloads eventual global state, if you can get away with storing
-// things on the global game state you should, but this is usefull
-// for cirtain callbacks and opengl function pointers.
+// Reloads eventual global state. If you can get away with storing
+// things on the global game state you should, but this is useful
+// for certain callbacks and opengl function pointers.
 extern "C" void reload_game(GameState *gamestate);
 typedef void(*GameReloadFunc)(GameState *);
 
@@ -47,4 +47,3 @@ typedef void(*GameReloadFunc)(GameState *);
 // outside of the GameState object, but the new one is returned.
 extern "C" GameState update_game(GameState *gamestate, GSUM mode=GSUM::UPDATE_AND_RENDER);
 typedef GameState(*GameUpdateFunc)(GameState *, GSUM);
-
