@@ -91,6 +91,8 @@ struct GameInput {
     using Button = i32;
     Button action_to_input[(u32) Input::Action::NUM_INPUTS][2] = {};
     std::unordered_map<Button, Input::Action> input_to_action;
+    f32 state[(u32) Input::Action::NUM_INPUTS] = {};
+    bool rebinding;
 
     void bind(Input::Action action, u32 id, Button button) {
         ASSERT(id < LEN(action_to_input[0]), "Invalid binding id, max %d. (%d)", LEN(action_to_input[0]), id);
@@ -110,7 +112,11 @@ struct GameInput {
         input_to_action.erase(button);
     }
 
-    bool rebinding;
+    void update(Button button, f32 button_state) {
+        if (input_to_action.count(button)) {
+            state[(u32) input_to_action[button]] = button_state;
+        }
+    }
 };
 
 int main() { // Game entrypoint
@@ -148,6 +154,18 @@ int main() { // Game entrypoint
                 if (event.window.event == SDL_WINDOWEVENT_CLOSE)
                     gs.running = false;
             }
+            if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
+                SDL_KeyboardEvent key = event.key;
+                if (key.repeat) continue;
+                GameInput::Button button = key.keysym.sym;
+                f32 down = (key.state == SDL_PRESSED);
+                input.update(button, down);
+            }
+        }
+
+        for (u32 i = 0; i < (u32) Input::Action::NUM_INPUTS; i++) {
+            gs.input.last_frame[i] = gs.input.current_frame[i];
+            gs.input.current_frame[i] = input.state[i];
         }
 
         gs = game_lib.update(&gs, GSUM::UPDATE_AND_RENDER);

@@ -52,7 +52,14 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
 
     auto view_loc = GL::GetUniformLocation(shader.program_id, "view");
 
-    Vec3 from = Vec3(0.5, 0.5, 0.1);
+    static f32 x = 0;
+
+    if (Input::pressed(Input::Action::AButton))
+        x += 0.5;
+    if (Input::pressed(Input::Action::BButton))
+        x -= 0.5;
+
+    Vec3 from = Vec3(x, 0.5, 0.1);
 
     Vec3 target = Vec3(Math::cos(time) * 0.2, Math::sin(time) * 0.0, -0.5);
     Vec3 up = Vec3(0, 1, 0);
