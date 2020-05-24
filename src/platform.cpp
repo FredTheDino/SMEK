@@ -14,6 +14,7 @@
 // Returns the length of a statically allocated list.
 #define LEN(a) (sizeof(a) / sizeof(a[0]))
 #include "math/smek_math.h"
+#include "audio.h"
 
 // This is very UNIX-y
 #include <dlfcn.h>
@@ -22,6 +23,7 @@ struct GameLibrary {
     GameInitFunc init;
     GameReloadFunc reload;
     GameUpdateFunc update;
+    AudioCallbackFunc audio_callback;
 
     void *handle;
 
@@ -87,6 +89,10 @@ bool load_gamelib() {
     game_lib.reload = (GameReloadFunc) dlsym(lib, "reload_game");
     if (!game_lib.update) {
         UNREACHABLE("Failed to load \"reload_game\" (%s)", dlerror());
+    }
+    game_lib.audio_callback = (AudioCallbackFunc) dlsym(lib, "audio_callback");
+    if (!game_lib.audio_callback) {
+        UNREACHABLE("Failed to load \"audio_callback\" (%s)", dlerror());
     }
 
     return true;
@@ -161,35 +167,22 @@ void platform_bind(Ac action, u32 slot, u32 button, f32 value) {
     global_input.bind(action, slot, button, value);
 }
 
-const u32 AUDIO_SAMPLE_RATE = 48000;
+Audio::AudioStruct audio_struct;
 
-struct AudioStruct {
-    SDL_AudioDeviceID dev;
-    u64 steps;
-} audio_struct = {};
-
-void audio_callback(void *userdata, u8 *stream, int len) {
-    const u32 SAMPLES = len / sizeof(f32);
-
-    f32 *output = (f32 *) stream;
-
-    const f32 TIME_STEP = 1.0f / AUDIO_SAMPLE_RATE;
-
-    for (u32 i = 0; i < SAMPLES; i += 2) {
-        output[i+0] = sin(TIME_STEP * (i + audio_struct.steps) * 440) * 0.3;
-        output[i+1] = sin(TIME_STEP * (i + audio_struct.steps) * 440) * 0.3;
-    }
-
-    audio_struct.steps += SAMPLES;
+void sdl_audio_callback(void *userdata, u8 *stream, int len) {
+    Audio::AudioStruct *audio_struct_ptr = (Audio::AudioStruct *) userdata;
+    game_lib.audio_callback(audio_struct_ptr, stream, len);
 }
 
 bool audio_init() {
+    audio_struct = {};
+
     SDL_AudioSpec want = {};
-    want.freq = AUDIO_SAMPLE_RATE;
+    want.freq = Audio::SAMPLE_RATE;
     want.format = AUDIO_F32;
     want.samples = 2048;
     want.channels = 2;
-    want.callback = audio_callback;
+    want.callback = sdl_audio_callback;
     want.userdata = (void *) &audio_struct;
 
     SDL_AudioSpec have;
