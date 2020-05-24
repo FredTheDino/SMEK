@@ -9,6 +9,8 @@
 #include "math/smek_mat4.h"
 #include "math/smek_math.h"
 
+#include "imgui/imgui.h"
+
 GameState *_global_gs;
 #ifndef TESTS
 GameState *GAMESTATE() { return _global_gs; }
@@ -93,15 +95,17 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
     mesh.draw();
 #endif
 
+    ImGui::Begin("Hello, world!");
+    ImGui::Text("This is some useful text.");
+    ImGui::End();
+
+
     model_loc = glGetUniformLocation(shader.program_id, "model");
     model_matrix = Mat::translate(0, 0, -0.6) * Mat::scale(0.1);
     glUniformMatrix4fv(model_loc, 1, true, model_matrix.data());
     mesh.draw();
 
 
-    SDL_GL_SwapWindow(GAMESTATE()->window);
-
-    // GFX::deinit(GAMESTATE());
     return *game;
 }
 

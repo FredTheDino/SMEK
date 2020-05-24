@@ -1,3 +1,9 @@
+#define IMGUI_IMPL_OPENGL_LOADER_GLAD
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_sdl.h"
+#include "imgui/imgui_impl_opengl3.h"
+#include "glad/glad.h"
+
 #include <stdio.h>
 #include "game.h"
 #include "util/log.h"
@@ -168,6 +174,21 @@ int main() { // Game entrypoint
     game_lib.init(&gs);
     game_lib.reload(&gs);
 
+    // IMGUI
+    const char* glsl_version = "#version 330";
+    if (gladLoadGL() == 0) {
+        UNREACHABLE("Failed to load glad");
+    }
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    ImGui::StyleColorsDark();
+    //ImGui::StyleColorsClassic();
+    ImGui_ImplSDL2_InitForOpenGL(gs.window, gs.gl_context);
+    ImGui_ImplOpenGL3_Init(glsl_version);
+
     int frame = 0;
     const int RELOAD_TIME = 1; // Set this to a higher number to prevent constant disk-checks.
 
@@ -184,6 +205,10 @@ int main() { // Game entrypoint
         // Read in input
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
+            ImGui_ImplSDL2_ProcessEvent(&event);
+            if (event.type == SDL_QUIT) {
+                gs.running = false;
+            }
             if (event.type == SDL_WINDOWEVENT) {
                 if (event.window.event == SDL_WINDOWEVENT_CLOSE)
                     gs.running = false;
@@ -203,7 +228,15 @@ int main() { // Game entrypoint
             gs.input.current_frame[i] = global_input.state[i];
         }
 
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplSDL2_NewFrame(gs.window);
+        ImGui::NewFrame();
+
         gs = game_lib.update(&gs, GSUM::UPDATE_AND_RENDER);
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        SDL_GL_SwapWindow(gs.window);
     }
     return 0;
 }
