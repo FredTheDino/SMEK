@@ -10,6 +10,13 @@ const u32 SAMPLE_RATE = 48000;
 struct AudioStruct {
     SDL_AudioDeviceID dev;
     u64 steps;
+
+    void lock() {
+        SDL_LockAudioDevice(dev);
+    }
+    void unlock() {
+        SDL_UnlockAudioDevice(dev);
+    }
 };
 
 void audio_callback(AudioStruct *audio_struct, u8 *stream, int len);

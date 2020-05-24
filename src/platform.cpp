@@ -40,6 +40,8 @@ void signal_handler (int signal) {
     m_reload_lib.unlock();
 }
 
+Audio::AudioStruct audio_struct;
+
 bool load_gamelib() {
     m_reload_lib.lock();
     if (!reload_lib) {
@@ -70,6 +72,7 @@ bool load_gamelib() {
     dlclose(tmp); // If it isn't unloaded here, the same library is loaded.
 
     // TODO(ed): Add locks in when they are needed
+    audio_struct.lock();
     if (game_lib.handle) { dlclose(game_lib.handle); }
 
     void *lib = dlopen(path, RTLD_NOW);
@@ -94,6 +97,7 @@ bool load_gamelib() {
     if (!game_lib.audio_callback) {
         UNREACHABLE("Failed to load \"audio_callback\" (%s)", dlerror());
     }
+    audio_struct.unlock();
 
     return true;
 }
@@ -166,8 +170,6 @@ void platform_bind(Ac action, u32 slot, u32 button, f32 value) {
     global_input.unbind(action, slot);
     global_input.bind(action, slot, button, value);
 }
-
-Audio::AudioStruct audio_struct;
 
 void sdl_audio_callback(void *userdata, u8 *stream, int len) {
     Audio::AudioStruct *audio_struct_ptr = (Audio::AudioStruct *) userdata;
