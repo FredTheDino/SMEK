@@ -160,6 +160,40 @@ void platform_bind(Ac action, u32 slot, u32 button, f32 value) {
     global_input.bind(action, slot, button, value);
 }
 
+struct AudioStruct {
+    SDL_AudioDeviceID dev;
+} audio_struct = {};
+
+void audio_callback(void *userdata, u8 *stream, int len) {
+    const u32 SAMPLES = len / sizeof(f32);
+
+    f32 *output = (f32 *) stream;
+
+    for (u32 i = 0; i < SAMPLES; i++) {
+        output[i] = 0.0;
+    }
+}
+
+bool audio_init() {
+    SDL_AudioSpec want = {};
+    want.freq = 48000;
+    want.format = AUDIO_F32;
+    want.samples = 2048;
+    want.channels = 2;
+    want.callback = audio_callback;
+    want.userdata = (void *) &audio_struct;
+
+    SDL_AudioSpec have;
+    audio_struct.dev = SDL_OpenAudioDevice(nullptr, 0, &want, &have, 0);
+    if (audio_struct.dev <= 0) {
+        ERROR("%s", SDL_GetError());
+        return false;
+    }
+
+    SDL_PauseAudioDevice(audio_struct.dev, 0);
+    return true;
+}
+
 #ifndef TESTS
 #include "util/log.cpp" // I know, just meh.
 int main() { // Game entrypoint
@@ -191,6 +225,8 @@ int main() { // Game entrypoint
     //ImGui::StyleColorsClassic();
     ImGui_ImplSDL2_InitForOpenGL(gs.window, gs.gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
+
+    ASSERT(audio_init(), "Unable to initialize audio");
 
     int frame = 0;
     const int RELOAD_TIME = 1; // Set this to a higher number to prevent constant disk-checks.
