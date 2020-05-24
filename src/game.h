@@ -3,6 +3,7 @@
 
 #include "asset/asset.h"
 #include "renderer/renderer.h"
+#include "input.h"
 
 ///*
 struct GameState {
@@ -11,6 +12,7 @@ struct GameState {
     float time;
     Asset::System asset_system = {};
     GFX::Renderer renderer = {};
+    Input::Input input = {};
 
     bool running;
 };

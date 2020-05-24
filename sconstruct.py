@@ -86,10 +86,10 @@ assets = all_asset_targets(smek_dir)
 env.Alias("assets", assets)
 
 source = glob("src/**/*.c*", recursive=True)
-source.remove("src/platform.cpp")  # The platform layer
 
 smek_source = [re.sub("^src/", smek_dir, f) for f in source]
 smek_source.remove(smek_dir + "test.cpp")
+smek_source.remove(smek_dir + "platform.cpp")  # The platform layer
 smek = env.Program(target=smek_dir + "SMEK", source=[smek_dir + "platform.cpp"])
 libsmek = env.SharedLibrary(target=smek_dir + "libSMEK", source=smek_source)
 Depends(smek, assets)

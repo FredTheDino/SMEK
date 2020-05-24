@@ -25,6 +25,12 @@ void init_game(GameState *gamestate) {
     GFX::init(GAMESTATE(), Asset::fetch_shader("MASTER_SHADER")->data, 600, 600);
 
     GAMESTATE()->running = true;
+
+    Input::bind(Ac::AButton, 0, SDLK_a, 1.0);
+    Input::bind(Ac::AButton, 1, SDLK_s, 0.1);
+    Input::bind(Ac::BButton, 0, SDLK_b, 1.0);
+    Input::bind(Ac::BButton, 1, SDLK_n, 0.1);
+    Input::bind(Ac::Rebind, 1, SDLK_r);
 }
 
 void reload_game(GameState *game) {
@@ -37,18 +43,12 @@ void reload_game(GameState *game) {
 }
 
 GameState update_game(GameState *game, GSUM mode) { // Game entry point
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_WINDOWEVENT) {
-            if (event.window.event == SDL_WINDOWEVENT_CLOSE)
-                GAMESTATE()->running = false;
-        }
-    }
-
-    SDL_Delay(10);
-
     GL::ClearColor(0.2, 0.1, 0.3, 1); // We don't need to do this...
     GL::Clear(GL::cCOLOR_BUFFER_BIT | GL::cDEPTH_BUFFER_BIT);
+
+    if (Input::pressed(Ac::Rebind)) {
+        Input::rebind(Ac::AButton);
+    }
 
     real time = SDL_GetTicks() / 1000.0;
 
@@ -61,7 +61,14 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
 
     auto view_loc = GL::GetUniformLocation(shader.program_id, "view");
 
-    Vec3 from = Vec3(0.5, 0.5, 0.1);
+    static f32 x = 0;
+
+    if (Input::pressed(Ac::AButton))
+        x += Input::value(Ac::AButton);
+    if (Input::pressed(Ac::BButton))
+        x -= Input::value(Ac::BButton);
+
+    Vec3 from = Vec3(x, 0.5, 0.1);
 
     Vec3 target = Vec3(Math::cos(time) * 0.2, Math::sin(time) * 0.0, -0.5);
     Vec3 up = Vec3(0, 1, 0);
