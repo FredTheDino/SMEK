@@ -75,7 +75,7 @@ TEST_CASE("input_released", {
     success &= !released(SOME_ACTION);
     *last = 1.0;
     success &= released(SOME_ACTION);
-    return true;
+    return success;
 });
 
 TEST_CASE("input_pressed", {
