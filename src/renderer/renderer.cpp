@@ -165,7 +165,7 @@ bool init(GameState *gs, const char *shader_source, int width, int height) {
 
     gs->gl_context = SDL_GL_CreateContext(gs->window);
     SDL_GL_MakeCurrent(gs->window, gs->gl_context);
-    if (!GL::load_procs()) {
+    if (!gladLoadGLLoader((GLADloadproc) SDL_GL_GetProcAddress)) {
         ERROR("Failed to load OpenGL function.");
         return false;
     }
@@ -183,7 +183,7 @@ bool init(GameState *gs, const char *shader_source, int width, int height) {
 bool reload(GameState *gs) {
     SDL_GL_MakeCurrent(gs->window, gs->gl_context);
 
-    if (!GL::load_procs()) {
+    if (!gladLoadGLLoader((GLADloadproc) SDL_GL_GetProcAddress)) {
         ERROR("Failed to reload OpenGL function.");
         return false;
     }
