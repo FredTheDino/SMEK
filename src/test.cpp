@@ -76,11 +76,11 @@ unsigned int TestSuite::run() {
         } catch (const std::runtime_error &ex) { /* Empty */ }
         if (success) {
             succeeded++;
-            LOG_TESTS("test '%s' succeeded at %s @ %d\n", tests[i].name, tests[i].file, tests[i].line);
+            LOG_TESTS("'%s' succeeded at %s @ %d\n", tests[i].name, tests[i].file, tests[i].line);
         } else {
             std::fprintf(STREAM, PRE BOLDRED "| %s" RESET " failed (%s @ %d)\n",
                          tests[i].name, tests[i].file, tests[i].line);
-            LOG_TESTS("test '%s' failed at %s @ %d\n", tests[i].name, tests[i].file, tests[i].line);
+            LOG_TESTS("'%s' failed at %s @ %d\n", tests[i].name, tests[i].file, tests[i].line);
         }
     }
     std::fprintf(STREAM, PRE);
