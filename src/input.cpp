@@ -87,7 +87,7 @@ TEST_CASE("input_pressed", {
     success &= pressed(SOME_ACTION);
     *last = 1.0;
     success &= !pressed(SOME_ACTION);
-    return true;
+    return success;
 });
 
 }
