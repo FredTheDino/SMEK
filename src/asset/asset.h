@@ -28,6 +28,7 @@ typedef enum {
     STRING = 2,
     MODEL = 3,
     SHADER = 4,
+    SOUND = 5,
 
     NUM_TYPES,
 } AssetType;
@@ -93,11 +94,19 @@ struct Model {
     Vertex *data;
 };
 
+struct SoundAsset {
+    // read from file
+    u32 sample_rate;
+    u32 num_samples;
+    f32 *data;
+};
+
 union AssetData {
     Image image;
     StringAsset string;
     Shader shader;
     Model model;
+    SoundAsset sound;
 };
 
 // not read directly from file

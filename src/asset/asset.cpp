@@ -119,6 +119,12 @@ void load(const char *path) {
             data_ptr->shader.data = new char[size];
             read<char>(file, data_ptr->shader.data, size);
         } break;
+        case AssetType::SOUND: {
+            read<SoundAsset>(file, data_ptr);
+            u32 size = data_ptr->sound.num_samples;
+            data_ptr->sound.data = new f32[size];
+            read<f32>(file, data_ptr->sound.data, size);
+        } break;
         default:
             ERROR("Unknown asset type %d for id %lu in asset file %s", header.type, asset, path);
             break;

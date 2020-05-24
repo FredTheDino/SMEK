@@ -67,6 +67,7 @@ for example, a terminating 0x00.
 import re
 import sys
 import struct
+import wave
 from glob import glob
 from PIL import Image
 from collections import defaultdict
@@ -82,6 +83,7 @@ TYPE_TEXTURE = 1
 TYPE_STRING = 2
 TYPE_MODEL = 3
 TYPE_SHADER = 4
+TYPE_SOUND = 5
 
 
 def ll(x):
@@ -237,12 +239,37 @@ def model_asset(path, verbose):
     return header, struct.pack(fmt, points_per_face, num_faces, 0, *data)
 
 
+def wav_asset(path, verbose):
+    """Load a .wav-file.
+
+    Data format:
+    - I  Sample rate
+    - I  Number of samples
+    - P  Data pointer
+    - f> Data
+    """
+    with wave.open(path, "rb") as file:
+        sample_rate = file.getframerate()
+        data = []
+        for i in range(file.getnframes()):
+            frame = file.readframes(1)
+            for b in frame:
+                data.append(b / 255)
+
+        fmt = "IIP{}f".format(len(data))
+        header = default_header()
+        header["type"] = TYPE_SOUND
+        header["data_size"] = struct.calcsize(fmt)
+        return header, struct.pack(fmt, sample_rate, len(data), 0, *data)
+
+
 EXTENSIONS = {
     "png": sprite_asset,
     "jpg": sprite_asset,
     "txt": string_asset,
     "glsl": shader_asset,
     "obj": model_asset,
+    "wav": wav_asset,
 }
 
 
@@ -271,6 +298,8 @@ def pack(asset_files, out_file, verbose=False):
             name_hash = hash_string(name)
             if verbose:
                 print(f"{name} ({name_hash})")
+            else:
+                print(name)
             if name_hash in seen_name_hashes:
                 print(f"\nName hash collision! ({name})")
                 sys.exit(1)
