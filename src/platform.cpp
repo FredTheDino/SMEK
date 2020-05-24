@@ -13,6 +13,7 @@
 
 // Returns the length of a statically allocated list.
 #define LEN(a) (sizeof(a) / sizeof(a[0]))
+#include "math/smek_math.h"
 
 // This is very UNIX-y
 #include <dlfcn.h>
@@ -160,8 +161,11 @@ void platform_bind(Ac action, u32 slot, u32 button, f32 value) {
     global_input.bind(action, slot, button, value);
 }
 
+const u32 AUDIO_SAMPLE_RATE = 48000;
+
 struct AudioStruct {
     SDL_AudioDeviceID dev;
+    u64 steps;
 } audio_struct = {};
 
 void audio_callback(void *userdata, u8 *stream, int len) {
@@ -169,14 +173,19 @@ void audio_callback(void *userdata, u8 *stream, int len) {
 
     f32 *output = (f32 *) stream;
 
-    for (u32 i = 0; i < SAMPLES; i++) {
-        output[i] = 0.0;
+    const f32 TIME_STEP = 1.0f / AUDIO_SAMPLE_RATE;
+
+    for (u32 i = 0; i < SAMPLES; i += 2) {
+        output[i+0] = sin(TIME_STEP * (i + audio_struct.steps) * 440) * 0.3;
+        output[i+1] = sin(TIME_STEP * (i + audio_struct.steps) * 440) * 0.3;
     }
+
+    audio_struct.steps += SAMPLES;
 }
 
 bool audio_init() {
     SDL_AudioSpec want = {};
-    want.freq = 48000;
+    want.freq = AUDIO_SAMPLE_RATE;
     want.format = AUDIO_F32;
     want.samples = 2048;
     want.channels = 2;
