@@ -7,7 +7,24 @@
 
 struct GameState;
 
+///# Renderer
+// The renderer is the code that draws graphics to the
+// screen.
+
 namespace GFX {
+
+///* Mesh
+struct Mesh;
+
+///* Shader
+struct Shader;
+
+///* Texture
+struct Texture;
+
+///* Renderer
+// The collection of the entire rendering state.
+struct Renderer;
 
 struct Mesh {
     u32 vao, vbo;

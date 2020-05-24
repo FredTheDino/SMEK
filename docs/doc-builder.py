@@ -281,7 +281,15 @@ def write_documentation(path, documentation):
 
 
 if __name__ == "__main__":
-    all_files = list(zip(repeat("core"), glob("src/**/*.*", recursive=True)))
+    def find_category(filename):
+        splits = filename.split("/")
+        if len(splits) < 3:
+            return "core"
+        return splits[-2]
+
+    all_files = [(find_category(f), f) for f in glob("src/**/*.*", recursive=True)]
+
+    print(all_files)
     valid_files = [(region, file) for (region, file) in all_files
                   if not re.match(r".*\.o$", file)]
     documentation = find_all_comments(valid_files)
