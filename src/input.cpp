@@ -45,12 +45,12 @@ f32 value(Action name) {
 TEST_CASE("input_down", {
     f32 *current = game->input.current_frame;
     f32 *last = game->input.last_frame;
-    *current = 0.0;
+    *current = 1.0;
     *last = 0.0;
     bool success = true;
-    success |= down(SOME_ACTION);
-    *last = 1.0;
-    success |= down(SOME_ACTION);
+    success &= down(SOME_ACTION);
+    *current = 0.0;
+    success &= !down(SOME_ACTION);
     return success;
 });
 
@@ -58,11 +58,11 @@ TEST_CASE("input_up", {
     f32 *current = game->input.current_frame;
     f32 *last = game->input.last_frame;
     *current = 0.0;
-    *last = 0.0;
-    bool success = true;
-    success |= up(SOME_ACTION);
     *last = 1.0;
-    success |= up(SOME_ACTION);
+    bool success = true;
+    success &= up(SOME_ACTION);
+    *current = 1.0;
+    success &= !up(SOME_ACTION);
     return success;
 });
 
@@ -72,9 +72,9 @@ TEST_CASE("input_released", {
     *current = 0.0;
     *last = 0.0;
     bool success = true;
-    success |= !released(SOME_ACTION);
+    success &= !released(SOME_ACTION);
     *last = 1.0;
-    success |= released(SOME_ACTION);
+    success &= released(SOME_ACTION);
     return true;
 });
 
@@ -84,9 +84,9 @@ TEST_CASE("input_pressed", {
     *current = 1.0;
     *last = 0.0;
     bool success = true;
-    success |= pressed(SOME_ACTION);
+    success &= pressed(SOME_ACTION);
     *last = 1.0;
-    success |= !pressed(SOME_ACTION);
+    success &= !pressed(SOME_ACTION);
     return true;
 });
 
