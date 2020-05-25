@@ -99,6 +99,7 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
     ImGui::Text("This is some useful text.");
     ImGui::End();
 
+    ImGui::ShowDemoWindow();
 
     model_loc = glGetUniformLocation(shader.program_id, "model");
     model_matrix = Mat::translate(0, 0, -0.6) * Mat::scale(0.1);

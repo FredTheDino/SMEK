@@ -214,6 +214,7 @@ int main() { // Game entrypoint
                     gs.running = false;
             }
             if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
+                if (io.WantCaptureKeyboard) continue;
                 SDL_KeyboardEvent key = event.key;
                 if (key.repeat) continue;
                 GameInput::Button button = key.keysym.sym;
@@ -221,6 +222,7 @@ int main() { // Game entrypoint
                 if (down && global_input.eaten_by_rebind(button)) continue;
                 global_input.update_press(button, down);
             }
+            //TODO(gu) mouse stuff, if (io.WantCaptureMouse) continue;
         }
 
         for (u32 i = 0; i < (u32) Ac::NUM_ACTIONS; i++) {
