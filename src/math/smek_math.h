@@ -3,6 +3,9 @@
 
 namespace Math {
 
+///# Numbers
+//
+
 ///*
 // Returns the absolute value of a.
 template<typename T>

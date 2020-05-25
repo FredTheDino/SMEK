@@ -6,6 +6,29 @@
 #define LOG_TESTS(msg, ...)
 #else
 
+///# Tests
+// Tests are declared inline with the code in question,
+// making it as easy as possible to write them.
+//
+// Tests are run with the scons-target <code>tests</code>
+// (<code>scons tests</code>). There are some flags
+// available:
+//
+// <ul>
+//   <li> <code>--ci</code>: Disable the use of
+//   <code>\r</code>, making the output more readable for
+//   automated systems. </li>
+//   <li> <code>--report</code>: Write a verbose report to a text
+//   file (<code>bin/tests/report.txt</code>). Tests can
+//   write to this report by calling <code>LOG_TESTS</code>
+//   (see below).
+// </ul>
+//
+// The tests run automatically for all commits to master and
+// pull requests targeting master. If any tests fail the
+// built binary, its assets and the report is uploaded as
+// artifacts.
+
 #include <cstdio>
 #include <vector>
 #include <functional>
@@ -44,5 +67,25 @@ struct TestSuite {
 };
 
 extern TestSuite _global_tests;
+
+#if 0
+
+///*
+// Creates a test that succeedes iff <code>block</code>
+// returns true.
+TEST_CASE(name, block)
+
+///*
+// Creates a test that succeedes iff <code>statement</code>
+// is evaluated to true.
+TEST_STMT(name, statement)
+
+///*
+// Write a string to the report, if it is being written to.
+// Can be used for verbose logging in larger tests where it
+// might be useful to know the values of variables and such.
+LOG_TESTS(msg, ...)
+
+#endif
 
 #endif  // ifdef TESTS

@@ -5,7 +5,7 @@
 #include "renderer/renderer.h"
 #include "input.h"
 
-///*
+///* GameState
 struct GameState {
     SDL_Window *window;
     SDL_GLContext gl_context;

@@ -22,3 +22,33 @@ void _smek_assert(const char *file, u32 line, const char *func, bool passed, con
 
 #define CHECK(pass, msg, ...) _smek_check(__FILE__, __LINE__, __func__, pass, STR(pass), msg, ##__VA_ARGS__)
 bool _smek_check(const char *file, u32 line, const char *func, bool passed, const char *expr, const char *msg, ...);
+
+#if 0
+
+///# Logging
+//
+// Different ways of logging and checking values. All macros support
+// printf-like formats and arguments. Most functions (but not all) require at
+// least a string to be printed. The output is always on stderr.
+
+///*
+LOG(...)
+
+///*
+WARN(...)
+
+///*
+ERROR(...)
+
+///*
+// Message is optional. Warns if <code>func</code> is evaluated to false.
+CHECK(func, ...)
+
+///*
+// Message is optional. Errors if <code>func</code> is evaluated to false.
+ASSERT(func, ...)
+
+///*
+UNREACHABLE(...)
+
+#endif

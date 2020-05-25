@@ -19,15 +19,8 @@ struct AssetID {
 
 namespace Asset {
 
-struct Vertex {
-    Vec3 position;
-    Vec2 texture;
-    Vec3 normal;
-};
-
-struct ModelFace {
-    Vertex vertices[3];
-};
+///# Asset types
+// These are the types of assets in the asset binary.
 
 typedef enum {
     NONE = 0,
@@ -55,6 +48,7 @@ struct AssetHeader {
     u64 data_offset;
 };
 
+///* Image
 struct Image {
     // read from file
     u32 width;
@@ -67,18 +61,31 @@ struct Image {
     }
 };
 
+///* StringAsset
 struct StringAsset {
     // read from file
     u64 size;
     char *data;
 };
 
+///* Shader
 struct Shader {
     // read from file
     u64 size;
     char *data;
 };
 
+///* Model
+struct Vertex {
+    Vec3 position;
+    Vec2 texture;
+    Vec3 normal;
+};
+//
+struct ModelFace {
+    Vertex vertices[3];
+};
+//
 struct Model {
     // read from file
     u32 points_per_face;
@@ -113,24 +120,33 @@ struct System {
 };
 
 ///*
+// Check if an ID is valid, i.e points to *some* asset.
 bool valid_asset(AssetID id);
 
 ///*
+// Load the specified binary asset file.
+// Does not currently support hot reloading.
 void load(const char *path);
 
 ///*
+// Fetch the ID corresponding to the asset with the specified name.
+// Returns NO_ASSET if name is not found.
 AssetID fetch_id(const char *name);
 
 ///*
+// Fetch an image-asset.
 Image *fetch_image(AssetID id);
 
 ///*
+// Fetch a string asset.
 StringAsset *fetch_string_asset(AssetID id);
 
 ///*
+// Fetch a shader source asset.
 Shader *fetch_shader(AssetID id);
 
 ///*
+// Fetch a 3D-model.
 Model *fetch_model(AssetID id);
 
 }  // namespace Asset
