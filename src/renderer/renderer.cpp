@@ -5,6 +5,34 @@
 
 namespace GFX {
 
+Camera Camera::init(f32 fov) {
+    Camera cam = {};
+    cam.set_fov(fov);
+    cam.view = Mat::scale(1.0);
+    return cam;
+}
+
+void Camera::set_fov(f32 fov) {
+    perspective = Mat::perspective(fov, 0.01, 10.0);
+}
+
+void Camera::look_at_from(Vec3 from, Vec3 target) {
+    // NOTE(ed): The UP vector might collide with stuff,
+    // it would be nice to handle looking straight up...
+    view = Mat::look_at(from, target, Vec3(0.0, 1.0, 0.0));
+}
+
+void Camera::look_at(Vec3 target) {
+    Vec3 current_pos = view * Vec3();
+    look_at_from(current_pos, target);
+}
+
+template<>
+void Camera::upload(const MasterShader &shader) {
+    shader.upload_view(view);
+    shader.upload_proj(perspective);
+}
+
 Mesh Mesh::init(Asset::Model *model) {
     using Asset::Vertex;
     u32 vao, vbo;
@@ -54,13 +82,13 @@ MasterShader MasterShader::init() {
 }
 
 #define F32_SHADER_PROP(classname, name)\
-    void classname::upload_ ##name(f32 f) { glUniform1f(loc_ ##name, f); }
+    void classname::upload_ ##name(f32 f) const { glUniform1f(loc_ ##name, f); }
 
 #define U32_SHADER_PROP(classname, name)\
-    void classname::upload_ ##name(u32 f) { glUniform1i(loc_ ##name, f); }
+    void classname::upload_ ##name(u32 f) const { glUniform1i(loc_ ##name, f); }
 
 #define MAT_SHADER_PROP(classname, name)\
-    void classname::upload_ ##name(Mat &m) { glUniformMatrix4fv(loc_ ##name, 1, true, m.data()); }
+    void classname::upload_ ##name(Mat &m) const { glUniformMatrix4fv(loc_ ##name, 1, true, m.data()); }
 
 F32_SHADER_PROP(MasterShader, t);
 MAT_SHADER_PROP(MasterShader, proj);

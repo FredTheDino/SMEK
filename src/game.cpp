@@ -18,6 +18,7 @@ GameState *GAMESTATE() { return _global_gs; }
 
 GFX::Mesh mesh;
 GFX::Texture texture;
+GFX::Camera camera;
 
 void init_game(GameState *gamestate) {
     _global_gs = gamestate;
@@ -40,6 +41,7 @@ void reload_game(GameState *game) {
 
     mesh = GFX::Mesh::init(Asset::fetch_model("MONKEY"));
     texture = GFX::Texture::upload(Asset::fetch_image("RGBA"), GFX::Texture::Sampling::NEAREST);
+    camera = GFX::Camera::init();
 }
 
 GameState update_game(GameState *game, GSUM mode) { // Game entry point
@@ -58,19 +60,15 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
     Mat proj_matrix = Mat::perspective(PI / 3, 0.01, 3.0);
     shader.upload_proj(proj_matrix);
 
+    static Vec3 from = {};
 
-    static f32 x = 0;
+    ImGui::Begin("Hello, world!");
+    ImGui::DragFloat3("Camera position", (float *) &from, 0.01);
+    ImGui::End();
 
-    if (Input::pressed(Ac::AButton))
-        x += Input::value(Ac::AButton);
-    if (Input::pressed(Ac::BButton))
-        x -= Input::value(Ac::BButton);
-
-    Vec3 from = Vec3(x, 0.5, 0.1);
     Vec3 target = Vec3(Math::cos(time) * 0.2, Math::sin(time) * 0.0, -0.5);
-    Vec3 up = Vec3(0, 1, 0);
-    Mat view_matrix = Mat::look_at(from, target, up);
-    shader.upload_view(view_matrix);
+    camera.look_at_from(from, target);
+    camera.upload(shader);
 
 
     shader.use();
@@ -88,11 +86,8 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
     mesh.draw();
 #endif
 
-    ImGui::Begin("Hello, world!");
-    ImGui::Text("This is some useful text.");
-    ImGui::End();
 
-    // ImGui::ShowDemoWindow();
+    ImGui::ShowDemoWindow();
 
     model_matrix = Mat::translate(0, 0, -0.6) * Mat::scale(0.1);
     shader.upload_model(model_matrix);

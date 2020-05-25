@@ -63,6 +63,6 @@ Mat Mat::perspective(real fov, real near, real far);
 
 Mat operator *(const Mat &a, const Mat &b);
 
-Vec4 operator *(const Vec4 &v, const Mat &m);
+Vec4 operator *(const Mat &m, const Vec4 &v);
 
-Vec3 operator *(const Vec3 &v, const Mat &m);
+Vec3 operator *(const Mat &m, const Vec3 &v);

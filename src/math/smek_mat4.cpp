@@ -34,7 +34,7 @@ Mat operator *(const Mat &a, const Mat &b) {
     return result;
 }
 
-Vec4 operator *(const Vec4 &v, const Mat &m) {
+Vec4 operator *(const Mat &m, const Vec4 &v) {
     Vec4 result = {};
     for (u32 i = 0; i < 4; i++) {
         for (u32 k = 0; k < 4; k++) {
@@ -44,8 +44,8 @@ Vec4 operator *(const Vec4 &v, const Mat &m) {
     return result;
 }
 
-Vec3 operator *(const Vec3 &v, const Mat &m) {
-    Vec4 r = Vec4(v.x, v.y, v.z, 1.0) * m;
+Vec3 operator *(const Mat &m, const Vec3 &v) {
+    Vec4 r = m * Vec4(v.x, v.y, v.z, 1.0);
     return Vec3(r.x, r.y, r.z);
 }
 
