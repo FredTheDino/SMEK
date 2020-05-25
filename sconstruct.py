@@ -39,6 +39,7 @@ env.Append(CXXFLAGS="-ggdb")
 env.Append(CXXFLAGS="-O0")
 env.Append(CXXFLAGS="-Wno-unused")
 env.Append(CXXFLAGS=shell(["sdl2-config", "--cflags"]))
+env.Append(CXXFLAGS="-Iinc")
 env.Append(LINKFLAGS=shell(["sdl2-config", "--libs"]))
 env.Append(LINKFLAGS="-ldl")
 env.Append(LINKFLAGS="-rdynamic")  # Gives backtrace information
@@ -90,7 +91,9 @@ source = glob("src/**/*.c*", recursive=True)
 smek_source = [re.sub("^src/", smek_dir, f) for f in source]
 smek_source.remove(smek_dir + "test.cpp")
 smek_source.remove(smek_dir + "platform.cpp")  # The platform layer
-smek = env.Program(target=smek_dir + "SMEK", source=[smek_dir + "platform.cpp"])
+
+platform_source = [re.sub("^src/", smek_dir, f) for f in source if "imgui" in f or "glad" in f or "platform" in f]
+smek = env.Program(target=smek_dir + "SMEK", source=platform_source)
 libsmek = env.SharedLibrary(target=smek_dir + "libSMEK", source=smek_source)
 Depends(smek, assets)
 Depends(smek, libsmek)

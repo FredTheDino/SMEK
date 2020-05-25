@@ -5,36 +5,36 @@
 
 namespace GFX {
 
-void Shader::use() { GL::UseProgram(program_id); }
+void Shader::use() { glUseProgram(program_id); }
 
 Mesh Mesh::init(Asset::Model *model) {
     using Asset::Vertex;
     u32 vao, vbo;
 
-    GL::GenVertexArrays(1, &vao);
-    GL::GenBuffers(1, &vbo);
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
 
-    GL::BindVertexArray(vao);
+    glBindVertexArray(vao);
 
-    GL::BindBuffer(GL::cARRAY_BUFFER, vbo);
-    GL::BufferData(GL::cARRAY_BUFFER, sizeof(Vertex) * model->num_faces * 3, model->data, GL::cSTATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * model->num_faces * 3, model->data, GL_STATIC_DRAW);
 
-    GL::EnableVertexAttribArray(0);
-    GL::VertexAttribPointer(0, 3, GL::cFLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, position));
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, position));
 
-    GL::EnableVertexAttribArray(1);
-    GL::VertexAttribPointer(1, 2, GL::cFLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, texture));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, texture));
 
-    GL::EnableVertexAttribArray(2);
-    GL::VertexAttribPointer(2, 3, GL::cFLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, normal));
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, normal));
 
     return {vao, vbo, model->num_faces * 3};;
 }
 
 void Mesh::draw() {
-    GL::BindVertexArray(vao);
-    GL::DrawArrays(GL::cTRIANGLES, 0, draw_length);
-    GL::BindVertexArray(0);
+    glBindVertexArray(vao);
+    glDrawArrays(GL_TRIANGLES, 0, draw_length);
+    glBindVertexArray(0);
 }
 
 Shader default_shader() {
@@ -44,10 +44,10 @@ Shader default_shader() {
 Shader Shader::compile(const char *source) {
     auto shader_error_check = [](u32 shader) -> bool {
         i32 success;
-        GL::GetShaderiv(shader, GL::cCOMPILE_STATUS, &success);
+        glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
         if (!success) {
             char info_log[512];
-            GL::GetShaderInfoLog(shader, sizeof(info_log), NULL, info_log);
+            glGetShaderInfoLog(shader, sizeof(info_log), NULL, info_log);
             ERROR("Shader error: %s", info_log);
         }
         return success;
@@ -55,10 +55,10 @@ Shader Shader::compile(const char *source) {
 
     auto program_error_check = [](u32 program) -> bool {
         i32 success;
-        GL::GetProgramiv(program, GL::cLINK_STATUS, &success);
+        glGetProgramiv(program, GL_LINK_STATUS, &success);
         if (!success) {
             char info_log[512];
-            GL::GetProgramInfoLog(program, sizeof(info_log), NULL, info_log);
+            glGetProgramInfoLog(program, sizeof(info_log), NULL, info_log);
             ERROR("Program error: %s", info_log);
         }
         return success;
@@ -71,11 +71,11 @@ Shader Shader::compile(const char *source) {
         source
     };
 
-    u32 vertex_shader = GL::CreateShader(GL::cVERTEX_SHADER);
-    defer { GL::DeleteShader(vertex_shader); };
+    u32 vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+    defer { glDeleteShader(vertex_shader); };
 
-    GL::ShaderSource(vertex_shader, sizeof(vertex_source) / sizeof(vertex_source[0]), vertex_source, NULL);
-    GL::CompileShader(vertex_shader);
+    glShaderSource(vertex_shader, sizeof(vertex_source) / sizeof(vertex_source[0]), vertex_source, NULL);
+    glCompileShader(vertex_shader);
 
     if (!shader_error_check(vertex_shader)) return {-1};
 
@@ -86,20 +86,20 @@ Shader Shader::compile(const char *source) {
         source
     };
 
-    u32 fragment_shader = GL::CreateShader(GL::cFRAGMENT_SHADER);
-    defer { GL::DeleteShader(fragment_shader); };
-    GL::ShaderSource(fragment_shader, sizeof(fragment_source) / sizeof(fragment_source[0]), fragment_source, NULL);
-    GL::CompileShader(fragment_shader);
+    u32 fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+    defer { glDeleteShader(fragment_shader); };
+    glShaderSource(fragment_shader, sizeof(fragment_source) / sizeof(fragment_source[0]), fragment_source, NULL);
+    glCompileShader(fragment_shader);
 
     if (!shader_error_check(fragment_shader)) return {-1};
 
-    i32 program = GL::CreateProgram();
-    GL::AttachShader(program, vertex_shader);
-    GL::AttachShader(program, fragment_shader);
-    GL::LinkProgram(program);
+    i32 program = glCreateProgram();
+    glAttachShader(program, vertex_shader);
+    glAttachShader(program, fragment_shader);
+    glLinkProgram(program);
 
     if (!program_error_check(program)) {
-        GL::DeleteProgram(program);
+        glDeleteProgram(program);
         return {-1};
     }
 
@@ -108,26 +108,26 @@ Shader Shader::compile(const char *source) {
 
 Texture Texture::upload(u32 width, u32 height, u32 components, u8 *data, Sampling sampling) {
     u32 texture;
-    GL::GenTextures(1, &texture);
-    GL::BindTexture(GL::cTEXTURE_2D, texture);
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
 
-    GL::GLenum format;
-    if (components == 1) format = GL::cRED;
-    else if (components == 2) format = GL::cRG;
-    else if (components == 3) format = GL::cRGB;
-    else if (components == 4) format = GL::cRGBA;
+    GLenum format;
+    if (components == 1) format = GL_RED;
+    else if (components == 2) format = GL_RG;
+    else if (components == 3) format = GL_RGB;
+    else if (components == 4) format = GL_RGBA;
     else UNREACHABLE("Invalid number of components (%d)", components);
-    GL::TexImage2D(GL::cTEXTURE_2D, 0, GL::cRGBA, width, height, 0, format, GL::cUNSIGNED_BYTE, data);
-    GL::GLenum gl_sampling;
-    if (sampling == Sampling::LINEAR) gl_sampling = GL::cLINEAR;
-    else if (sampling == Sampling::NEAREST) gl_sampling = GL::cNEAREST;
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+    GLenum gl_sampling;
+    if (sampling == Sampling::LINEAR) gl_sampling = GL_LINEAR;
+    else if (sampling == Sampling::NEAREST) gl_sampling = GL_NEAREST;
     else UNREACHABLE("Unsupported sampling (%d)", components);
 
-    GL::TexParameteri(GL::cTEXTURE_2D, GL::cTEXTURE_MIN_FILTER, gl_sampling);
-    GL::TexParameteri(GL::cTEXTURE_2D, GL::cTEXTURE_MAG_FILTER, gl_sampling);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_sampling);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_sampling);
 
-    GL::TexParameteri(GL::cTEXTURE_2D, GL::cTEXTURE_WRAP_S, GL::cCLAMP_TO_EDGE);
-    GL::TexParameteri(GL::cTEXTURE_2D, GL::cTEXTURE_WRAP_T, GL::cCLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     return { texture };
 }
 
@@ -137,9 +137,9 @@ Texture Texture::upload(Asset::Image *image, Sampling sampling) {
 
 void Texture::bind(u32 texture_slot) {
     ASSERT(texture_slot < 80, "Invalid texture slots. (%d)", texture_slot);
-    GL::ActiveTexture(GL::cTEXTURE0 + texture_slot);
-    GL::BindTexture(GL::cTEXTURE_2D, texture_id);
-    GL::ActiveTexture(GL::cTEXTURE0 + 79); // Hardcoded since it's the "minimum maximum".
+    glActiveTexture(GL_TEXTURE0 + texture_slot);
+    glBindTexture(GL_TEXTURE_2D, texture_id);
+    glActiveTexture(GL_TEXTURE0 + 79); // Hardcoded since it's the "minimum maximum".
 }
 
 bool init(GameState *gs, const char *shader_source, int width, int height) {
@@ -165,14 +165,14 @@ bool init(GameState *gs, const char *shader_source, int width, int height) {
 
     gs->gl_context = SDL_GL_CreateContext(gs->window);
     SDL_GL_MakeCurrent(gs->window, gs->gl_context);
-    if (!GL::load_procs()) {
+    if (!gladLoadGLLoader((GLADloadproc) SDL_GL_GetProcAddress)) {
         ERROR("Failed to load OpenGL function.");
         return false;
     }
 
-    GL::Enable(GL::cDEPTH_TEST);
-    GL::ClearColor(0, 0, 0, 0);
-    GL::Clear(GL::cCOLOR_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT);
     SDL_ShowWindow(gs->window);
     SDL_GL_SwapWindow(gs->window);
 
@@ -183,7 +183,7 @@ bool init(GameState *gs, const char *shader_source, int width, int height) {
 bool reload(GameState *gs) {
     SDL_GL_MakeCurrent(gs->window, gs->gl_context);
 
-    if (!GL::load_procs()) {
+    if (!gladLoadGLLoader((GLADloadproc) SDL_GL_GetProcAddress)) {
         ERROR("Failed to reload OpenGL function.");
         return false;
     }
