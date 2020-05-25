@@ -41,6 +41,7 @@ struct Camera {
     // NOTE(ed): Given in radians.
     void set_fov(f32 fov);
 
+    void look_at(Vec3 target);
     void look_at_from(Vec3 from, Vec3 target);
 
     void turn(Vec3 rotation);

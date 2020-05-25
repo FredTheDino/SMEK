@@ -28,10 +28,14 @@ void init_game(GameState *gamestate) {
 
     GAMESTATE()->running = true;
 
-    Input::bind(Ac::AButton, 0, SDLK_a, 1.0);
-    Input::bind(Ac::AButton, 1, SDLK_s, 0.1);
-    Input::bind(Ac::BButton, 0, SDLK_b, 1.0);
-    Input::bind(Ac::BButton, 1, SDLK_n, 0.1);
+    Input::bind(Ac::MoveX, 0, SDLK_a, -1.0);
+    Input::bind(Ac::MoveX, 1, SDLK_d,  1.0);
+    Input::bind(Ac::MoveZ, 0, SDLK_w,  1.0);
+    Input::bind(Ac::MoveZ, 1, SDLK_s, -1.0);
+    Input::bind(Ac::Jaw, 0, SDLK_q, -1.0);
+    Input::bind(Ac::Jaw, 1, SDLK_e,  1.0);
+    Input::bind(Ac::Pitch, 0, SDLK_i,  1.0);
+    Input::bind(Ac::Pitch, 1, SDLK_k, -1.0);
     Input::bind(Ac::Rebind, 1, SDLK_r);
 }
 
@@ -48,10 +52,6 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
     glClearColor(0.2, 0.1, 0.3, 1); // We don't need to do this...
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    if (Input::pressed(Ac::Rebind)) {
-        Input::rebind(Ac::AButton);
-    }
-
     real time = SDL_GetTicks() / 1000.0;
 
     GFX::MasterShader shader = GFX::master_shader();
@@ -60,18 +60,12 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
     Mat proj_matrix = Mat::perspective(PI / 3, 0.01, 3.0);
     shader.upload_proj(proj_matrix);
 
-    Vec3 from = {};
-    Vec3 rotation = {};
-
-    ImGui::Begin("Hello, world!");
-    ImGui::DragFloat3("pos.", (float *) &from, 0.01);
-    ImGui::DragFloat3("rot.", (float *) &rotation, 0.01);
-    ImGui::End();
-
-    Vec3 target = Vec3(Math::cos(time) * 0.2, Math::sin(time) * 0.0, -0.5);
-    camera.look_at(target);
-    camera.move_relative(-from);
-    camera.turn(rotation);
+    Vec3 move = {Input::value(Ac::MoveX), 0, Input::value(Ac::MoveZ)};
+    Vec3 turn = {Input::value(Ac::Pitch), Input::value(Ac::Jaw), 0.0};
+    move = move * 0.01;
+    turn = turn * 0.01;
+    camera.turn(turn);
+    camera.move_relative(move);
     camera.upload(shader);
 
 
@@ -84,18 +78,18 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
     shader.upload_model(model_matrix);
     mesh.draw();
 
-#if 0
     model_matrix = Mat::translate(-Math::cos(time) * 0.2, -Math::sin(time) * 0.2, -0.5) * Mat::scale(0.1);
     shader.upload_model(model_matrix);
     mesh.draw();
-#endif
-
-
-    ImGui::ShowDemoWindow();
 
     model_matrix = Mat::translate(0, 0, -0.6) * Mat::scale(0.1);
     shader.upload_model(model_matrix);
     mesh.draw();
+
+    ImGui::Begin("Hello, world!");
+    // ImGui::DragFloat3("pos.", (float *) &from, 0.01);
+    // ImGui::DragFloat3("rot.", (float *) &rotation, 0.01);
+    ImGui::End();
 
 
     return *game;

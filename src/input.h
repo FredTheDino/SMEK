@@ -9,8 +9,10 @@ namespace Input {
 ///* Action
 // The list of possible buttons that can be pressed.
 enum class Action {
-    AButton,
-    BButton,
+    MoveX,
+    MoveZ,
+    Jaw,
+    Pitch,
 
     Rebind,
 

@@ -22,12 +22,13 @@ void Camera::look_at_from(Vec3 from, Vec3 target) {
     view = Mat::look_at(from, target, Vec3(0.0, 1.0, 0.0));
 }
 
-void Camera::look_at(Vec3 from) {
-
+void Camera::look_at(Vec3 target) {
+    Vec3 from = view * Vec3();
+    look_at_from(from, target);
 }
 
 void Camera::turn(Vec3 rotation) {
-    view = view * Mat::rotate(rotation);
+    view = Mat::rotate(rotation) * view;
 }
 
 void Camera::move(Vec3 movement) {
@@ -39,19 +40,9 @@ void Camera::move_relative(Vec3 movement) {
     view = view * Mat::translate(Vec3(relative_move.x, relative_move.y, relative_move.z));
 }
 
-#include "../util/log.h"
-static void log_matrix(const Mat &m) {
-    LOG("\n%.2f %.2f %.2f %.2f\n%.2f %.2f %.2f %.2f\n%.2f %.2f %.2f %.2f\n%.2f %.2f %.2f %.2f",
-        m._[0][0], m._[0][1], m._[0][2], m._[0][3],
-        m._[1][0], m._[1][1], m._[1][2], m._[1][3],
-        m._[2][0], m._[2][1], m._[2][2], m._[2][3],
-        m._[3][0], m._[3][1], m._[3][2], m._[3][3]);
-}
-
 template<>
 void Camera::upload(const MasterShader &shader) {
     shader.upload_view(view);
-    log_matrix(view);
     shader.upload_proj(perspective);
 }
 
