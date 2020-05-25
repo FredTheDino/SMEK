@@ -38,7 +38,7 @@ Vec4 operator *(const Mat &m, const Vec4 &v) {
     Vec4 result = {};
     for (u32 i = 0; i < 4; i++) {
         for (u32 k = 0; k < 4; k++) {
-            result._[i] += v._[k] * m._[i][k];
+            result._[i] += v._[k] * m._[k][i];
         }
     }
     return result;
@@ -140,6 +140,41 @@ Mat Mat::translate(real dx, real dy, real dz) {
 
 Mat Mat::translate(Vec3 delta) {
     return translate(delta.x, delta.y, delta.z);
+}
+
+Mat Mat::rotate_x(real d) {
+    real c = Math::cos(d);
+    real s = Math::sin(d);
+    return Mat::from(1, 0, 0, 0,
+                     0, c,-s, 0,
+                     0, s, c, 0,
+                     0, 0, 0, 1);
+}
+
+Mat Mat::rotate_y(real d) {
+    real c = Math::cos(d);
+    real s = Math::sin(d);
+    return Mat::from(c, 0,-s, 0,
+                     0, 1, 0, 0,
+                     s, 0, c, 0,
+                     0, 0, 0, 1);
+}
+
+Mat Mat::rotate_z(real d) {
+    real c = Math::cos(d);
+    real s = Math::sin(d);
+    return Mat::from(c,-s, 0, 0,
+                     s, c, 0, 0,
+                     0, 0, 1, 0,
+                     0, 0, 0, 1);
+}
+
+Mat Mat::rotate(real x, real y, real z) {
+    return rotate_x(x) * rotate_y(y) * rotate_z(z);
+}
+
+Mat Mat::rotate(Vec3 axis) {
+    return rotate(axis.x, axis.y, axis.z);
 }
 
 TEST_STMT("mat_translation",

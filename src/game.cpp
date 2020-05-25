@@ -60,14 +60,18 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
     Mat proj_matrix = Mat::perspective(PI / 3, 0.01, 3.0);
     shader.upload_proj(proj_matrix);
 
-    static Vec3 from = {};
+    Vec3 from = {};
+    Vec3 rotation = {};
 
     ImGui::Begin("Hello, world!");
-    ImGui::DragFloat3("Camera position", (float *) &from, 0.01);
+    ImGui::DragFloat3("pos.", (float *) &from, 0.01);
+    ImGui::DragFloat3("rot.", (float *) &rotation, 0.01);
     ImGui::End();
 
     Vec3 target = Vec3(Math::cos(time) * 0.2, Math::sin(time) * 0.0, -0.5);
-    camera.look_at_from(from, target);
+    camera.look_at(target);
+    camera.move_relative(-from);
+    camera.turn(rotation);
     camera.upload(shader);
 
 
