@@ -5,8 +5,6 @@
 
 namespace GFX {
 
-void Shader::use() { glUseProgram(program_id); }
-
 Mesh Mesh::init(Asset::Model *model) {
     using Asset::Vertex;
     u32 vao, vbo;
@@ -15,7 +13,6 @@ Mesh Mesh::init(Asset::Model *model) {
     glGenBuffers(1, &vbo);
 
     glBindVertexArray(vao);
-
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * model->num_faces * 3, model->data, GL_STATIC_DRAW);
 
@@ -37,11 +34,46 @@ void Mesh::draw() {
     glBindVertexArray(0);
 }
 
-Shader default_shader() {
-    return GAMESTATE()->renderer.shader;
+
+void Shader::use() { glUseProgram(program_id); }
+
+#define FETCH_SHADER_PROP(name)\
+    shader.loc_ ##name = glGetUniformLocation(shader.program_id, #name)
+
+MasterShader MasterShader::init() {
+    MasterShader shader;
+    shader.program_id = Shader::compile("MASTER_SHADER").program_id;
+
+    FETCH_SHADER_PROP(t);
+    FETCH_SHADER_PROP(proj);
+    FETCH_SHADER_PROP(view);
+    FETCH_SHADER_PROP(model);
+    FETCH_SHADER_PROP(tex);
+
+    return shader;
 }
 
-Shader Shader::compile(const char *source) {
+#define F32_SHADER_PROP(classname, name)\
+    void classname::upload_ ##name(f32 f) { glUniform1f(loc_ ##name, f); }
+
+#define U32_SHADER_PROP(classname, name)\
+    void classname::upload_ ##name(u32 f) { glUniform1i(loc_ ##name, f); }
+
+#define MAT_SHADER_PROP(classname, name)\
+    void classname::upload_ ##name(Mat &m) { glUniformMatrix4fv(loc_ ##name, 1, true, m.data()); }
+
+F32_SHADER_PROP(MasterShader, t);
+MAT_SHADER_PROP(MasterShader, proj);
+MAT_SHADER_PROP(MasterShader, view);
+MAT_SHADER_PROP(MasterShader, model);
+U32_SHADER_PROP(MasterShader, tex);
+
+MasterShader master_shader() {
+    return GAMESTATE()->renderer.master_shader;
+}
+
+Shader Shader::compile(AssetID source_id) {
+    const char *source = Asset::fetch_shader("MASTER_SHADER")->data;
     auto shader_error_check = [](u32 shader) -> bool {
         i32 success;
         glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
@@ -142,7 +174,7 @@ void Texture::bind(u32 texture_slot) {
     glActiveTexture(GL_TEXTURE0 + 79); // Hardcoded since it's the "minimum maximum".
 }
 
-bool init(GameState *gs, const char *shader_source, int width, int height) {
+bool init(GameState *gs, int width, int height) {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         ERROR("Failed to initalize SDL \"%s\"", SDL_GetError());
         return false;
@@ -176,7 +208,7 @@ bool init(GameState *gs, const char *shader_source, int width, int height) {
     SDL_ShowWindow(gs->window);
     SDL_GL_SwapWindow(gs->window);
 
-    gs->renderer.shader = Shader::compile(shader_source);
+    gs->renderer.master_shader = MasterShader::init();
     return true;
 }
 
