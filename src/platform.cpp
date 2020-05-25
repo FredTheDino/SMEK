@@ -4,18 +4,18 @@
 #include "imgui/imgui_impl_opengl3.h"
 #include "glad/glad.h"
 
-#include <stdio.h>
 #include "game.h"
 #include "util/log.h"
 #include "input.h"
 #include <unordered_map>
+#include <mutex>
+#include <csignal>
 
 // Returns the length of a statically allocated list.
 #define LEN(a) (sizeof(a) / sizeof(a[0]))
 
 // This is very UNIX-y
 #include <dlfcn.h>
-#include <sys/stat.h>
 
 struct GameLibrary {
     GameInitFunc init;
@@ -28,30 +28,29 @@ struct GameLibrary {
     int reload_frame_delay;
 } game_lib = {};
 
-int get_file_edit_time(const char *path) {
-    struct stat attr;
-    // Check for success
-    if (stat(path, &attr)) {
-        return -1;
-    }
-    return attr.st_ctime;
+std::mutex m_reload_lib;
+bool reload_lib = false;
+
+void signal_handler (int signal) {
+    m_reload_lib.lock();
+    reload_lib = true;
+    m_reload_lib.unlock();
 }
 
 bool load_gamelib() {
+    m_reload_lib.lock();
+    if (!reload_lib) {
+        m_reload_lib.unlock();
+        return false;
+    }
+    reload_lib = false;
+    m_reload_lib.unlock();
+
     GameLibrary next_library = {};
     //
     // TODO(ed): Check if RTLD_NODELETE lets you reference memory from old loaded DLLs. That would be
     // cool and potentially costly...
     const char *path = "./libSMEK.so";
-
-    int edit_time = get_file_edit_time(path);
-    if (edit_time == game_lib.last_time)
-        return false;
-
-    if (game_lib.reload_frame_delay) {
-        game_lib.reload_frame_delay--;
-        return false;
-    }
 
     void *tmp = dlopen(path, RTLD_NOW);
     if (!tmp) {
@@ -71,7 +70,9 @@ bool load_gamelib() {
     if (game_lib.handle) { dlclose(game_lib.handle); }
 
     void *lib = dlopen(path, RTLD_NOW);
-    ASSERT(lib, "Failed to open library safely");
+    if (!lib) {
+        UNREACHABLE("Failed to open library safely (%s)", dlerror());
+    }
 
     game_lib.handle = lib;
     game_lib.init = (GameInitFunc) dlsym(lib, "init_game");
@@ -80,15 +81,13 @@ bool load_gamelib() {
     }
     game_lib.update = (GameUpdateFunc) dlsym(lib, "update_game");
     if (!game_lib.update) {
-        UNREACHABLE("Failed to load \"init_update\" (%s)", dlerror());
+        UNREACHABLE("Failed to load \"update_game\" (%s)", dlerror());
     }
     game_lib.reload = (GameReloadFunc) dlsym(lib, "reload_game");
     if (!game_lib.update) {
-        UNREACHABLE("Failed to load \"init_update\" (%s)", dlerror());
+        UNREACHABLE("Failed to load \"reload_game\" (%s)", dlerror());
     }
 
-    game_lib.last_time = edit_time;
-    game_lib.reload_frame_delay = 10;
     return true;
 }
 
@@ -164,6 +163,10 @@ void platform_bind(Ac action, u32 slot, u32 button, f32 value) {
 #ifndef TESTS
 #include "util/log.cpp" // I know, just meh.
 int main() { // Game entrypoint
+    m_reload_lib.lock();
+    reload_lib = true;
+    m_reload_lib.unlock();
+
     if (!load_gamelib()) {
         UNREACHABLE("Failed to load the linked library the first time!");
     }
@@ -191,6 +194,8 @@ int main() { // Game entrypoint
 
     int frame = 0;
     const int RELOAD_TIME = 1; // Set this to a higher number to prevent constant disk-checks.
+
+    std::signal(SIGUSR1, signal_handler);
 
     while (gs.running) {
         // Check for reloading of library

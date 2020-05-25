@@ -95,6 +95,7 @@ smek_source.remove(smek_dir + "platform.cpp")  # The platform layer
 platform_source = [re.sub("^src/", smek_dir, f) for f in source if "imgui" in f or "glad" in f or "platform" in f]
 smek = env.Program(target=smek_dir + "SMEK", source=platform_source)
 libsmek = env.SharedLibrary(target=smek_dir + "libSMEK", source=smek_source)
+AddPostAction(libsmek, "(pidof SMEK && kill -USR1 $$(pidof SMEK)) || true")
 Depends(smek, assets)
 Depends(smek, libsmek)
 Default(smek)
