@@ -7,8 +7,9 @@
 struct AssetID {
     AssetID(const char *);
     AssetID(u64 id): id(id) {}
+    AssetID(): id(NONE()) {}
 
-    static AssetID NONE();
+    static AssetID NONE() { return 0xFFFFFFFF; }
 
     u64 id;
 
@@ -94,7 +95,7 @@ struct Model {
     Vertex *data;
 };
 
-struct SoundAsset {
+struct Sound {
     // read from file
     u32 sample_rate;
     u32 num_samples;
@@ -106,7 +107,7 @@ union AssetData {
     StringAsset string;
     Shader shader;
     Model model;
-    SoundAsset sound;
+    Sound sound;
 };
 
 // not read directly from file
@@ -157,5 +158,7 @@ Shader *fetch_shader(AssetID id);
 ///*
 // Fetch a 3D-model.
 Model *fetch_model(AssetID id);
+
+Sound *fetch_sound(AssetID id);
 
 }  // namespace Asset

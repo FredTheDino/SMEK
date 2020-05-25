@@ -31,6 +31,9 @@ struct GameLibrary {
     int reload_frame_delay;
 } game_lib = {};
 
+GameState game_state;
+Audio::AudioStruct platform_audio_struct = {};
+
 std::mutex m_reload_lib;
 bool reload_lib = false;
 
@@ -39,8 +42,6 @@ void signal_handler (int signal) {
     reload_lib = true;
     m_reload_lib.unlock();
 }
-
-Audio::AudioStruct audio_struct;
 
 bool load_gamelib() {
     m_reload_lib.lock();
@@ -72,7 +73,7 @@ bool load_gamelib() {
     dlclose(tmp); // If it isn't unloaded here, the same library is loaded.
 
     // TODO(ed): Add locks in when they are needed
-    audio_struct.lock();
+    platform_audio_struct.lock();
     if (game_lib.handle) { dlclose(game_lib.handle); }
 
     void *lib = dlopen(path, RTLD_NOW);
@@ -97,7 +98,7 @@ bool load_gamelib() {
     if (!game_lib.audio_callback) {
         UNREACHABLE("Failed to load \"audio_callback\" (%s)", dlerror());
     }
-    audio_struct.unlock();
+    platform_audio_struct.unlock();
 
     return true;
 }
@@ -171,31 +172,30 @@ void platform_bind(Ac action, u32 slot, u32 button, f32 value) {
     global_input.bind(action, slot, button, value);
 }
 
-void sdl_audio_callback(void *userdata, u8 *stream, int len) {
+void platform_audio_callback(void *userdata, u8 *stream, int len) {
     Audio::AudioStruct *audio_struct_ptr = (Audio::AudioStruct *) userdata;
     game_lib.audio_callback(audio_struct_ptr, stream, len);
 }
 
-bool audio_init() {
-    audio_struct = {};
+void platform_audio_init() {
+    platform_audio_struct = {};
 
     SDL_AudioSpec want = {};
     want.freq = Audio::SAMPLE_RATE;
     want.format = AUDIO_F32;
     want.samples = 2048;
     want.channels = 2;
-    want.callback = sdl_audio_callback;
-    want.userdata = (void *) &audio_struct;
+    want.callback = platform_audio_callback;
+    want.userdata = (void *) &platform_audio_struct;
 
     SDL_AudioSpec have;
-    audio_struct.dev = SDL_OpenAudioDevice(nullptr, 0, &want, &have, 0);
-    if (audio_struct.dev <= 0) {
-        ERROR("%s", SDL_GetError());
-        return false;
+    platform_audio_struct.dev = SDL_OpenAudioDevice(nullptr, 0, &want, &have, 0);
+    if (platform_audio_struct.dev <= 0) {
+        UNREACHABLE("Unable to initialize audio (%s)", SDL_GetError());
     }
+    platform_audio_struct.active = true;
 
-    SDL_PauseAudioDevice(audio_struct.dev, 0);
-    return true;
+    SDL_PauseAudioDevice(platform_audio_struct.dev, 0);
 }
 
 #ifndef TESTS
@@ -208,12 +208,13 @@ int main() { // Game entrypoint
     if (!load_gamelib()) {
         UNREACHABLE("Failed to load the linked library the first time!");
     }
-    GameState gs;
-    gs.input.rebind_func = platform_rebind;
-    gs.input.bind_func = platform_bind;
 
-    game_lib.init(&gs);
-    game_lib.reload(&gs);
+    game_state.input.rebind_func = platform_rebind;
+    game_state.input.bind_func = platform_bind;
+
+    game_lib.init(&game_state);
+    platform_audio_init();
+    game_state.audio_struct = &platform_audio_struct;
 
     // IMGUI
     const char* glsl_version = "#version 330";
@@ -227,23 +228,23 @@ int main() { // Game entrypoint
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     ImGui::StyleColorsDark();
     //ImGui::StyleColorsClassic();
-    ImGui_ImplSDL2_InitForOpenGL(gs.window, gs.gl_context);
+    ImGui_ImplSDL2_InitForOpenGL(game_state.window, game_state.gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-    ASSERT(audio_init(), "Unable to initialize audio");
+    game_lib.reload(&game_state);
 
     int frame = 0;
     const int RELOAD_TIME = 1; // Set this to a higher number to prevent constant disk-checks.
 
     std::signal(SIGUSR1, signal_handler);
 
-    while (gs.running) {
+    while (game_state.running) {
         // Check for reloading of library
         if (++frame == RELOAD_TIME) {
             frame = 0;
             if (load_gamelib()) {
                 LOG("PLATFORM LAYER RELOAD!");
-                game_lib.reload(&gs);
+                game_lib.reload(&game_state);
             }
         }
 
@@ -252,11 +253,11 @@ int main() { // Game entrypoint
         while (SDL_PollEvent(&event)) {
             ImGui_ImplSDL2_ProcessEvent(&event);
             if (event.type == SDL_QUIT) {
-                gs.running = false;
+                game_state.running = false;
             }
             if (event.type == SDL_WINDOWEVENT) {
                 if (event.window.event == SDL_WINDOWEVENT_CLOSE)
-                    gs.running = false;
+                    game_state.running = false;
             }
             if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
                 if (io.WantCaptureKeyboard) continue;
@@ -271,19 +272,19 @@ int main() { // Game entrypoint
         }
 
         for (u32 i = 0; i < (u32) Ac::NUM_ACTIONS; i++) {
-            gs.input.last_frame[i] = gs.input.current_frame[i];
-            gs.input.current_frame[i] = global_input.state[i];
+            game_state.input.last_frame[i] = game_state.input.current_frame[i];
+            game_state.input.current_frame[i] = global_input.state[i];
         }
 
         ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplSDL2_NewFrame(gs.window);
+        ImGui_ImplSDL2_NewFrame(game_state.window);
         ImGui::NewFrame();
 
-        gs = game_lib.update(&gs, GSUM::UPDATE_AND_RENDER);
+        game_state = game_lib.update(&game_state, GSUM::UPDATE_AND_RENDER);
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        SDL_GL_SwapWindow(gs.window);
+        SDL_GL_SwapWindow(game_state.window);
     }
     return 0;
 }

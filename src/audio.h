@@ -2,20 +2,33 @@
 #include "SDL2/SDL.h"
 
 #include "asset/asset.h"
+#include "util/log.h"
 
 namespace Audio {
 
-const u32 SAMPLE_RATE = 48000;
+const u32 SAMPLE_RATE = 44100;
+
+const u32 NUM_SOURCES = 10;
+
+struct SoundSource {
+    AssetID asset_id;
+    u64 index;
+    bool active;
+    bool repeat;
+};
 
 struct AudioStruct {
+    bool active = false;
     SDL_AudioDeviceID dev;
-    u64 steps;
+    SoundSource sources[NUM_SOURCES];
 
     void lock() {
-        SDL_LockAudioDevice(dev);
+        if (active)
+            SDL_LockAudioDevice(dev);
     }
     void unlock() {
-        SDL_UnlockAudioDevice(dev);
+        if (active)
+            SDL_UnlockAudioDevice(dev);
     }
 };
 
@@ -24,4 +37,4 @@ void audio_callback(AudioStruct *audio_struct, u8 *stream, int len);
 } // namespace Audio
 
 extern "C" void audio_callback(Audio::AudioStruct *audio_struct, u8 *stream, int len);
-typedef void(*AudioCallbackFunc)(Audio::AudioStruct *, u8 *, int);
+typedef void(*AudioCallbackFunc)(void *, u8 *, int);

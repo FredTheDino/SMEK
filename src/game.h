@@ -4,6 +4,7 @@
 #include "asset/asset.h"
 #include "renderer/renderer.h"
 #include "input.h"
+#include "audio.h"
 
 ///* GameState
 struct GameState {
@@ -13,6 +14,7 @@ struct GameState {
     Asset::System asset_system = {};
     GFX::Renderer renderer = {};
     Input::Input input = {};
+    Audio::AudioStruct *audio_struct;
 
     bool running;
 };

@@ -253,8 +253,7 @@ def wav_asset(path, verbose):
         data = []
         for i in range(file.getnframes()):
             frame = file.readframes(1)
-            for b in frame:
-                data.append(b / 255)
+            data.append(struct.unpack("h", frame)[0]/(2**15 - 1))
 
         fmt = "IIP{}f".format(len(data))
         header = default_header()
