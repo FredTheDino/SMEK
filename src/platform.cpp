@@ -194,7 +194,7 @@ int main() { // Game entrypoint
     ImGui_ImplSDL2_InitForOpenGL(gs.window, gs.gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-    SDL_SetRelativeMouseMode(SDL_TRUE);
+    // SDL_SetRelativeMouseMode(SDL_TRUE);
 
     int frame = 0;
     const int RELOAD_TIME = 1; // Set this to a higher number to prevent constant disk-checks.

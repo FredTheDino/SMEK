@@ -33,8 +33,8 @@ struct Camera;
 
 struct Camera {
     Mat perspective;
+    H rotation;
     Vec3 up;
-    Vec3 forward;
     Vec3 position;
 
     // NOTE(ed): Given in radians.

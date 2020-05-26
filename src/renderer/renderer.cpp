@@ -9,7 +9,7 @@ Camera Camera::init(f32 fov) {
     Camera cam = {};
     cam.set_fov(fov);
     cam.up = Vec3(0, 1, 0);
-    cam.forward = Vec3(0, 0, -1);
+    cam.rotation = H::from(Vec3(1.0, 0.0, 0.0), 0.0);
     cam.position = Vec3(0, 0, 0);
     return cam;
 }
@@ -19,32 +19,31 @@ void Camera::set_fov(f32 fov) {
 }
 
 void Camera::look_at_from(Vec3 from, Vec3 target) {
-    position = from;
-    look_at(target);
+    // position = from;
+    // look_at(target);
 }
 
 void Camera::look_at(Vec3 target) {
-    forward = target - position;
+    // forward = target + position;
 }
 
 void Camera::turn(f32 jaw, f32 pitch) {
-    forward = Mat::rotate_x(-jaw) * Mat::rotate_y(-pitch) * forward;
+    rotation = normalized(H::from(0.0, pitch, 0.0) * rotation * H::from(jaw, 0.0, 0.0));
 }
 
 void Camera::move(Vec3 movement) {
-    position = position - movement;
+    position = position + movement;
 }
 
 void Camera::move_relative(Vec3 movement) {
-    Mat view = Mat::look_at(position, position + forward, up);
-    Vec4 relative_move = view * Vec4(movement.x, movement.y, movement.z, 0.0);
-    position = position - Vec3(relative_move.x, relative_move.y, relative_move.z);
+    Vec3 relative_move = rotation * movement;
+    position = position + relative_move;
 }
 
 template<>
 void Camera::upload(const MasterShader &shader) {
     shader.upload_proj(perspective);
-    Mat view = Mat::look_at(position, position + forward, up);
+    Mat view = (Mat::translate(position) * Mat::from(rotation)).invert();
     shader.upload_view(view);
 }
 

@@ -30,8 +30,8 @@ void init_game(GameState *gamestate) {
 
     Input::bind(Ac::MoveX, 0, SDLK_a, -1.0);
     Input::bind(Ac::MoveX, 1, SDLK_d,  1.0);
-    Input::bind(Ac::MoveZ, 0, SDLK_w,  1.0);
-    Input::bind(Ac::MoveZ, 1, SDLK_s, -1.0);
+    Input::bind(Ac::MoveZ, 0, SDLK_w, -1.0);
+    Input::bind(Ac::MoveZ, 1, SDLK_s,  1.0);
     Input::bind(Ac::Jaw, 0, SDLK_q, -1.0);
     Input::bind(Ac::Jaw, 1, SDLK_e,  1.0);
     Input::bind(Ac::Pitch, 0, SDLK_i,  1.0);
@@ -87,6 +87,8 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
     mesh.draw();
 
     ImGui::Begin("Hello, world!");
+    if (ImGui::Button("Reset camera"))
+        camera = GFX::Camera::init();
     // ImGui::DragFloat3("pos.", (float *) &from, 0.01);
     // ImGui::DragFloat3("rot.", (float *) &rotation, 0.01);
     ImGui::End();

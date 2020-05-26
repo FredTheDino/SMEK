@@ -37,6 +37,8 @@ real mod(real a, real b) { return std::fmod(a, b); }
 
 real rem(real a, real b) { return std::remainder(a, b); }
 
+real copysign(real x, real y) { return std::copysign(x, y); }
+
 real exp(real a) { return std::exp(a); }
 
 real log(real a) { return std::log(a); }
