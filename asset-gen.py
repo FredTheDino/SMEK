@@ -243,6 +243,7 @@ def wav_asset(path, verbose):
     """Load a .wav-file.
 
     Data format:
+    - ?  Is stereo
     - I  Sample rate
     - I  Number of samples
     - P  Data pointer
@@ -252,30 +253,42 @@ def wav_asset(path, verbose):
         sample_rate = file.getframerate()
         sample_width = file.getsampwidth()
 
-        def read_frames(fmt, size_bytes):
+        def read_frames(fmt, size_bytes, stereo):
             data = []
+
             if fmt.isupper():
                 sign_bit = 0
                 sign_mov = 0.5
             else:
                 sign_bit = 1
                 sign_mov = 0
-            for i in range(file.getnframes()):
-                val = struct.unpack(fmt, file.readframes(1))[0]
-                data.append((val / (2**(8 * size_bytes - sign_bit) - 1)) - sign_mov)
-            return data
+
+            div = 2**(8 * size_bytes - sign_bit) - 1
+
+            frames = file.readframes(file.getnframes())
+            if stereo:
+                data = struct.unpack("{}{}".format(file.getnframes()*2, fmt), frames)
+            else:
+                data = struct.unpack("{}{}".format(file.getnframes(), fmt), frames)
+
+            return [d/div - sign_mov for d in data]
 
         types = { 1: "B", 2: "h", 4: "i" }
         if sample_width not in types:
             print("Unsupported bit depth {} for file '{}'", 8*sample_width, path)
             sys.exit(1)
 
-        data = read_frames(types[sample_width], sample_width)
-        fmt = "IIP{}f".format(len(data))
+        if file.getnchannels() > 2:
+            print("File '{}' has too many channels ({})".format(path, file.getchannels))
+            sys.exit(1)
+        is_stereo = file.getnchannels() == 2
+
+        data = read_frames(types[sample_width], sample_width, is_stereo)
+        fmt = "?IIP{}f".format(len(data))
         header = default_header()
         header["type"] = TYPE_SOUND
         header["data_size"] = struct.calcsize(fmt)
-        return header, struct.pack(fmt, sample_rate, len(data), 0, *data)
+        return header, struct.pack(fmt, is_stereo, sample_rate, len(data), 0, *data)
 
 
 EXTENSIONS = {

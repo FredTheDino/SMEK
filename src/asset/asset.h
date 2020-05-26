@@ -97,6 +97,7 @@ struct Model {
 
 struct Sound {
     // read from file
+    bool stereo;
     u32 sample_rate;
     u32 num_samples;
     f32 *data;

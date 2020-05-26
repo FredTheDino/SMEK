@@ -31,11 +31,25 @@ void audio_callback(AudioStruct *audio_struct, u8 *stream, int len) {
                     break;
                 }
             }
-            f32 sample;
-            sample = sound->data[index];
-            index++;
-            output[i+0] = sample;
-            output[i+1] = sample;
+            f32 left;
+            f32 right;
+            
+            if (sound->stereo) {
+                left = sound->data[index+0];
+                right = sound->data[index+1];
+                index += 2;
+            } else {
+                // mono
+                f32 sample;
+                sample = sound->data[index];
+                index++;
+                left = sample;
+                right = sample;
+            }
+
+            output[i+0] = left;
+            output[i+1] = right;
+
         }
         //for (u32 i = 0; i < SAMPLES; i += 2) {
         //    if (index >= sound->num_samples) {
