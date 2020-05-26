@@ -28,7 +28,7 @@ void Camera::look_at(Vec3 target) {
 }
 
 void Camera::turn(f32 jaw, f32 pitch) {
-    rotation = normalized(H::from(0.0, pitch, 0.0) * rotation * H::from(jaw, 0.0, 0.0));
+    rotation = normalized(H::from(0.0, -pitch, 0.0) * rotation * H::from(-jaw, 0.0, 0.0));
 }
 
 void Camera::move(Vec3 movement) {

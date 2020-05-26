@@ -105,6 +105,8 @@ struct GameInput {
     Vec2 mouse_pos;
     Vec2 mouse_move;
 
+    bool capture_mouse;
+
     bool rebinding;
     Ac rebind_action;
     u32 rebind_slot;
@@ -173,6 +175,7 @@ int main() { // Game entrypoint
         UNREACHABLE("Failed to load the linked library the first time!");
     }
     GameState gs;
+    gs.input.mouse_capture = false;
     gs.input.rebind_func = platform_rebind;
     gs.input.bind_func = platform_bind;
 
@@ -194,7 +197,6 @@ int main() { // Game entrypoint
     ImGui_ImplSDL2_InitForOpenGL(gs.window, gs.gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-    // SDL_SetRelativeMouseMode(SDL_TRUE);
 
     int frame = 0;
     const int RELOAD_TIME = 1; // Set this to a higher number to prevent constant disk-checks.
@@ -241,6 +243,7 @@ int main() { // Game entrypoint
             }
         }
 
+
         for (u32 i = 0; i < (u32) Ac::NUM_ACTIONS; i++) {
             gs.input.last_frame[i] = gs.input.current_frame[i];
             gs.input.current_frame[i] = global_input.state[i];
@@ -253,6 +256,8 @@ int main() { // Game entrypoint
         ImGui::NewFrame();
 
         gs = game_lib.update(&gs, GSUM::UPDATE_AND_RENDER);
+
+        SDL_SetRelativeMouseMode((SDL_bool) gs.input.mouse_capture);
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

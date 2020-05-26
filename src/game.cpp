@@ -36,6 +36,7 @@ void init_game(GameState *gamestate) {
     Input::bind(Ac::Jaw, 1, SDLK_e,  1.0);
     Input::bind(Ac::Pitch, 0, SDLK_i,  1.0);
     Input::bind(Ac::Pitch, 1, SDLK_k, -1.0);
+    Input::bind(Ac::MouseToggle, 0, SDLK_m);
     Input::bind(Ac::Rebind, 1, SDLK_r);
 }
 
@@ -52,6 +53,9 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
     glClearColor(0.2, 0.1, 0.3, 1); // We don't need to do this...
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    if (Input::released(Ac::MouseToggle)) {
+        GAMESTATE()->input.mouse_capture ^= 1;
+    }
     real time = SDL_GetTicks() / 1000.0;
 
     GFX::MasterShader shader = GFX::master_shader();

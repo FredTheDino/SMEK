@@ -15,6 +15,7 @@ enum class Action {
     Jaw,
     Pitch,
 
+    MouseToggle,
     Rebind,
 
     NUM_ACTIONS
@@ -31,6 +32,8 @@ struct Input {
 
     Vec2 mouse_move;
     Vec2 mouse_pos;
+
+    bool mouse_capture;
 
     RebindFunc rebind_func;
     BindFunc bind_func;
