@@ -8,7 +8,9 @@ namespace GFX {
 Camera Camera::init(f32 fov) {
     Camera cam = {};
     cam.set_fov(fov);
-    cam.view = Mat::scale(1.0);
+    cam.up = Vec3(0, 1, 0);
+    cam.forward = Vec3(0, 0, -1);
+    cam.position = Vec3(0, 0, 0);
     return cam;
 }
 
@@ -17,33 +19,33 @@ void Camera::set_fov(f32 fov) {
 }
 
 void Camera::look_at_from(Vec3 from, Vec3 target) {
-    // NOTE(ed): The UP vector might overlap with the forward vector,
-    // it would be nice to handle looking straight up...
-    view = Mat::look_at(from, target, Vec3(0.0, 1.0, 0.0));
+    position = from;
+    look_at(target);
 }
 
 void Camera::look_at(Vec3 target) {
-    Vec3 from = view * Vec3();
-    look_at_from(from, target);
+    forward = target - position;
 }
 
-void Camera::turn(Vec3 rotation) {
-    view = Mat::rotate(rotation) * view;
+void Camera::turn(f32 jaw, f32 pitch) {
+    forward = Mat::rotate_x(-jaw) * Mat::rotate_y(-pitch) * forward;
 }
 
 void Camera::move(Vec3 movement) {
-    view = view * Mat::translate(movement);
+    position = position - movement;
 }
 
 void Camera::move_relative(Vec3 movement) {
+    Mat view = Mat::look_at(position, position + forward, up);
     Vec4 relative_move = view * Vec4(movement.x, movement.y, movement.z, 0.0);
-    view = view * Mat::translate(Vec3(relative_move.x, relative_move.y, relative_move.z));
+    position = position - Vec3(relative_move.x, relative_move.y, relative_move.z);
 }
 
 template<>
 void Camera::upload(const MasterShader &shader) {
-    shader.upload_view(view);
     shader.upload_proj(perspective);
+    Mat view = Mat::look_at(position, position + forward, up);
+    shader.upload_view(view);
 }
 
 Mesh Mesh::init(Asset::Model *model) {

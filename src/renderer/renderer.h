@@ -33,7 +33,9 @@ struct Camera;
 
 struct Camera {
     Mat perspective;
-    Mat view;
+    Vec3 up;
+    Vec3 forward;
+    Vec3 position;
 
     // NOTE(ed): Given in radians.
     static Camera init(f32 fov=PI / 4);
@@ -44,7 +46,7 @@ struct Camera {
     void look_at(Vec3 target);
     void look_at_from(Vec3 from, Vec3 target);
 
-    void turn(Vec3 rotation);
+    void turn(f32 jaw, f32 pitch);
 
     void move(Vec3 movement);
     void move_relative(Vec3 movement);

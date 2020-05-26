@@ -170,7 +170,7 @@ Mat Mat::rotate_z(real d) {
 }
 
 Mat Mat::rotate(real x, real y, real z) {
-    return rotate_x(x) * rotate_y(y) * rotate_z(z);
+    return  rotate_z(z) * rotate_y(y) * rotate_x(x);
 }
 
 Mat Mat::rotate(Vec3 axis) {

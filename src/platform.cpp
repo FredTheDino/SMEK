@@ -102,6 +102,8 @@ struct GameInput {
     Button action_to_input[(u32) Ac::NUM_ACTIONS][2] = {};
     std::unordered_map<Button, ButtonPress> input_to_action;
     f32 state[(u32) Ac::NUM_ACTIONS] = {};
+    Vec2 mouse_pos;
+    Vec2 mouse_move;
 
     bool rebinding;
     Ac rebind_action;
@@ -192,6 +194,8 @@ int main() { // Game entrypoint
     ImGui_ImplSDL2_InitForOpenGL(gs.window, gs.gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
+    SDL_SetRelativeMouseMode(SDL_TRUE);
+
     int frame = 0;
     const int RELOAD_TIME = 1; // Set this to a higher number to prevent constant disk-checks.
 
@@ -207,6 +211,8 @@ int main() { // Game entrypoint
             }
         }
 
+        // Zero the movement, so we don't carry over frames.
+        global_input.mouse_move = {};
         // Read in input
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
@@ -227,13 +233,20 @@ int main() { // Game entrypoint
                 if (down && global_input.eaten_by_rebind(button)) continue;
                 global_input.update_press(button, down);
             }
-            //TODO(gu) mouse stuff, if (io.WantCaptureMouse) continue;
+            if (io.WantCaptureMouse) continue;
+            if (event.type == SDL_MOUSEMOTION) {
+                SDL_MouseMotionEvent mouse = event.motion;
+                global_input.mouse_move = Vec2(mouse.xrel, mouse.yrel);
+                global_input.mouse_pos = Vec2(mouse.x, mouse.y);
+            }
         }
 
         for (u32 i = 0; i < (u32) Ac::NUM_ACTIONS; i++) {
             gs.input.last_frame[i] = gs.input.current_frame[i];
             gs.input.current_frame[i] = global_input.state[i];
         }
+        gs.input.mouse_move = global_input.mouse_move;
+        gs.input.mouse_pos = global_input.mouse_pos;
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame(gs.window);

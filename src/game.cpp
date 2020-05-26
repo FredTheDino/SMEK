@@ -61,10 +61,10 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
     shader.upload_proj(proj_matrix);
 
     Vec3 move = {Input::value(Ac::MoveX), 0, Input::value(Ac::MoveZ)};
-    Vec3 turn = {Input::value(Ac::Pitch), Input::value(Ac::Jaw), 0.0};
+    Vec2 turn = Input::mouse_move();
     move = move * 0.01;
     turn = turn * 0.01;
-    camera.turn(turn);
+    camera.turn(turn.y, turn.x);
     camera.move_relative(move);
     camera.upload(shader);
 
