@@ -46,6 +46,7 @@ void reload_game(GameState *game) {
     test_source.asset_id = Asset::fetch_id("NOISE_SHORT_32");
     test_source.active = true;
     test_source.repeat = false;
+    test_source.index = 0;
     game->audio_struct->sources[0] = test_source;
     game->audio_struct->unlock();
 }
