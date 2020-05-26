@@ -3,7 +3,10 @@
 
 namespace Input {
 
-///*
+///# Input
+//
+
+///* Action
 // The list of possible buttons that can be pressed.
 enum class Action {
     AButton,
@@ -17,7 +20,7 @@ enum class Action {
 typedef void(*RebindFunc)(Action, u32, f32);
 typedef void(*BindFunc)(Action, u32, u32, f32);
 
-///*
+///* Input
 // Holds the content of this frames input.
 struct Input {
     f32 current_frame[(u32) Action::NUM_ACTIONS];
@@ -57,7 +60,7 @@ f32 value(Action name);
 
 }
 
-///*
+//// Ac
 // Imports this into global namespace to
 // make it easier to use the input functions.
 using Ac = Input::Action;

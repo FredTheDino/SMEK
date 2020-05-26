@@ -2,6 +2,9 @@
 #include "types.h"
 #include "smek_math.h"
 
+///# Vectors
+//
+
 // Deliberately placed outside of namespace.
 struct Vec2 {
     Vec2(real x=0.0, real y=0.0):
@@ -35,6 +38,27 @@ struct Vec4 {
     };
 };
 
+#if 0
+
+///*
+struct Vec2 {
+    Vec2(real x=0.0, real y=0.0);
+}
+
+
+///*
+struct Vec2 {
+    Vec2(real x=0.0, real y=0.0, z=0.0);
+}
+
+
+///*
+struct Vec4 {
+    Vec4(real x=0.0, real y=0.0, z=0.0, w=0.0);
+}
+
+#endif
+
 template<typename T>
 constexpr int DIM();
 
@@ -53,26 +77,33 @@ T operator *(const real &s, const T &a);
 template<typename T>
 T operator /(const T &a, const real &s);
 
+///*
 template<typename T>
 T hadamard(const T &a, const T &b);
 
+///*
 template<typename T>
 real dot(const T &a, const T &b);
 
+///*
 template<typename T>
 real length(const T &a);
 
+///*
 template<typename T>
 real length_squared(const T &a);
 
+///*
 template<typename T>
 T normalized(const T &a);
 
+///*
 Vec3 cross(const Vec3 &a, const Vec3 &b);
 
 template<typename T>
 bool _close_enough_vec(const T &a, const T &b, real r);
 
+///*
 bool close_enough(const Vec2 &a, const Vec2 &b, real r=0.001);
 bool close_enough(const Vec3 &a, const Vec3 &b, real r=0.001);
 bool close_enough(const Vec4 &a, const Vec4 &b, real r=0.001);

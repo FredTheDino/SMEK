@@ -2,6 +2,9 @@
 #include "types.h"
 #include "smek_vec.h"
 
+///# 4x4 matrix
+//
+
 // We only have 4x4 matricies, since that's kinda what we're using here...
 struct Mat {
     real _[4][4];
@@ -39,9 +42,27 @@ struct Mat {
     static Mat perspective(real fov, real near, real far);
 };
 
+#if 0
+
+///*
+Mat Mat::scale(real scale);
+
+///*
+Mat Mat::translate(real dx, real dy, real dz);
+
+///*
+Mat Mat::translate(Vec3 delta);
+
+///*
+Mat Mat::look_at(Vec3 from, Vec3 to, Vec3 up);
+
+///*
+Mat Mat::perspective(real fov, real near, real far);
+
+#endif
+
 Mat operator *(const Mat &a, const Mat &b);
 
 Vec4 operator *(const Vec4 &v, const Mat &m);
 
 Vec3 operator *(const Vec3 &v, const Mat &m);
-
