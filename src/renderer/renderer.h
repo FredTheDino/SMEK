@@ -1,5 +1,6 @@
 #pragma once
 #include "../math/smek_vec.h"
+#include "../math/smek_mat4.h"
 
 #include "../asset/asset.h"
 
@@ -42,8 +43,34 @@ struct Shader {
 
     bool is_valid() { return program_id != -1; }
 
-    static Shader compile(const char *source);
+    static Shader compile(AssetID source_id);
 };
+
+#define F32_SHADER_PROP(name)\
+    u32 loc_ ##name;\
+    void upload_ ##name (f32);
+
+#define U32_SHADER_PROP(name)\
+    u32 loc_ ##name;\
+    void upload_ ##name (u32);
+
+#define MAT_SHADER_PROP(name)\
+    u32 loc_ ##name;\
+    void upload_ ##name (Mat &);
+
+struct MasterShader: public Shader {
+    F32_SHADER_PROP(t);
+    MAT_SHADER_PROP(proj);
+    MAT_SHADER_PROP(view);
+    MAT_SHADER_PROP(model);
+    U32_SHADER_PROP(tex);
+
+    static MasterShader init();
+};
+
+#undef F32_SHADER_PROP
+#undef U32_SHADER_PROP
+#undef MAT_SHADER_PROP
 
 struct Texture {
     u32 texture_id;
@@ -59,15 +86,15 @@ struct Texture {
     static Texture upload(Asset::Image *image, Sampling sampling);
 };
 
-Shader default_shader();
+MasterShader master_shader();
 
 struct Renderer {
-    Shader shader;
+    MasterShader master_shader;
 };
 
 ///*
 // Initalize the graphics pipeline.
-bool init(GameState *gs, const char *shader_source, int width=680, int height=480);
+bool init(GameState *gs, int width=680, int height=480);
 
 ///*
 // Reloads opengl function pointers and such, which is faster
