@@ -252,14 +252,20 @@ def wav_asset(path, verbose):
         sample_rate = file.getframerate()
         sample_width = file.getsampwidth()
 
-        # assumes signed
         def read_frames(fmt, size_bytes):
             data = []
+            if fmt.isupper():
+                sign_bit = 0
+                sign_mov = 0.5
+            else:
+                sign_bit = 1
+                sign_mov = 0
             for i in range(file.getnframes()):
-                data.append(struct.unpack(fmt, file.readframes(1))[0]/(2**(8*size_bytes - 1) - 1))
+                val = struct.unpack(fmt, file.readframes(1))[0]
+                data.append((val / (2**(8 * size_bytes - sign_bit) - 1)) - sign_mov)
             return data
 
-        types = { 1: "b", 2: "h", 4: "i" }
+        types = { 1: "B", 2: "h", 4: "i" }
         if sample_width not in types:
             print("Unsupported bit depth {} for file '{}'", 8*sample_width, path)
             sys.exit(1)
