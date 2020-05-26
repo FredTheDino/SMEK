@@ -250,11 +250,21 @@ def wav_asset(path, verbose):
     """
     with wave.open(path, "rb") as file:
         sample_rate = file.getframerate()
-        data = []
-        for i in range(file.getnframes()):
-            frame = file.readframes(1)
-            data.append(struct.unpack("h", frame)[0]/(2**15 - 1))
+        sample_width = file.getsampwidth()
 
+        # assumes signed
+        def read_frames(fmt, size_bytes):
+            data = []
+            for i in range(file.getnframes()):
+                data.append(struct.unpack(fmt, file.readframes(1))[0]/(2**(8*size_bytes - 1) - 1))
+            return data
+
+        types = { 1: "b", 2: "h", 4: "i" }
+        if sample_width not in types:
+            print("Unsupported bit depth {} for file '{}'", 8*sample_width, path)
+            sys.exit(1)
+
+        data = read_frames(types[sample_width], sample_width)
         fmt = "IIP{}f".format(len(data))
         header = default_header()
         header["type"] = TYPE_SOUND

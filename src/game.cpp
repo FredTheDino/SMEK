@@ -43,7 +43,7 @@ void reload_game(GameState *game) {
 
     game->audio_struct->lock();
     Audio::SoundSource test_source = game->audio_struct->sources[0];
-    test_source.asset_id = Asset::fetch_id("NOISE_SHORT");
+    test_source.asset_id = Asset::fetch_id("NOISE_SHORT_32");
     test_source.active = true;
     test_source.repeat = false;
     game->audio_struct->sources[0] = test_source;
