@@ -5,6 +5,48 @@
 
 namespace GFX {
 
+Camera Camera::init(f32 fov) {
+    Camera cam = {};
+    cam.set_fov(fov);
+    cam.up = Vec3(0, 1, 0);
+    cam.rotation = H::from(Vec3(1.0, 0.0, 0.0), 0.0);
+    cam.position = Vec3(0, 0, 0);
+    return cam;
+}
+
+void Camera::set_fov(f32 fov) {
+    perspective = Mat::perspective(fov, 0.01, 10.0);
+}
+
+void Camera::look_at_from(Vec3 from, Vec3 target) {
+    // position = from;
+    // look_at(target);
+}
+
+void Camera::look_at(Vec3 target) {
+    // forward = target + position;
+}
+
+void Camera::turn(f32 jaw, f32 pitch) {
+    rotation = normalized(H::from(0.0, -pitch, 0.0) * rotation * H::from(-jaw, 0.0, 0.0));
+}
+
+void Camera::move(Vec3 movement) {
+    position = position + movement;
+}
+
+void Camera::move_relative(Vec3 movement) {
+    Vec3 relative_move = rotation * movement;
+    position = position + relative_move;
+}
+
+template<>
+void Camera::upload(const MasterShader &shader) {
+    shader.upload_proj(perspective);
+    Mat view = (Mat::translate(position) * Mat::from(rotation)).invert();
+    shader.upload_view(view);
+}
+
 Mesh Mesh::init(Asset::Model *model) {
     using Asset::Vertex;
     u32 vao, vbo;
@@ -54,13 +96,13 @@ MasterShader MasterShader::init() {
 }
 
 #define F32_SHADER_PROP(classname, name)\
-    void classname::upload_ ##name(f32 f) { glUniform1f(loc_ ##name, f); }
+    void classname::upload_ ##name(f32 f) const { glUniform1f(loc_ ##name, f); }
 
 #define U32_SHADER_PROP(classname, name)\
-    void classname::upload_ ##name(u32 f) { glUniform1i(loc_ ##name, f); }
+    void classname::upload_ ##name(u32 f) const { glUniform1i(loc_ ##name, f); }
 
 #define MAT_SHADER_PROP(classname, name)\
-    void classname::upload_ ##name(Mat &m) { glUniformMatrix4fv(loc_ ##name, 1, true, m.data()); }
+    void classname::upload_ ##name(Mat &m) const { glUniformMatrix4fv(loc_ ##name, 1, true, m.data()); }
 
 F32_SHADER_PROP(MasterShader, t);
 MAT_SHADER_PROP(MasterShader, proj);

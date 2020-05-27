@@ -1,5 +1,6 @@
 #pragma once
 #include "math/types.h"
+#include "math/smek_vec.h"
 
 namespace Input {
 
@@ -9,9 +10,12 @@ namespace Input {
 ///* Action
 // The list of possible buttons that can be pressed.
 enum class Action {
-    AButton,
-    BButton,
+    MoveX,
+    MoveZ,
+    Jaw,
+    Pitch,
 
+    MouseToggle,
     Rebind,
 
     NUM_ACTIONS
@@ -26,9 +30,22 @@ struct Input {
     f32 current_frame[(u32) Action::NUM_ACTIONS];
     f32 last_frame[(u32) Action::NUM_ACTIONS];
 
+    Vec2 mouse_move;
+    Vec2 mouse_pos;
+
+    bool mouse_capture;
+
     RebindFunc rebind_func;
     BindFunc bind_func;
 };
+
+///*
+// The delta of the mouse this step.
+Vec2 mouse_move();
+
+///*
+// The current mouse position.
+Vec2 mouse_pos();
 
 ///*
 // Rebinds the given Action to the next key pressed down.

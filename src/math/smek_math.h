@@ -89,6 +89,10 @@ real atan(real a);
 real atan2(real x, real y);
 
 ///*
+// Copies the sign from y to x.
+real copysign(real x, real y);
+
+///*
 // Returns a rounded up to the nearest integer.
 template<typename R>
 R ceil(real a);

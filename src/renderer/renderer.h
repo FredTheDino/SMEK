@@ -27,6 +27,34 @@ struct Texture;
 // The collection of the entire rendering state.
 struct Renderer;
 
+///* Camera
+// Lets you control where the player is looking.
+struct Camera;
+
+struct Camera {
+    Mat perspective;
+    H rotation;
+    Vec3 up;
+    Vec3 position;
+
+    // NOTE(ed): Given in radians.
+    static Camera init(f32 fov=PI / 4);
+
+    // NOTE(ed): Given in radians.
+    void set_fov(f32 fov);
+
+    void look_at(Vec3 target);
+    void look_at_from(Vec3 from, Vec3 target);
+
+    void turn(f32 jaw, f32 pitch);
+
+    void move(Vec3 movement);
+    void move_relative(Vec3 movement);
+
+    template<typename S>
+    void upload(const S &s);
+};
+
 struct Mesh {
     u32 vao, vbo;
     u32 draw_length;
@@ -48,15 +76,15 @@ struct Shader {
 
 #define F32_SHADER_PROP(name)\
     u32 loc_ ##name;\
-    void upload_ ##name (f32);
+    void upload_ ##name (f32) const;
 
 #define U32_SHADER_PROP(name)\
     u32 loc_ ##name;\
-    void upload_ ##name (u32);
+    void upload_ ##name (u32) const;
 
 #define MAT_SHADER_PROP(name)\
     u32 loc_ ##name;\
-    void upload_ ##name (Mat &);
+    void upload_ ##name (Mat &) const;
 
 struct MasterShader: public Shader {
     F32_SHADER_PROP(t);

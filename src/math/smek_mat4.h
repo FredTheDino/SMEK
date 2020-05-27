@@ -1,13 +1,17 @@
 #pragma once
 #include "types.h"
 #include "smek_vec.h"
+#include "smek_quat.h"
 
 ///# 4x4 matrix
 //
 
 // We only have 4x4 matricies, since that's kinda what we're using here...
 struct Mat {
-    real _[4][4];
+    union {
+        real _[4][4];
+        real __[16];
+    };
 
     static Mat from(real a0, real a1, real a2, real a3,
                     real a4, real a5, real a6, real a7,
@@ -38,8 +42,17 @@ struct Mat {
     static Mat scale(real scale);
     static Mat translate(real dx, real dy, real dz);
     static Mat translate(Vec3 delta);
+    static Mat rotate_x(real d);
+    static Mat rotate_y(real d);
+    static Mat rotate_z(real d);
+    static Mat rotate(real dx, real dy, real dz);
+    static Mat rotate(Vec3 delta);
     static Mat look_at(Vec3 from, Vec3 to, Vec3 up);
     static Mat perspective(real fov, real near, real far);
+
+    static Mat from(H h);
+
+    Mat invert();
 };
 
 #if 0
@@ -63,6 +76,6 @@ Mat Mat::perspective(real fov, real near, real far);
 
 Mat operator *(const Mat &a, const Mat &b);
 
-Vec4 operator *(const Vec4 &v, const Mat &m);
+Vec4 operator *(const Mat &m, const Vec4 &v);
 
-Vec3 operator *(const Vec3 &v, const Mat &m);
+Vec3 operator *(const Mat &m, const Vec3 &v);

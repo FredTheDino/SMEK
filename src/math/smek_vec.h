@@ -79,6 +79,9 @@ T operator /(const T &a, const real &s);
 
 ///*
 template<typename T>
+T operator -(const T &a);
+
+template<typename T>
 T hadamard(const T &a, const T &b);
 
 ///*
@@ -142,6 +145,13 @@ T operator *(const real &s, const T &a) {
 template<typename T>
 T operator /(const T &a, const real &s) {
     return a * (1.0 / s);
+}
+
+template<typename T>
+T operator -(const T &a) {
+    T result;
+    for (i32 i = 0; i < DIM<T>(); i++) result._[i] = -a._[i];
+    return result;
 }
 
 template<typename T>

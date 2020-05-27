@@ -4,6 +4,14 @@
 
 namespace Input {
 
+Vec2 mouse_move() {
+    return GAMESTATE()->input.mouse_move;
+}
+
+Vec2 mouse_pos() {
+    return GAMESTATE()->input.mouse_pos;
+}
+
 void rebind(Action name, u32 slot, f32 value) {
     GAMESTATE()->input.rebind_func(name, slot, value);
 }
