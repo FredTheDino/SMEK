@@ -37,12 +37,17 @@ GameState game_state;
 Audio::AudioStruct platform_audio_struct = {};
 
 std::mutex m_reload_lib;
+bool hot_reload_active = true;
 bool reload_lib = false;
 
 void signal_handler (int signal) {
-    m_reload_lib.lock();
-    reload_lib = true;
-    m_reload_lib.unlock();
+    if (hot_reload_active) {
+        m_reload_lib.lock();
+        reload_lib = true;
+        m_reload_lib.unlock();
+    } else {
+        WARN("Ignoring USR1");
+    }
 }
 
 bool load_gamelib() {
@@ -223,6 +228,8 @@ int main(int argc, char **argv) { // Game entrypoint
         } else if ARGUMENT("--resolution", "-r") {
             width = std::atoi(argv[++index]);
             height = std::atoi(argv[++index]);
+        } else if ARGUMENT("--no-reload", "-R") {
+            hot_reload_active = false;
         } else {
             ERROR("Unknown command line argument '%s'", argv[index]);
         }
