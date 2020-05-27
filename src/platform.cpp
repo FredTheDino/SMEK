@@ -72,7 +72,6 @@ bool load_gamelib() {
     }
     dlclose(tmp); // If it isn't unloaded here, the same library is loaded.
 
-    // TODO(ed): Add locks in when they are needed
     platform_audio_struct.lock();
     if (game_lib.handle) { dlclose(game_lib.handle); }
 
@@ -173,15 +172,16 @@ void platform_bind(Ac action, u32 slot, u32 button, f32 value) {
 }
 
 void platform_audio_callback(void *userdata, u8 *stream, int len) {
+    f32 *f_stream = (f32 *) stream;
     Audio::AudioStruct *audio_struct_ptr = (Audio::AudioStruct *) userdata;
-    game_lib.audio_callback(audio_struct_ptr, stream, len);
+    game_lib.audio_callback(audio_struct_ptr, f_stream, len);
 }
 
 void platform_audio_init() {
     platform_audio_struct = {};
 
     SDL_AudioSpec want = {};
-    want.freq = Audio::SAMPLE_RATE;
+    want.freq = 48000;
     want.format = AUDIO_F32;
     want.samples = 2048;
     want.channels = 2;
@@ -193,6 +193,11 @@ void platform_audio_init() {
     if (platform_audio_struct.dev <= 0) {
         UNREACHABLE("Unable to initialize audio (%s)", SDL_GetError());
     }
+    CHECK(have.freq == want.freq, "Got different sample rate %d", have.freq);
+    ASSERT(have.format == want.format, "Got wrong format %d", have.format);
+    ASSERT(have.channels == want.channels, "Got wrong amount of channels %d", have.channels);
+
+    platform_audio_struct.sample_rate = have.freq;
     platform_audio_struct.active = true;
 
     SDL_PauseAudioDevice(platform_audio_struct.dev, 0);

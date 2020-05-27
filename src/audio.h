@@ -6,7 +6,6 @@
 
 namespace Audio {
 
-const u32 SAMPLE_RATE = 48000;
 const u32 NUM_SOURCES = 10;
 
 struct SoundSource {
@@ -18,6 +17,7 @@ struct SoundSource {
 
 struct AudioStruct {
     bool active = false;
+    u32 sample_rate;
     SDL_AudioDeviceID dev;
     SoundSource sources[NUM_SOURCES];
 
@@ -31,9 +31,9 @@ struct AudioStruct {
     }
 };
 
-void audio_callback(AudioStruct *audio_struct, u8 *stream, int len);
+void audio_callback(AudioStruct *audio_struct, f32 *stream, int len);
 
 } // namespace Audio
 
-extern "C" void audio_callback(Audio::AudioStruct *audio_struct, u8 *stream, int len);
-typedef void(*AudioCallbackFunc)(void *, u8 *, int);
+extern "C" void audio_callback(Audio::AudioStruct *audio_struct, f32 *stream, int len);
+typedef void(*AudioCallbackFunc)(void *, f32 *, int);

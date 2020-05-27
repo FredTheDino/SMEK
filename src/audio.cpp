@@ -5,14 +5,12 @@
 
 namespace Audio {
 
-void audio_callback(AudioStruct *audio_struct, u8 *stream, int len) {
-    f32 *output = (f32 *) stream;
-
+void audio_callback(AudioStruct *audio_struct, f32 *stream, int len) {
     const u32 SAMPLES = len / sizeof(f32);
-    const f32 TIME_STEP = 1.0f / SAMPLE_RATE;
+    const f32 TIME_STEP = 1.0f / audio_struct->sample_rate;
 
     for (u32 i = 0; i < SAMPLES; i++) {
-        output[i] = 0.0;
+        stream[i] = 0.0;
     }
 
     for (u32 source_id = 0; source_id < NUM_SOURCES; source_id++) {
@@ -49,14 +47,14 @@ void audio_callback(AudioStruct *audio_struct, u8 *stream, int len) {
                 right = sample;
             }
 
-            output[i+0] = left;
-            output[i+1] = right;
+            stream[i+0] = left;
+            stream[i+1] = right;
         }
     }
 }
 
 } // namespace Audio
 
-void audio_callback(Audio::AudioStruct *audio_struct, u8 *stream, int len) {
+void audio_callback(Audio::AudioStruct *audio_struct, f32 *stream, int len) {
     Audio::audio_callback(audio_struct, stream, len);
 }
