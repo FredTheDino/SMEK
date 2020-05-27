@@ -48,7 +48,7 @@ int main(int argc, char **argv) { // Test entry point
     for (int index = 1; index < argc; index++) {
         if ARGUMENT("--help", "-h") {
             //TODO(gu)
-            std::printf("Usage:\n");
+            std::printf("Usage: tests [--help] [--ci] [--report] [--report-path <path>]\n");
             return 0;
         } else if ARGUMENT("--ci", "-c") {
             ci = true;

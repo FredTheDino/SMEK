@@ -223,7 +223,8 @@ int main(int argc, char **argv) { // Game entrypoint
     for (int index = 1; index < argc; index++) {
         if ARGUMENT("--help", "-h") {
             //TODO(gu)
-            std::printf("Usage:\n");
+            std::printf("Usage: SMEK [--help] [--resolution <width> <height>]\n"
+                        "            [--no-reload]\n");
             return 0;
         } else if ARGUMENT("--resolution", "-r") {
             width = std::atoi(argv[++index]);
