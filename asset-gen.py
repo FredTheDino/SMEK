@@ -243,7 +243,7 @@ def wav_asset(path, verbose):
     """Load a .wav-file.
 
     Data format:
-    - ?  Is stereo
+    - I  Channels
     - I  Sample rate
     - I  Number of samples
     - P  Data pointer
@@ -252,8 +252,9 @@ def wav_asset(path, verbose):
     with wave.open(path, "rb") as file:
         sample_rate = file.getframerate()
         sample_width = file.getsampwidth()
+        channels = file.getnchannels()
 
-        def read_frames(fmt, size_bytes, stereo):
+        def read_frames(fmt, size_bytes):
             data = []
 
             if fmt.isupper():
@@ -266,10 +267,13 @@ def wav_asset(path, verbose):
             div = 2**(8 * size_bytes - sign_bit) - 1
 
             frames = file.readframes(file.getnframes())
-            if stereo:
+            if channels == 2:
                 data = struct.unpack("{}{}".format(file.getnframes()*2, fmt), frames)
-            else:
+            elif channels == 1:
                 data = struct.unpack("{}{}".format(file.getnframes(), fmt), frames)
+            else:
+                print("Unsupport number of channels ({}) in file '{}'".format(channels, path))
+                sys.exit(1)
 
             return [d/div - sign_mov for d in data]
 
@@ -278,17 +282,12 @@ def wav_asset(path, verbose):
             print("Unsupported bit depth {} for file '{}'", 8*sample_width, path)
             sys.exit(1)
 
-        if file.getnchannels() > 2:
-            print("File '{}' has too many channels ({})".format(path, file.getchannels))
-            sys.exit(1)
-        is_stereo = file.getnchannels() == 2
-
-        data = read_frames(types[sample_width], sample_width, is_stereo)
-        fmt = "?IIP{}f".format(len(data))
+        data = read_frames(types[sample_width], sample_width)
+        fmt = "IIIP{}f".format(len(data))
         header = default_header()
         header["type"] = TYPE_SOUND
         header["data_size"] = struct.calcsize(fmt)
-        return header, struct.pack(fmt, is_stereo, sample_rate, len(data), 0, *data)
+        return header, struct.pack(fmt, channels, sample_rate, len(data), 0, *data)
 
 
 EXTENSIONS = {

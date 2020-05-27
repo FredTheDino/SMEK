@@ -6,13 +6,12 @@
 
 namespace Audio {
 
-const u32 SAMPLE_RATE = 44100;
-
+const u32 SAMPLE_RATE = 48000;
 const u32 NUM_SOURCES = 10;
 
 struct SoundSource {
     AssetID asset_id;
-    u64 index;
+    f32 sample;
     bool active;
     bool repeat;
 };

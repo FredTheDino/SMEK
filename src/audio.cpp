@@ -19,11 +19,13 @@ void audio_callback(AudioStruct *audio_struct, u8 *stream, int len) {
         SoundSource *source = audio_struct->sources + source_id;
         if (!source->active) continue;
 
-        u64 index = source->index;
-
+        u64 index;
         Asset::Sound *sound = Asset::fetch_sound(source->asset_id);
         for (u32 i = 0; i < SAMPLES; i += 2) {
-            if (index >= sound->num_samples) {
+            source->sample += sound->sample_rate * TIME_STEP;
+            index = source->sample;
+
+            if (index * sound->channels >= sound->num_samples) {
                 if (source->repeat) {
                     index = 0;
                 } else {
@@ -34,15 +36,13 @@ void audio_callback(AudioStruct *audio_struct, u8 *stream, int len) {
             f32 left;
             f32 right;
             
-            if (sound->stereo) {
-                left = sound->data[index+0];
-                right = sound->data[index+1];
-                index += 2;
+            if (sound->channels == 2) {
+                left = sound->data[index * 2 + 0];
+                right = sound->data[index * 2 + 1];
             } else {
                 // mono
                 f32 sample;
                 sample = sound->data[index];
-                index++;
                 left = sample;
                 right = sample;
             }
@@ -71,7 +71,6 @@ void audio_callback(AudioStruct *audio_struct, u8 *stream, int len) {
         //    output[i+0] = left;
         //    output[i+1] = right;
         //}
-        source->index = index;
     }
 }
 
