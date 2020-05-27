@@ -27,15 +27,17 @@ void audio_callback(AudioStruct *audio_struct, u8 *stream, int len) {
 
             if (index * sound->channels >= sound->num_samples) {
                 if (source->repeat) {
+                    source->sample = 0;
                     index = 0;
                 } else {
-                    source->active = 0;
+                    source->active = false;
                     break;
                 }
             }
+
             f32 left;
             f32 right;
-            
+
             if (sound->channels == 2) {
                 left = sound->data[index * 2 + 0];
                 right = sound->data[index * 2 + 1];
@@ -49,28 +51,7 @@ void audio_callback(AudioStruct *audio_struct, u8 *stream, int len) {
 
             output[i+0] = left;
             output[i+1] = right;
-
         }
-        //for (u32 i = 0; i < SAMPLES; i += 2) {
-        //    if (index >= sound->num_samples) {
-        //        if (source->repeat) {
-        //            index = 0;
-        //        } else {
-        //            source->active = false;
-        //            break;
-        //        }
-        //    }
-
-        //    f32 left;
-        //    f32 right;
-
-        //    left = sound->data[index+0];
-        //    right = sound->data[index+1];
-        //    index += 2;
-
-        //    output[i+0] = left;
-        //    output[i+1] = right;
-        //}
     }
 }
 
