@@ -135,14 +135,14 @@ DebugShader debug_shader();
 // Fetches the master shader.
 Camera *main_camera();
 
-struct DebugPrimitv {
+struct DebugPrimitive {
     struct Vertex {
         Vec3 position;
         Vec4 color;
     };
     static const u32 VERTS_PER_BUFFER = 300;
 
-    static DebugPrimitv init();
+    static DebugPrimitive init();
 
     void clear();
 
@@ -163,7 +163,7 @@ struct Renderer {
     DebugShader debug_shader;
 
     u32 first_empty;
-    std::vector<DebugPrimitv> primitivs;
+    std::vector<DebugPrimitive> primitives;
 };
 
 ///*
