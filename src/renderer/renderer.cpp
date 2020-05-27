@@ -47,6 +47,37 @@ void Camera::upload(const MasterShader &shader) {
     shader.upload_view(view);
 }
 
+const Vec4 color_list[] = {
+    Vec4(115, 63, 155) / 255.0,
+    Vec4(68, 73, 163) / 255.0,
+    Vec4(61, 120, 157) / 255.0,
+    Vec4(51, 102, 97) / 255.0,
+    Vec4(155, 126, 63) / 255.0,
+    Vec4(163, 74, 68) / 255.0,
+    Vec4(158, 61, 109) / 255.0,
+    Vec4(102, 51, 101) / 255.0,
+};
+
+Vec4 color(u32 index) {
+    ASSERT(index < LEN(color_list), "Trying to fetch color that doesn't exist");
+    return color_list[index];
+}
+
+void push_line(Vec3 a, Vec3 b, Vec4 color, f32 width) {
+    push_line(a, b, color, color, width);
+}
+
+void push_line(Vec3 a, Vec3 b, Vec4 a_color, Vec4 b_color, f32 width) {
+    Vec3 sideways = normalized(cross(a, b)) * width;
+    Vec3 p1, p2, p3, p4;
+    p1 = a + sideways;
+    p2 = a - sideways;
+    p3 = b + sideways;
+    p4 = b - sideways;
+    push_debug_triangle(p1, a_color, p2, a_color, p3, b_color);
+    push_debug_triangle(p2, a_color, p3, b_color, p4, b_color);
+}
+
 Mesh Mesh::init(Asset::Model *model) {
     using Asset::Vertex;
     u32 vao, vbo;
@@ -66,6 +97,7 @@ Mesh Mesh::init(Asset::Model *model) {
 
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, normal));
+    glBindVertexArray(0);
 
     return {vao, vbo, model->num_faces * 3};;
 }
@@ -113,6 +145,21 @@ U32_SHADER_PROP(MasterShader, tex);
 MasterShader master_shader() {
     return GAMESTATE()->renderer.master_shader;
 }
+
+DebugShader DebugShader::init() {
+    DebugShader shader;
+    shader.program_id = Shader::compile("DEBUG_SHADER").program_id;
+
+    FETCH_SHADER_PROP(proj);
+    FETCH_SHADER_PROP(view);
+    FETCH_SHADER_PROP(model);
+
+    return shader;
+}
+
+MAT_SHADER_PROP(DebugShader, proj);
+MAT_SHADER_PROP(DebugShader, view);
+MAT_SHADER_PROP(DebugShader, model);
 
 Shader Shader::compile(AssetID source_id) {
     const char *source = Asset::fetch_shader("MASTER_SHADER")->data;
@@ -251,6 +298,7 @@ bool init(GameState *gs, int width, int height) {
     SDL_GL_SwapWindow(gs->window);
 
     gs->renderer.master_shader = MasterShader::init();
+    gs->renderer.debug_shader = DebugShader::init();
     return true;
 }
 
@@ -270,6 +318,65 @@ void deinit(GameState *gs) {
     SDL_GL_DeleteContext(gs->gl_context);
 
     SDL_Quit();
+}
+
+DebugPrimitv DebugPrimitv::init() {
+    u32 vao, vbo;
+
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * VERTS_PER_BUFFER, nullptr, GL_DYNAMIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, position));
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 4, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, color));
+    glBindVertexArray(0);
+
+    return {vao, vbo, 0, new Vertex[VERTS_PER_BUFFER]};
+}
+
+
+bool DebugPrimitv::push_triangle(Vertex v1, Vertex v2, Vertex v3) {
+    if (size + 3 >= VERTS_PER_BUFFER) return false;
+    buffer[size++] = v1;
+    buffer[size++] = v2;
+    buffer[size++] = v3;
+    return true;
+}
+
+void DebugPrimitv::draw() {
+    if (size == 0) return;
+    ASSERT(size % 3 == 0, "Reached invalid state for this debug primitv");
+
+    GAMESTATE()->renderer.debug_shader.use();
+    glBindVertexArray(vao);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertex) * size, buffer);
+    glDrawArrays(GL_TRIANGLES, 0, size);
+    glBindVertexArray(0);
+}
+
+void DebugPrimitv::clear() {
+    size = 0;
+}
+
+void push_debug_triangle(Vec3 p1, Vec4 c1, Vec3 p2, Vec4 c2, Vec3 p3, Vec4 c3) {
+    std::vector<DebugPrimitv> *primitivs = &GAMESTATE()->renderer.primitivs;
+    while (!(*primitivs)[primitivs->size()].push_triangle({p1, c1}, {p2, c2}, {p3, c3})) {
+        primitivs->push_back(DebugPrimitv::init());
+    };
+}
+
+void draw_primitivs() {
+    std::vector<DebugPrimitv> *primitivs = &GAMESTATE()->renderer.primitivs;
+    for (DebugPrimitv &p : *primitivs) {
+        p.draw(); // TODO(ed): Stop drawing when they're empty.
+        p.clear();
+    }
 }
 
 } // namespace GFX

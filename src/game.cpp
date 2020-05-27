@@ -82,6 +82,8 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
     camera.upload(shader);
 
 
+    GFX::push_line(Vec3(0, 0, 0), Vec3(0, 0, -10));
+
     shader.use();
 
     texture.bind(0);

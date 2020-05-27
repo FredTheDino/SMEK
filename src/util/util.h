@@ -5,3 +5,5 @@
 #include "defer.h"
 #include "log.h"
 
+#define LEN(x) (sizeof(x) / sizeof(x[0]))
+

@@ -32,6 +32,11 @@ AddOption("--report",
           action="store_true",
           help="Save a tests-report. Only makes sense when running tests.")
 
+AddOption("--tags",
+          dest="tags",
+          action="store_true",
+          help="Runs ctags and generates a tag file.")
+
 env = Environment(ENV=os.environ)
 env.Replace(CXX="g++")
 env.Append(CXXFLAGS="-Wall")
@@ -112,6 +117,9 @@ AlwaysBuild(env.Alias("debug", smek, "cd " + smek_dir + "; " + "gdb " + smek[0].
 
 docs = env.Alias("docs", "", "docs/doc-builder.py")
 AlwaysBuild(docs)
+
+if GetOption("tags"):
+    shell(["ctags", "-R", "src"])
 
 env.Clean(smek, glob("bin/**/*.o", recursive=True))  # always remove *.o
 env.Clean(tests, glob("bin/**/*.o", recursive=True))  # always remove *.o
