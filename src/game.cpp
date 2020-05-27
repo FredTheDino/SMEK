@@ -26,9 +26,6 @@ void init_game(GameState *gamestate, int width, int height) {
 
     GFX::init(GAMESTATE(), width, height);
 
-        _test_gs = &state;
-      
-
     *GFX::main_camera() = GFX::Camera::init();
     GFX::main_camera()->position = Vec3(0.0, 0.2, 0.0);
 
