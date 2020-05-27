@@ -59,7 +59,7 @@ struct Test {
 
 struct TestSuite {
     void add(Test test);
-    unsigned int run();
+    unsigned int run(bool ci, bool write_report, const char *path);
 
     unsigned int cap_tests;
     unsigned int num_tests;

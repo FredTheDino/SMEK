@@ -51,12 +51,6 @@ if GetOption("verbose"):
 if not GetOption("color"):
     env.Append(CPPDEFINES="NO_COLOR")
 
-if GetOption("ci"):
-    env.Append(CPPDEFINES="CI")
-
-if GetOption("report"):
-    env.Append(CPPDEFINES="REPORT")
-
 smek_dir = "bin/debug/"
 VariantDir(smek_dir, "src", duplicate=0)
 
@@ -100,6 +94,13 @@ Depends(smek, assets)
 Depends(smek, libsmek)
 Default(smek)
 
+tests_runtime_flags = []
+if GetOption("ci"):
+    tests_runtime_flags.append("--ci")
+
+if GetOption("report"):
+    tests_runtime_flags.append("--report")
+
 tests_env = env.Clone()
 tests_env.Append(CPPDEFINES="TESTS")
 tests_source = [re.sub("^src/", tests_dir, f) for f in source]
@@ -107,7 +108,7 @@ tests = tests_env.Program(target=tests_dir + "tests", source=tests_source)
 Depends(tests, tests_assets)
 
 AlwaysBuild(env.Alias("run", smek, "cd " + smek_dir + "; " + smek[0].abspath))
-AlwaysBuild(env.Alias("tests", tests, "cd " + tests_dir + "; " + tests[0].abspath))
+AlwaysBuild(env.Alias("tests", tests, "cd " + tests_dir + "; " + tests[0].abspath + " " + " ".join(tests_runtime_flags)))
 AlwaysBuild(env.Alias("debug", smek, "cd " + smek_dir + "; " + "gdb " + smek[0].abspath))
 
 docs = env.Alias("docs", "", "docs/doc-builder.py")
@@ -115,8 +116,8 @@ AlwaysBuild(docs)
 
 env.Clean(smek, glob("bin/**/*.o", recursive=True))  # always remove *.o
 env.Clean(tests, glob("bin/**/*.o", recursive=True))  # always remove *.o
-env.Clean(smek, glob("bin/**/report.txt", recursive=True))
-env.Clean(tests, glob("bin/**/report.txt", recursive=True))
+env.Clean(smek, glob("bin/**/*.txt", recursive=True))
+env.Clean(tests, glob("bin/**/*.txt", recursive=True))
 env.Clean(libsmek, glob("bin/**/libSMEK*", recursive=True))
 env.Clean(docs, "docs/index.html")
 env.Clean(assets, glob("bin/**/assets*.bin"))

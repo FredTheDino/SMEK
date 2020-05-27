@@ -1,5 +1,7 @@
 #include <cstdio>
 #include <stdexcept>
+#include <cstring>
+#include <cstdlib>
 
 #include "util/color.h"
 
@@ -38,29 +40,52 @@ void TestSuite::add(Test test) {
     tests[num_tests++] = test;
 }
 
-int main() { // Test entry point
-    return _global_tests.run();
+int main(int argc, char **argv) { // Test entry point
+#define ARGUMENT(LONG, SHORT) (std::strcmp((LONG), argv[index]) == 0 || std::strcmp((SHORT), argv[index]) == 0)
+    bool ci = false;
+    bool write_report = false;
+    const char *report_path = "report.txt";
+    for (int index = 1; index < argc; index++) {
+        if ARGUMENT("--help", "-h") {
+            //TODO(gu)
+            std::printf("Usage:\n");
+            return 0;
+        } else if ARGUMENT("--ci", "-c") {
+            ci = true;
+        } else if ARGUMENT("--report", "-r") {
+            write_report = true;
+        } else if ARGUMENT("--report-path", "-p") {
+            write_report = true;
+            report_path = argv[++index];
+        } else {
+            ERROR("Unknown command line argument '%s'", argv[index]);
+        }
+    }
+#undef ARGUMENT
+    return _global_tests.run(ci, write_report, report_path);
 }
 
 #define STREAM stderr
-#ifdef CI
-#define PRE ""
-#define POST "\n"
-#else
-#define PRE CLEAR "\r"
-#define POST "\r"
-#endif
 
-unsigned int TestSuite::run() {
-    //TODO(gu) command line flag
+unsigned int TestSuite::run(bool ci, bool write_report, const char *path) {
     FILE *report;
-#ifdef REPORT
-    report = std::fopen("report.txt", "w");  // TODO(gu) absolute path
-    if (!report)
-        std::fprintf(STREAM, "Unable to open report\n");
-#else
-    report = nullptr;
-#endif
+    if (write_report) {
+        report = std::fopen(path, "w");
+        if (!report) {
+            std::fprintf(STREAM, "Unable to open report\n");
+        }
+    } else {
+        report = nullptr;
+    }
+    
+    const char *PRE, *POST;
+    if (ci) {
+        PRE = "";
+        POST = "\n";
+    } else {
+        PRE = CLEAR "\r";
+        POST = "\r";
+    }
 
     std::fprintf(STREAM, "Running %d tests\n", num_tests);
     unsigned int succeeded = 0;
@@ -68,7 +93,7 @@ unsigned int TestSuite::run() {
     for (unsigned int i = 0; i < num_tests; i++) {
         GameState state = {};
         _test_gs = &state;
-        std::fprintf(STREAM, PRE "%02d: %s" POST, i+1, tests[i].name);
+        std::fprintf(STREAM, "%s%02d: %s%s", PRE, i+1, tests[i].name, POST);
         LOG_TESTS("%02d: %s", i+1, tests[i].name);
         bool success = false;
         try {
@@ -78,12 +103,12 @@ unsigned int TestSuite::run() {
             succeeded++;
             LOG_TESTS("'%s' succeeded at %s @ %d\n", tests[i].name, tests[i].file, tests[i].line);
         } else {
-            std::fprintf(STREAM, PRE BOLDRED "| %s" RESET " failed (%s @ %d)\n",
-                         tests[i].name, tests[i].file, tests[i].line);
+            std::fprintf(STREAM, "%s" BOLDRED "| %s" RESET " failed (%s @ %d)\n",
+                         PRE, tests[i].name, tests[i].file, tests[i].line);
             LOG_TESTS("'%s' failed at %s @ %d\n", tests[i].name, tests[i].file, tests[i].line);
         }
     }
-    std::fprintf(STREAM, PRE);
+    std::fprintf(STREAM, "%s", PRE);
 
     std::fprintf(STREAM, GREEN "Passed: " RESET "%d\n", succeeded);
     if (succeeded != num_tests)
