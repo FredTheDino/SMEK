@@ -8,6 +8,7 @@ namespace GFX {
 Camera Camera::init(f32 fov) {
     Camera cam = {};
     cam.set_fov(fov);
+    cam.set_aspect_ratio(f32(GAMESTATE()->renderer.width) / GAMESTATE()->renderer.height);
     cam.up = Vec3(0, 1, 0);
     cam.rotation = H::from(Vec3(1.0, 0.0, 0.0), 0.0);
     cam.position = Vec3(0, 0, 0);
@@ -15,7 +16,13 @@ Camera Camera::init(f32 fov) {
 }
 
 void Camera::set_fov(f32 fov) {
-    perspective = Mat::perspective(fov, 0.01, 10.0);
+    dirty_perspective = true;
+    this->fov = fov;
+}
+
+void Camera::set_aspect_ratio(f32 aspect_ratio) {
+    dirty_perspective = true;
+    this->aspect_ratio = aspect_ratio;
 }
 
 void Camera::look_at_from(Vec3 from, Vec3 target) {
@@ -42,6 +49,8 @@ void Camera::move_relative(Vec3 movement) {
 
 template<>
 void Camera::upload(const MasterShader &shader) {
+    if (dirty_perspective)
+        perspective = Mat::perspective(fov, aspect_ratio, 0.01, 10.0);
     shader.upload_proj(perspective);
     Mat view = (Mat::translate(position) * Mat::from(rotation)).invert();
     shader.upload_view(view);
@@ -287,6 +296,9 @@ bool init(GameState *gs, int width, int height) {
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+
+    gs->renderer.width = width;
+    gs->renderer.height = height;
 
     gs->window = SDL_CreateWindow("SMEK - The new begining",
             SDL_WINDOWPOS_UNDEFINED,

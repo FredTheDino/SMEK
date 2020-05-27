@@ -23,7 +23,7 @@ void init_game(GameState *gamestate) {
     _global_gs = gamestate;
     Asset::load("assets.bin");
 
-    GFX::init(GAMESTATE(), 600, 600);
+    GFX::init(GAMESTATE(), 600, 400);
 
     *GFX::main_camera() = GFX::Camera::init();
     GFX::main_camera()->position = Vec3(0.0, 0.2, 0.0);
@@ -70,8 +70,6 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
 
     GFX::MasterShader shader = GFX::master_shader();
     shader.upload_t(time);
-
-    Mat proj_matrix = Mat::perspective(PI / 3, 0.01, 3.0);
 
     Vec3 move = {Input::value(Ac::MoveX), 0, Input::value(Ac::MoveZ)};
     Vec2 turn = Input::mouse_move();
