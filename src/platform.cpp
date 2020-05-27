@@ -10,6 +10,8 @@
 #include <unordered_map>
 #include <mutex>
 #include <csignal>
+#include <cstring>
+#include <cstdlib>
 
 // Returns the length of a statically allocated list.
 #define LEN(a) (sizeof(a) / sizeof(a[0]))
@@ -35,12 +37,17 @@ GameState game_state;
 Audio::AudioStruct platform_audio_struct = {};
 
 std::mutex m_reload_lib;
+bool hot_reload_active = true;
 bool reload_lib = false;
 
 void signal_handler (int signal) {
-    m_reload_lib.lock();
-    reload_lib = true;
-    m_reload_lib.unlock();
+    if (hot_reload_active) {
+        m_reload_lib.lock();
+        reload_lib = true;
+        m_reload_lib.unlock();
+    } else {
+        WARN("Ignoring USR1");
+    }
 }
 
 bool load_gamelib() {
@@ -209,7 +216,27 @@ void platform_audio_init() {
 
 #ifndef TESTS
 #include "util/log.cpp" // I know, just meh.
-int main() { // Game entrypoint
+int main(int argc, char **argv) { // Game entrypoint
+#define ARGUMENT(LONG, SHORT) (std::strcmp((LONG), argv[index]) == 0 || std::strcmp((SHORT), argv[index]) == 0)
+    int width = 500;
+    int height = 500;
+    for (int index = 1; index < argc; index++) {
+        if ARGUMENT("--help", "-h") {
+            //TODO(gu)
+            std::printf("Usage: SMEK [--help] [--resolution <width> <height>]\n"
+                        "            [--no-reload]\n");
+            return 0;
+        } else if ARGUMENT("--resolution", "-r") {
+            width = std::atoi(argv[++index]);
+            height = std::atoi(argv[++index]);
+        } else if ARGUMENT("--no-reload", "-R") {
+            hot_reload_active = false;
+        } else {
+            ERROR("Unknown command line argument '%s'", argv[index]);
+        }
+    }
+#undef ARGUMENT
+
     m_reload_lib.lock();
     reload_lib = true;
     m_reload_lib.unlock();
@@ -225,7 +252,7 @@ int main() { // Game entrypoint
     game_state.input.rebind_func = platform_rebind;
     game_state.input.bind_func = platform_bind;
 
-    game_lib.init(&game_state);
+    game_lib.init(&game_state, width, height);
     platform_audio_init();
     game_state.audio_struct = &platform_audio_struct;
 

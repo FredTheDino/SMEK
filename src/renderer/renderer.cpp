@@ -328,7 +328,7 @@ bool init(GameState *gs, int width, int height) {
     gs->renderer.master_shader = MasterShader::init();
     gs->renderer.debug_shader = DebugShader::init();
 
-    gs->renderer.primitivs.push_back(DebugPrimitv::init());
+    gs->renderer.primitives.push_back(DebugPrimitive::init());
     return true;
 }
 
@@ -350,7 +350,7 @@ void deinit(GameState *gs) {
     SDL_Quit();
 }
 
-DebugPrimitv DebugPrimitv::init() {
+DebugPrimitive DebugPrimitive::init() {
     u32 vao, vbo;
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
@@ -358,8 +358,7 @@ DebugPrimitv DebugPrimitv::init() {
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     static u32 calls = 0;
-    LOG("Inits: %d", calls++);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(DebugPrimitv::Vertex) * VERTS_PER_BUFFER, nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(DebugPrimitive::Vertex) * VERTS_PER_BUFFER, nullptr, GL_DYNAMIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, position));
@@ -368,7 +367,7 @@ DebugPrimitv DebugPrimitv::init() {
     glVertexAttribPointer(3, 4, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, color));
     glBindVertexArray(0);
 
-    DebugPrimitv d = {};
+    DebugPrimitive d = {};
     d.vao = vao;
     d.vbo = vbo;
     d.buffer = new Vertex[VERTS_PER_BUFFER];
@@ -376,7 +375,7 @@ DebugPrimitv DebugPrimitv::init() {
 }
 
 
-bool DebugPrimitv::push_triangle(Vertex v1, Vertex v2, Vertex v3) {
+bool DebugPrimitive::push_triangle(Vertex v1, Vertex v2, Vertex v3) {
     if (size + 3 >= VERTS_PER_BUFFER) return false;
     buffer[size++] = v1;
     buffer[size++] = v2;
@@ -384,9 +383,9 @@ bool DebugPrimitv::push_triangle(Vertex v1, Vertex v2, Vertex v3) {
     return true;
 }
 
-void DebugPrimitv::draw() {
+void DebugPrimitive::draw() {
     if (size == 0) return;
-    ASSERT(size % 3 == 0, "Reached invalid state for this debug primitv");
+    ASSERT(size % 3 == 0, "Reached invalid state for this debug primitive");
 
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -403,22 +402,22 @@ void DebugPrimitv::draw() {
     glBindVertexArray(0);
 }
 
-void DebugPrimitv::clear() {
+void DebugPrimitive::clear() {
     size = 0;
 }
 
 void push_debug_triangle(Vec3 p1, Vec4 c1, Vec3 p2, Vec4 c2, Vec3 p3, Vec4 c3) {
     Renderer *renderer = &GAMESTATE()->renderer;
-    while (!renderer->primitivs[renderer->first_empty].push_triangle({p1, c1}, {p2, c2}, {p3, c3})) {
-        if (++renderer->first_empty == renderer->primitivs.size())
-            renderer->primitivs.push_back(DebugPrimitv::init());
+    while (!renderer->primitives[renderer->first_empty].push_triangle({p1, c1}, {p2, c2}, {p3, c3})) {
+        if (++renderer->first_empty == renderer->primitives.size())
+            renderer->primitives.push_back(DebugPrimitive::init());
     }
 }
 
 void draw_primitivs() {
     main_camera()->upload(debug_shader());
-    std::vector<DebugPrimitv> *primitivs = &GAMESTATE()->renderer.primitivs;
-    for (DebugPrimitv &p : *primitivs) {
+    std::vector<DebugPrimitive> *primitives = &GAMESTATE()->renderer.primitives;
+    for (DebugPrimitive &p : *primitives) {
         p.draw();
         p.clear();
     }

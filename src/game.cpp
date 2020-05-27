@@ -19,11 +19,15 @@ GameState *GAMESTATE() { return _global_gs; }
 GFX::Mesh mesh;
 GFX::Texture texture;
 
-void init_game(GameState *gamestate) {
+void init_game(GameState *gamestate, int width, int height) {
     _global_gs = gamestate;
     Asset::load("assets.bin");
 
-    GFX::init(GAMESTATE(), 600, 400);
+
+    GFX::init(GAMESTATE(), width, height);
+
+        _test_gs = &state;
+      
 
     *GFX::main_camera() = GFX::Camera::init();
     GFX::main_camera()->position = Vec3(0.0, 0.2, 0.0);
