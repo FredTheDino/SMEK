@@ -47,6 +47,45 @@ void Camera::upload(const MasterShader &shader) {
     shader.upload_view(view);
 }
 
+template<>
+void Camera::upload(const DebugShader &shader) {
+    shader.upload_proj(perspective);
+    Mat view = (Mat::translate(position) * Mat::from(rotation)).invert();
+    shader.upload_view(view);
+}
+
+const Vec4 color_list[] = {
+    Vec4(1.0, 0.0, 1.0, 1.0),
+    Vec4(115, 63, 155, 255) / 255.0,
+    Vec4(68, 73, 163, 255) / 255.0,
+    Vec4(61, 120, 157, 255) / 255.0,
+    Vec4(51, 102, 97, 255) / 255.0,
+    Vec4(155, 126, 63, 255) / 255.0,
+    Vec4(163, 74, 68, 255) / 255.0,
+    Vec4(158, 61, 109, 255) / 255.0,
+    Vec4(102, 51, 101, 255) / 255.0,
+};
+
+Vec4 color(u32 index) {
+    ASSERT(index < LEN(color_list), "Trying to fetch color that doesn't exist");
+    return color_list[index];
+}
+
+void push_line(Vec3 a, Vec3 b, Vec4 color, f32 width) {
+    push_line(a, b, color, color, width);
+}
+
+void push_line(Vec3 a, Vec3 b, Vec4 a_color, Vec4 b_color, f32 width) {
+    Vec3 sideways = normalized(cross(a - b, Vec3(0.0, 1.0))) * width;
+    Vec3 p1, p2, p3, p4;
+    p1 = a + sideways;
+    p2 = a - sideways;
+    p3 = b + sideways;
+    p4 = b - sideways;
+    push_debug_triangle(p1, a_color, p2, a_color, p3, b_color);
+    push_debug_triangle(p2, a_color, p3, b_color, p4, b_color);
+}
+
 Mesh Mesh::init(Asset::Model *model) {
     using Asset::Vertex;
     u32 vao, vbo;
@@ -66,6 +105,7 @@ Mesh Mesh::init(Asset::Model *model) {
 
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, normal));
+    glBindVertexArray(0);
 
     return {vao, vbo, model->num_faces * 3};;
 }
@@ -114,8 +154,31 @@ MasterShader master_shader() {
     return GAMESTATE()->renderer.master_shader;
 }
 
+DebugShader debug_shader() {
+    return GAMESTATE()->renderer.debug_shader;
+}
+
+Camera *main_camera() {
+    return &GAMESTATE()->renderer.main_camera;
+}
+
+DebugShader DebugShader::init() {
+    DebugShader shader;
+    shader.program_id = Shader::compile("DEBUG_SHADER").program_id;
+
+    FETCH_SHADER_PROP(proj);
+    FETCH_SHADER_PROP(view);
+    FETCH_SHADER_PROP(model);
+
+    return shader;
+}
+
+MAT_SHADER_PROP(DebugShader, proj);
+MAT_SHADER_PROP(DebugShader, view);
+MAT_SHADER_PROP(DebugShader, model);
+
 Shader Shader::compile(AssetID source_id) {
-    const char *source = Asset::fetch_shader("MASTER_SHADER")->data;
+    const char *source = Asset::fetch_shader(source_id)->data;
     auto shader_error_check = [](u32 shader) -> bool {
         i32 success;
         glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
@@ -251,6 +314,9 @@ bool init(GameState *gs, int width, int height) {
     SDL_GL_SwapWindow(gs->window);
 
     gs->renderer.master_shader = MasterShader::init();
+    gs->renderer.debug_shader = DebugShader::init();
+
+    gs->renderer.primitives.push_back(DebugPrimitive::init());
     return true;
 }
 
@@ -270,6 +336,80 @@ void deinit(GameState *gs) {
     SDL_GL_DeleteContext(gs->gl_context);
 
     SDL_Quit();
+}
+
+DebugPrimitive DebugPrimitive::init() {
+    u32 vao, vbo;
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    static u32 calls = 0;
+    glBufferData(GL_ARRAY_BUFFER, sizeof(DebugPrimitive::Vertex) * VERTS_PER_BUFFER, nullptr, GL_DYNAMIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, position));
+
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 4, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, color));
+    glBindVertexArray(0);
+
+    DebugPrimitive d = {};
+    d.vao = vao;
+    d.vbo = vbo;
+    d.buffer = new Vertex[VERTS_PER_BUFFER];
+    return d;
+}
+
+
+bool DebugPrimitive::push_triangle(Vertex v1, Vertex v2, Vertex v3) {
+    if (size + 3 >= VERTS_PER_BUFFER) return false;
+    buffer[size++] = v1;
+    buffer[size++] = v2;
+    buffer[size++] = v3;
+    return true;
+}
+
+void DebugPrimitive::draw() {
+    if (size == 0) return;
+    ASSERT(size % 3 == 0, "Reached invalid state for this debug primitive");
+
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, size * sizeof(Vertex), buffer);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, position));
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 4, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, color));
+
+    glPointSize(10.0);
+    glDrawArrays(GL_TRIANGLES, 0, size);
+    glBindVertexArray(0);
+}
+
+void DebugPrimitive::clear() {
+    size = 0;
+}
+
+void push_debug_triangle(Vec3 p1, Vec4 c1, Vec3 p2, Vec4 c2, Vec3 p3, Vec4 c3) {
+    Renderer *renderer = &GAMESTATE()->renderer;
+    while (!renderer->primitives[renderer->first_empty].push_triangle({p1, c1}, {p2, c2}, {p3, c3})) {
+        if (++renderer->first_empty == renderer->primitives.size())
+            renderer->primitives.push_back(DebugPrimitive::init());
+    }
+}
+
+void draw_primitivs() {
+    main_camera()->upload(debug_shader());
+    std::vector<DebugPrimitive> *primitives = &GAMESTATE()->renderer.primitives;
+    for (DebugPrimitive &p : *primitives) {
+        p.draw();
+        p.clear();
+    }
+    GAMESTATE()->renderer.first_empty = 0;
 }
 
 } // namespace GFX

@@ -96,6 +96,15 @@ struct MasterShader: public Shader {
     static MasterShader init();
 };
 
+struct DebugShader: public Shader {
+    MAT_SHADER_PROP(proj);
+    MAT_SHADER_PROP(view);
+    MAT_SHADER_PROP(model);
+
+    static DebugShader init();
+};
+
+
 #undef F32_SHADER_PROP
 #undef U32_SHADER_PROP
 #undef MAT_SHADER_PROP
@@ -114,10 +123,47 @@ struct Texture {
     static Texture upload(Asset::Image *image, Sampling sampling);
 };
 
+///*
+// Fetches the master shader.
 MasterShader master_shader();
 
+///*
+// Fetches the master shader.
+DebugShader debug_shader();
+
+///*
+// Fetches the master shader.
+Camera *main_camera();
+
+struct DebugPrimitive {
+    struct Vertex {
+        Vec3 position;
+        Vec4 color;
+    };
+    static const u32 VERTS_PER_BUFFER = 300;
+
+    static DebugPrimitive init();
+
+    void clear();
+
+    bool push_triangle(Vertex v1, Vertex v2, Vertex v3);
+
+    void draw();
+
+    u32 vao, vbo;
+
+    u32 size;
+    Vertex *buffer;
+};
+
 struct Renderer {
+    Camera main_camera;
+
     MasterShader master_shader;
+    DebugShader debug_shader;
+
+    u32 first_empty;
+    std::vector<DebugPrimitive> primitives;
 };
 
 ///*
@@ -132,5 +178,22 @@ bool reload(GameState *gs);
 ///*
 // Destroy the graphics pipeline.
 void deinit(GameState *gs);
+
+///*
+// Returns a nice color, garanteed to match other
+// colors returned from here.
+Vec4 color(u32 index=0);
+
+///*
+// Draws a line form A to B, in the given color.
+void push_line(Vec3 a, Vec3 b, Vec4 color=color(), f32 width=0.1);
+void push_line(Vec3 a, Vec3 b, Vec4 a_color, Vec4 b_color, f32 width=0.1);
+
+///*
+// Adds one triangle to be drawn during
+// the debug render call.
+void push_debug_triangle(Vec3 p1, Vec4 c1, Vec3 p2, Vec4 c2, Vec3 p3, Vec4 c3);
+
+void draw_primitivs();
 
 } // namespace GFX

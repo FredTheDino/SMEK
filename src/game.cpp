@@ -18,13 +18,15 @@ GameState *GAMESTATE() { return _global_gs; }
 
 GFX::Mesh mesh;
 GFX::Texture texture;
-GFX::Camera camera;
 
 void init_game(GameState *gamestate, int width, int height) {
     _global_gs = gamestate;
     Asset::load("assets.bin");
 
     GFX::init(GAMESTATE(), width, height);
+
+    *GFX::main_camera() = GFX::Camera::init();
+    GFX::main_camera()->position = Vec3(0.0, 0.2, 0.0);
 
     GAMESTATE()->running = true;
 
@@ -46,7 +48,6 @@ void reload_game(GameState *game) {
 
     mesh = GFX::Mesh::init(Asset::fetch_model("MONKEY"));
     texture = GFX::Texture::upload(Asset::fetch_image("RGBA"), GFX::Texture::Sampling::NEAREST);
-    camera = GFX::Camera::init();
 
     game->audio_struct->lock();
     Audio::SoundSource test_source = game->audio_struct->sources[0];
@@ -71,18 +72,27 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
     shader.upload_t(time);
 
     Mat proj_matrix = Mat::perspective(PI / 3, 0.01, 3.0);
-    shader.upload_proj(proj_matrix);
 
     Vec3 move = {Input::value(Ac::MoveX), 0, Input::value(Ac::MoveZ)};
     Vec2 turn = Input::mouse_move();
     move = move * 0.01;
     turn = turn * 0.01;
-    camera.turn(turn.y, turn.x);
-    camera.move_relative(move);
-    camera.upload(shader);
+    GFX::main_camera()->turn(turn.y, turn.x);
+    GFX::main_camera()->move_relative(move);
 
+
+    const i32 grid_size = 10;
+    const f32 width = 0.03;
+    const Vec4 color = GFX::color(1);
+    for (f32 x = 0; x <= grid_size; x += 0.5) {
+        GFX::push_line(Vec3(x, 0, grid_size), Vec3(x, 0, -grid_size), color, width);
+        GFX::push_line(Vec3(-x, 0, grid_size), Vec3(-x, 0, -grid_size), color, width);
+        GFX::push_line(Vec3(grid_size, 0, x), Vec3(-grid_size, 0, x), color, width);
+        GFX::push_line(Vec3(grid_size, 0, -x), Vec3(-grid_size, 0, -x), color, width);
+    }
 
     shader.use();
+    GFX::main_camera()->upload(shader);
 
     texture.bind(0);
     shader.upload_tex(0);
@@ -101,10 +111,14 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
 
     ImGui::Begin("Hello, world!");
     if (ImGui::Button("Reset camera"))
-        camera = GFX::Camera::init();
+        *GFX::main_camera() = GFX::Camera::init();
     // ImGui::DragFloat3("pos.", (float *) &from, 0.01);
     // ImGui::DragFloat3("rot.", (float *) &rotation, 0.01);
     ImGui::End();
+
+    GFX::debug_shader().use();
+    GFX::main_camera()->upload(GFX::debug_shader());
+    GFX::draw_primitivs();
 
 
     return *game;
