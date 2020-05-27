@@ -89,7 +89,7 @@ real atan(real a);
 real atan2(real x, real y);
 
 ///*
-// Copies the siogn from
+// Copies the sign from y to x.
 real copysign(real x, real y);
 
 ///*
