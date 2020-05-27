@@ -11,6 +11,7 @@
 #include <mutex>
 #include <csignal>
 #include <cstring>
+#include <cstdlib>
 
 // Returns the length of a statically allocated list.
 #define LEN(a) (sizeof(a) / sizeof(a[0]))
@@ -212,14 +213,16 @@ void platform_audio_init() {
 #include "util/log.cpp" // I know, just meh.
 int main(int argc, char **argv) { // Game entrypoint
 #define ARGUMENT(LONG, SHORT) (std::strcmp((LONG), argv[index]) == 0 || std::strcmp((SHORT), argv[index]) == 0)
+    int width = 500;
+    int height = 500;
     for (int index = 1; index < argc; index++) {
         if ARGUMENT("--help", "-h") {
             //TODO(gu)
             std::printf("Usage:\n");
             return 0;
         } else if ARGUMENT("--resolution", "-r") {
-            //TODO(gu)
-            index += 2;
+            width = std::atoi(argv[++index]);
+            height = std::atoi(argv[++index]);
         } else {
             ERROR("Unknown command line argument '%s'", argv[index]);
         }
@@ -241,7 +244,7 @@ int main(int argc, char **argv) { // Game entrypoint
     game_state.input.rebind_func = platform_rebind;
     game_state.input.bind_func = platform_bind;
 
-    game_lib.init(&game_state);
+    game_lib.init(&game_state, width, height);
     platform_audio_init();
     game_state.audio_struct = &platform_audio_struct;
 

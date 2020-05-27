@@ -29,8 +29,8 @@ GameState *GAMESTATE();
 // Initalizes the game by setting up the renderer and
 // things like that. The gamestate is expected to have
 // a GLContext on it.
-extern "C" void init_game(GameState *gamestate);
-typedef void(*GameInitFunc)(GameState *);
+extern "C" void init_game(GameState *gamestate, int width, int height);
+typedef void(*GameInitFunc)(GameState *, int, int);
 
 enum class GameStateUpdateMode {
     RENDER,

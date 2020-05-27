@@ -20,11 +20,11 @@ GFX::Mesh mesh;
 GFX::Texture texture;
 GFX::Camera camera;
 
-void init_game(GameState *gamestate) {
+void init_game(GameState *gamestate, int width, int height) {
     _global_gs = gamestate;
     Asset::load("assets.bin");
 
-    GFX::init(GAMESTATE(), 600, 600);
+    GFX::init(GAMESTATE(), width, height);
 
     GAMESTATE()->running = true;
 
