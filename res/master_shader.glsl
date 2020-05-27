@@ -6,9 +6,9 @@ uniform mat4 model;
 uniform sampler2D tex;
 
 #ifdef VERT
-in vec3 pos;
-in vec2 uv;
-in vec3 norm;
+layout(location=0) in vec3 pos;
+layout(location=1) in vec2 uv;
+layout(location=2) in vec3 norm;
 
 out vec2 pass_uv;
 out vec3 pass_norm;

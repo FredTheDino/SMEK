@@ -123,7 +123,17 @@ struct Texture {
     static Texture upload(Asset::Image *image, Sampling sampling);
 };
 
+///*
+// Fetches the master shader.
 MasterShader master_shader();
+
+///*
+// Fetches the master shader.
+DebugShader debug_shader();
+
+///*
+// Fetches the master shader.
+Camera *main_camera();
 
 struct DebugPrimitv {
     struct Vertex {
@@ -147,9 +157,12 @@ struct DebugPrimitv {
 };
 
 struct Renderer {
+    Camera main_camera;
+
     MasterShader master_shader;
     DebugShader debug_shader;
 
+    u32 first_empty;
     std::vector<DebugPrimitv> primitivs;
 };
 
