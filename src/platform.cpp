@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <mutex>
 #include <csignal>
+#include <cstring>
 
 // Returns the length of a statically allocated list.
 #define LEN(a) (sizeof(a) / sizeof(a[0]))
@@ -209,7 +210,22 @@ void platform_audio_init() {
 
 #ifndef TESTS
 #include "util/log.cpp" // I know, just meh.
-int main() { // Game entrypoint
+int main(int argc, char **argv) { // Game entrypoint
+#define ARGUMENT(LONG, SHORT) (std::strcmp((LONG), argv[index]) == 0 || std::strcmp((SHORT), argv[index]) == 0)
+    for (int index = 1; index < argc; index++) {
+        if ARGUMENT("--help", "-h") {
+            //TODO(gu)
+            std::printf("Usage:\n");
+            return 0;
+        } else if ARGUMENT("--resolution", "-r") {
+            //TODO(gu)
+            index += 2;
+        } else {
+            ERROR("Unknown command line argument '%s'", argv[index]);
+        }
+    }
+#undef ARGUMENT
+
     m_reload_lib.lock();
     reload_lib = true;
     m_reload_lib.unlock();
