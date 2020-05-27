@@ -108,6 +108,7 @@ Depends(tests, tests_assets)
 
 AlwaysBuild(env.Alias("run", smek, "cd " + smek_dir + "; " + smek[0].abspath))
 AlwaysBuild(env.Alias("tests", tests, "cd " + tests_dir + "; " + tests[0].abspath))
+AlwaysBuild(env.Alias("debug", smek, "cd " + smek_dir + "; " + "gdb " + smek[0].abspath))
 
 docs = env.Alias("docs", "", "docs/doc-builder.py")
 AlwaysBuild(docs)

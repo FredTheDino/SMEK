@@ -5,14 +5,9 @@
 #include "asset.h"
 #include "../game.h"
 
-AssetID AssetID::NONE() {
-    return 0xFFFFFFFF;
-}
-
 AssetID::AssetID(const char *str) {
     *this = Asset::fetch_id(str);
 }
-
 
 namespace Asset {
 
@@ -61,6 +56,10 @@ Shader *fetch_shader(AssetID id) {
 
 Model *fetch_model(AssetID id) {
     return &_raw_fetch(AssetType::MODEL, id)->model;
+}
+
+Sound *fetch_sound(AssetID id) {
+    return &_raw_fetch(AssetType::SOUND, id)->sound;
 }
 
 //TODO(gu) re-implement
@@ -118,6 +117,12 @@ void load(const char *path) {
             u32 size = data_ptr->shader.size;
             data_ptr->shader.data = new char[size];
             read<char>(file, data_ptr->shader.data, size);
+        } break;
+        case AssetType::SOUND: {
+            read<Sound>(file, data_ptr);
+            u32 size = data_ptr->sound.num_samples;
+            data_ptr->sound.data = new f32[size];
+            read<f32>(file, data_ptr->sound.data, size);
         } break;
         default:
             ERROR("Unknown asset type %d for id %lu in asset file %s", header.type, asset, path);

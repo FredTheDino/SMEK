@@ -67,6 +67,7 @@ for example, a terminating 0x00.
 import re
 import sys
 import struct
+import wave
 from glob import glob
 from PIL import Image
 from collections import defaultdict
@@ -82,6 +83,7 @@ TYPE_TEXTURE = 1
 TYPE_STRING = 2
 TYPE_MODEL = 3
 TYPE_SHADER = 4
+TYPE_SOUND = 5
 
 
 def ll(x):
@@ -237,12 +239,64 @@ def model_asset(path, verbose):
     return header, struct.pack(fmt, points_per_face, num_faces, 0, *data)
 
 
+def wav_asset(path, verbose):
+    """Load a .wav-file.
+
+    Data format:
+    - I  Channels
+    - I  Sample rate
+    - I  Number of samples
+    - P  Data pointer
+    - f> Data
+    """
+    with wave.open(path, "rb") as file:
+        sample_rate = file.getframerate()
+        sample_width = file.getsampwidth()
+        channels = file.getnchannels()
+
+        def read_frames(fmt, size_bytes):
+            data = []
+
+            if fmt.isupper():
+                sign_bit = 0
+                sign_mov = 0.5
+            else:
+                sign_bit = 1
+                sign_mov = 0
+
+            div = 2**(8 * size_bytes - sign_bit) - 1
+
+            frames = file.readframes(file.getnframes())
+            if channels == 2:
+                data = struct.unpack("{}{}".format(file.getnframes()*2, fmt), frames)
+            elif channels == 1:
+                data = struct.unpack("{}{}".format(file.getnframes(), fmt), frames)
+            else:
+                print("Unsupport number of channels ({}) in file '{}'".format(channels, path))
+                sys.exit(1)
+
+            return [d/div - sign_mov for d in data]
+
+        types = { 1: "B", 2: "h", 4: "i" }
+        if sample_width not in types:
+            print("Unsupported bit depth {} for file '{}'", 8*sample_width, path)
+            sys.exit(1)
+
+        data = read_frames(types[sample_width], sample_width)
+        fmt = "IIIP{}f".format(len(data))
+        header = default_header()
+        header["type"] = TYPE_SOUND
+        header["data_size"] = struct.calcsize(fmt)
+        return header, struct.pack(fmt, channels, sample_rate, len(data), 0, *data)
+
+
 EXTENSIONS = {
     "png": sprite_asset,
     "jpg": sprite_asset,
     "txt": string_asset,
     "glsl": shader_asset,
     "obj": model_asset,
+    "wav": wav_asset,
 }
 
 
@@ -271,6 +325,8 @@ def pack(asset_files, out_file, verbose=False):
             name_hash = hash_string(name)
             if verbose:
                 print(f"{name} ({name_hash})")
+            else:
+                print(name)
             if name_hash in seen_name_hashes:
                 print(f"\nName hash collision! ({name})")
                 sys.exit(1)

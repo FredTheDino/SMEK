@@ -13,6 +13,8 @@
 
 // Returns the length of a statically allocated list.
 #define LEN(a) (sizeof(a) / sizeof(a[0]))
+#include "math/smek_math.h"
+#include "audio.h"
 
 // This is very UNIX-y
 #include <dlfcn.h>
@@ -21,12 +23,16 @@ struct GameLibrary {
     GameInitFunc init;
     GameReloadFunc reload;
     GameUpdateFunc update;
+    AudioCallbackFunc audio_callback;
 
     void *handle;
 
     int last_time;
     int reload_frame_delay;
 } game_lib = {};
+
+GameState game_state;
+Audio::AudioStruct platform_audio_struct = {};
 
 std::mutex m_reload_lib;
 bool reload_lib = false;
@@ -66,7 +72,7 @@ bool load_gamelib() {
     }
     dlclose(tmp); // If it isn't unloaded here, the same library is loaded.
 
-    // TODO(ed): Add locks in when they are needed
+    platform_audio_struct.lock();
     if (game_lib.handle) { dlclose(game_lib.handle); }
 
     void *lib = dlopen(path, RTLD_NOW);
@@ -87,6 +93,11 @@ bool load_gamelib() {
     if (!game_lib.update) {
         UNREACHABLE("Failed to load \"reload_game\" (%s)", dlerror());
     }
+    game_lib.audio_callback = (AudioCallbackFunc) dlsym(lib, "audio_callback");
+    if (!game_lib.audio_callback) {
+        UNREACHABLE("Failed to load \"audio_callback\" (%s)", dlerror());
+    }
+    platform_audio_struct.unlock();
 
     return true;
 }
@@ -164,6 +175,38 @@ void platform_bind(Ac action, u32 slot, u32 button, f32 value) {
     global_input.bind(action, slot, button, value);
 }
 
+void platform_audio_callback(void *userdata, u8 *stream, int len) {
+    f32 *f_stream = (f32 *) stream;
+    Audio::AudioStruct *audio_struct_ptr = (Audio::AudioStruct *) userdata;
+    game_lib.audio_callback(audio_struct_ptr, f_stream, len);
+}
+
+void platform_audio_init() {
+    platform_audio_struct = {};
+
+    SDL_AudioSpec want = {};
+    want.freq = 48000;
+    want.format = AUDIO_F32;
+    want.samples = 2048;
+    want.channels = 2;
+    want.callback = platform_audio_callback;
+    want.userdata = (void *) &platform_audio_struct;
+
+    SDL_AudioSpec have;
+    platform_audio_struct.dev = SDL_OpenAudioDevice(nullptr, 0, &want, &have, 0);
+    if (platform_audio_struct.dev <= 0) {
+        UNREACHABLE("Unable to initialize audio (%s)", SDL_GetError());
+    }
+    CHECK(have.freq == want.freq, "Got different sample rate %d", have.freq);
+    ASSERT(have.format == want.format, "Got wrong format %d", have.format);
+    ASSERT(have.channels == want.channels, "Got wrong amount of channels %d", have.channels);
+
+    platform_audio_struct.sample_rate = have.freq;
+    platform_audio_struct.active = true;
+
+    SDL_PauseAudioDevice(platform_audio_struct.dev, 0);
+}
+
 #ifndef TESTS
 #include "util/log.cpp" // I know, just meh.
 int main() { // Game entrypoint
@@ -174,13 +217,17 @@ int main() { // Game entrypoint
     if (!load_gamelib()) {
         UNREACHABLE("Failed to load the linked library the first time!");
     }
-    GameState gs;
-    gs.input.mouse_capture = false;
-    gs.input.rebind_func = platform_rebind;
-    gs.input.bind_func = platform_bind;
+    game_state = {};
+    game_state.input.mouse_capture = false;
+    game_state.input.rebind_func = platform_rebind;
+    game_state.input.bind_func = platform_bind;
 
-    game_lib.init(&gs);
-    game_lib.reload(&gs);
+    game_state.input.rebind_func = platform_rebind;
+    game_state.input.bind_func = platform_bind;
+
+    game_lib.init(&game_state);
+    platform_audio_init();
+    game_state.audio_struct = &platform_audio_struct;
 
     // IMGUI
     const char* glsl_version = "#version 330";
@@ -194,22 +241,23 @@ int main() { // Game entrypoint
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     ImGui::StyleColorsDark();
     //ImGui::StyleColorsClassic();
-    ImGui_ImplSDL2_InitForOpenGL(gs.window, gs.gl_context);
+    ImGui_ImplSDL2_InitForOpenGL(game_state.window, game_state.gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
+    game_lib.reload(&game_state);
 
     int frame = 0;
     const int RELOAD_TIME = 1; // Set this to a higher number to prevent constant disk-checks.
 
     std::signal(SIGUSR1, signal_handler);
 
-    while (gs.running) {
+    while (game_state.running) {
         // Check for reloading of library
         if (++frame == RELOAD_TIME) {
             frame = 0;
             if (load_gamelib()) {
                 LOG("PLATFORM LAYER RELOAD!");
-                game_lib.reload(&gs);
+                game_lib.reload(&game_state);
             }
         }
 
@@ -220,11 +268,11 @@ int main() { // Game entrypoint
         while (SDL_PollEvent(&event)) {
             ImGui_ImplSDL2_ProcessEvent(&event);
             if (event.type == SDL_QUIT) {
-                gs.running = false;
+                game_state.running = false;
             }
             if (event.type == SDL_WINDOWEVENT) {
                 if (event.window.event == SDL_WINDOWEVENT_CLOSE)
-                    gs.running = false;
+                    game_state.running = false;
             }
             if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
                 if (io.WantCaptureKeyboard) continue;
@@ -245,23 +293,23 @@ int main() { // Game entrypoint
 
 
         for (u32 i = 0; i < (u32) Ac::NUM_ACTIONS; i++) {
-            gs.input.last_frame[i] = gs.input.current_frame[i];
-            gs.input.current_frame[i] = global_input.state[i];
+            game_state.input.last_frame[i] = game_state.input.current_frame[i];
+            game_state.input.current_frame[i] = global_input.state[i];
         }
-        gs.input.mouse_move = global_input.mouse_move;
-        gs.input.mouse_pos = global_input.mouse_pos;
+        game_state.input.mouse_move = global_input.mouse_move;
+        game_state.input.mouse_pos = global_input.mouse_pos;
 
         ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplSDL2_NewFrame(gs.window);
+        ImGui_ImplSDL2_NewFrame(game_state.window);
         ImGui::NewFrame();
 
-        gs = game_lib.update(&gs, GSUM::UPDATE_AND_RENDER);
+        game_state = game_lib.update(&game_state, GSUM::UPDATE_AND_RENDER);
 
-        SDL_SetRelativeMouseMode((SDL_bool) gs.input.mouse_capture);
+        SDL_SetRelativeMouseMode((SDL_bool) game_state.input.mouse_capture);
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        SDL_GL_SwapWindow(gs.window);
+        SDL_GL_SwapWindow(game_state.window);
     }
     return 0;
 }

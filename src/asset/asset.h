@@ -7,8 +7,9 @@
 struct AssetID {
     AssetID(const char *);
     AssetID(u64 id): id(id) {}
+    AssetID(): id(NONE()) {}
 
-    static AssetID NONE();
+    static AssetID NONE() { return 0xFFFFFFFF; }
 
     u64 id;
 
@@ -28,6 +29,7 @@ typedef enum {
     STRING = 2,
     MODEL = 3,
     SHADER = 4,
+    SOUND = 5,
 
     NUM_TYPES,
 } AssetType;
@@ -93,11 +95,20 @@ struct Model {
     Vertex *data;
 };
 
+struct Sound {
+    // read from file
+    u32 channels;
+    u32 sample_rate;
+    u32 num_samples;
+    f32 *data;
+};
+
 union AssetData {
     Image image;
     StringAsset string;
     Shader shader;
     Model model;
+    Sound sound;
 };
 
 // not read directly from file
@@ -148,5 +159,7 @@ Shader *fetch_shader(AssetID id);
 ///*
 // Fetch a 3D-model.
 Model *fetch_model(AssetID id);
+
+Sound *fetch_sound(AssetID id);
 
 }  // namespace Asset
