@@ -48,7 +48,7 @@ struct Mat {
     static Mat rotate(real dx, real dy, real dz);
     static Mat rotate(Vec3 delta);
     static Mat look_at(Vec3 from, Vec3 to, Vec3 up);
-    static Mat perspective(real fov, real near, real far);
+    static Mat perspective(real fov, real aspect_ratio, real near, real far);
 
     static Mat from(H h);
 

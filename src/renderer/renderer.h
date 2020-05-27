@@ -37,11 +37,17 @@ struct Camera {
     Vec3 up;
     Vec3 position;
 
+    f32 aspect_ratio;
+    f32 fov;
+    bool dirty_perspective;
+
     // NOTE(ed): Given in radians.
     static Camera init(f32 fov=PI / 4);
 
     // NOTE(ed): Given in radians.
     void set_fov(f32 fov);
+
+    void set_aspect_ratio(f32 aspect_ratio);
 
     void look_at(Vec3 target);
     void look_at_from(Vec3 from, Vec3 target);
@@ -157,6 +163,9 @@ struct DebugPrimitive {
 };
 
 struct Renderer {
+    u32 width;
+    u32 height;
+
     Camera main_camera;
 
     MasterShader master_shader;
