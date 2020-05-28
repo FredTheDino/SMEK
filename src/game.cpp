@@ -1,4 +1,5 @@
-#include "util/log.h"
+#include "util/util.h"
+#include "util/better_print.h"
 
 #include "game.h"
 #include "test.h"
@@ -58,6 +59,8 @@ void reload_game(GameState *game) {
     test_source.sample = 0;
     game->audio_struct->sources[0] = test_source;
     game->audio_struct->unlock();
+
+    better_print("FMT", 1, 2, 3);
 }
 
 GameState update_game(GameState *game, GSUM mode) { // Game entry point
