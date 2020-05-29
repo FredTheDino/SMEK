@@ -34,14 +34,6 @@ bool _smek_check (const char *file, u32 line, const char *func, bool passed, con
 
 void print_stacktrace(unsigned int max_frames=63);
 
-template<typename... Args>
-void tprint(const char *fmt, Args... to_print);
-
-template<typename... Args>
-u32 sntprint(char *buffer, u32 buf_size, const char *fmt, Args... to_print);
-
-void smek_print(const char *buffer);
-
 #include "tprint.h"
 
 // These have to live here now, because of templates.
