@@ -20,6 +20,8 @@ struct FormatHint {
 char format(char *buffer, FormatHint args, Vec3 a);
 char format(char *buffer, FormatHint args, f64 a);
 char format(char *buffer, FormatHint args, i32 a);
+char format(char *buffer, FormatHint args, u32 a);
+char format(char *buffer, FormatHint args, const char *a);
 
 //
 // Templates to get the length of an argument list. This is

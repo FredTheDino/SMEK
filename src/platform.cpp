@@ -14,7 +14,11 @@
 #include <cstdlib>
 
 // Returns the length of a statically allocated list.
+#ifndef LEN
+
 #define LEN(a) (sizeof(a) / sizeof(a[0]))
+
+#endif
 #include "math/smek_math.h"
 #include "audio.h"
 

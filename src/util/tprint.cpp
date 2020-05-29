@@ -18,6 +18,14 @@ char format(char *buffer, FormatHint args, i32 a) {
     return sprintf(buffer, "%d", a);
 }
 
+char format(char *buffer, FormatHint args, u32 a) {
+    return sprintf(buffer, "%u", a);
+}
+
+char format(char *buffer, FormatHint args, const char *a) {
+    return sprintf(buffer, "%s", a);
+}
+
 u32 parse_format_string(const char **outputs, char *write, FormatHint *hint, u32 num_templates, const char *fmt) {
 #define EAT *(write++) = *(fmt++)
 #define SKIPP fmt++
