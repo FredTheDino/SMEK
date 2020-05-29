@@ -102,32 +102,9 @@ u32 sntprint(char *buffer, u32 buf_size, const char *fmt, Args... to_print);
 
 template<typename... Args>
 void tprint(const char *fmt, Args... to_print) {
-    constexpr u32 num_templates = template_length<Args...>();
-    if (num_templates == 0) {
-        smek_print(fmt);
-        return;
-    }
-    FormatHint hint[num_templates] = {};
-    char *formatted[num_templates] = {};
-    char format_buffer[512] = {}; // Arbitrarily choosen
-
-
-    char write_buffer[512] = {};
-    const char *spaces[num_templates + 1] = {};
-    u32 num_outputs = parse_format_string(spaces, write_buffer, hint, num_templates, fmt);
-    CHECK(num_outputs == num_templates, "Wrong #%{} in fmt string, expected {}, got {} ('{}')",
-                                        num_templates, num_outputs, fmt);
-    if (num_outputs == (u32) -1) return;
-
-    char *ptr = format_buffer;
-    tprint_helper(num_outputs, formatted, &ptr, hint, to_print...);
-    ASSERT((u32) (ptr - format_buffer) < LEN(format_buffer), "Buffer overrun!");
-
-    char final_string[512];
-    u32 written = concatenate_fmt_string_into(final_string, Math::min(num_templates, num_outputs),
-                                              spaces, formatted);
-    ASSERT(written < LEN(final_string), "Buffer overrun!");
-    tprint(final_string);
+    char buffer[512];
+    sntprint(buffer, 512, fmt, to_print...);
+    smek_print(buffer);
 }
 
 template<typename... Args>
