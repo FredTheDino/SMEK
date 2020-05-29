@@ -14,11 +14,27 @@ char format(char *buffer, FormatHint args, f64 a) {
     return sprintf(buffer, "%.*f", args.num_decimals, a);
 }
 
+char format(char *buffer, FormatHint args, u64 a) {
+    return sprintf(buffer, "%lu", a);
+}
+
+char format(char *buffer, FormatHint args, i64 a) {
+    return sprintf(buffer, "%ld", a);
+}
+
 char format(char *buffer, FormatHint args, i32 a) {
     return sprintf(buffer, "%d", a);
 }
 
 char format(char *buffer, FormatHint args, u32 a) {
+    return sprintf(buffer, "%u", a);
+}
+
+char format(char *buffer, FormatHint args, i16 a) {
+    return sprintf(buffer, "%d", a);
+}
+
+char format(char *buffer, FormatHint args, u16 a) {
     return sprintf(buffer, "%u", a);
 }
 

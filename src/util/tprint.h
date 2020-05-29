@@ -19,8 +19,12 @@ struct FormatHint {
 
 char format(char *buffer, FormatHint args, Vec3 a);
 char format(char *buffer, FormatHint args, f64 a);
+char format(char *buffer, FormatHint args, i64 a);
+char format(char *buffer, FormatHint args, u64 a);
 char format(char *buffer, FormatHint args, i32 a);
 char format(char *buffer, FormatHint args, u32 a);
+char format(char *buffer, FormatHint args, i16 a);
+char format(char *buffer, FormatHint args, u16 a);
 char format(char *buffer, FormatHint args, const char *a);
 
 //
@@ -70,6 +74,9 @@ void tprint_helper(int recursion_limit, char **result, char **buffer, FormatHint
 template<>
 void tprint_helper<>(int recursion_limit, char **result, char **buffer, FormatHint *hint);
 
+///*
+// Parses a format string, places where you want the values inserted should be marked with the "{}" token,
+// and arguments for printing are given inside the "{}", so to write out with 3 decimals write "{.3}".
 u32 parse_format_string(const char **outputs, char *write, FormatHint *hint, u32 num_templates, const char *fmt);
 
 ///*
