@@ -89,7 +89,7 @@ void tprint(const char *fmt, Args... to_print);
 template<typename... Args>
 void tprint(const char *fmt, Args... to_print) {
     constexpr u32 num_templates = template_length<Args...>();
-    if (num_templates) {
+    if (num_templates == 0) {
         smek_print(fmt);
         return;
     }
