@@ -36,45 +36,47 @@ void print_stacktrace(unsigned int max_frames=63);
 
 #include "tprint.h"
 
+const LOG_BUFFER_SIZE = 512;
+
 // These have to live here now, because of templates.
 template <typename... Args>
 void _smek_log_err(const char *file, u32 line, const char *func, const char *message, Args... args) {
-    char buffer[512] = {};
+    char buffer[LOG_BUFFER_SIZE] = {};
     u32 len = 0;
-    len += sntprint(buffer, 512, RED "E {}" RESET " @ {} ({}): ", file, line, func);
-    len += sntprint(buffer + len, 512 - len, message, args...);
-    len += sntprint(buffer + len, 512 - len, "\n");
+    len += sntprint(buffer, LOG_BUFFER_SIZE, RED "E {}" RESET " @ {} ({}): ", file, line, func);
+    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
+    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n");
     smek_print(buffer);
 }
 
 template <typename... Args>
 void _smek_log_warn(const char *file, u32 line, const char *func, const char *message, Args... args) {
-    char buffer[512] = {};
+    char buffer[LOG_BUFFER_SIZE] = {};
     u32 len = 0;
-    len += sntprint(buffer, 512, YELLOW "W {}" RESET " @ {} ({}): ", file, line, func);
-    len += sntprint(buffer + len, 512 - len, message, args...);
-    len += sntprint(buffer + len, 512 - len, "\n");
+    len += sntprint(buffer, LOG_BUFFER_SIZE, YELLOW "W {}" RESET " @ {} ({}): ", file, line, func);
+    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
+    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n");
     smek_print(buffer);
 }
 
 template <typename... Args>
 void _smek_log_info(const char *file, u32 line, const char *func, const char *message, Args... args) {
-    char buffer[512] = {};
+    char buffer[LOG_BUFFER_SIZE] = {};
     u32 len = 0;
-    len += sntprint(buffer, 512, WHITE "I {}" RESET " @ {} ({}): ", file, line, func);
-    len += sntprint(buffer + len, 512 - len, message, args...);
-    len += sntprint(buffer + len, 512 - len, "\n");
+    len += sntprint(buffer, LOG_BUFFER_SIZE, WHITE "I {}" RESET " @ {} ({}): ", file, line, func);
+    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
+    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n");
     smek_print(buffer);
 }
 
 template <typename... Args>
 void _smek_unreachable(const char *file, u32 line, const char *func, const char *message, Args... args) {
-    char buffer[512] = {};
+    char buffer[LOG_BUFFER_SIZE] = {};
     u32 len = 0;
-    len += sntprint(buffer, 512, RED "U {}" RESET " @ {} ({}) unreachable:\n", file, line, func);
-    len += sntprint(buffer + len, 512 - len, BOLDRED "| " RESET);
-    len += sntprint(buffer + len, 512 - len, message, args...);
-    len += sntprint(buffer + len, 512 - len, "\n" BOLDRED "|" RESET " Stacktrace:\n");
+    len += sntprint(buffer, LOG_BUFFER_SIZE, RED "U {}" RESET " @ {} ({}) unreachable:\n", file, line, func);
+    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, BOLDRED "| " RESET);
+    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
+    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n" BOLDRED "|" RESET " Stacktrace:\n");
     smek_print(buffer);
     print_stacktrace();
 
@@ -85,12 +87,12 @@ template <typename... Args>
 void _smek_assert(const char *file, u32 line, const char *func, bool passed, const char *expr, const char *message, Args... args) {
     if (passed) return;
 
-    char buffer[512] = {};
+    char buffer[LOG_BUFFER_SIZE] = {};
     u32 len = 0;
-    len += sntprint(buffer, 512, RED "A {}" RESET " @ {} ({}) assert({}):\n", file, line, func, expr);
-    len += sntprint(buffer + len, 512 - len, BOLDRED "| " RESET);
-    len += sntprint(buffer + len, 512 - len, message, args...);
-    len += sntprint(buffer + len, 512 - len, "\n" BOLDRED "|" RESET " Stacktrace:\n");
+    len += sntprint(buffer, LOG_BUFFER_SIZE, RED "A {}" RESET " @ {} ({}) assert({}):\n", file, line, func, expr);
+    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, BOLDRED "| " RESET);
+    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
+    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n" BOLDRED "|" RESET " Stacktrace:\n");
     smek_print(buffer);
     print_stacktrace();
 
@@ -100,12 +102,12 @@ void _smek_assert(const char *file, u32 line, const char *func, bool passed, con
 template <typename... Args>
 bool _smek_check(const char *file, u32 line, const char *func, bool passed, const char *expr, const char *msg, Args... args) {
     if (!passed) {
-        char buffer[512] = {};
+        char buffer[LOG_BUFFER_SIZE] = {};
         u32 len = 0;
-        len += sntprint(buffer, 512, YELLOW "C" RESET " {} @ {} ({}) check({}):\n", file, line, func, expr);
-        len += sntprint(buffer + len, 512 - len, YELLOW "| " RESET);
-        len += sntprint(buffer + len, 512 - len, msg, args...);
-        len += sntprint(buffer + len, 512 - len, "\n");
+        len += sntprint(buffer, LOG_BUFFER_SIZE, YELLOW "C" RESET " {} @ {} ({}) check({}):\n", file, line, func, expr);
+        len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, YELLOW "| " RESET);
+        len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, msg, args...);
+        len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n");
         smek_print(buffer);
     }
     return passed;
