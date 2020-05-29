@@ -1,4 +1,30 @@
 #pragma once
+#include "../math/smek_math.h"
+#include "../math/smek_vec.h"
+#include "../util/util.h"
+
+///* FormatHint
+// The extra information passed to each format.
+struct FormatHint;
+
+struct FormatHint {
+    int num_decimals;
+};
+
+//
+// This is where your overloads for format goes. They can also go in
+// the header files where each of the structs are defined. But this
+// is the function that should be overloaded.
+//
+
+char format(char *buffer, FormatHint args, Vec3 a);
+char format(char *buffer, FormatHint args, f64 a);
+char format(char *buffer, FormatHint args, i32 a);
+
+//
+// Templates to get the length of an argument list. This is
+// also a simpler version of the code bellow.
+//
 
 template<typename... Args>
 constexpr int template_length();
@@ -18,18 +44,10 @@ constexpr int template_length<>() {
     return 0;
 }
 
-struct FormatHint {
-    int num_decimals;
-};
-
-#include <stdio.h>
-char format(char *buffer, FormatHint args, double a) {
-    return sprintf(buffer, "%.*f", args.num_decimals, a);
-}
-
-char format(char *buffer, FormatHint args, int a) {
-    return sprintf(buffer, "%d", a);
-}
+//
+// These functions are various wrappers for the code to play nice with the C++ template
+// system. But the code calls the overloaded format() function on all arguments.
+//
 
 template<typename... Args>
 void tprint_helper(int recursion_limit, const char **result, char **buffer, FormatHint **hint, Args...);
@@ -48,84 +66,52 @@ void tprint_helper(int recursion_limit, char **result, char **buffer, FormatHint
 }
 
 template<>
-void tprint_helper<>(int recursion_limit, char **result, char **buffer, FormatHint *hint) {}
+void tprint_helper<>(int recursion_limit, char **result, char **buffer, FormatHint *hint);
+
+u32 parse_format_string(const char **outputs, char *write, FormatHint *hint, u32 num_templates, const char *fmt);
+
+///*
+// Cancatenates the strings in padding and content into one string, returns
+// the size of the new string. One extra padding string is added at the end,
+// padding[num_concats], which might cause segfaults if used poorly.
+u32 concatenate_fmt_string_into(char *final_string, u32 num_concats, const char **padding, char **content);
+
+///*
+// A helper function to skipp including stdio.h everywhere.
+void smek_print(const char *buffer);
+
+///*
+// A magical print function which writes out anything you throw at it,
+// given ofcourse that is has a format() overload.
+template<typename... Args>
+void tprint(const char *fmt, Args... to_print);
 
 template<typename... Args>
 void tprint(const char *fmt, Args... to_print) {
     constexpr u32 num_templates = template_length<Args...>();
+    if (num_templates) {
+        smek_print(fmt);
+        return;
+    }
     FormatHint hint[num_templates] = {};
     char *formatted[num_templates] = {};
     char format_buffer[512] = {}; // Arbitrarily choosen
 
 
-    const char *original = fmt;
     char write_buffer[512] = {};
-    char *write = write_buffer;
     const char *spaces[num_templates + 1] = {};
-    u32 num_outputs = 0;
+    u32 num_outputs = parse_format_string(spaces, write_buffer, hint, num_templates, fmt);
+    CHECK(num_outputs == num_templates, "Wrong #{} in fmt string, expected %d, got %d (%s)",
+                                        num_templates, num_outputs, fmt);
+    if (num_outputs == (u32) -1) return;
 
-#define EAT *(write++) = *(fmt++)
-#define SKIPP fmt++
-    // Parses the
-    spaces[0] = write;
-    while (*fmt) {
-        if (*fmt == '%') {
-            if (*(fmt + 1) == '{') {
-                fmt++;
-            }
-            EAT;
-        } else if (*fmt == '{') {
-            SKIPP;
-            while (*fmt != '}') {
-                if (!*fmt) {
-                    WARN("Invalid format string, unclosed {} in format string.'%s'", original);
-                    return;
-                }
-                if (*fmt == '.') {
-                    SKIPP;
-                    if ('0' <= *fmt && *fmt <= '9') {
-                        hint[num_outputs].num_decimals = *fmt - '0';
-                        SKIPP;
-                    } else {
-                        WARN("Expected number litteral in format string after '.', got '%c'.", *fmt);
-                        SKIPP;
-                        continue;
-                    }
-                } else {
-                    WARN("Unexepected symbol in format string '%c'.", *fmt);
-                    SKIPP;
-                }
-            }
-            SKIPP;
-            num_outputs++;
-            if (num_outputs <= num_templates) {
-                spaces[num_outputs] = ++write; // Leave a null terminator
-            }
-        } else {
-            EAT;
-        }
-    }
-#undef EAT
-#undef SKIPP
-    CHECK(num_outputs == num_templates, "Wrong #{} in fmt string, expected %d, got %d", num_templates, num_outputs);
     char *ptr = format_buffer;
     tprint_helper(num_outputs, formatted, &ptr, hint, to_print...);
     ASSERT((u32) (ptr - format_buffer) < LEN(format_buffer), "Buffer overrun!");
 
-#define APPEND while (*read_head) *(write_head++) = *(read_head++)
-    char final_buffer[512];
-    char *write_head = final_buffer;
-    const char *read_head;
-    for (u32 i = 0; i < num_templates; i++) {
-        read_head = spaces[i];
-        APPEND;
-        read_head = formatted[i];
-        APPEND;
-    }
-    read_head = spaces[num_templates];
-    APPEND;
-    *write_head = '\0';
-#undef APPEND
-
-    fprintf(stderr, final_buffer);
+    char final_string[512];
+    u32 written = concatenate_fmt_string_into(final_string, Math::min(num_templates, num_outputs),
+                                              spaces, formatted);
+    ASSERT(written < LEN(final_string), "Buffer overrun!");
+    tprint(final_string);
 }
