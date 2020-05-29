@@ -31,14 +31,14 @@ AssetID fetch_id(const char *name) {
             return asset;
         }
     }
-    WARN("Unable to find asset with name %s (hash is %lu)", name, name_hash);
+    WARN("Unable to find asset with name {} (hash is {})", name, name_hash);
     return AssetID::NONE();
 }
 
 
 AssetData *_raw_fetch(AssetType type, AssetID id) {
-    ASSERT(id < GAMESTATE()->asset_system.num_assets, "Invalid asset id '%lu'", id);
-    ASSERT(GAMESTATE()->asset_system.headers[id].type == type, "Type mismatch, type=%ld, id=%ld", type, id);
+    ASSERT(id < GAMESTATE()->asset_system.num_assets, "Invalid asset id '{}'", id);
+    ASSERT(GAMESTATE()->asset_system.headers[id].type == type, "Type mismatch, type={}, id={}", type, id);
     return &GAMESTATE()->asset_system.data[id];
 }
 

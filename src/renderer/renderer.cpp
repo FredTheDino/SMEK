@@ -194,7 +194,7 @@ Shader Shader::compile(AssetID source_id) {
         if (!success) {
             char info_log[512];
             glGetShaderInfoLog(shader, sizeof(info_log), NULL, info_log);
-            ERROR("Shader error: %s", info_log);
+            ERROR("Shader error: {}", info_log);
         }
         return success;
     };
@@ -205,7 +205,7 @@ Shader Shader::compile(AssetID source_id) {
         if (!success) {
             char info_log[512];
             glGetProgramInfoLog(program, sizeof(info_log), NULL, info_log);
-            ERROR("Program error: %s", info_log);
+            ERROR("Program error: {}", info_log);
         }
         return success;
     };
@@ -262,12 +262,12 @@ Texture Texture::upload(u32 width, u32 height, u32 components, u8 *data, Samplin
     else if (components == 2) format = GL_RG;
     else if (components == 3) format = GL_RGB;
     else if (components == 4) format = GL_RGBA;
-    else UNREACHABLE("Invalid number of components (%d)", components);
+    else UNREACHABLE("Invalid number of components ({})", components);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     GLenum gl_sampling;
     if (sampling == Sampling::LINEAR) gl_sampling = GL_LINEAR;
     else if (sampling == Sampling::NEAREST) gl_sampling = GL_NEAREST;
-    else UNREACHABLE("Unsupported sampling (%d)", components);
+    else UNREACHABLE("Unsupported sampling ({})", components);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_sampling);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_sampling);
@@ -282,7 +282,7 @@ Texture Texture::upload(Asset::Image *image, Sampling sampling) {
 }
 
 void Texture::bind(u32 texture_slot) {
-    ASSERT(texture_slot < 80, "Invalid texture slots. (%d)", texture_slot);
+    ASSERT(texture_slot < 80, "Invalid texture slots. ({})", texture_slot);
     glActiveTexture(GL_TEXTURE0 + texture_slot);
     glBindTexture(GL_TEXTURE_2D, texture_id);
     glActiveTexture(GL_TEXTURE0 + 79); // Hardcoded since it's the "minimum maximum".
@@ -290,7 +290,7 @@ void Texture::bind(u32 texture_slot) {
 
 bool init(GameState *gs, int width, int height) {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-        ERROR("Failed to initalize SDL \"%s\"", SDL_GetError());
+        ERROR("Failed to initalize SDL \"{}\"", SDL_GetError());
         return false;
     }
 
@@ -308,7 +308,7 @@ bool init(GameState *gs, int width, int height) {
             SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
 
     if (gs->window == NULL) {
-        ERROR("Failed to create OpenGL window \"%s\"", SDL_GetError());
+        ERROR("Failed to create OpenGL window \"{}\"", SDL_GetError());
         return false;
     }
 
