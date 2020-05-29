@@ -110,7 +110,7 @@ void tprint(const char *fmt, Args... to_print) {
     char write_buffer[512] = {};
     const char *spaces[num_templates + 1] = {};
     u32 num_outputs = parse_format_string(spaces, write_buffer, hint, num_templates, fmt);
-    CHECK(num_outputs == num_templates, "Wrong #%{} in fmt string, expected {}, got {} ({})",
+    CHECK(num_outputs == num_templates, "Wrong #%{} in fmt string, expected {}, got {} ('{}')",
                                         num_templates, num_outputs, fmt);
     if (num_outputs == (u32) -1) return;
 
