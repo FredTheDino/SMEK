@@ -125,7 +125,7 @@ void load(const char *path) {
             read<f32>(file, data_ptr->sound.data, size);
         } break;
         default:
-            ERROR("Unknown asset type %d for id %lu in asset file %s", header.type, asset, path);
+            ERROR("Unknown asset type {} for id {} in asset file {}", header.type, asset, path);
             break;
         }
     }

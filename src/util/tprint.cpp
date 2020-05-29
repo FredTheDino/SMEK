@@ -59,7 +59,7 @@ u32 parse_format_string(const char **outputs, char *write, FormatHint *hint, u32
             SKIPP;
             while (*fmt != '}') {
                 if (!*fmt) {
-                    WARN("Invalid format string, unclosed {} in format string.'%s'", original);
+                    WARN("Invalid format string, unclosed %{} in format string.'{}'", original);
                     return -1;
                 }
                 if (*fmt == '.') {
@@ -68,12 +68,12 @@ u32 parse_format_string(const char **outputs, char *write, FormatHint *hint, u32
                         hint[num_outputs].num_decimals = *fmt - '0';
                         SKIPP;
                     } else {
-                        WARN("Expected number litteral in format string after '.', got '%c'.", *fmt);
+                        WARN("Expected number litteral in format string after '.', got '{}'.", *fmt);
                         SKIPP;
                         continue;
                     }
                 } else {
-                    WARN("Unexepected symbol in format string '%c'.", *fmt);
+                    WARN("Unexepected symbol in format string '{}'.", *fmt);
                     SKIPP;
                 }
             }

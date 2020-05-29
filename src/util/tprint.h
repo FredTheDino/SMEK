@@ -13,7 +13,7 @@ struct FormatHint {
 
 //
 // This is where your overloads for format goes. They can also go in
-// the header files where each of the structs are defined. But this
+// the header files where each of the structs are defined, but this
 // is the function that should be overloaded.
 //
 
@@ -52,7 +52,7 @@ constexpr int template_length<>() {
 
 //
 // These functions are various wrappers for the code to play nice with the C++ template
-// system. But the code calls the overloaded format() function on all arguments.
+// system, but the code calls the overloaded format() function on all arguments.
 //
 
 template<typename... Args>
@@ -75,23 +75,23 @@ template<>
 void tprint_helper<>(int recursion_limit, char **result, char **buffer, FormatHint *hint);
 
 ///*
-// Parses a format string, places where you want the values inserted should be marked with the "{}" token,
+// Parses a format string. Places where you want the values inserted should be marked with the "{}" token,
 // and arguments for printing are given inside the "{}", so to write out with 3 decimals write "{.3}".
 u32 parse_format_string(const char **outputs, char *write, FormatHint *hint, u32 num_templates, const char *fmt);
 
 ///*
-// Cancatenates the strings in padding and content into one string, returns
+// Concatenates the strings in padding and content into one string, returns
 // the size of the new string. One extra padding string is added at the end,
 // padding[num_concats], which might cause segfaults if used poorly.
 u32 concatenate_fmt_string_into(char *final_string, u32 num_concats, const char **padding, char **content);
 
 ///*
-// A helper function to skipp including stdio.h everywhere.
+// A helper function to skip including stdio.h everywhere.
 void smek_print(const char *buffer);
 
 ///*
 // A magical print function which writes out anything you throw at it,
-// given ofcourse that is has a format() overload.
+// given of course that is has a format() overload.
 template<typename... Args>
 void tprint(const char *fmt, Args... to_print);
 
@@ -110,7 +110,7 @@ void tprint(const char *fmt, Args... to_print) {
     char write_buffer[512] = {};
     const char *spaces[num_templates + 1] = {};
     u32 num_outputs = parse_format_string(spaces, write_buffer, hint, num_templates, fmt);
-    CHECK(num_outputs == num_templates, "Wrong #{} in fmt string, expected %d, got %d (%s)",
+    CHECK(num_outputs == num_templates, "Wrong #%{} in fmt string, expected {}, got {} ({})",
                                         num_templates, num_outputs, fmt);
     if (num_outputs == (u32) -1) return;
 
