@@ -111,3 +111,7 @@ u32 concatenate_fmt_string_into(char *final_string, u32 num_concats, const char 
 void smek_print(const char *buffer) {
     fprintf(stderr, buffer);
 }
+
+u32 smek_snprint(char *out_buffer, u32 buf_size, const char *in_buffer) {
+    return snprintf(out_buffer, buf_size, in_buffer);
+}

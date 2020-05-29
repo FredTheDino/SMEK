@@ -89,11 +89,16 @@ u32 concatenate_fmt_string_into(char *final_string, u32 num_concats, const char 
 // A helper function to skip including stdio.h everywhere.
 void smek_print(const char *buffer);
 
+u32 smek_snprint(char *out_buffer, u32 buf_size, const char *in_buffer);
+
 ///*
 // A magical print function which writes out anything you throw at it,
 // given of course that is has a format() overload.
 template<typename... Args>
 void tprint(const char *fmt, Args... to_print);
+
+template<typename... Args>
+u32 sntprint(char *buffer, u32 buf_size, const char *fmt, Args... to_print);
 
 template<typename... Args>
 void tprint(const char *fmt, Args... to_print) {
@@ -123,4 +128,32 @@ void tprint(const char *fmt, Args... to_print) {
                                               spaces, formatted);
     ASSERT(written < LEN(final_string), "Buffer overrun!");
     tprint(final_string);
+}
+
+template<typename... Args>
+u32 sntprint(char *buffer, u32 buf_size, const char *fmt, Args... to_print) {
+    constexpr u32 num_templates = template_length<Args...>();
+    if (num_templates == 0) {
+        return smek_snprint(buffer, buf_size, fmt);
+    }
+    FormatHint hint[num_templates] = {};
+    char *formatted[num_templates] = {};
+    char format_buffer[512] = {}; // Arbitrarily choosen
+
+    char write_buffer[512] = {};
+    const char *spaces[num_templates + 1] = {};
+    u32 num_outputs = parse_format_string(spaces, write_buffer, hint, num_templates, fmt);
+    CHECK(num_outputs == num_templates, "Wrong #%{} in fmt string, expected {}, got {} ('{}')",
+                                        num_templates, num_outputs, fmt);
+    if (num_outputs == (u32) -1) return 0;
+
+    char *ptr = format_buffer;
+    tprint_helper(num_outputs, formatted, &ptr, hint, to_print...);
+    ASSERT((u32) (ptr - format_buffer) < LEN(format_buffer), "Buffer overrun!");
+
+    char final_string[512];
+    u32 written = concatenate_fmt_string_into(final_string, Math::min(num_templates, num_outputs),
+                                              spaces, formatted);
+    ASSERT(written < LEN(final_string), "Buffer overrun!");
+    return sntprint(buffer, buf_size, final_string);
 }
