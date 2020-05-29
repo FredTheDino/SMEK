@@ -36,7 +36,7 @@ void print_stacktrace(unsigned int max_frames=63);
 
 #include "tprint.h"
 
-const LOG_BUFFER_SIZE = 512;
+const u32 LOG_BUFFER_SIZE = 512;
 
 // These have to live here now, because of templates.
 template <typename... Args>
