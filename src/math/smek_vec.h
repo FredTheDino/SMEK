@@ -1,6 +1,7 @@
 #pragma once
 #include "types.h"
 #include "smek_math.h"
+#include "../util/util.h"
 
 ///# Vectors
 //
@@ -37,6 +38,12 @@ struct Vec4 {
         struct { real r, g, b, a; };
     };
 };
+
+///*
+// Formats a vector to readable output.
+i32 format(char *buffer, u32 size, FormatHint args, Vec2 v);
+i32 format(char *buffer, u32 size, FormatHint args, Vec3 v);
+i32 format(char *buffer, u32 size, FormatHint args, Vec4 v);
 
 #if 0
 
