@@ -1,6 +1,7 @@
 #include "smek_mat4.h"
 #include "../test.h"
 #include "smek_math.h"
+#include "../util/util.h"
 
 // Helper functions
 static bool close_enough(const Mat &a, const Mat &b, real r=0.001) {
@@ -13,13 +14,13 @@ static bool close_enough(const Mat &a, const Mat &b, real r=0.001) {
     return success;
 }
 
-#include "../util/log.h"
-static void log_matrix(const Mat &m) {
-    LOG("\n%.2f %.2f %.2f %.2f\n%.2f %.2f %.2f %.2f\n%.2f %.2f %.2f %.2f\n%.2f %.2f %.2f %.2f",
-        m._[0][0], m._[0][1], m._[0][2], m._[0][3],
-        m._[1][0], m._[1][1], m._[1][2], m._[1][3],
-        m._[2][0], m._[2][1], m._[2][2], m._[2][3],
-        m._[3][0], m._[3][1], m._[3][2], m._[3][3]);
+int format(char *buffer, FormatHint args, Mat &m) {
+    u32 p = args.num_decimals;
+    return sprintf(buffer, "\n%.*f %.*f %.*f %.*f\n%.*f %.*f %.*f %.*f\n%.*f %.*f %.*f %.*f\n%.*f %.*f %.*f %.*f",
+        p, m._[0][0], p, m._[0][1], p, m._[0][2], p, m._[0][3],
+        p, m._[1][0], p, m._[1][1], p, m._[1][2], p, m._[1][3],
+        p, m._[2][0], p, m._[2][1], p, m._[2][2], p, m._[2][3],
+        p, m._[3][0], p, m._[3][1], p, m._[3][2], p, m._[3][3]);
 }
 
 Mat operator *(const Mat &a, const Mat &b) {

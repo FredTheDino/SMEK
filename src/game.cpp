@@ -59,7 +59,8 @@ void reload_game(GameState *game) {
     game->audio_struct->sources[0] = test_source;
     game->audio_struct->unlock();
 
-    tprint("FMT {.2} A {} B {} C blah blah {.2}", 1.234523, 2, 3, Vec3(3.22, 2.223, 1.234));
+    Mat m = Mat::scale(1.234);
+    tprint("FMT {.1}", m);
 }
 
 GameState update_game(GameState *game, GSUM mode) { // Game entry point

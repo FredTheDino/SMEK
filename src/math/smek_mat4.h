@@ -2,6 +2,7 @@
 #include "types.h"
 #include "smek_vec.h"
 #include "smek_quat.h"
+#include "../util/util.h"
 
 ///# 4x4 matrix
 //
@@ -54,6 +55,10 @@ struct Mat {
 
     Mat invert();
 };
+
+///*
+// Formats a matrix to readable output.
+int format(char *buffer, FormatHint args, Mat &m);
 
 #if 0
 
