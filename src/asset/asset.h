@@ -111,15 +111,6 @@ union AssetData {
     Sound sound;
 };
 
-// not read directly from file
-struct Asset {
-    AssetHeader header;
-    AssetData data;
-
-    u64 name_hash;
-    u64 data_hash;
-};
-
 struct System {
     // read directly from file
     FileHeader  file_header;
