@@ -17,7 +17,6 @@ GameState *GAMESTATE() { return _global_gs; }
 #endif
 
 GFX::Mesh mesh;
-GFX::Texture texture;
 
 void init_game(GameState *gamestate, int width, int height) {
     _global_gs = gamestate;
@@ -49,7 +48,6 @@ void reload_game(GameState *game) {
     Asset::reload();
 
     mesh = GFX::Mesh::init(Asset::fetch_model("MONKEY"));
-    texture = GFX::Texture::upload(Asset::fetch_image("RGBA"), GFX::Texture::Sampling::NEAREST);
 
     game->audio_struct->lock();
     Audio::SoundSource test_source = game->audio_struct->sources[0];
@@ -94,7 +92,7 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
     shader.use();
     GFX::main_camera()->upload(shader);
 
-    texture.bind(0);
+    Asset::fetch_image("RGBA")->bind(0);
     shader.upload_tex(0);
 
     Mat model_matrix = Mat::translate(Math::cos(time) * 0.2, Math::sin(time) * 0.2, -0.5) * Mat::scale(0.1);

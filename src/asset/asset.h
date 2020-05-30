@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 #include "../math/smek_vec.h"
+#include "../renderer/renderer.h"
 
 struct AssetID {
     AssetID(const char *);
@@ -116,16 +117,14 @@ struct Sound {
     f32 *data;
 };
 
-union AssetData {
-    Image image;
-    StringAsset string;
-    ShaderSource shader;
-    Model model;
-    Sound sound;
-};
-
 struct UsableAsset {
-    AssetData data;
+    union {
+        GFX::Texture texture;
+        StringAsset string;
+        ShaderSource shader;
+        Model model;
+        Sound sound;
+    };
 
     AssetHeader *header;
     bool dirty;
@@ -154,7 +153,7 @@ bool load(const char *path);
 
 ///*
 // Hot reloads the asset file passed in.
-void reload();
+bool reload();
 
 ///*
 // Fetch the ID corresponding to the asset with the specified name.
@@ -163,7 +162,7 @@ AssetID fetch_id(const char *name);
 
 ///*
 // Fetch an image-asset.
-Image *fetch_image(AssetID id);
+GFX::Texture *fetch_image(AssetID id);
 
 ///*
 // Fetch a string asset.

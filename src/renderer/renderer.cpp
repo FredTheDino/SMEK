@@ -133,7 +133,7 @@ void Shader::use() { glUseProgram(program_id); }
 
 MasterShader MasterShader::init() {
     MasterShader shader;
-    shader.program_id = Shader::compile("MASTER_SHADER").program_id;
+    shader.program_id = Shader::compile(Asset::fetch_shader("MASTER_SHADER")->data).program_id;
 
     FETCH_SHADER_PROP(t);
     FETCH_SHADER_PROP(proj);
@@ -173,7 +173,7 @@ Camera *main_camera() {
 
 DebugShader DebugShader::init() {
     DebugShader shader;
-    shader.program_id = Shader::compile("DEBUG_SHADER").program_id;
+    shader.program_id = Shader::compile(Asset::fetch_shader("DEBUG_SHADER")->data).program_id;
 
     FETCH_SHADER_PROP(proj);
     FETCH_SHADER_PROP(view);
@@ -186,8 +186,7 @@ MAT_SHADER_PROP(DebugShader, proj);
 MAT_SHADER_PROP(DebugShader, view);
 MAT_SHADER_PROP(DebugShader, model);
 
-Shader Shader::compile(AssetID source_id) {
-    const char *source = Asset::fetch_shader(source_id)->data;
+Shader Shader::compile(const char *source) {
     auto shader_error_check = [](u32 shader) -> bool {
         i32 success;
         glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
@@ -277,15 +276,15 @@ Texture Texture::upload(u32 width, u32 height, u32 components, u8 *data, Samplin
     return { texture };
 }
 
-Texture Texture::upload(Asset::Image *image, Sampling sampling) {
-    return upload(image->width, image->height, image->components, image->data, sampling);
-}
-
 void Texture::bind(u32 texture_slot) {
     ASSERT(texture_slot < 80, "Invalid texture slots. ({})", texture_slot);
     glActiveTexture(GL_TEXTURE0 + texture_slot);
     glBindTexture(GL_TEXTURE_2D, texture_id);
     glActiveTexture(GL_TEXTURE0 + 79); // Hardcoded since it's the "minimum maximum".
+}
+
+void Texture::destroy() {
+    glDeleteTextures(1, &texture_id);
 }
 
 bool init(GameState *gs, int width, int height) {
