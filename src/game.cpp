@@ -1,4 +1,4 @@
-#include "util/log.h"
+#include "util/util.h"
 
 #include "game.h"
 #include "test.h"
@@ -122,4 +122,3 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
 
     return *game;
 }
-

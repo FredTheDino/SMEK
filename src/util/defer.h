@@ -16,8 +16,8 @@ Defer<F> make_defer(F f) {
   return Defer<F>(f);
 };
 
-#define __defer(line) _DEFER_MACRO_ ## line
-#define _defer(line) __defer(line)
+#define __deferer_of_doom(line) _DEFER_MACRO_ ## line
+#define _defer(line) __deferer_of_doom(line)
 
 struct defer_dummy {};
 
