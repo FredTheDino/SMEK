@@ -63,7 +63,7 @@ Sound *fetch_sound(AssetID id) {
 }
 
 template <typename T>
-void read(FILE *file, void *ptr, size_t num=1) {
+void read(FILE *file, T *ptr, size_t num=1) {
     size_t gobbled = fread(ptr, sizeof(T), num, file);
     CHECK(gobbled == num, "Faild to read a part of an asset.");
 }
@@ -90,32 +90,32 @@ void load(const char *path) {
         fseek(file, GAMESTATE()->asset_system.file_header.data_offset + header.data_offset, SEEK_SET);
         switch (header.type) {
         case AssetType::TEXTURE: {
-            read<Image>(file, data_ptr);
+            read(file, &data_ptr->image);
             u64 size = data_ptr->image.size();
             data_ptr->image.data = new u8[size];
             read<u8>(file, data_ptr->image.data, size);
         } break;
         case AssetType::STRING: {
-            read<StringAsset>(file, data_ptr);
+            read(file, &data_ptr->string);
             u32 size = data_ptr->string.size;
             data_ptr->string.data = new char[size];
             read<char>(file, data_ptr->string.data, size);
         } break;
         case AssetType::MODEL: {
-            read<Model>(file, data_ptr);
+            read(file, &data_ptr->model);
             u32 num_faces = data_ptr->model.num_faces;
             u32 size = num_faces * 3;
             data_ptr->model.data = new Vertex[size];
-            read<Vertex>(file, data_ptr->model.data, size);
+            read(file, data_ptr->model.data, size);
         } break;
         case AssetType::SHADER: {
-            read<ShaderSource>(file, data_ptr);
+            read(file, &data_ptr->shader);
             u32 size = data_ptr->shader.size;
             data_ptr->shader.data = new char[size];
             read<char>(file, data_ptr->shader.data, size);
         } break;
         case AssetType::SOUND: {
-            read<Sound>(file, data_ptr);
+            read(file, &data_ptr->sound);
             u32 size = data_ptr->sound.num_samples;
             data_ptr->sound.data = new f32[size];
             read<f32>(file, data_ptr->sound.data, size);
