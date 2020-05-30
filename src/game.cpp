@@ -81,9 +81,10 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
 
 
     const i32 grid_size = 10;
-    const f32 width = 0.03;
+    const f32 width = 0.005;
     const Vec4 color = GFX::color(1);
     for (f32 x = 0; x <= grid_size; x += 0.5) {
+        GFX::push_point(Vec3(x, 0, x), GFX::color(2), width * 10);
         GFX::push_line(Vec3(x, 0, grid_size), Vec3(x, 0, -grid_size), color, width);
         GFX::push_line(Vec3(-x, 0, grid_size), Vec3(-x, 0, -grid_size), color, width);
         GFX::push_line(Vec3(grid_size, 0, x), Vec3(-grid_size, 0, x), color, width);
