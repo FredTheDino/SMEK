@@ -1,13 +1,6 @@
 #include <stdio.h>
 #include "tprint.h"
 
-i32 format(char *buffer, u32 size, FormatHint args, Vec3 a) {
-    int b = 0;
-    return snprintf(buffer, size, "(%.*f, %.*f, %.*f)", args.num_decimals, a.x,
-                                                 args.num_decimals, a.y,
-                                                 args.num_decimals, a.z);
-}
-
 i32 format(char *buffer, u32 size, FormatHint args, f64 a) {
     return snprintf(buffer, size, "%.*f", args.num_decimals, a);
 }

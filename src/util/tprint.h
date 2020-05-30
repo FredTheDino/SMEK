@@ -1,6 +1,5 @@
 #pragma once
 #include "../math/smek_math.h"
-#include "../math/smek_vec.h"
 // includes "util.h" further down
 
 ///* FormatHint
@@ -17,7 +16,6 @@ struct FormatHint {
 // is the function that should be overloaded.
 //
 
-i32 format(char *buffer, u32 size, FormatHint args, Vec3 a);
 i32 format(char *buffer, u32 size, FormatHint args, f64 a);
 i32 format(char *buffer, u32 size, FormatHint args, i64 a);
 i32 format(char *buffer, u32 size, FormatHint args, u64 a);

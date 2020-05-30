@@ -32,6 +32,7 @@
 #include <cstdio>
 #include <vector>
 #include <functional>
+#include <cstring>
 
 #include "game.h"
 
@@ -44,6 +45,17 @@
 #define TEST_CASE(name, block) static int UNIQUE_NAME(_test_id_) = reg_test((name), [](GameState *game, FILE *report) -> bool block, __FILE__, __LINE__)
 #define TEST_STMT(name, stmt) static int UNIQUE_NAME(_test_id_) = reg_test((name), [](GameState *game, FILE *report) -> bool { return stmt; }, __FILE__, __LINE__)
 typedef bool(*TestCallback)(GameState *game, FILE *report);
+
+#define TEST_FORMAT(IN, ARGS, EXPECTED) TEST_CASE("format " STR(IN), {  \
+    char buffer[64] = {};                                               \
+    format(buffer, 64, ARGS, IN);                                       \
+    const char *expected = EXPECTED;                                    \
+    if (std::strcmp(buffer, expected) != 0) {                           \
+        LOG_TESTS("got '%s', expected '%s'", buffer, expected);         \
+        return false;                                                   \
+    }                                                                   \
+    return true;                                                        \
+})
 
 #define LOG_TESTS(msg, ...) if (report) { std::fprintf(report, msg "\n", ##__VA_ARGS__); }  // matches the normal LOG
 
