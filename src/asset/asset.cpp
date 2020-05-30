@@ -50,7 +50,7 @@ StringAsset *fetch_string_asset(AssetID id) {
     return &_raw_fetch(AssetType::STRING, id)->string;
 }
 
-Shader *fetch_shader(AssetID id) {
+ShaderSource *fetch_shader(AssetID id) {
     return &_raw_fetch(AssetType::SHADER, id)->shader;
 }
 
@@ -113,7 +113,7 @@ void load(const char *path) {
             read<Vertex>(file, data_ptr->model.data, size);
         } break;
         case AssetType::SHADER: {
-            read<Shader>(file, data_ptr);
+            read<ShaderSource>(file, data_ptr);
             u32 size = data_ptr->shader.size;
             data_ptr->shader.data = new char[size];
             read<char>(file, data_ptr->shader.data, size);

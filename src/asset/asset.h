@@ -70,8 +70,8 @@ struct StringAsset {
     char *data;
 };
 
-///* Shader
-struct Shader {
+///* ShaderSource
+struct ShaderSource {
     // read from file
     u64 size;
     char *data;
@@ -106,7 +106,7 @@ struct Sound {
 union AssetData {
     Image image;
     StringAsset string;
-    Shader shader;
+    ShaderSource shader;
     Model model;
     Sound sound;
 };
@@ -154,7 +154,7 @@ StringAsset *fetch_string_asset(AssetID id);
 
 ///*
 // Fetch a shader source asset.
-Shader *fetch_shader(AssetID id);
+ShaderSource *fetch_shader(AssetID id);
 
 ///*
 // Fetch a 3D-model.
