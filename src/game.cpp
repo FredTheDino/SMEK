@@ -58,13 +58,6 @@ void reload_game(GameState *game) {
     test_source.sample = 0;
     game->audio_struct->sources[0] = test_source;
     game->audio_struct->unlock();
-
-    LOG("this is one too many: {}");
-    LOG("this is two too many: {} {} ");
-    LOG("this is also one too many: {} {}", 1);
-    LOG("this is one too few:", 1);
-    LOG("this is also one too few: {}", 1, 2);
-    LOG("this is two too few:", 1, 2);
 }
 
 GameState update_game(GameState *game, GSUM mode) { // Game entry point

@@ -14,9 +14,9 @@ static bool close_enough(const Mat &a, const Mat &b, real r=0.001) {
     return success;
 }
 
-int format(char *buffer, FormatHint args, Mat &m) {
+i32 format(char *buffer, u32 size, FormatHint args, Mat &m) {
     u32 p = args.num_decimals;
-    return sprintf(buffer, "\n%.*f %.*f %.*f %.*f\n%.*f %.*f %.*f %.*f\n%.*f %.*f %.*f %.*f\n%.*f %.*f %.*f %.*f",
+    return snprintf(buffer, size, "\n%.*f %.*f %.*f %.*f\n%.*f %.*f %.*f %.*f\n%.*f %.*f %.*f %.*f\n%.*f %.*f %.*f %.*f",
         p, m._[0][0], p, m._[0][1], p, m._[0][2], p, m._[0][3],
         p, m._[1][0], p, m._[1][1], p, m._[1][2], p, m._[1][3],
         p, m._[2][0], p, m._[2][1], p, m._[2][2], p, m._[2][3],

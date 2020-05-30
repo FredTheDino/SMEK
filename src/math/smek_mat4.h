@@ -58,7 +58,7 @@ struct Mat {
 
 ///*
 // Formats a matrix to readable output.
-int format(char *buffer, FormatHint args, Mat &m);
+i32 format(char *buffer, u32 size, FormatHint args, Mat &m);
 
 #if 0
 

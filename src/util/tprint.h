@@ -82,7 +82,8 @@ i32 sntprint_helper(char *buffer, u32 buf_size, const char *fmt, T first, Args..
             EAT;
         } else if (*fmt == '{') {
             SKIPP;
-            FormatHint hint;
+            FormatHint hint;  // Setting some sane defaults
+            hint.num_decimals = 5;
             while (*fmt != '}') {
                 if (!*fmt) {
                     WARN("Invalid format string");
