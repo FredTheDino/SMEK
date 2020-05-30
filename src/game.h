@@ -11,7 +11,7 @@ struct GameState {
     SDL_Window *window;
     SDL_GLContext gl_context;
     float time;
-    Asset::System asset_system = {};
+    Asset::System asset_system;
     GFX::Renderer renderer = {};
     Input::Input input = {};
     Audio::AudioStruct *audio_struct;

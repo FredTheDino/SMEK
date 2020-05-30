@@ -46,14 +46,14 @@ void init_game(GameState *gamestate, int width, int height) {
 void reload_game(GameState *game) {
     _global_gs = game;
     GFX::reload(game);
-    Asset::reload("assets.bin");
+    Asset::reload();
 
     mesh = GFX::Mesh::init(Asset::fetch_model("MONKEY"));
     texture = GFX::Texture::upload(Asset::fetch_image("RGBA"), GFX::Texture::Sampling::NEAREST);
 
     game->audio_struct->lock();
     Audio::SoundSource test_source = game->audio_struct->sources[0];
-    test_source.asset_id = Asset::fetch_id("NOISE_STEREO_8K");
+    test_source.asset_id = AssetID("NOISE_STEREO_8K");
     test_source.active = true;
     test_source.repeat = false;
     test_source.sample = 0;
