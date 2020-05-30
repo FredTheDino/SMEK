@@ -61,6 +61,35 @@ static void load_texture(UsableAsset *asset) {
                                           GFX::Texture::Sampling::LINEAR);
 }
 
+static void load_shader(UsableAsset *asset) {
+    struct {
+        // read from file
+        u64 size;
+        char *data;
+    } source;
+
+    FILE *file = fopen(GAMESTATE()->asset_system.asset_path, "rb");
+    defer { fclose(file); };
+    fseek(file, GAMESTATE()->asset_system.file_header.data_offset + asset->header->data_offset, SEEK_SET);
+
+    read(file, &source);
+    u32 size = source.size;
+    char *data = new char[size];
+    read<char>(file, data, size);
+
+    GFX::Shader new_shader = GFX::Shader::compile(data);
+
+    LOG("Compiling shader!");
+    if (new_shader.is_valid()) {
+        if (asset->loaded) {
+            asset->shader.destroy();
+        }
+        asset->shader = new_shader;
+    } else {
+        ERROR("Failed to load shader due to errors.");
+    }
+}
+
 static void load_asset(UsableAsset *asset) {
     FILE *file = fopen(GAMESTATE()->asset_system.asset_path, "rb");
     defer { fclose(file); };
@@ -83,10 +112,7 @@ static void load_asset(UsableAsset *asset) {
         read(file, asset->model.data, size);
     } break;
     case AssetType::SHADER: {
-        read(file, &asset->shader);
-        u32 size = asset->shader.size;
-        asset->shader.data = new char[size];
-        read<char>(file, asset->shader.data, size);
+        load_shader(asset);
     } break;
     case AssetType::SOUND: {
         read(file, &asset->sound);
@@ -125,7 +151,7 @@ StringAsset *fetch_string_asset(AssetID id) {
     return &_raw_fetch(AssetType::STRING, id)->string;
 }
 
-ShaderSource *fetch_shader(AssetID id) {
+GFX::Shader *fetch_shader(AssetID id) {
     return &_raw_fetch(AssetType::SHADER, id)->shader;
 }
 
@@ -136,6 +162,13 @@ Model *fetch_model(AssetID id) {
 Sound *fetch_sound(AssetID id) {
     return &_raw_fetch(AssetType::SOUND, id)->sound;
 }
+
+bool needs_reload(AssetID id) {
+    ASSERT(valid_asset(id), "Invalid asset id '{}'", id);
+    UsableAsset *asset = &GAMESTATE()->asset_system.assets[id];
+    return (!asset->loaded) || asset->dirty;
+}
+
 
 bool reload() {
     System *system = &GAMESTATE()->asset_system;
@@ -156,6 +189,7 @@ bool reload() {
             // Old asset
             UsableAsset &asset = system->assets[id];
             asset.dirty = asset.header->data_hash != header->data_hash;
+            asset.dirty = true;
             asset.header = header;
         } else {
             // New asset

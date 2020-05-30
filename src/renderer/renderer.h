@@ -78,6 +78,8 @@ struct Shader {
 
     void use();
 
+    void destroy();
+
     bool is_valid() { return program_id != -1; }
 
     static Shader compile(const char *source);

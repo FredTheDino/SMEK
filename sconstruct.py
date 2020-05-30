@@ -96,6 +96,7 @@ smek = env.Program(target=smek_dir + "SMEK", source=[platform_source, smek_dir +
 libsmek = env.SharedLibrary(target=smek_dir + "libSMEK", source=smek_source)
 AddPostAction(libsmek, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
 Depends(smek, assets)
+AddPostAction(assets, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
 Depends(smek, libsmek)
 Default(smek)
 

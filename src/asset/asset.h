@@ -84,13 +84,6 @@ struct StringAsset {
     char *data;
 };
 
-///* ShaderSource
-struct ShaderSource {
-    // read from file
-    u64 size;
-    char *data;
-};
-
 ///* Model
 struct Vertex {
     Vec3 position;
@@ -121,7 +114,7 @@ struct UsableAsset {
     union {
         GFX::Texture texture;
         StringAsset string;
-        ShaderSource shader;
+        GFX::Shader shader;
         Model model;
         Sound sound;
     };
@@ -161,6 +154,10 @@ bool reload();
 AssetID fetch_id(const char *name);
 
 ///*
+// Returns true if the asset needs to be reloaded.
+bool needs_reload(AssetID id);
+
+///*
 // Fetch an image-asset.
 GFX::Texture *fetch_image(AssetID id);
 
@@ -170,7 +167,7 @@ StringAsset *fetch_string_asset(AssetID id);
 
 ///*
 // Fetch a shader source asset.
-ShaderSource *fetch_shader(AssetID id);
+GFX::Shader *fetch_shader(AssetID id);
 
 ///*
 // Fetch a 3D-model.
