@@ -103,12 +103,16 @@ struct Sound {
     f32 *data;
 };
 
-union AssetData {
-    Image image;
-    StringAsset string;
-    ShaderSource shader;
-    Model model;
-    Sound sound;
+struct AssetData {
+    union {
+        Image image;
+        StringAsset string;
+        ShaderSource shader;
+        Model model;
+        Sound sound;
+    };
+    // Placed afterwards, so pointers can be cast.
+    bool loaded;
 };
 
 struct System {
