@@ -80,6 +80,10 @@ Vec4 color(u32 index) {
     return color_list[index];
 }
 
+void push_point(Vec3 a, Vec4 c, f32 width) {
+    push_line(a - Vec3(width, width, width) * 0.5, a + Vec3(width, width, width) * 0.5, c, c, width);
+}
+
 void push_line(Vec3 a, Vec3 b, Vec4 color, f32 width) {
     push_line(a, b, color, color, width);
 }

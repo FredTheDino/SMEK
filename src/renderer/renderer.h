@@ -194,6 +194,10 @@ void deinit(GameState *gs);
 Vec4 color(u32 index=0);
 
 ///*
+// Draws a point in a with color c.
+void push_point(Vec3 a, Vec4 c=color(), f32 width=0.1);
+
+///*
 // Draws a line form A to B, in the given color.
 void push_line(Vec3 a, Vec3 b, Vec4 c=color(), f32 width=0.1);
 void push_line(Vec3 a, Vec3 b, Vec4 a_color, Vec4 b_color, f32 width=0.1);
