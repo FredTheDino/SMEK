@@ -62,18 +62,14 @@ Sound *fetch_sound(AssetID id) {
     return &_raw_fetch(AssetType::SOUND, id)->sound;
 }
 
-//TODO(gu) re-implement
 template <typename T>
-size_t read(FILE *file, void *ptr, size_t num=1) {
-    if (!num) return 0;
-    size_t read = 0;
-    while (read < num)  {
-        size_t last_read = fread(ptr, sizeof(T), num - read, file);
-        if (!last_read) return 0;
-        read += last_read;
-        ptr = (void *) ((u8 *) ptr + last_read + sizeof(T));
-    }
-    return read;
+void read(FILE *file, void *ptr, size_t num=1) {
+    size_t gobbled = fread(ptr, sizeof(T), num, file);
+    CHECK(gobbled == num, "Faild to read a part of an asset.");
+}
+
+void reload(const char *path) {
+
 }
 
 void load(const char *path) {

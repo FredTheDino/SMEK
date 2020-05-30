@@ -46,6 +46,7 @@ void init_game(GameState *gamestate, int width, int height) {
 void reload_game(GameState *game) {
     _global_gs = game;
     GFX::reload(game);
+    Asset::reload("assets.bin");
 
     mesh = GFX::Mesh::init(Asset::fetch_model("MONKEY"));
     texture = GFX::Texture::upload(Asset::fetch_image("RGBA"), GFX::Texture::Sampling::NEAREST);

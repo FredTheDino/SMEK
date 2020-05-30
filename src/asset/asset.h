@@ -140,6 +140,10 @@ bool valid_asset(AssetID id);
 void load(const char *path);
 
 ///*
+// Hot reloads the asset file passed in.
+void reload(const char *path);
+
+///*
 // Fetch the ID corresponding to the asset with the specified name.
 // Returns NO_ASSET if name is not found.
 AssetID fetch_id(const char *name);
