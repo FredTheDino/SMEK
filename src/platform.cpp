@@ -8,7 +8,6 @@
 #include "util/log.h"
 #include "input.h"
 #include <unordered_map>
-#include <mutex>
 #include <csignal>
 #include <cstring>
 #include <cstdlib>
@@ -40,28 +39,38 @@ struct GameLibrary {
 GameState game_state;
 Audio::AudioStruct platform_audio_struct = {};
 
-std::mutex m_reload_lib;
+SDL_mutex *m_reload_lib;
 bool hot_reload_active = true;
 bool reload_lib = false;
 
 void signal_handler (int signal) {
-    if (hot_reload_active) {
-        m_reload_lib.lock();
-        reload_lib = true;
-        m_reload_lib.unlock();
-    } else {
+    if (!hot_reload_active) {
         WARN("Ignoring USR1");
+    } else {
+        if (SDL_LockMutex(m_reload_lib) == 0) {
+            reload_lib = true;
+            SDL_UnlockMutex(m_reload_lib);
+        } else {
+            ERROR("Unable to lock mutex: {}", SDL_GetError());
+        }
     }
 }
 
 bool load_gamelib() {
-    m_reload_lib.lock();
-    if (!reload_lib) {
-        m_reload_lib.unlock();
-        return false;
+    if (hot_reload_active) {
+        if (SDL_LockMutex(m_reload_lib) != 0) {
+            ERROR("Unable to lock mutex: {}", SDL_GetError());
+            return false;
+        } else {
+            if (!reload_lib) {
+                SDL_UnlockMutex(m_reload_lib);
+                return false;
+            } else {
+                reload_lib = false;
+                SDL_UnlockMutex(m_reload_lib);
+            }
+        }
     }
-    reload_lib = false;
-    m_reload_lib.unlock();
 
     GameLibrary next_library = {};
     //
@@ -247,9 +256,17 @@ int main(int argc, char **argv) { // Game entrypoint
     }
 #undef ARGUMENT
 
-    m_reload_lib.lock();
-    reload_lib = true;
-    m_reload_lib.unlock();
+
+    if (hot_reload_active) {
+        m_reload_lib = SDL_CreateMutex();
+        ASSERT(m_reload_lib, "Unable to create mutex");
+        if (SDL_LockMutex(m_reload_lib) != 0) {
+            ERROR("Unable to lock mutex: {}", SDL_GetError());
+        } else {
+            reload_lib = true;
+            SDL_UnlockMutex(m_reload_lib);
+        }
+    }
 
     if (!load_gamelib()) {
         UNREACHABLE("Failed to load the linked library the first time!");
