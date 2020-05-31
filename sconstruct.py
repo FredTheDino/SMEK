@@ -95,8 +95,8 @@ platform_source = [re.sub("^src/", smek_dir, f) for f in source if "imgui" in f 
 smek = env.Program(target=smek_dir + "SMEK", source=[platform_source, smek_dir + "util/tprint.cpp"])
 libsmek = env.SharedLibrary(target=smek_dir + "libSMEK", source=smek_source)
 AddPostAction(libsmek, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
-Depends(smek, assets)
 Depends(smek, libsmek)
+Depends(smek, assets)
 Default(smek)
 
 tests_runtime_flags = []
