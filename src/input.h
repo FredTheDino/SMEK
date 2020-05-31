@@ -11,6 +11,7 @@ namespace Input {
 // The list of possible buttons that can be pressed.
 enum class Action {
     MoveX,
+    MoveY,
     MoveZ,
     Jaw,
     Pitch,
