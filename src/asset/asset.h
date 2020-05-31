@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <unordered_map>
 
 #include "../math/smek_vec.h"
 
@@ -13,10 +14,22 @@ struct AssetID {
 
     u64 id;
 
+    bool operator ==(AssetID &other) const {
+        return id == other;
+    }
+
     operator u64() const {
         return id;
     }
 };
+
+namespace std {
+    template<> struct hash<AssetID> {
+        std::size_t operator()(const AssetID &id) const noexcept {
+            return u64(id);
+        }
+    };
+}
 
 namespace Asset {
 
@@ -70,8 +83,8 @@ struct StringAsset {
     char *data;
 };
 
-///* Shader
-struct Shader {
+///* ShaderSource
+struct ShaderSource {
     // read from file
     u64 size;
     char *data;
@@ -106,28 +119,28 @@ struct Sound {
 union AssetData {
     Image image;
     StringAsset string;
-    Shader shader;
+    ShaderSource shader;
     Model model;
     Sound sound;
 };
 
-// not read directly from file
-struct Asset {
-    AssetHeader header;
+struct UsableAsset {
     AssetData data;
 
-    u64 name_hash;
-    u64 data_hash;
+    AssetHeader *header;
+    bool dirty;
+    bool loaded;
 };
 
 struct System {
     // read directly from file
     FileHeader  file_header;
     AssetHeader *headers;
-    AssetData   *data;
+    std::unordered_map<AssetID, UsableAsset> assets;
 
     // not read directly from file
     u64 num_assets;
+    const char *asset_path;
 };
 
 ///*
@@ -137,7 +150,11 @@ bool valid_asset(AssetID id);
 ///*
 // Load the specified binary asset file.
 // Does not currently support hot reloading.
-void load(const char *path);
+bool load(const char *path);
+
+///*
+// Hot reloads the asset file passed in.
+void reload();
 
 ///*
 // Fetch the ID corresponding to the asset with the specified name.
@@ -154,7 +171,7 @@ StringAsset *fetch_string_asset(AssetID id);
 
 ///*
 // Fetch a shader source asset.
-Shader *fetch_shader(AssetID id);
+ShaderSource *fetch_shader(AssetID id);
 
 ///*
 // Fetch a 3D-model.

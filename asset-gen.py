@@ -351,7 +351,7 @@ def pack(asset_files, out_file, verbose=False):
         print("\n".join(names))
     with open(out_file, "wb") as f:
         f.write(struct.pack(FILE_HEADER_FMT, num_assets, HEADER_OFFSET, data_offset))
-        for h in headers:
+        for h in sorted(headers, key=lambda x: x["name_hash"]):
             f.write(struct.pack(ASSET_HEADER_FMT, *h.values()))
             if verbose:
                 print("Writing header {} as {}".format(h, [hex(val) for val in [*h.values()]]))
