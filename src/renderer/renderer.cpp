@@ -49,8 +49,10 @@ void Camera::move_relative(Vec3 movement) {
 
 template<>
 void Camera::upload(const MasterShader &shader) {
-    if (dirty_perspective)
+    if (dirty_perspective) {
         perspective = Mat::perspective(fov, aspect_ratio, 0.01, 10.0);
+        dirty_perspective = false;
+    }
     shader.upload_proj(perspective);
     Mat view = (Mat::translate(position) * Mat::from(rotation)).invert();
     shader.upload_view(view);
