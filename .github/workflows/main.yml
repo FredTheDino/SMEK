@@ -35,3 +35,6 @@ jobs:
           name: report
           path: |
             bin/tests/report.txt
+      - name: Try to build release version
+        run: |
+          scons -Q

@@ -1,9 +1,10 @@
 #pragma once
 
 #ifndef TESTS
-#define TEST_CASE(name, block)
-#define TEST_STMT(name, stmt)
-#define LOG_TESTS(msg, ...)
+#define TEST_CASE(...)
+#define TEST_STMT(...)
+#define TEST_FORMAT(...)
+#define LOG_TESTS(...)
 #else
 
 ///# Tests
