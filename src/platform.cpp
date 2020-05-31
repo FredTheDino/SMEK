@@ -166,7 +166,13 @@ struct GameInput {
     void update_press(Button button, bool down) {
         if (input_to_action.count(button)) {
             ButtonPress press = input_to_action[button];
-            state[(u32) press.action] = down * press.value;
+            if (down) {
+                state[(u32) press.action] = down * press.value;
+            } else {
+                if (state[(u32) press.action] == press.value) {
+                    state[(u32) press.action] = 0.0;
+                }
+            }
         }
     }
 } global_input = {};
