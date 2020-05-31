@@ -208,8 +208,13 @@ bool reload() {
     }
     delete[] system->headers;
     system->headers = headers;
-    // TODO(ed): Remove unloaded and removed assets
 
+    for (auto it = system->assets.cbegin(), next = it; it != system->assets.cend(); it = next) {
+        ++next;
+        if (headers > it->second.header && it->second.header >= (headers + num_assets)) {
+            system->assets.erase(it);
+        }
+    }
     return true;
 }
 
