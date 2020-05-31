@@ -65,10 +65,18 @@ struct Camera {
 
 
 struct Mesh {
+    struct Vertex {
+        Vec3 position;
+        Vec2 texture;
+        Vec3 normal;
+    };
+
     u32 vao, vbo;
     u32 draw_length;
 
-    static Mesh init(Asset::Model *model);
+    static Mesh init(Vertex *vericies, u32 num_verticies);
+
+    void destroy();
 
     void draw();
 };

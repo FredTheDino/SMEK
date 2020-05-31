@@ -41,7 +41,7 @@ typedef enum {
     NONE = 0,
     TEXTURE = 1,
     STRING = 2,
-    MODEL = 3,
+    MESH = 3,
     SHADER = 4,
     SOUND = 5,
 
@@ -84,23 +84,6 @@ struct StringAsset {
     char *data;
 };
 
-///* Model
-struct Vertex {
-    Vec3 position;
-    Vec2 texture;
-    Vec3 normal;
-};
-//
-struct ModelFace {
-    Vertex vertices[3];
-};
-//
-struct Model {
-    // read from file
-    u32 points_per_face;
-    u32 num_faces;
-    Vertex *data;
-};
 
 struct Sound {
     // read from file
@@ -113,9 +96,9 @@ struct Sound {
 struct UsableAsset {
     union {
         GFX::Texture texture;
-        StringAsset string;
         GFX::Shader shader;
-        Model model;
+        GFX::Mesh mesh;
+        StringAsset string;
         Sound sound;
     };
 
@@ -171,7 +154,7 @@ GFX::Shader *fetch_shader(AssetID id);
 
 ///*
 // Fetch a 3D-model.
-Model *fetch_model(AssetID id);
+GFX::Mesh *fetch_mesh(AssetID id);
 
 Sound *fetch_sound(AssetID id);
 

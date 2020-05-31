@@ -30,7 +30,7 @@ static void read(FILE *file, T *ptr, size_t num=1) {
     CHECK(gobbled == num, "Faild to read a part of an asset.");
 }
 
-static void load_texture(UsableAsset *asset) {
+static void load_texture(UsableAsset *asset, FILE *file) {
     if (asset->loaded) {
         asset->texture.destroy();
     }
@@ -47,9 +47,6 @@ static void load_texture(UsableAsset *asset) {
         }
     } raw_image;
 
-    FILE *file = fopen(GAMESTATE()->asset_system.asset_path, "rb");
-    defer { fclose(file); };
-    fseek(file, GAMESTATE()->asset_system.file_header.data_offset + asset->header->data_offset, SEEK_SET);
     read(file, &raw_image);
     u64 size = raw_image.size();
     u8 *data = new u8[size];
@@ -61,17 +58,12 @@ static void load_texture(UsableAsset *asset) {
                                           GFX::Texture::Sampling::LINEAR);
 }
 
-static void load_shader(UsableAsset *asset) {
+static void load_shader(UsableAsset *asset, FILE *file) {
     struct {
         // read from file
         u64 size;
         char *data;
     } source;
-
-    FILE *file = fopen(GAMESTATE()->asset_system.asset_path, "rb");
-    defer { fclose(file); };
-    fseek(file, GAMESTATE()->asset_system.file_header.data_offset + asset->header->data_offset, SEEK_SET);
-
     read(file, &source);
     u32 size = source.size;
     char *data = new char[size];
@@ -79,7 +71,6 @@ static void load_shader(UsableAsset *asset) {
 
     GFX::Shader new_shader = GFX::Shader::compile(data);
 
-    LOG("Compiling shader!");
     if (new_shader.is_valid()) {
         if (asset->loaded) {
             asset->shader.destroy();
@@ -90,13 +81,33 @@ static void load_shader(UsableAsset *asset) {
     }
 }
 
+static void load_model(UsableAsset *asset, FILE *file) {
+    if (asset->loaded) {
+        asset->mesh.destroy();
+    }
+
+    struct {
+        // read from file
+        u32 points_per_face;
+        u32 num_faces;
+        GFX::Mesh::Vertex *data;
+    } model;
+
+    read(file, &model);
+    u32 num_faces = model.num_faces;
+    u32 size = num_faces * model.points_per_face;
+    model.data = new GFX::Mesh::Vertex[size];
+    read(file, model.data, size);
+    asset->mesh = GFX::Mesh::init(model.data, size);
+}
+
 static void load_asset(UsableAsset *asset) {
     FILE *file = fopen(GAMESTATE()->asset_system.asset_path, "rb");
     defer { fclose(file); };
     fseek(file, GAMESTATE()->asset_system.file_header.data_offset + asset->header->data_offset, SEEK_SET);
     switch (asset->header->type) {
     case AssetType::TEXTURE: {
-        load_texture(asset);
+        load_texture(asset, file);
     } break;
     case AssetType::STRING: {
         read(file, &asset->string);
@@ -104,15 +115,11 @@ static void load_asset(UsableAsset *asset) {
         asset->string.data = new char[size];
         read<char>(file, asset->string.data, size);
     } break;
-    case AssetType::MODEL: {
-        read(file, &asset->model);
-        u32 num_faces = asset->model.num_faces;
-        u32 size = num_faces * 3;
-        asset->model.data = new Vertex[size];
-        read(file, asset->model.data, size);
+    case AssetType::MESH: {
+        load_model(asset, file);
     } break;
     case AssetType::SHADER: {
-        load_shader(asset);
+        load_shader(asset, file);
     } break;
     case AssetType::SOUND: {
         read(file, &asset->sound);
@@ -155,8 +162,8 @@ GFX::Shader *fetch_shader(AssetID id) {
     return &_raw_fetch(AssetType::SHADER, id)->shader;
 }
 
-Model *fetch_model(AssetID id) {
-    return &_raw_fetch(AssetType::MODEL, id)->model;
+GFX::Mesh *fetch_mesh(AssetID id) {
+    return &_raw_fetch(AssetType::MESH, id)->mesh;
 }
 
 Sound *fetch_sound(AssetID id) {

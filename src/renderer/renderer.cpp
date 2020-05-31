@@ -95,8 +95,12 @@ void push_line(Vec3 a, Vec3 b, Vec4 a_color, Vec4 b_color, f32 width) {
     push_debug_triangle(p2, a_color, p3, b_color, p4, b_color);
 }
 
-Mesh Mesh::init(Asset::Model *model) {
-    using Asset::Vertex;
+void Mesh::destroy() {
+    glDeleteVertexArrays(11, &vao);
+    glDeleteBuffers(1, &vbo);
+}
+
+Mesh Mesh::init(Vertex *verticies, u32 num_verticies) {
     u32 vao, vbo;
 
     glGenVertexArrays(1, &vao);
@@ -104,7 +108,7 @@ Mesh Mesh::init(Asset::Model *model) {
 
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * model->num_faces * 3, model->data, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * num_verticies, verticies, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, position));
@@ -116,7 +120,7 @@ Mesh Mesh::init(Asset::Model *model) {
     glVertexAttribPointer(2, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, normal));
     glBindVertexArray(0);
 
-    return {vao, vbo, model->num_faces * 3};;
+    return {vao, vbo, num_verticies};
 }
 
 void Mesh::draw() {

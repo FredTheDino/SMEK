@@ -16,8 +16,6 @@ GameState *_global_gs;
 GameState *GAMESTATE() { return _global_gs; }
 #endif
 
-GFX::Mesh mesh;
-
 void init_game(GameState *gamestate, int width, int height) {
     _global_gs = gamestate;
     Asset::load("assets.bin");
@@ -47,7 +45,6 @@ void reload_game(GameState *game) {
     GFX::reload(game);
     Asset::reload();
 
-    mesh = GFX::Mesh::init(Asset::fetch_model("MONKEY"));
 
     game->audio_struct->lock();
     Audio::SoundSource test_source = game->audio_struct->sources[0];
@@ -68,6 +65,7 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
     }
     real time = SDL_GetTicks() / 1000.0;
 
+    GFX::Mesh mesh = *Asset::fetch_mesh("MONKEY");
     GFX::MasterShader shader = GFX::master_shader();
     shader.upload_t(time);
 
