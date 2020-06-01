@@ -34,6 +34,7 @@
 #include <functional>
 #include <cstring>
 
+#include "util/util.h"
 #include "game.h"
 
 #define PP_CAT(a, b) PP_CAT_I(a, b)
@@ -51,13 +52,13 @@ typedef bool(*TestCallback)(GameState *game, FILE *report);
     format(buffer, 64, ARGS, IN);                                       \
     const char *expected = EXPECTED;                                    \
     if (std::strcmp(buffer, expected) != 0) {                           \
-        LOG_TESTS("got '%s', expected '%s'", buffer, expected);         \
+        LOG_TESTS("got '{}', expected '{}'", buffer, expected);         \
         return false;                                                   \
     }                                                                   \
     return true;                                                        \
 })
 
-#define LOG_TESTS(msg, ...) if (report) { std::fprintf(report, msg "\n", ##__VA_ARGS__); }  // matches the normal LOG
+#define LOG_TESTS(msg, ...) if (report) { ftprint(report, msg "\n", ##__VA_ARGS__); }  // matches the normal LOG
 
 int reg_test(const char *name, TestCallback func, const char *file, unsigned int line);
 
