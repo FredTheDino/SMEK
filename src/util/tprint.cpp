@@ -29,6 +29,10 @@ i32 format(char *buffer, u32 size, FormatHint args, u16 a) {
     return snprintf(buffer, size, "%u", a);
 }
 
+i32 format(char *buffer, u32 size, FormatHint args, char a) {
+    return snprintf(buffer, size, "%c", a);
+}
+
 i32 format(char *buffer, u32 size, FormatHint args, const char *a) {
     return snprintf(buffer, size, "%s", a);
 }

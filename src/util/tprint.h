@@ -23,6 +23,7 @@ i32 format(char *buffer, u32 size, FormatHint args, i32 a);
 i32 format(char *buffer, u32 size, FormatHint args, u32 a);
 i32 format(char *buffer, u32 size, FormatHint args, i16 a);
 i32 format(char *buffer, u32 size, FormatHint args, u16 a);
+i32 format(char *buffer, u32 size, FormatHint args, char a);
 i32 format(char *buffer, u32 size, FormatHint args, const char *a);
 
 ///*
