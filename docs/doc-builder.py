@@ -232,7 +232,7 @@ def write_documentation(path, documentation):
         f.write(PREAMBLE)
         # Writing nav
         documented_code = {}
-        f.write("<nav>\n<div class='container'>\n<img id='logo' src='logo.png'>\n<h2>Content</h2>\n")
+        f.write("<nav>\n<div class='container'>\n<img id='logo' src='SMEK-logo.svg'>\n<h2>Content</h2>\n")
         f.write("<ul id=\"nav\">\n")
         for region, headings in documentation:
             if not has_content(headings): continue
