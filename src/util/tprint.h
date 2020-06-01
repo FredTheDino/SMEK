@@ -47,7 +47,7 @@ i32 sntprint_helper(char *buffer, u32 buf_size, const char *fmt, T first, Args..
 
 template<typename... Args>
 void tprint(const char *fmt, Args... to_print) {
-    char buffer[512];
+    char buffer[512] = {};
     sntprint(buffer, 512, fmt, to_print...);
     smek_print(buffer);
 }
