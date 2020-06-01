@@ -72,14 +72,14 @@ i32 sntprint_helper(char *buffer, u32 buf_size, const char *fmt, T first, Args..
         buffer[head++] = *(fmt++);\
     } while (false);
 
-#define SKIPP fmt++
+#define SKIP fmt++
 
     while (*fmt) {
         if (*fmt == '%') {
-            if (*(fmt + 1) == '{') { SKIPP; }
+            if (*(fmt + 1) == '{') { SKIP; }
             EAT;
         } else if (*fmt == '{') {
-            SKIPP;
+            SKIP;
             FormatHint hint;  // Setting some sane defaults
             hint.num_decimals = 5;
             while (*fmt != '}') {
@@ -88,21 +88,21 @@ i32 sntprint_helper(char *buffer, u32 buf_size, const char *fmt, T first, Args..
                     return -1;
                 }
                 if (*fmt == '.') {
-                    SKIPP;
+                    SKIP;
                     if ('0' <= *fmt && *fmt <= '9') {
                         hint.num_decimals = *fmt - '0';
-                        SKIPP;
+                        SKIP;
                     } else {
                         WARN("Expected number literal in format string after '.', got '{}'.", *fmt);
-                        SKIPP;
+                        SKIP;
                         continue;
                     }
                 } else {
                     WARN("Unexepected symbol in format string '{}'.", *fmt);
-                    SKIPP;
+                    SKIP;
                 }
             }
-            SKIPP;
+            SKIP;
             i32 format_write = format(buffer + head, buf_size - head, hint, first);
             head += format_write;
             if (head == buf_size - 1) { return head; }
@@ -114,6 +114,6 @@ i32 sntprint_helper(char *buffer, u32 buf_size, const char *fmt, T first, Args..
     WARN("Unread arguments.");
     return head;
 #undef EAT
-#undef SKIPP
+#undef SKIP
 
 }
