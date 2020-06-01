@@ -37,8 +37,8 @@ i32 format(char *buffer, u32 size, FormatHint args, const char *a) {
     return snprintf(buffer, size, "%s", a);
 }
 
-void smek_print(const char *buffer) {
-    fprintf(stderr, buffer);
+void smek_print(const char *buffer, FILE *stream) {
+    fprintf(stream, buffer);
 }
 
 u32 smek_snprint(char *out_buffer, u32 buf_size, const char *in_buffer) {

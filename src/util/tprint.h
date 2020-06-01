@@ -28,8 +28,8 @@ i32 format(char *buffer, u32 size, FormatHint args, char a);
 i32 format(char *buffer, u32 size, FormatHint args, const char *a);
 
 ///*
-// A helper functions to skip including stdio.h everywhere.
-void smek_print(const char *buffer);
+// Helper functions to skip including stdio.h everywhere.
+void smek_print(const char *buffer, FILE *stream=stderr);
 u32 smek_snprint(char *out_buffer, u32 buf_size, const char *in_buffer);
 
 ///*
@@ -40,6 +40,9 @@ void tprint(const char *fmt, Args... to_print);
 
 template<typename... Args>
 i32 sntprint(char *buffer, u32 buf_size, const char *fmt, Args... rest);
+
+template<typename... Args>
+void ftprint(FILE *stream, const char *fmt, Args... to_print);
 
 template<typename T, typename... Args>
 i32 sntprint_helper(char *buffer, u32 buf_size, const char *fmt, T first, Args... rest);
@@ -52,6 +55,13 @@ void tprint(const char *fmt, Args... to_print) {
     char buffer[512] = {};
     sntprint(buffer, 512, fmt, to_print...);
     smek_print(buffer);
+}
+
+template<typename... Args>
+void ftprint(FILE *stream, const char *fmt, Args... to_print) {
+    char buffer[512] = {};
+    sntprint(buffer, 512, fmt, to_print...);
+    smek_print(buffer, stream);
 }
 
 template<>
