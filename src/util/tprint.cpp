@@ -2,7 +2,7 @@
 #include "tprint.h"
 
 i32 format(char *buffer, u32 size, FormatHint args, f64 a) {
-    return snprintf(buffer, size, "%.*f", args.num_decimals, a);
+    return snprintf(buffer, size, "%0*.*f", args.num_leading_zeroes, args.num_decimals, a);
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, u64 a) {
