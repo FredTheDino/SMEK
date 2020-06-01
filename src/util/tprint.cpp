@@ -6,27 +6,27 @@ i32 format(char *buffer, u32 size, FormatHint args, f64 a) {
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, u64 a) {
-    return snprintf(buffer, size, "%lu", a);
+    return snprintf(buffer, size, "%0*lu", args.num_leading_zeroes, a);
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, i64 a) {
-    return snprintf(buffer, size, "%ld", a);
+    return snprintf(buffer, size, "%0*ld", args.num_leading_zeroes, a);
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, i32 a) {
-    return snprintf(buffer, size, "%d", a);
+    return snprintf(buffer, size, "%0*d", args.num_leading_zeroes, a);
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, u32 a) {
-    return snprintf(buffer, size, "%u", a);
+    return snprintf(buffer, size, "%0*u", args.num_leading_zeroes, a);
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, i16 a) {
-    return snprintf(buffer, size, "%d", a);
+    return snprintf(buffer, size, "%0*d", args.num_leading_zeroes, a);
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, u16 a) {
-    return snprintf(buffer, size, "%u", a);
+    return snprintf(buffer, size, "%0*u", args.num_leading_zeroes, a);
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, char a) {
