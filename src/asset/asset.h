@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <unordered_map>
-#include "SDL2/SDL.h"
+#include "SDL.h"
 
 #include "../math/smek_vec.h"
 #include "../renderer/renderer.h"
