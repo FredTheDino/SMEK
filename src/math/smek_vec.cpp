@@ -8,21 +8,24 @@ Vec3 cross(const Vec3 &a, const Vec3 &b) {
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, Vec2 v) {
-    return snprintf(buffer, size, "(%.*f, %.*f)", args.num_decimals, v.x,
-                                                  args.num_decimals, v.y);
+    return snprintf(buffer, size, "(%0*.*f, %0*.*f)",
+                                  args.num_zero_pad, args.num_decimals, v.x,
+                                  args.num_zero_pad, args.num_decimals, v.y);
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, Vec3 v) {
-    return snprintf(buffer, size, "(%.*f, %.*f, %.*f)", args.num_decimals, v.x,
-                                                        args.num_decimals, v.y,
-                                                        args.num_decimals, v.z);
+    return snprintf(buffer, size, "(%0*.*f, %0*.*f, %0*.*f)",
+                                  args.num_zero_pad, args.num_decimals, v.x,
+                                  args.num_zero_pad, args.num_decimals, v.y,
+                                  args.num_zero_pad, args.num_decimals, v.z);
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, Vec4 v) {
-    return snprintf(buffer, size, "(%.*f, %.*f, %.*f, %.*f)", args.num_decimals, v.x,
-                                                              args.num_decimals, v.y,
-                                                              args.num_decimals, v.z,
-                                                              args.num_decimals, v.w);
+    return snprintf(buffer, size, "(%0*.*f, %0*.*f, %0*.*f, %0*.*f)",
+                                  args.num_zero_pad, args.num_decimals, v.x,
+                                  args.num_zero_pad, args.num_decimals, v.y,
+                                  args.num_zero_pad, args.num_decimals, v.z,
+                                  args.num_zero_pad, args.num_decimals, v.w);
 }
 
 bool close_enough(const Vec2 &a, const Vec2 &b, real r) {

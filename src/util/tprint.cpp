@@ -2,31 +2,31 @@
 #include "tprint.h"
 
 i32 format(char *buffer, u32 size, FormatHint args, f64 a) {
-    return snprintf(buffer, size, "%0*.*f", args.num_leading_zeroes, args.num_decimals, a);
+    return snprintf(buffer, size, "%0*.*f", args.num_zero_pad, args.num_decimals, a);
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, u64 a) {
-    return snprintf(buffer, size, "%0*lu", args.num_leading_zeroes, a);
+    return snprintf(buffer, size, "%0*lu", args.num_zero_pad, a);
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, i64 a) {
-    return snprintf(buffer, size, "%0*ld", args.num_leading_zeroes, a);
+    return snprintf(buffer, size, "%0*ld", args.num_zero_pad, a);
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, i32 a) {
-    return snprintf(buffer, size, "%0*d", args.num_leading_zeroes, a);
+    return snprintf(buffer, size, "%0*d", args.num_zero_pad, a);
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, u32 a) {
-    return snprintf(buffer, size, "%0*u", args.num_leading_zeroes, a);
+    return snprintf(buffer, size, "%0*u", args.num_zero_pad, a);
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, i16 a) {
-    return snprintf(buffer, size, "%0*d", args.num_leading_zeroes, a);
+    return snprintf(buffer, size, "%0*d", args.num_zero_pad, a);
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, u16 a) {
-    return snprintf(buffer, size, "%0*u", args.num_leading_zeroes, a);
+    return snprintf(buffer, size, "%0*u", args.num_zero_pad, a);
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, char a) {
@@ -55,4 +55,3 @@ i32 sntprint<>(char *buffer, u32 buf_size, const char *fmt) {
     }
     return head;
 }
-

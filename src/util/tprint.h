@@ -8,7 +8,7 @@ struct FormatHint;
 
 struct FormatHint {
     int num_decimals;
-    int num_leading_zeroes;
+    int num_zero_pad;
 };
 
 //
@@ -94,7 +94,7 @@ i32 sntprint_helper(char *buffer, u32 buf_size, const char *fmt, T first, Args..
             SKIP;
             FormatHint hint;  // Setting some sane defaults
             hint.num_decimals = 5;
-            hint.num_leading_zeroes = 0;
+            hint.num_zero_pad = 0;
             while (*fmt != '}') {
                 if (!*fmt) {
                     WARN("Invalid format string");
@@ -113,7 +113,7 @@ i32 sntprint_helper(char *buffer, u32 buf_size, const char *fmt, T first, Args..
                 } else if (*fmt == '0') {
                     SKIP;
                     if ('0' <= *fmt && *fmt <= '9') {
-                        hint.num_leading_zeroes = *fmt - '0';
+                        hint.num_zero_pad = *fmt - '0';
                         SKIP;
                     } else {
                         WARN("Expected number literal in format string after '0', got '{}'.", *fmt);
