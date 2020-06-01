@@ -1,9 +1,7 @@
-#include <cstdio>
 #include <stdexcept>
-#include <cstring>
 #include <cstdlib>
 
-#include "util/color.h"
+#include "util/util.h"
 
 #include "test.h"
 
@@ -58,7 +56,7 @@ int main(int argc, char **argv) { // Test entry point
             write_report = true;
             report_path = argv[++index];
         } else {
-            ERROR("Unknown command line argument '%s'", argv[index]);
+            ERROR("Unknown command line argument '{}'", argv[index]);
         }
     }
 #undef ARGUMENT

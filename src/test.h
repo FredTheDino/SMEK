@@ -25,10 +25,9 @@
 //   (see below).
 // </ul>
 //
-// The tests run automatically for all commits to master and
-// pull requests targeting master. If any tests fail the
-// built binary, its assets and the report is uploaded as
-// artifacts.
+// The tests run automatically for all commits to master and all pull
+// requests. If any tests fail the built binary, its assets and the
+// report is uploaded as artifacts.
 
 #include <cstdio>
 #include <vector>
