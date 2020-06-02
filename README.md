@@ -1,3 +1,4 @@
+![SMEK Logo](docs/SMEK_logo.svg)
 # SMEK
 The best of the best.
 
