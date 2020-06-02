@@ -20,6 +20,8 @@
 // This is very UNIX-y
 #include <dlfcn.h>
 
+#define MS_PER_FRAME 100
+
 struct GameLibrary {
     GameInitFunc init;
     GameReloadFunc reload;
@@ -221,7 +223,9 @@ int main(int argc, char **argv) { // Game entrypoint
     game_lib.reload(&game_state);
 
     std::signal(SIGUSR1, signal_handler);
+    u32 next_update = SDL_GetTicks();
     while (game_state.running) {
+
         // Check for reloading of library
         if (load_gamelib()) {
             LOG("PLATFORM LAYER RELOAD!");
@@ -259,13 +263,21 @@ int main(int argc, char **argv) { // Game entrypoint
             }
         }
 
-
         for (u32 i = 0; i < (u32) Ac::NUM_ACTIONS; i++) {
             game_state.input.last_frame[i] = game_state.input.current_frame[i];
             game_state.input.current_frame[i] = global_input.state[i];
         }
         game_state.input.mouse_move = global_input.mouse_move;
         game_state.input.mouse_pos = global_input.mouse_pos;
+
+        while (next_update < SDL_GetTicks()) {
+            game_state.time = next_update / 1000.0;
+            game_state.delta = MS_PER_FRAME / 1000.0;
+            game_state.frame++;
+            next_update += MS_PER_FRAME;
+
+            game_state = game_lib.update(&game_state, GSUM::UPDATE);
+        }
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame(game_state.window);
