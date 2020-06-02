@@ -30,12 +30,10 @@ void init_game(GameState *gamestate, int width, int height) {
 
     Input::bind(Ac::MoveX, 0, SDLK_a, -1.0);
     Input::bind(Ac::MoveX, 1, SDLK_d,  1.0);
+    Input::bind(Ac::MoveY, 0, SDLK_q,  1.0);
+    Input::bind(Ac::MoveY, 1, SDLK_e, -1.0);
     Input::bind(Ac::MoveZ, 0, SDLK_w, -1.0);
     Input::bind(Ac::MoveZ, 1, SDLK_s,  1.0);
-    Input::bind(Ac::Jaw, 0, SDLK_q, -1.0);
-    Input::bind(Ac::Jaw, 1, SDLK_e,  1.0);
-    Input::bind(Ac::Pitch, 0, SDLK_i,  1.0);
-    Input::bind(Ac::Pitch, 1, SDLK_k, -1.0);
     Input::bind(Ac::MouseToggle, 0, SDLK_m);
     Input::bind(Ac::Rebind, 1, SDLK_r);
 }
@@ -69,18 +67,24 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
     GFX::MasterShader shader = GFX::master_shader();
     shader.upload_t(time);
 
-    Vec3 move = {Input::value(Ac::MoveX), 0, Input::value(Ac::MoveZ)};
-    Vec2 turn = Input::mouse_move();
-    move = move * 0.01;
-    turn = turn * 0.01;
-    GFX::main_camera()->turn(turn.y, turn.x);
-    GFX::main_camera()->move_relative(move);
+    // Debug camera movement
+    {
+        // TODO(ed): Add actual delta time
+        Vec3 move = {Input::value(Ac::MoveX), 0, Input::value(Ac::MoveZ)};
+        Vec2 turn = Input::mouse_move();
+        move = move * 0.01;
+        turn = turn * 0.01;
+        GFX::main_camera()->turn(turn.y, turn.x);
+        GFX::main_camera()->move_relative(move);
+        GFX::main_camera()->move(Vec3(0, Input::value(Ac::MoveY) * 0.01, 0));
+    }
 
 
     const i32 grid_size = 10;
-    const f32 width = 0.03;
+    const f32 width = 0.005;
     const Vec4 color = GFX::color(1);
     for (f32 x = 0; x <= grid_size; x += 0.5) {
+        GFX::push_point(Vec3(x, 0, x), GFX::color(2), width * 10);
         GFX::push_line(Vec3(x, 0, grid_size), Vec3(x, 0, -grid_size), color, width);
         GFX::push_line(Vec3(-x, 0, grid_size), Vec3(-x, 0, -grid_size), color, width);
         GFX::push_line(Vec3(grid_size, 0, x), Vec3(-grid_size, 0, x), color, width);

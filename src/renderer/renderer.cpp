@@ -49,8 +49,10 @@ void Camera::move_relative(Vec3 movement) {
 
 template<>
 void Camera::upload(const MasterShader &shader) {
-    if (dirty_perspective)
+    if (dirty_perspective) {
         perspective = Mat::perspective(fov, aspect_ratio, 0.01, 10.0);
+        dirty_perspective = false;
+    }
     shader.upload_proj(perspective);
     Mat view = (Mat::translate(position) * Mat::from(rotation)).invert();
     shader.upload_view(view);
@@ -78,6 +80,10 @@ const Vec4 color_list[] = {
 Vec4 color(u32 index) {
     ASSERT(index < LEN(color_list), "Trying to fetch color that doesn't exist");
     return color_list[index];
+}
+
+void push_point(Vec3 a, Vec4 c, f32 width) {
+    push_line(a - Vec3(width, width, width) * 0.5, a + Vec3(width, width, width) * 0.5, c, c, width);
 }
 
 void push_line(Vec3 a, Vec3 b, Vec4 color, f32 width) {

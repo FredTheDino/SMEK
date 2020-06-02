@@ -1,9 +1,5 @@
-#include <cstdio>
 #include <stdexcept>
-#include <cstring>
 #include <cstdlib>
-
-#include "util/color.h"
 
 #include "test.h"
 
@@ -58,7 +54,7 @@ int main(int argc, char **argv) { // Test entry point
             write_report = true;
             report_path = argv[++index];
         } else {
-            ERROR("Unknown command line argument '%s'", argv[index]);
+            ERROR("Unknown command line argument '{}'", argv[index]);
         }
     }
 #undef ARGUMENT
@@ -72,7 +68,7 @@ unsigned int TestSuite::run(bool ci, bool write_report, const char *path) {
     if (write_report) {
         report = std::fopen(path, "w");
         if (!report) {
-            std::fprintf(STREAM, "Unable to open report\n");
+            ftprint(STREAM, "Unable to open report\n");
         }
     } else {
         report = nullptr;
@@ -93,28 +89,28 @@ unsigned int TestSuite::run(bool ci, bool write_report, const char *path) {
     for (unsigned int i = 0; i < num_tests; i++) {
         GameState state = {};
         _test_gs = &state;
-        std::fprintf(STREAM, "%s%02d: %s%s", PRE, i+1, tests[i].name, POST);
-        LOG_TESTS("%02d: %s", i+1, tests[i].name);
+        ftprint(STREAM, "{}{03}: {}{}", PRE, i+1, tests[i].name, POST);
+        LOG_TESTS("{03}: {}", i+1, tests[i].name);
         bool success = false;
         try {
             success = tests[i].func(&state, report);
         } catch (const std::runtime_error &ex) { /* Empty */ }
         if (success) {
             succeeded++;
-            LOG_TESTS("'%s' succeeded at %s @ %d\n", tests[i].name, tests[i].file, tests[i].line);
+            LOG_TESTS("'{}' succeeded at {} @ {}\n", tests[i].name, tests[i].file, tests[i].line);
         } else {
-            std::fprintf(STREAM, "%s" BOLDRED "| %s" RESET " failed (%s @ %d)\n",
+            ftprint(STREAM, "{}" BOLDRED "| {}" RESET " failed ({} @ {})\n",
                          PRE, tests[i].name, tests[i].file, tests[i].line);
-            LOG_TESTS("'%s' failed at %s @ %d\n", tests[i].name, tests[i].file, tests[i].line);
+            LOG_TESTS("'{}' failed at {} @ {}\n", tests[i].name, tests[i].file, tests[i].line);
         }
     }
-    std::fprintf(STREAM, "%s", PRE);
+    ftprint(STREAM, "{}", PRE);
 
-    std::fprintf(STREAM, GREEN "Passed: " RESET "%d\n", succeeded);
+    ftprint(STREAM, GREEN "Passed: " RESET "{}\n", succeeded);
     if (succeeded != num_tests)
-        std::fprintf(STREAM, RED "Failed: " RESET "%d\n", num_tests - succeeded);
+        ftprint(STREAM, RED "Failed: " RESET "{}\n", num_tests - succeeded);
 
-    LOG_TESTS("Tests done: %d/%d passed", succeeded, num_tests);
+    LOG_TESTS("Tests done: {}/{} passed", succeeded, num_tests);
 
     if (report)
         std::fclose(report);

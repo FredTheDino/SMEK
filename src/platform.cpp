@@ -8,7 +8,6 @@
 #include "util/log.h"
 #include "input.h"
 #include <unordered_map>
-#include <mutex>
 #include <csignal>
 #include <cstring>
 #include <cstdlib>
@@ -40,28 +39,38 @@ struct GameLibrary {
 GameState game_state;
 Audio::AudioStruct platform_audio_struct = {};
 
-std::mutex m_reload_lib;
+SDL_mutex *m_reload_lib;
 bool hot_reload_active = true;
 bool reload_lib = false;
 
 void signal_handler (int signal) {
-    if (hot_reload_active) {
-        m_reload_lib.lock();
-        reload_lib = true;
-        m_reload_lib.unlock();
-    } else {
+    if (!hot_reload_active) {
         WARN("Ignoring USR1");
+    } else {
+        if (SDL_LockMutex(m_reload_lib) == 0) {
+            reload_lib = true;
+            SDL_UnlockMutex(m_reload_lib);
+        } else {
+            ERROR("Unable to lock mutex: {}", SDL_GetError());
+        }
     }
 }
 
 bool load_gamelib() {
-    m_reload_lib.lock();
-    if (!reload_lib) {
-        m_reload_lib.unlock();
-        return false;
+    if (hot_reload_active) {
+        if (SDL_LockMutex(m_reload_lib) != 0) {
+            ERROR("Unable to lock mutex: {}", SDL_GetError());
+            return false;
+        } else {
+            if (!reload_lib) {
+                SDL_UnlockMutex(m_reload_lib);
+                return false;
+            } else {
+                reload_lib = false;
+                SDL_UnlockMutex(m_reload_lib);
+            }
+        }
     }
-    reload_lib = false;
-    m_reload_lib.unlock();
 
     GameLibrary next_library = {};
     //
@@ -78,7 +87,7 @@ bool load_gamelib() {
     dlsym(tmp, "init_game");
     if (const char *error = dlerror()) {
         dlclose(tmp);
-        WARN("Failed to load symbol. (%s)", error);
+        WARN("Failed to load symbol: {}", error);
         return false;
     }
     dlclose(tmp); // If it isn't unloaded here, the same library is loaded.
@@ -88,25 +97,25 @@ bool load_gamelib() {
 
     void *lib = dlopen(path, RTLD_NOW);
     if (!lib) {
-        UNREACHABLE("Failed to open library safely (%s)", dlerror());
+        UNREACHABLE("Failed to open library safely: {}", dlerror());
     }
 
     game_lib.handle = lib;
     game_lib.init = (GameInitFunc) dlsym(lib, "init_game");
     if (!game_lib.init) {
-        UNREACHABLE("Failed to load \"init_game\" (%s)", dlerror());
+        UNREACHABLE("Failed to load \"init_game\": {}", dlerror());
     }
     game_lib.update = (GameUpdateFunc) dlsym(lib, "update_game");
     if (!game_lib.update) {
-        UNREACHABLE("Failed to load \"update_game\" (%s)", dlerror());
+        UNREACHABLE("Failed to load \"update_game\": {}", dlerror());
     }
     game_lib.reload = (GameReloadFunc) dlsym(lib, "reload_game");
     if (!game_lib.update) {
-        UNREACHABLE("Failed to load \"reload_game\" (%s)", dlerror());
+        UNREACHABLE("Failed to load \"reload_game\": {}", dlerror());
     }
     game_lib.audio_callback = (AudioCallbackFunc) dlsym(lib, "audio_callback");
     if (!game_lib.audio_callback) {
-        UNREACHABLE("Failed to load \"audio_callback\" (%s)", dlerror());
+        UNREACHABLE("Failed to load \"audio_callback\": {}", dlerror());
     }
     platform_audio_struct.unlock();
 
@@ -135,16 +144,16 @@ struct GameInput {
     f32 rebind_value;
 
     void bind(Ac action, u32 slot, Button button, f32 value=1.0) {
-        ASSERT(slot < LEN(action_to_input[0]), "Invalid binding slot, max %d. (%d)",
+        ASSERT(slot < LEN(action_to_input[0]), "Invalid binding slot {}, max is {}.",
                LEN(action_to_input[0]), slot);
         if (input_to_action.count(button))
-            WARN("Button cannot be bound to multiple actions (%d)", button);
+            WARN("Button {} cannot be bound to multiple actions", button);
         action_to_input[(u32) action][slot] = button;
         input_to_action[button] = { action, value };
     }
 
     bool unbind(Ac action, u32 slot) {
-        ASSERT(slot < LEN(action_to_input[0]), "Invalid binding slot, max %d. (%d)",
+        ASSERT(slot < LEN(action_to_input[0]), "Invalid binding slot {}, max is {}.",
                LEN(action_to_input[0]), slot);
 
         Button button = action_to_input[(u32) action][slot];
@@ -166,14 +175,20 @@ struct GameInput {
     void update_press(Button button, bool down) {
         if (input_to_action.count(button)) {
             ButtonPress press = input_to_action[button];
-            state[(u32) press.action] = down * press.value;
+            if (down) {
+                state[(u32) press.action] = down * press.value;
+            } else {
+                if (state[(u32) press.action] == press.value) {
+                    state[(u32) press.action] = 0.0;
+                }
+            }
         }
     }
 } global_input = {};
 
 // See documentation in input.h
 void platform_rebind(Ac action, u32 slot, f32 value) {
-    ASSERT(slot < LEN(global_input.action_to_input[0]), "Invalid binding slot, max %d. (%d)",
+    ASSERT(slot < LEN(global_input.action_to_input[0]), "Invalid binding slot {}, max is {}.",
            LEN(global_input.action_to_input[0]), slot);
     global_input.rebinding = true;
     global_input.rebind_action = action;
@@ -206,11 +221,11 @@ void platform_audio_init() {
     SDL_AudioSpec have;
     platform_audio_struct.dev = SDL_OpenAudioDevice(nullptr, 0, &want, &have, 0);
     if (platform_audio_struct.dev <= 0) {
-        UNREACHABLE("Unable to initialize audio (%s)", SDL_GetError());
+        UNREACHABLE("Unable to initialize audio: {}", SDL_GetError());
     }
-    CHECK(have.freq == want.freq, "Got different sample rate %d", have.freq);
-    ASSERT(have.format == want.format, "Got wrong format %d", have.format);
-    ASSERT(have.channels == want.channels, "Got wrong amount of channels %d", have.channels);
+    CHECK(have.freq == want.freq, "Got different sample rate ({})", have.freq);
+    ASSERT(have.format == want.format, "Got wrong format ({})", have.format);
+    ASSERT(have.channels == want.channels, "Got wrong amount of channels ({})", have.channels);
 
     platform_audio_struct.sample_rate = have.freq;
     platform_audio_struct.active = true;
@@ -236,14 +251,22 @@ int main(int argc, char **argv) { // Game entrypoint
         } else if ARGUMENT("--no-reload", "-R") {
             hot_reload_active = false;
         } else {
-            ERROR("Unknown command line argument '%s'", argv[index]);
+            ERROR("Unknown command line argument '{}'", argv[index]);
         }
     }
 #undef ARGUMENT
 
-    m_reload_lib.lock();
-    reload_lib = true;
-    m_reload_lib.unlock();
+
+    if (hot_reload_active) {
+        m_reload_lib = SDL_CreateMutex();
+        ASSERT(m_reload_lib, "Unable to create mutex");
+        if (SDL_LockMutex(m_reload_lib) != 0) {
+            ERROR("Unable to lock mutex: {}", SDL_GetError());
+        } else {
+            reload_lib = true;
+            SDL_UnlockMutex(m_reload_lib);
+        }
+    }
 
     if (!load_gamelib()) {
         UNREACHABLE("Failed to load the linked library the first time!");

@@ -1,6 +1,5 @@
 #pragma once
 #include "../math/smek_math.h"
-#include "../math/smek_vec.h"
 // includes "util.h" further down
 
 ///* FormatHint
@@ -9,6 +8,7 @@ struct FormatHint;
 
 struct FormatHint {
     int num_decimals;
+    int num_zero_pad;
 };
 
 //
@@ -17,7 +17,6 @@ struct FormatHint {
 // is the function that should be overloaded.
 //
 
-i32 format(char *buffer, u32 size, FormatHint args, Vec3 a);
 i32 format(char *buffer, u32 size, FormatHint args, f64 a);
 i32 format(char *buffer, u32 size, FormatHint args, i64 a);
 i32 format(char *buffer, u32 size, FormatHint args, u64 a);
@@ -25,11 +24,12 @@ i32 format(char *buffer, u32 size, FormatHint args, i32 a);
 i32 format(char *buffer, u32 size, FormatHint args, u32 a);
 i32 format(char *buffer, u32 size, FormatHint args, i16 a);
 i32 format(char *buffer, u32 size, FormatHint args, u16 a);
+i32 format(char *buffer, u32 size, FormatHint args, char a);
 i32 format(char *buffer, u32 size, FormatHint args, const char *a);
 
 ///*
-// A helper functions to skip including stdio.h everywhere.
-void smek_print(const char *buffer);
+// Helper functions to skip including stdio.h everywhere.
+void smek_print(const char *buffer, FILE *stream=stderr);
 u32 smek_snprint(char *out_buffer, u32 buf_size, const char *in_buffer);
 
 ///*
@@ -41,6 +41,9 @@ void tprint(const char *fmt, Args... to_print);
 template<typename... Args>
 i32 sntprint(char *buffer, u32 buf_size, const char *fmt, Args... rest);
 
+template<typename... Args>
+void ftprint(FILE *stream, const char *fmt, Args... to_print);
+
 template<typename T, typename... Args>
 i32 sntprint_helper(char *buffer, u32 buf_size, const char *fmt, T first, Args... rest);
 
@@ -49,9 +52,16 @@ i32 sntprint_helper(char *buffer, u32 buf_size, const char *fmt, T first, Args..
 
 template<typename... Args>
 void tprint(const char *fmt, Args... to_print) {
-    char buffer[512];
+    char buffer[512] = {};
     sntprint(buffer, 512, fmt, to_print...);
     smek_print(buffer);
+}
+
+template<typename... Args>
+void ftprint(FILE *stream, const char *fmt, Args... to_print) {
+    char buffer[512] = {};
+    sntprint(buffer, 512, fmt, to_print...);
+    smek_print(buffer, stream);
 }
 
 template<>
@@ -74,37 +84,48 @@ i32 sntprint_helper(char *buffer, u32 buf_size, const char *fmt, T first, Args..
         buffer[head++] = *(fmt++);\
     } while (false);
 
-#define SKIPP fmt++
+#define SKIP fmt++
 
     while (*fmt) {
         if (*fmt == '%') {
-            if (*(fmt + 1) == '{') { SKIPP; }
+            if (*(fmt + 1) == '{') { SKIP; }
             EAT;
         } else if (*fmt == '{') {
-            SKIPP;
+            SKIP;
             FormatHint hint;  // Setting some sane defaults
             hint.num_decimals = 5;
+            hint.num_zero_pad = 0;
             while (*fmt != '}') {
                 if (!*fmt) {
                     WARN("Invalid format string");
                     return -1;
                 }
                 if (*fmt == '.') {
-                    SKIPP;
+                    SKIP;
                     if ('0' <= *fmt && *fmt <= '9') {
                         hint.num_decimals = *fmt - '0';
-                        SKIPP;
+                        SKIP;
                     } else {
                         WARN("Expected number literal in format string after '.', got '{}'.", *fmt);
-                        SKIPP;
+                        SKIP;
+                        continue;
+                    }
+                } else if (*fmt == '0') {
+                    SKIP;
+                    if ('0' <= *fmt && *fmt <= '9') {
+                        hint.num_zero_pad = *fmt - '0';
+                        SKIP;
+                    } else {
+                        WARN("Expected number literal in format string after '0', got '{}'.", *fmt);
+                        SKIP;
                         continue;
                     }
                 } else {
                     WARN("Unexepected symbol in format string '{}'.", *fmt);
-                    SKIPP;
+                    SKIP;
                 }
             }
-            SKIPP;
+            SKIP;
             i32 format_write = format(buffer + head, buf_size - head, hint, first);
             head += format_write;
             if (head == buf_size - 1) { return head; }
@@ -116,6 +137,6 @@ i32 sntprint_helper(char *buffer, u32 buf_size, const char *fmt, T first, Args..
     WARN("Unread arguments.");
     return head;
 #undef EAT
-#undef SKIPP
+#undef SKIP
 
 }

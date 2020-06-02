@@ -7,6 +7,26 @@ Vec3 cross(const Vec3 &a, const Vec3 &b) {
                 a.x * b.y - b.x * a.y);
 }
 
+i32 format(char *buffer, u32 size, FormatHint args, Vec2 v) {
+    return snprintf(buffer, size, "(%0*.*f, %0*.*f)",
+                                  args.num_zero_pad, args.num_decimals, v.x,
+                                  args.num_zero_pad, args.num_decimals, v.y);
+}
+
+i32 format(char *buffer, u32 size, FormatHint args, Vec3 v) {
+    return snprintf(buffer, size, "(%0*.*f, %0*.*f, %0*.*f)",
+                                  args.num_zero_pad, args.num_decimals, v.x,
+                                  args.num_zero_pad, args.num_decimals, v.y,
+                                  args.num_zero_pad, args.num_decimals, v.z);
+}
+
+i32 format(char *buffer, u32 size, FormatHint args, Vec4 v) {
+    return snprintf(buffer, size, "(%0*.*f, %0*.*f, %0*.*f, %0*.*f)",
+                                  args.num_zero_pad, args.num_decimals, v.x,
+                                  args.num_zero_pad, args.num_decimals, v.y,
+                                  args.num_zero_pad, args.num_decimals, v.z,
+                                  args.num_zero_pad, args.num_decimals, v.w);
+}
 
 bool close_enough(const Vec2 &a, const Vec2 &b, real r) {
     return _close_enough_vec(a, b, r);
@@ -40,3 +60,10 @@ TEST_STMT("vec_mul", close_enough(Vec2(1, 1) * 3, Vec2(3, 3)));
 TEST_STMT("vec_normalized", close_enough(normalized(Vec4(1, 1, 1, 1)), Vec4(0.5, 0.5, 0.5, 0.5), 0.001));
 TEST_STMT("vec_sub", close_enough(Vec2(3, 4) - Vec2(1, -2), Vec2(2, 6)));
 TEST_STMT("vec_sub", close_enough(Vec4() - Vec4(1, 1, 1), Vec4(-1, -1, -1)));
+
+TEST_FORMAT(Vec2(1, 1.5),                "(1.00, 1.50)",        .num_decimals=2);
+TEST_FORMAT(Vec2(1.04, -1.5),            "(1.0, -1.5)",         .num_decimals=1);
+TEST_FORMAT(Vec3(1.000, 1.4, 2.511),     "(1.00, 1.40, 2.51)",  .num_decimals=2);
+TEST_FORMAT(Vec3(-1.0, -2.56, -10.0005), "(-1.0, -2.6, -10.0)", .num_decimals=1);
+TEST_FORMAT(Vec4(-1, -2, 3, 2),          "(-1, -2, 3, 2)",      .num_decimals=0);
+TEST_FORMAT(Vec4(-1.1, -2.1, 3.8, 2.8),  "(-1, -2, 4, 3)",      .num_decimals=0);
