@@ -71,6 +71,8 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
     GFX::MasterShader shader = GFX::master_shader();
     shader.upload_t(time);
 
+    EventSystem::handle_events();
+
     // Debug camera movement
     {
         // TODO(ed): Add actual delta time

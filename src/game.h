@@ -6,6 +6,10 @@
 #include "input.h"
 #include "audio.h"
 
+#include <queue>
+
+#include "event.h"
+
 ///* GameState
 struct GameState {
     SDL_Window *window;
@@ -15,6 +19,7 @@ struct GameState {
     GFX::Renderer renderer = {};
     Input::Input input = {};
     Audio::AudioStruct *audio_struct;
+    std::queue<EventSystem::Event> event_queue;
 
     bool running;
 };
