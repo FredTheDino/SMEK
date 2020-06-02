@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include "SDL2/SDL.h"
 
 #include "../math/smek_vec.h"
 #include "../renderer/renderer.h"
@@ -116,6 +117,8 @@ struct System {
     // not read directly from file
     u64 num_assets;
     const char *asset_path;
+
+    SDL_mutex *asset_lock;
 };
 
 ///*

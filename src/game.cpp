@@ -33,6 +33,8 @@ GFX::Texture texture;
 
 void init_game(GameState *gamestate, int width, int height) {
     _global_gs = gamestate;
+    GAMESTATE()->main_thread = SDL_GetThreadID(NULL);
+
     Asset::load("assets.bin");
 
     GFX::init(GAMESTATE(), width, height);
@@ -58,16 +60,15 @@ void reload_game(GameState *game) {
     Asset::reload();
 
 
-#if 0
     game->audio_struct->lock();
     Audio::SoundSource test_source = game->audio_struct->sources[0];
     test_source.asset_id = AssetID("NOISE_STEREO_8K");
+    Asset::fetch_sound(test_source.asset_id); // Should always be done on main thread.
     test_source.active = true;
     test_source.repeat = false;
     test_source.sample = 0;
     game->audio_struct->sources[0] = test_source;
     game->audio_struct->unlock();
-#endif
 }
 
 void update() {

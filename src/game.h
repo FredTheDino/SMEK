@@ -16,6 +16,7 @@ struct GameState {
     Audio::AudioStruct *audio_struct;
 
 
+    SDL_threadID main_thread;
     f32 delta;
     f32 time;
     u32 frame;

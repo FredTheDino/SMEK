@@ -127,7 +127,9 @@ void platform_audio_callback(void *userdata, u8 *stream, int len);
 void platform_audio_callback(void *userdata, u8 *stream, int len) {
     f32 *f_stream = (f32 *) stream;
     Audio::AudioStruct *audio_struct_ptr = (Audio::AudioStruct *) userdata;
+    game_state.audio_struct->lock();
     game_lib.audio_callback(audio_struct_ptr, f_stream, len);
+    game_state.audio_struct->unlock();
 }
 
 void platform_audio_init() {
@@ -223,7 +225,7 @@ int main(int argc, char **argv) { // Game entrypoint
     game_lib.reload(&game_state);
 
     std::signal(SIGUSR1, signal_handler);
-    u32 next_update = SDL_GetTicks();
+    u32 next_update = SDL_GetTicks() - MS_PER_FRAME;
     while (game_state.running) {
         if (load_gamelib()) {
             LOG("PLATFORM LAYER RELOAD!");
