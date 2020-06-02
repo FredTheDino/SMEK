@@ -264,6 +264,8 @@ int main(int argc, char **argv) { // Game entrypoint
                 if (event.type == SDL_MOUSEMOTION) {
                     if (!game_state.input.mouse_capture) continue;
                     SDL_MouseMotionEvent mouse = event.motion;
+                    // TODO(ed): This mousemovement is wrong for lower refreshrate screens,
+                    // it needs to be fixed somehow.
                     global_input.mouse_move = global_input.mouse_move + Vec2(mouse.xrel, mouse.yrel);
                     global_input.mouse_pos = Vec2(mouse.x, mouse.y);
                 }
