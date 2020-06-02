@@ -225,21 +225,20 @@ int main(int argc, char **argv) { // Game entrypoint
     std::signal(SIGUSR1, signal_handler);
     u32 next_update = SDL_GetTicks();
     while (game_state.running) {
-
-        // Check for reloading of library
         if (load_gamelib()) {
             LOG("PLATFORM LAYER RELOAD!");
             game_lib.reload(&game_state);
         }
 
-        // Zero the movement, so we don't carry over frames.
-        global_input.mouse_move = {};
-
-        while (next_update < SDL_GetTicks()) {
+        while (next_update < SDL_GetTicks() && game_state.running) {
+            // Check for reloading of library
             game_state.time = next_update / 1000.0;
             game_state.delta = MS_PER_FRAME / 1000.0;
             game_state.frame++;
             next_update += MS_PER_FRAME;
+
+            // Zero the movement, so we don't carry over frames.
+            global_input.mouse_move = {};
 
             // Read in input
             SDL_Event event;
@@ -265,7 +264,7 @@ int main(int argc, char **argv) { // Game entrypoint
                 if (event.type == SDL_MOUSEMOTION) {
                     if (!game_state.input.mouse_capture) continue;
                     SDL_MouseMotionEvent mouse = event.motion;
-                    global_input.mouse_move = Vec2(mouse.xrel, mouse.yrel);
+                    global_input.mouse_move = global_input.mouse_move + Vec2(mouse.xrel, mouse.yrel);
                     global_input.mouse_pos = Vec2(mouse.x, mouse.y);
                 }
             }
@@ -280,13 +279,11 @@ int main(int argc, char **argv) { // Game entrypoint
 
             game_state = game_lib.update(&game_state, GSUM::UPDATE);
         }
-
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame(game_state.window);
         ImGui::NewFrame();
 
         game_state = game_lib.update(&game_state, GSUM::RENDER);
-
         SDL_SetRelativeMouseMode((SDL_bool) game_state.input.mouse_capture);
 
         ImGui::Render();
