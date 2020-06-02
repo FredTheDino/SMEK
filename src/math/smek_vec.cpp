@@ -61,9 +61,9 @@ TEST_STMT("vec_normalized", close_enough(normalized(Vec4(1, 1, 1, 1)), Vec4(0.5,
 TEST_STMT("vec_sub", close_enough(Vec2(3, 4) - Vec2(1, -2), Vec2(2, 6)));
 TEST_STMT("vec_sub", close_enough(Vec4() - Vec4(1, 1, 1), Vec4(-1, -1, -1)));
 
-TEST_FORMAT(Vec2(1, 1.5),                { .num_decimals=2 }, "(1.00, 1.50)");
-TEST_FORMAT(Vec2(1.04, -1.5),            { .num_decimals=1 }, "(1.0, -1.5)");
-TEST_FORMAT(Vec3(1.000, 1.4, 2.511),     { .num_decimals=2 }, "(1.00, 1.40, 2.51)");
-TEST_FORMAT(Vec3(-1.0, -2.56, -10.0005), { .num_decimals=1 }, "(-1.0, -2.6, -10.0)");
-TEST_FORMAT(Vec4(-1, -2, 3, 2),          { .num_decimals=0 }, "(-1, -2, 3, 2)");
-TEST_FORMAT(Vec4(-1.1, -2.1, 3.8, 2.8),  { .num_decimals=0 }, "(-1, -2, 4, 3)");
+//TEST_FORMAT(Vec2(1, 1.5),                { .num_decimals=2 }, "(1.00, 1.50)");
+//TEST_FORMAT(Vec2(1.04, -1.5),            { .num_decimals=1 }, "(1.0, -1.5)");
+//TEST_FORMAT(Vec3(1.000, 1.4, 2.511),     { .num_decimals=2 }, "(1.00, 1.40, 2.51)");
+//TEST_FORMAT(Vec3(-1.0, -2.56, -10.0005), { .num_decimals=1 }, "(-1.0, -2.6, -10.0)");
+//TEST_FORMAT(Vec4(-1, -2, 3, 2),          { .num_decimals=0 }, "(-1, -2, 3, 2)");
+//TEST_FORMAT(Vec4(-1.1, -2.1, 3.8, 2.8),  { .num_decimals=0 }, "(-1, -2, 4, 3)");

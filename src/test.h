@@ -47,9 +47,9 @@
 #define TEST_STMT(name, stmt) static int UNIQUE_NAME(_test_id_) = reg_test((name), [](GameState *game, FILE *report) -> bool { return stmt; }, __FILE__, __LINE__)
 typedef bool(*TestCallback)(GameState *game, FILE *report);
 
-#define TEST_FORMAT(IN, ARGS, EXPECTED) TEST_CASE("format " STR(IN), {  \
+#define TEST_FORMAT(IN, EXPECTED, ...) TEST_CASE("format " STR(IN), {   \
     char buffer[64] = {};                                               \
-    format(buffer, 64, ARGS, IN);                                       \
+    format(buffer, 64, { __VA_ARGS__ }, IN);                            \
     const char *expected = EXPECTED;                                    \
     if (std::strcmp(buffer, expected) != 0) {                           \
         LOG_TESTS("got '{}', expected '{}'", buffer, expected);         \

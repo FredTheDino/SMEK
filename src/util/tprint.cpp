@@ -58,22 +58,22 @@ i32 sntprint<>(char *buffer, u32 buf_size, const char *fmt) {
 
 #include "../test.h"
 
-TEST_FORMAT((f32) 1.5,   { .num_decimals=2 }, "1.50");
-TEST_FORMAT((f32) 1.5,   { .num_decimals=1 }, "1.5");
-TEST_FORMAT((f32) 1.45,  { .num_decimals=1 }, "1.5");
-TEST_FORMAT((f32) 1.44,  { .num_decimals=1 }, "1.4");
+//TEST_FORMAT((f32) 1.5,   { .num_decimals=2 }, "1.50");
+//TEST_FORMAT((f32) 1.5,   { .num_decimals=1 }, "1.5");
+//TEST_FORMAT((f32) 1.45,  { .num_decimals=1 }, "1.5");
+//TEST_FORMAT((f32) 1.44,  { .num_decimals=1 }, "1.4");
+//
+//TEST_FORMAT((f64) 1.44,  { .num_decimals=1 }, "1.4");
+//TEST_FORMAT((f64) 1.44,  { .num_decimals=2 }, "1.44");
 
-TEST_FORMAT((f64) 1.44,  { .num_decimals=1 }, "1.4");
-TEST_FORMAT((f64) 1.44,  { .num_decimals=2 }, "1.44");
+TEST_FORMAT((f32) 1.5, "1.50", .num_decimals=2, .num_zero_pad=4);
+//TEST_FORMAT((f32) 1.5, ((FormatHint) { .num_decimals=2, .num_zero_pad=5 }), "01.50");
 
-TEST_FORMAT((f32) 1.5, ((FormatHint) { .num_decimals=2, .num_zero_pad=4 }), "1.50");
-TEST_FORMAT((f32) 1.5, ((FormatHint) { .num_decimals=2, .num_zero_pad=5 }), "01.50");
-
-TEST_FORMAT((u32) 5000,  { .num_zero_pad=4 }, "5000");
-TEST_FORMAT((u32) 5000,  { .num_zero_pad=5 }, "05000");
-TEST_FORMAT((i32) -5000, { .num_zero_pad=5 }, "-5000");
-TEST_FORMAT((i32) -5000, { .num_zero_pad=6 }, "-05000");
-
-TEST_FORMAT((char) 'a', {}, "a");
-
-TEST_FORMAT((const char *) "abc123", {}, "abc123");
+//TEST_FORMAT((u32) 5000,  { .num_zero_pad=4 }, "5000");
+//TEST_FORMAT((u32) 5000,  { .num_zero_pad=5 }, "05000");
+//TEST_FORMAT((i32) -5000, { .num_zero_pad=5 }, "-5000");
+//TEST_FORMAT((i32) -5000, { .num_zero_pad=6 }, "-05000");
+//
+//TEST_FORMAT((char) 'a', {}, "a");
+//
+//TEST_FORMAT((const char *) "abc123", {}, "abc123");
