@@ -17,7 +17,7 @@ GameState *GAMESTATE() { return _global_gs; }
 #endif
 
 bool should_update(GSUM gsmu) {
-    return gsmu == GSUM::UPDATE_AND_RENDER || gsmu == GSUM::UPDATE_AND_RENDER;
+    return gsmu == GSUM::UPDATE || gsmu == GSUM::UPDATE_AND_RENDER;
 }
 
 bool should_draw(GSUM gsmu) {
@@ -34,7 +34,6 @@ GFX::Texture texture;
 void init_game(GameState *gamestate, int width, int height) {
     _global_gs = gamestate;
     Asset::load("assets.bin");
-
 
     GFX::init(GAMESTATE(), width, height);
 
@@ -59,6 +58,7 @@ void reload_game(GameState *game) {
     Asset::reload();
 
 
+#if 0
     game->audio_struct->lock();
     Audio::SoundSource test_source = game->audio_struct->sources[0];
     test_source.asset_id = AssetID("NOISE_STEREO_8K");
@@ -67,6 +67,7 @@ void reload_game(GameState *game) {
     test_source.sample = 0;
     game->audio_struct->sources[0] = test_source;
     game->audio_struct->unlock();
+#endif
 }
 
 void update() {
@@ -76,14 +77,13 @@ void update() {
 
     // Debug camera movement
     {
-        // TODO(ed): Add actual delta time
         Vec3 move = {Input::value(Ac::MoveX), 0, Input::value(Ac::MoveZ)};
         Vec2 turn = Input::mouse_move();
-        move = move * 0.01;
-        turn = turn * 0.01;
+        move = move * delta();
+        turn = turn * delta();
         GFX::main_camera()->turn(turn.y, turn.x);
         GFX::main_camera()->move_relative(move);
-        GFX::main_camera()->move(Vec3(0, Input::value(Ac::MoveY) * 0.01, 0));
+        GFX::main_camera()->move(Vec3(0, Input::value(Ac::MoveY) * delta(), 0));
     }
 }
 

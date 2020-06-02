@@ -20,7 +20,7 @@
 // This is very UNIX-y
 #include <dlfcn.h>
 
-#define MS_PER_FRAME 100
+#define MS_PER_FRAME 8
 
 struct GameLibrary {
     GameInitFunc init;
@@ -234,47 +234,49 @@ int main(int argc, char **argv) { // Game entrypoint
 
         // Zero the movement, so we don't carry over frames.
         global_input.mouse_move = {};
-        // Read in input
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            ImGui_ImplSDL2_ProcessEvent(&event);
-            if (event.type == SDL_QUIT) {
-                game_state.running = false;
-            }
-            if (event.type == SDL_WINDOWEVENT) {
-                if (event.window.event == SDL_WINDOWEVENT_CLOSE)
-                    game_state.running = false;
-            }
-            if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
-                if (io.WantCaptureKeyboard) continue;
-                SDL_KeyboardEvent key = event.key;
-                if (key.repeat) continue;
-                GameInput::Button button = key.keysym.sym;
-                bool down = key.state == SDL_PRESSED;
-                if (down && global_input.eaten_by_rebind(button)) continue;
-                global_input.update_press(button, down);
-            }
-            if (io.WantCaptureMouse) continue;
-            if (event.type == SDL_MOUSEMOTION) {
-                if (!game_state.input.mouse_capture) continue;
-                SDL_MouseMotionEvent mouse = event.motion;
-                global_input.mouse_move = Vec2(mouse.xrel, mouse.yrel);
-                global_input.mouse_pos = Vec2(mouse.x, mouse.y);
-            }
-        }
-
-        for (u32 i = 0; i < (u32) Ac::NUM_ACTIONS; i++) {
-            game_state.input.last_frame[i] = game_state.input.current_frame[i];
-            game_state.input.current_frame[i] = global_input.state[i];
-        }
-        game_state.input.mouse_move = global_input.mouse_move;
-        game_state.input.mouse_pos = global_input.mouse_pos;
 
         while (next_update < SDL_GetTicks()) {
             game_state.time = next_update / 1000.0;
             game_state.delta = MS_PER_FRAME / 1000.0;
             game_state.frame++;
             next_update += MS_PER_FRAME;
+
+            // Read in input
+            SDL_Event event;
+            while (SDL_PollEvent(&event)) {
+                ImGui_ImplSDL2_ProcessEvent(&event);
+                if (event.type == SDL_QUIT) {
+                    game_state.running = false;
+                }
+                if (event.type == SDL_WINDOWEVENT) {
+                    if (event.window.event == SDL_WINDOWEVENT_CLOSE)
+                        game_state.running = false;
+                }
+                if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
+                    if (io.WantCaptureKeyboard) continue;
+                    SDL_KeyboardEvent key = event.key;
+                    if (key.repeat) continue;
+                    GameInput::Button button = key.keysym.sym;
+                    bool down = key.state == SDL_PRESSED;
+                    if (down && global_input.eaten_by_rebind(button)) continue;
+                    global_input.update_press(button, down);
+                }
+                if (io.WantCaptureMouse) continue;
+                if (event.type == SDL_MOUSEMOTION) {
+                    if (!game_state.input.mouse_capture) continue;
+                    SDL_MouseMotionEvent mouse = event.motion;
+                    global_input.mouse_move = Vec2(mouse.xrel, mouse.yrel);
+                    global_input.mouse_pos = Vec2(mouse.x, mouse.y);
+                }
+            }
+
+            for (u32 i = 0; i < (u32) Ac::NUM_ACTIONS; i++) {
+                game_state.input.last_frame[i] = game_state.input.current_frame[i];
+                game_state.input.current_frame[i] = global_input.state[i];
+            }
+
+            game_state.input.mouse_move = global_input.mouse_move;
+            game_state.input.mouse_pos = global_input.mouse_pos;
 
             game_state = game_lib.update(&game_state, GSUM::UPDATE);
         }
@@ -283,7 +285,7 @@ int main(int argc, char **argv) { // Game entrypoint
         ImGui_ImplSDL2_NewFrame(game_state.window);
         ImGui::NewFrame();
 
-        game_state = game_lib.update(&game_state, GSUM::UPDATE_AND_RENDER);
+        game_state = game_lib.update(&game_state, GSUM::RENDER);
 
         SDL_SetRelativeMouseMode((SDL_bool) game_state.input.mouse_capture);
 
