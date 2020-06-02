@@ -2,8 +2,6 @@
 #include "../math/smek_vec.h"
 #include "../math/smek_mat4.h"
 
-#include "../asset/asset.h"
-
 #include <vector>
 
 struct GameState;
@@ -11,6 +9,10 @@ struct GameState;
 ///# Renderer
 // The renderer is the code that draws graphics to the
 // screen.
+
+namespace Asset {
+    struct Model;
+};
 
 namespace GFX {
 
@@ -61,11 +63,20 @@ struct Camera {
     void upload(const S &s);
 };
 
+
 struct Mesh {
+    struct Vertex {
+        Vec3 position;
+        Vec2 texture;
+        Vec3 normal;
+    };
+
     u32 vao, vbo;
     u32 draw_length;
 
-    static Mesh init(Asset::Model *model);
+    static Mesh init(Vertex *vericies, u32 num_verticies);
+
+    void destroy();
 
     void draw();
 };
@@ -75,9 +86,11 @@ struct Shader {
 
     void use();
 
+    void destroy();
+
     bool is_valid() { return program_id != -1; }
 
-    static Shader compile(AssetID source_id);
+    static Shader compile(const char *source);
 };
 
 #define F32_SHADER_PROP(name)\
@@ -124,9 +137,9 @@ struct Texture {
     };
 
     void bind(u32 texture_slot=0);
+    void destroy();
 
     static Texture upload(u32 width, u32 height, u32 components, u8 *data, Sampling sampling);
-    static Texture upload(Asset::Image *image, Sampling sampling);
 };
 
 ///*

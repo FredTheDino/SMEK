@@ -30,89 +30,198 @@ static void read(FILE *file, T *ptr, size_t num=1) {
     CHECK(gobbled == num, "Faild to read a part of an asset.");
 }
 
+static void load_texture(UsableAsset *asset, FILE *file) {
+    if (asset->loaded) {
+        asset->texture.destroy();
+    }
+
+    struct {
+        // read from file
+        u32 width;
+        u32 height;
+        u32 components;
+        u8  *data;
+
+        u64 size() const {
+            return width * height * components;
+        }
+    } raw_image;
+
+    read(file, &raw_image);
+    u64 size = raw_image.size();
+    u8 *data = new u8[size];
+    read<u8>(file, data, size);
+    asset->texture = GFX::Texture::upload(raw_image.width,
+                                          raw_image.height,
+                                          raw_image.components,
+                                          data,
+                                          GFX::Texture::Sampling::LINEAR);
+}
+
+static void load_shader(UsableAsset *asset, FILE *file) {
+    struct {
+        // read from file
+        u64 size;
+        char *data;
+    } source;
+    read(file, &source);
+    u32 size = source.size;
+    char *data = new char[size];
+    read<char>(file, data, size);
+
+    GFX::Shader new_shader = GFX::Shader::compile(data);
+
+    if (new_shader.is_valid()) {
+        if (asset->loaded) {
+            asset->shader.destroy();
+        }
+        asset->shader = new_shader;
+    } else {
+        ERROR("Failed to load shader due to errors.");
+    }
+}
+
+static void load_model(UsableAsset *asset, FILE *file) {
+    if (asset->loaded) {
+        asset->mesh.destroy();
+    }
+
+    struct {
+        // read from file
+        u32 points_per_face;
+        u32 num_faces;
+        GFX::Mesh::Vertex *data;
+    } model;
+
+    read(file, &model);
+    u32 num_faces = model.num_faces;
+    u32 size = num_faces * model.points_per_face;
+    model.data = new GFX::Mesh::Vertex[size];
+    read(file, model.data, size);
+    asset->mesh = GFX::Mesh::init(model.data, size);
+}
+
 static void load_asset(UsableAsset *asset) {
     FILE *file = fopen(GAMESTATE()->asset_system.asset_path, "rb");
     defer { fclose(file); };
     fseek(file, GAMESTATE()->asset_system.file_header.data_offset + asset->header->data_offset, SEEK_SET);
     switch (asset->header->type) {
     case AssetType::TEXTURE: {
-        read(file, &asset->data.image);
-        u64 size = asset->data.image.size();
-        asset->data.image.data = new u8[size];
-        read<u8>(file, asset->data.image.data, size);
+        load_texture(asset, file);
     } break;
     case AssetType::STRING: {
-        read(file, &asset->data.string);
-        u32 size = asset->data.string.size;
-        asset->data.string.data = new char[size];
-        read<char>(file, asset->data.string.data, size);
+        read(file, &asset->string);
+        u32 size = asset->string.size;
+        asset->string.data = new char[size];
+        read<char>(file, asset->string.data, size);
     } break;
-    case AssetType::MODEL: {
-        read(file, &asset->data.model);
-        u32 num_faces = asset->data.model.num_faces;
-        u32 size = num_faces * 3;
-        asset->data.model.data = new Vertex[size];
-        read(file, asset->data.model.data, size);
+    case AssetType::MESH: {
+        load_model(asset, file);
     } break;
     case AssetType::SHADER: {
-        read(file, &asset->data.shader);
-        u32 size = asset->data.shader.size;
-        asset->data.shader.data = new char[size];
-        read<char>(file, asset->data.shader.data, size);
+        load_shader(asset, file);
     } break;
     case AssetType::SOUND: {
-        read(file, &asset->data.sound);
-        u32 size = asset->data.sound.num_samples;
-        asset->data.sound.data = new f32[size];
-        read<f32>(file, asset->data.sound.data, size);
+        read(file, &asset->sound);
+        u32 size = asset->sound.num_samples;
+        asset->sound.data = new f32[size];
+        read<f32>(file, asset->sound.data, size);
     } break;
     default:
         ERROR("Unknown asset type {} in asset file {}",
               asset->header->type, GAMESTATE()->asset_system.asset_path);
         break;
     }
+
+    asset->loaded = true;
+    asset->dirty = false;
 }
 
-AssetData *_raw_fetch(AssetType type, AssetID id) {
+static
+UsableAsset *_raw_fetch(AssetType type, AssetID id) {
     ASSERT(valid_asset(id), "Invalid asset id '{}'", id);
     UsableAsset *asset = &GAMESTATE()->asset_system.assets[id];
     ASSERT(asset->header->type == type, "Type mismatch, type={}, id={}", type, id);
 
-    if (!asset->loaded) {
+    if ((!asset->loaded) || asset->dirty) {
         load_asset(asset);
     }
 
-    return &asset->data;
+    return asset;
 }
 
-Image *fetch_image(AssetID id) {
-    return &_raw_fetch(AssetType::TEXTURE, id)->image;
+GFX::Texture *fetch_image(AssetID id) {
+    return &_raw_fetch(AssetType::TEXTURE, id)->texture;
 }
 
 StringAsset *fetch_string_asset(AssetID id) {
     return &_raw_fetch(AssetType::STRING, id)->string;
 }
 
-ShaderSource *fetch_shader(AssetID id) {
+GFX::Shader *fetch_shader(AssetID id) {
     return &_raw_fetch(AssetType::SHADER, id)->shader;
 }
 
-Model *fetch_model(AssetID id) {
-    return &_raw_fetch(AssetType::MODEL, id)->model;
+GFX::Mesh *fetch_mesh(AssetID id) {
+    return &_raw_fetch(AssetType::MESH, id)->mesh;
 }
 
 Sound *fetch_sound(AssetID id) {
     return &_raw_fetch(AssetType::SOUND, id)->sound;
 }
 
-void reload() {
+bool needs_reload(AssetID id) {
+    ASSERT(valid_asset(id), "Invalid asset id '{}'", id);
+    UsableAsset *asset = &GAMESTATE()->asset_system.assets[id];
+    return (!asset->loaded) || asset->dirty;
+}
 
+
+bool reload() {
+    System *system = &GAMESTATE()->asset_system;
+    FILE *file = fopen(system->asset_path, "rb");
+    if (!file) return false;
+
+    read(file, &system->file_header, 1);
+    u64 num_assets = system->file_header.num_assets;
+
+    AssetHeader *headers = new AssetHeader[num_assets];
+    read(file, headers, num_assets);
+    fclose(file);
+
+    for (u64 slot = 0; slot < num_assets; slot++) {
+        AssetHeader *header = headers + slot;
+        AssetID id(header->name_hash);
+        if (system->assets.count(id)) {
+            // Old asset
+            UsableAsset &asset = system->assets[id];
+            asset.dirty = asset.header->data_hash != header->data_hash;
+            asset.dirty = true;
+            asset.header = header;
+        } else {
+            // New asset
+            UsableAsset data = {};
+            data.header = header;
+            data.dirty = true;
+            system->assets[id] = data;
+        }
+    }
+    delete[] system->headers;
+    system->headers = headers;
+
+    for (auto it = system->assets.cbegin(), next = it; it != system->assets.cend(); it = next) {
+        ++next;
+        if (headers > it->second.header && it->second.header >= (headers + num_assets)) {
+            system->assets.erase(it);
+        }
+    }
+    return true;
 }
 
 bool load(const char *path) {
     System *system = &GAMESTATE()->asset_system;
     system->asset_path = path;
-    FILE *file = fopen(path, "rb");
+    FILE *file = fopen(system->asset_path, "rb");
     if (!file) return false;
 
     read(file, &system->file_header, 1);
@@ -151,6 +260,7 @@ TEST_CASE("asset text", {
            == 0;
 });
 
+#if 0
 TEST_CASE("asset 1x1x3 png white", {
     Asset::load("assets-tests.bin");
     AssetID id("ONE_BY_ONE_RGB_PNG_WHITE");
@@ -281,3 +391,4 @@ TEST_CASE("asset 1x1x3 jpg white", {
         && image->data[2]    == 255
         ;
 });
+#endif

@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 #include "../math/smek_vec.h"
+#include "../renderer/renderer.h"
 
 struct AssetID {
     AssetID(const char *);
@@ -40,7 +41,7 @@ typedef enum {
     NONE = 0,
     TEXTURE = 1,
     STRING = 2,
-    MODEL = 3,
+    MESH = 3,
     SHADER = 4,
     SOUND = 5,
 
@@ -83,30 +84,6 @@ struct StringAsset {
     char *data;
 };
 
-///* ShaderSource
-struct ShaderSource {
-    // read from file
-    u64 size;
-    char *data;
-};
-
-///* Model
-struct Vertex {
-    Vec3 position;
-    Vec2 texture;
-    Vec3 normal;
-};
-//
-struct ModelFace {
-    Vertex vertices[3];
-};
-//
-struct Model {
-    // read from file
-    u32 points_per_face;
-    u32 num_faces;
-    Vertex *data;
-};
 
 struct Sound {
     // read from file
@@ -116,16 +93,14 @@ struct Sound {
     f32 *data;
 };
 
-union AssetData {
-    Image image;
-    StringAsset string;
-    ShaderSource shader;
-    Model model;
-    Sound sound;
-};
-
 struct UsableAsset {
-    AssetData data;
+    union {
+        GFX::Texture texture;
+        GFX::Shader shader;
+        GFX::Mesh mesh;
+        StringAsset string;
+        Sound sound;
+    };
 
     AssetHeader *header;
     bool dirty;
@@ -154,7 +129,7 @@ bool load(const char *path);
 
 ///*
 // Hot reloads the asset file passed in.
-void reload();
+bool reload();
 
 ///*
 // Fetch the ID corresponding to the asset with the specified name.
@@ -162,8 +137,12 @@ void reload();
 AssetID fetch_id(const char *name);
 
 ///*
+// Returns true if the asset needs to be reloaded.
+bool needs_reload(AssetID id);
+
+///*
 // Fetch an image-asset.
-Image *fetch_image(AssetID id);
+GFX::Texture *fetch_image(AssetID id);
 
 ///*
 // Fetch a string asset.
@@ -171,11 +150,11 @@ StringAsset *fetch_string_asset(AssetID id);
 
 ///*
 // Fetch a shader source asset.
-ShaderSource *fetch_shader(AssetID id);
+GFX::Shader *fetch_shader(AssetID id);
 
 ///*
 // Fetch a 3D-model.
-Model *fetch_model(AssetID id);
+GFX::Mesh *fetch_mesh(AssetID id);
 
 Sound *fetch_sound(AssetID id);
 

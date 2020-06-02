@@ -101,8 +101,12 @@ void push_line(Vec3 a, Vec3 b, Vec4 a_color, Vec4 b_color, f32 width) {
     push_debug_triangle(p2, a_color, p3, b_color, p4, b_color);
 }
 
-Mesh Mesh::init(Asset::Model *model) {
-    using Asset::Vertex;
+void Mesh::destroy() {
+    glDeleteVertexArrays(11, &vao);
+    glDeleteBuffers(1, &vbo);
+}
+
+Mesh Mesh::init(Vertex *verticies, u32 num_verticies) {
     u32 vao, vbo;
 
     glGenVertexArrays(1, &vao);
@@ -110,7 +114,7 @@ Mesh Mesh::init(Asset::Model *model) {
 
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * model->num_faces * 3, model->data, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * num_verticies, verticies, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, position));
@@ -122,7 +126,7 @@ Mesh Mesh::init(Asset::Model *model) {
     glVertexAttribPointer(2, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, normal));
     glBindVertexArray(0);
 
-    return {vao, vbo, model->num_faces * 3};;
+    return {vao, vbo, num_verticies};
 }
 
 void Mesh::draw() {
@@ -139,7 +143,7 @@ void Shader::use() { glUseProgram(program_id); }
 
 MasterShader MasterShader::init() {
     MasterShader shader;
-    shader.program_id = Shader::compile("MASTER_SHADER").program_id;
+    shader.program_id = Asset::fetch_shader("MASTER_SHADER")->program_id;
 
     FETCH_SHADER_PROP(t);
     FETCH_SHADER_PROP(proj);
@@ -166,10 +170,14 @@ MAT_SHADER_PROP(MasterShader, model);
 U32_SHADER_PROP(MasterShader, tex);
 
 MasterShader master_shader() {
+    if (Asset::needs_reload("MASTER_SHADER"))
+        GAMESTATE()->renderer.master_shader = MasterShader::init();
     return GAMESTATE()->renderer.master_shader;
 }
 
 DebugShader debug_shader() {
+    if (Asset::needs_reload("DEBUG_SHADER"))
+        GAMESTATE()->renderer.debug_shader = DebugShader::init();
     return GAMESTATE()->renderer.debug_shader;
 }
 
@@ -179,7 +187,7 @@ Camera *main_camera() {
 
 DebugShader DebugShader::init() {
     DebugShader shader;
-    shader.program_id = Shader::compile("DEBUG_SHADER").program_id;
+    shader.program_id = Asset::fetch_shader("DEBUG_SHADER")->program_id;
 
     FETCH_SHADER_PROP(proj);
     FETCH_SHADER_PROP(view);
@@ -192,8 +200,11 @@ MAT_SHADER_PROP(DebugShader, proj);
 MAT_SHADER_PROP(DebugShader, view);
 MAT_SHADER_PROP(DebugShader, model);
 
-Shader Shader::compile(AssetID source_id) {
-    const char *source = Asset::fetch_shader(source_id)->data;
+void Shader::destroy() {
+    glDeleteProgram(program_id);
+}
+
+Shader Shader::compile(const char *source) {
     auto shader_error_check = [](u32 shader) -> bool {
         i32 success;
         glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
@@ -283,15 +294,15 @@ Texture Texture::upload(u32 width, u32 height, u32 components, u8 *data, Samplin
     return { texture };
 }
 
-Texture Texture::upload(Asset::Image *image, Sampling sampling) {
-    return upload(image->width, image->height, image->components, image->data, sampling);
-}
-
 void Texture::bind(u32 texture_slot) {
     ASSERT(texture_slot < 80, "Invalid texture slots. ({})", texture_slot);
     glActiveTexture(GL_TEXTURE0 + texture_slot);
     glBindTexture(GL_TEXTURE_2D, texture_id);
     glActiveTexture(GL_TEXTURE0 + 79); // Hardcoded since it's the "minimum maximum".
+}
+
+void Texture::destroy() {
+    glDeleteTextures(1, &texture_id);
 }
 
 bool init(GameState *gs, int width, int height) {
