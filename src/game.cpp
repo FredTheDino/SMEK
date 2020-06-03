@@ -134,12 +134,10 @@ void draw() {
     mesh.draw();
 #endif
 
-    ImGui::Begin("Hello, world!");
     if (ImGui::Button("Reset camera"))
         *GFX::main_camera() = GFX::Camera::init();
     // ImGui::DragFloat3("pos.", (float *) &from, 0.01);
     // ImGui::DragFloat3("rot.", (float *) &rotation, 0.01);
-    ImGui::End();
 
     GFX::debug_shader().use();
     GFX::main_camera()->upload(GFX::debug_shader());
