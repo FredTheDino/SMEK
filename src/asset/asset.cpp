@@ -118,7 +118,6 @@ static void load_asset(UsableAsset *asset) {
         read<char>(file, asset->string.data, size);
     } break;
     case AssetType::MESH: {
-        LOG("Loading mesh!");
         load_model(asset, file);
     } break;
     case AssetType::SHADER: {
