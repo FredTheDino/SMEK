@@ -16,6 +16,18 @@ GameState *_global_gs;
 GameState *GAMESTATE() { return _global_gs; }
 #endif
 
+bool should_update(GSUM gsmu) {
+    return gsmu == GSUM::UPDATE || gsmu == GSUM::UPDATE_AND_RENDER;
+}
+
+bool should_draw(GSUM gsmu) {
+    return gsmu == GSUM::RENDER || gsmu == GSUM::UPDATE_AND_RENDER;
+}
+
+f32 delta() { return GAMESTATE()->delta; }
+f32 time() { return GAMESTATE()->time; }
+u32 frame() { return GAMESTATE()->frame; }
+
 void init_game(GameState *gamestate, int width, int height) {
     _global_gs = gamestate;
     Asset::load("assets.bin");
@@ -98,6 +110,8 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
 
     Asset::fetch_image("RGBA")->bind(0);
     shader.upload_tex(0);
+
+    GFX::Mesh mesh = *Asset::fetch_mesh("MONKEY");
 
     Mat model_matrix = Mat::translate(Math::cos(time) * 0.2, Math::sin(time) * 0.2, -0.5) * Mat::scale(0.1);
     shader.upload_model(model_matrix);
