@@ -10,11 +10,16 @@
 struct GameState {
     SDL_Window *window;
     SDL_GLContext gl_context;
-    float time;
     Asset::System asset_system;
     GFX::Renderer renderer = {};
     Input::Input input = {};
     Audio::AudioStruct *audio_struct;
+
+
+    SDL_threadID main_thread;
+    f32 delta;
+    f32 time;
+    u32 frame;
 
     bool running;
 };
@@ -38,6 +43,13 @@ enum class GameStateUpdateMode {
     UPDATE_AND_RENDER,
 };
 using GSUM = GameStateUpdateMode;
+
+f32 delta();
+f32 time();
+u32 frame();
+
+bool should_update(GSUM gsmu);
+bool should_draw(GSUM gsmu);
 
 ///*
 // Reloads eventual global state. If you can get away with storing
