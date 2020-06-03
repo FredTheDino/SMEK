@@ -12,15 +12,17 @@
 #include <cstring>
 #include <cstdlib>
 
+// Returns the length of a statically allocated list.
+#ifndef LEN
+
+#define LEN(a) (sizeof(a) / sizeof(a[0]))
+
+#endif
 #include "math/smek_math.h"
 #include "audio.h"
 
-#include "platform_input.h"
-
 // This is very UNIX-y
 #include <dlfcn.h>
-
-#define MS_PER_FRAME 8
 
 struct GameLibrary {
     GameInitFunc init;
@@ -120,16 +122,89 @@ bool load_gamelib() {
     return true;
 }
 
-///
-// The function called by SDL, which calls our function.
-void platform_audio_callback(void *userdata, u8 *stream, int len);
+struct GameInput {
+    using Button = i32;
+
+    struct ButtonPress {
+        Ac action;
+        f32 value;
+    };
+
+    Button action_to_input[(u32) Ac::NUM_ACTIONS][2] = {};
+    std::unordered_map<Button, ButtonPress> input_to_action;
+    f32 state[(u32) Ac::NUM_ACTIONS] = {};
+    Vec2 mouse_pos;
+    Vec2 mouse_move;
+
+    bool capture_mouse;
+
+    bool rebinding;
+    Ac rebind_action;
+    u32 rebind_slot;
+    f32 rebind_value;
+
+    void bind(Ac action, u32 slot, Button button, f32 value=1.0) {
+        ASSERT(slot < LEN(action_to_input[0]), "Invalid binding slot {}, max is {}.",
+               LEN(action_to_input[0]), slot);
+        if (input_to_action.count(button))
+            WARN("Button {} cannot be bound to multiple actions", button);
+        action_to_input[(u32) action][slot] = button;
+        input_to_action[button] = { action, value };
+    }
+
+    bool unbind(Ac action, u32 slot) {
+        ASSERT(slot < LEN(action_to_input[0]), "Invalid binding slot {}, max is {}.",
+               LEN(action_to_input[0]), slot);
+
+        Button button = action_to_input[(u32) action][slot];
+        action_to_input[(u32) action][slot] = 0;
+
+        if (button == 0) { return false; }
+        input_to_action.erase(button);
+        return true;
+    }
+
+    bool eaten_by_rebind(Button button) {
+        if (!rebinding) return false;
+        rebinding = false;
+        unbind(rebind_action, rebind_slot);
+        bind(rebind_action, rebind_slot, button, rebind_value);
+        return true;
+    }
+
+    void update_press(Button button, bool down) {
+        if (input_to_action.count(button)) {
+            ButtonPress press = input_to_action[button];
+            if (down) {
+                state[(u32) press.action] = down * press.value;
+            } else {
+                if (state[(u32) press.action] == press.value) {
+                    state[(u32) press.action] = 0.0;
+                }
+            }
+        }
+    }
+} global_input = {};
+
+// See documentation in input.h
+void platform_rebind(Ac action, u32 slot, f32 value) {
+    ASSERT(slot < LEN(global_input.action_to_input[0]), "Invalid binding slot {}, max is {}.",
+           LEN(global_input.action_to_input[0]), slot);
+    global_input.rebinding = true;
+    global_input.rebind_action = action;
+    global_input.rebind_slot = slot;
+    global_input.rebind_value = value;
+}
+
+void platform_bind(Ac action, u32 slot, u32 button, f32 value) {
+    global_input.unbind(action, slot);
+    global_input.bind(action, slot, button, value);
+}
 
 void platform_audio_callback(void *userdata, u8 *stream, int len) {
     f32 *f_stream = (f32 *) stream;
     Audio::AudioStruct *audio_struct_ptr = (Audio::AudioStruct *) userdata;
-    game_state.audio_struct->lock();
     game_lib.audio_callback(audio_struct_ptr, f_stream, len);
-    game_state.audio_struct->unlock();
 }
 
 void platform_audio_init() {
@@ -196,11 +271,11 @@ int main(int argc, char **argv) { // Game entrypoint
     if (!load_gamelib()) {
         UNREACHABLE("Failed to load the linked library the first time!");
     }
-
     game_state = {};
     game_state.input.mouse_capture = false;
     game_state.input.rebind_func = platform_rebind;
     game_state.input.bind_func = platform_bind;
+
     game_state.input.rebind_func = platform_rebind;
     game_state.input.bind_func = platform_bind;
 
@@ -209,85 +284,82 @@ int main(int argc, char **argv) { // Game entrypoint
     game_state.audio_struct = &platform_audio_struct;
 
     // IMGUI
+    const char* glsl_version = "#version 330";
     if (gladLoadGL() == 0) {
         UNREACHABLE("Failed to load glad");
     }
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    // Enable Keyboard and gamepad Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     ImGui::StyleColorsDark();
+    //ImGui::StyleColorsClassic();
     ImGui_ImplSDL2_InitForOpenGL(game_state.window, game_state.gl_context);
-    ImGui_ImplOpenGL3_Init("#version 330");
+    ImGui_ImplOpenGL3_Init(glsl_version);
 
     game_lib.reload(&game_state);
 
+    int frame = 0;
+    const int RELOAD_TIME = 1; // Set this to a higher number to prevent constant disk-checks.
+
     std::signal(SIGUSR1, signal_handler);
-    u32 next_update = SDL_GetTicks() - MS_PER_FRAME;
+
     while (game_state.running) {
-        if (load_gamelib()) {
-            LOG("PLATFORM LAYER RELOAD!");
-            game_lib.reload(&game_state);
+        // Check for reloading of library
+        if (++frame == RELOAD_TIME) {
+            frame = 0;
+            if (load_gamelib()) {
+                LOG("PLATFORM LAYER RELOAD!");
+                game_lib.reload(&game_state);
+            }
         }
 
-        while (next_update < SDL_GetTicks() && game_state.running) {
-            // Check for reloading of library
-            game_state.time = next_update / 1000.0;
-            game_state.delta = MS_PER_FRAME / 1000.0;
-            game_state.frame++;
-            next_update += MS_PER_FRAME;
-
-            // Zero the movement, so we don't carry over frames.
-            global_input.mouse_move = {};
-
-            // Read in input
-            SDL_Event event;
-            while (SDL_PollEvent(&event)) {
-                ImGui_ImplSDL2_ProcessEvent(&event);
-                if (event.type == SDL_QUIT) {
+        // Zero the movement, so we don't carry over frames.
+        global_input.mouse_move = {};
+        // Read in input
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            ImGui_ImplSDL2_ProcessEvent(&event);
+            if (event.type == SDL_QUIT) {
+                game_state.running = false;
+            }
+            if (event.type == SDL_WINDOWEVENT) {
+                if (event.window.event == SDL_WINDOWEVENT_CLOSE)
                     game_state.running = false;
-                }
-                if (event.type == SDL_WINDOWEVENT) {
-                    if (event.window.event == SDL_WINDOWEVENT_CLOSE)
-                        game_state.running = false;
-                }
-                if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
-                    if (io.WantCaptureKeyboard) continue;
-                    SDL_KeyboardEvent key = event.key;
-                    if (key.repeat) continue;
-                    GameInput::Button button = key.keysym.sym;
-                    bool down = key.state == SDL_PRESSED;
-                    if (down && global_input.eaten_by_rebind(button)) continue;
-                    global_input.update_press(button, down);
-                }
-                if (io.WantCaptureMouse) continue;
-                if (event.type == SDL_MOUSEMOTION) {
-                    if (!game_state.input.mouse_capture) continue;
-                    SDL_MouseMotionEvent mouse = event.motion;
-                    // TODO(ed): This mousemovement is wrong for lower refreshrate screens,
-                    // it needs to be fixed somehow.
-                    global_input.mouse_move = global_input.mouse_move + Vec2(mouse.xrel, mouse.yrel);
-                    global_input.mouse_pos = Vec2(mouse.x, mouse.y);
-                }
             }
-
-            for (u32 i = 0; i < (u32) Ac::NUM_ACTIONS; i++) {
-                game_state.input.last_frame[i] = game_state.input.current_frame[i];
-                game_state.input.current_frame[i] = global_input.state[i];
+            if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
+                if (io.WantCaptureKeyboard) continue;
+                SDL_KeyboardEvent key = event.key;
+                if (key.repeat) continue;
+                GameInput::Button button = key.keysym.sym;
+                bool down = key.state == SDL_PRESSED;
+                if (down && global_input.eaten_by_rebind(button)) continue;
+                global_input.update_press(button, down);
             }
-
-            game_state.input.mouse_move = global_input.mouse_move;
-            game_state.input.mouse_pos = global_input.mouse_pos;
-
-            game_state = game_lib.update(&game_state, GSUM::UPDATE);
+            if (io.WantCaptureMouse) continue;
+            if (event.type == SDL_MOUSEMOTION) {
+                if (!game_state.input.mouse_capture) continue;
+                SDL_MouseMotionEvent mouse = event.motion;
+                global_input.mouse_move = Vec2(mouse.xrel, mouse.yrel);
+                global_input.mouse_pos = Vec2(mouse.x, mouse.y);
+            }
         }
+
+
+        for (u32 i = 0; i < (u32) Ac::NUM_ACTIONS; i++) {
+            game_state.input.last_frame[i] = game_state.input.current_frame[i];
+            game_state.input.current_frame[i] = global_input.state[i];
+        }
+        game_state.input.mouse_move = global_input.mouse_move;
+        game_state.input.mouse_pos = global_input.mouse_pos;
+
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame(game_state.window);
         ImGui::NewFrame();
 
-        game_state = game_lib.update(&game_state, GSUM::RENDER);
+        game_state = game_lib.update(&game_state, GSUM::UPDATE_AND_RENDER);
+
         SDL_SetRelativeMouseMode((SDL_bool) game_state.input.mouse_capture);
 
         ImGui::Render();
@@ -298,7 +370,91 @@ int main(int argc, char **argv) { // Game entrypoint
 }
 #endif
 
-//
-// Tests are moved to a different file.
-//
-#include "platform_tests.h"
+#define SOME_ACTION ((Ac) 0)
+
+#define DEFAULT_INPUT_TEST \
+    GameInput input;\
+    const u32 button_1 = 2;\
+    const u32 button_2 = 5;\
+    const u32 button_3 = 232;\
+    input.bind(SOME_ACTION, 0, button_1,  1.0);\
+    input.bind(SOME_ACTION, 1, button_2, -1.0)
+
+#include "test.h"
+TEST_CASE("platform_input_press", {
+    DEFAULT_INPUT_TEST;
+    input.update_press(button_3, true);
+    return input.state[0] == 0.0;
+});
+
+TEST_CASE("platform_input_press", {
+    DEFAULT_INPUT_TEST;
+    input.update_press(button_1, true);
+    return input.state[0] == 1.0;
+});
+
+TEST_CASE("platform_input_press", {
+    DEFAULT_INPUT_TEST;
+    input.update_press(button_1, true);
+    input.update_press(button_1, false);
+    input.update_press(button_3, true);
+    input.update_press(button_1, true);
+    return input.state[0] == 1.0;
+});
+
+TEST_CASE("platform_input_press", {
+    DEFAULT_INPUT_TEST;
+    input.update_press(button_3, true);
+    input.update_press(button_2, true);
+    input.update_press(button_3, false);
+    return input.state[0] == -1.0;
+});
+
+TEST_CASE("platform_input_press", {
+    DEFAULT_INPUT_TEST;
+    input.update_press(button_1, false);
+    input.update_press(button_1, false);
+    input.update_press(button_1, false);
+    return input.state[0] == 0.0;
+});
+
+TEST_CASE("platform_input_rebind", {
+    DEFAULT_INPUT_TEST;
+    input.update_press(button_1, true);
+    input.update_press(button_1, false);
+    input.unbind(SOME_ACTION, 0);
+    input.update_press(button_1, true);
+    input.update_press(button_1, false);
+    return input.state[0] == 0.0;
+});
+
+TEST_CASE("platform_input_rebind", {
+    DEFAULT_INPUT_TEST;
+    input.update_press(button_3, true);
+    input.update_press(button_3, false);
+    input.unbind(SOME_ACTION, 0);
+    input.bind(SOME_ACTION, 0, button_3);
+    input.update_press(button_1, true);
+    input.update_press(button_1, false);
+    return input.state[0] == 0.0;
+});
+
+TEST_CASE("platform_input_rebind", {
+    DEFAULT_INPUT_TEST;
+    input.update_press(button_3, true);
+    input.update_press(button_3, false);
+    input.unbind(SOME_ACTION, 0);
+    input.bind(SOME_ACTION, 0, button_3);
+    input.update_press(button_3, true);
+    return input.state[0] == 1.0;
+});
+
+TEST_CASE("platform_input_rebind", {
+    DEFAULT_INPUT_TEST;
+    input.update_press(button_1, true);
+    input.unbind(SOME_ACTION, 0);
+    input.update_press(button_1, false);
+    input.bind(SOME_ACTION, 0, button_1);
+    input.update_press(button_1, false);
+    return input.state[0] == 0.0;
+});

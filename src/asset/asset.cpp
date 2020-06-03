@@ -102,8 +102,6 @@ static void load_model(UsableAsset *asset, FILE *file) {
 }
 
 static void load_asset(UsableAsset *asset) {
-    ASSERT(GAMESTATE()->main_thread == SDL_GetThreadID(NULL), "Should only be called from main thread");
-
     FILE *file = fopen(GAMESTATE()->asset_system.asset_path, "rb");
     defer { fclose(file); };
     fseek(file, GAMESTATE()->asset_system.file_header.data_offset + asset->header->data_offset, SEEK_SET);
@@ -124,8 +122,6 @@ static void load_asset(UsableAsset *asset) {
         load_shader(asset, file);
     } break;
     case AssetType::SOUND: {
-        // TODO(ed): If you unload, make sure there aren't race conditions with
-        // the audio thread. :*
         read(file, &asset->sound);
         u32 size = asset->sound.num_samples;
         asset->sound.data = new f32[size];
@@ -143,7 +139,6 @@ static void load_asset(UsableAsset *asset) {
 
 static
 UsableAsset *_raw_fetch(AssetType type, AssetID id) {
-    ASSERT(SDL_LockMutex(GAMESTATE()->asset_system.asset_lock) == 0, "Failed to aquire lock");
     ASSERT(valid_asset(id), "Invalid asset id '{}'", id);
     UsableAsset *asset = &GAMESTATE()->asset_system.assets[id];
     ASSERT(asset->header->type == type, "Type mismatch, type={}, id={}", type, id);
@@ -152,7 +147,6 @@ UsableAsset *_raw_fetch(AssetType type, AssetID id) {
         load_asset(asset);
     }
 
-    SDL_UnlockMutex(GAMESTATE()->asset_system.asset_lock);
     return asset;
 }
 
@@ -188,16 +182,13 @@ bool reload() {
     FILE *file = fopen(system->asset_path, "rb");
     if (!file) return false;
 
-    FileHeader file_header;
-    read(file, &file_header, 1);
-    u64 num_assets = file_header.num_assets;
+    read(file, &system->file_header, 1);
+    u64 num_assets = system->file_header.num_assets;
 
     AssetHeader *headers = new AssetHeader[num_assets];
     read(file, headers, num_assets);
     fclose(file);
 
-    ASSERT(SDL_LockMutex(system->asset_lock) == 0, "Failed to lock asset system");
-    system->file_header = file_header;
     for (u64 slot = 0; slot < num_assets; slot++) {
         AssetHeader *header = headers + slot;
         AssetID id(header->name_hash);
@@ -224,16 +215,12 @@ bool reload() {
             system->assets.erase(it);
         }
     }
-    SDL_UnlockMutex(system->asset_lock);
-
     return true;
 }
 
 bool load(const char *path) {
     System *system = &GAMESTATE()->asset_system;
     system->asset_path = path;
-    system->asset_lock = SDL_CreateMutex();
-    ASSERT(SDL_LockMutex(system->asset_lock) == 0, "Failed to lock asset system");
     FILE *file = fopen(system->asset_path, "rb");
     if (!file) return false;
 
@@ -255,7 +242,6 @@ bool load(const char *path) {
         data.loaded = false;
         system->assets[id] = data;
     }
-    SDL_UnlockMutex(system->asset_lock);
 
     return true;
 }
@@ -265,7 +251,6 @@ bool load(const char *path) {
 #include "../test.h"
 #include <cstring>
 
-#if 0
 TEST_CASE("asset text", {
     Asset::load("assets-tests.bin");
     AssetID id("ALPHABET");
@@ -275,6 +260,7 @@ TEST_CASE("asset text", {
            == 0;
 });
 
+#if 0
 TEST_CASE("asset 1x1x3 png white", {
     Asset::load("assets-tests.bin");
     AssetID id("ONE_BY_ONE_RGB_PNG_WHITE");
