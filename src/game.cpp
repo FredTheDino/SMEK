@@ -16,26 +16,10 @@ GameState *_global_gs;
 GameState *GAMESTATE() { return _global_gs; }
 #endif
 
-bool should_update(GSUM gsmu) {
-    return gsmu == GSUM::UPDATE || gsmu == GSUM::UPDATE_AND_RENDER;
-}
-
-bool should_draw(GSUM gsmu) {
-    return gsmu == GSUM::RENDER || gsmu == GSUM::UPDATE_AND_RENDER;
-}
-
-f32 delta() { return GAMESTATE()->delta; }
-f32 time() { return GAMESTATE()->time; }
-u32 frame() { return GAMESTATE()->frame; }
-
-GFX::Mesh mesh;
-GFX::Texture texture;
-
 void init_game(GameState *gamestate, int width, int height) {
     _global_gs = gamestate;
-    GAMESTATE()->main_thread = SDL_GetThreadID(NULL);
-
     Asset::load("assets.bin");
+
 
     GFX::init(GAMESTATE(), width, height);
 
@@ -63,7 +47,6 @@ void reload_game(GameState *game) {
     game->audio_struct->lock();
     Audio::SoundSource test_source = game->audio_struct->sources[0];
     test_source.asset_id = AssetID("NOISE_STEREO_8K");
-    Asset::fetch_sound(test_source.asset_id); // Should always be done on main thread.
     test_source.active = true;
     test_source.repeat = false;
     test_source.sample = 0;
@@ -71,31 +54,33 @@ void reload_game(GameState *game) {
     game->audio_struct->unlock();
 }
 
-void update() {
+GameState update_game(GameState *game, GSUM mode) { // Game entry point
+    glClearColor(0.2, 0.1, 0.3, 1); // We don't need to do this...
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     if (Input::released(Ac::MouseToggle)) {
         GAMESTATE()->input.mouse_capture ^= 1;
     }
+    real time = SDL_GetTicks() / 1000.0;
+
+    GFX::Mesh mesh = *Asset::fetch_mesh("MONKEY");
+    GFX::MasterShader shader = GFX::master_shader();
+    shader.upload_t(time);
 
     EventSystem::handle_events();
 
     // Debug camera movement
     {
+        // TODO(ed): Add actual delta time
         Vec3 move = {Input::value(Ac::MoveX), 0, Input::value(Ac::MoveZ)};
         Vec2 turn = Input::mouse_move();
-        move = move * delta();
-        turn = turn * delta();
+        move = move * 0.01;
+        turn = turn * 0.01;
         GFX::main_camera()->turn(turn.y, turn.x);
         GFX::main_camera()->move_relative(move);
-        GFX::main_camera()->move(Vec3(0, Input::value(Ac::MoveY) * delta(), 0));
+        GFX::main_camera()->move(Vec3(0, Input::value(Ac::MoveY) * 0.01, 0));
     }
-}
 
-void draw() {
-    glClearColor(0.2, 0.1, 0.3, 1); // We don't need to do this...
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    GFX::MasterShader shader = GFX::master_shader();
-    shader.upload_t(time());
 
     const i32 grid_size = 10;
     const f32 width = 0.005;
@@ -114,15 +99,11 @@ void draw() {
     Asset::fetch_image("RGBA")->bind(0);
     shader.upload_tex(0);
 
-    Mat model_matrix = Mat::translate(Math::cos(time()) * 0.2,
-            Math::sin(time()) * 0.2,
-            -0.5) * Mat::scale(0.1);
+    Mat model_matrix = Mat::translate(Math::cos(time) * 0.2, Math::sin(time) * 0.2, -0.5) * Mat::scale(0.1);
     shader.upload_model(model_matrix);
     mesh.draw();
 
-    model_matrix = Mat::translate(-Math::cos(time()) * 0.2,
-            -Math::sin(time()) * 0.2,
-            -0.5) * Mat::scale(0.1);
+    model_matrix = Mat::translate(-Math::cos(time) * 0.2, -Math::sin(time) * 0.2, -0.5) * Mat::scale(0.1);
     shader.upload_model(model_matrix);
     mesh.draw();
 
@@ -140,11 +121,7 @@ void draw() {
     GFX::debug_shader().use();
     GFX::main_camera()->upload(GFX::debug_shader());
     GFX::draw_primitivs();
-}
 
-GameState update_game(GameState *game, GSUM mode) { // Game entry point
-    _global_gs = game;
-    if (should_update(mode)) { update(); }
-    if (should_draw(mode)) { draw(); }
+
     return *game;
 }
