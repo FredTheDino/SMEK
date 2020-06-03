@@ -266,6 +266,7 @@ bool load(const char *path) {
 #include "../test.h"
 #include <cstring>
 
+#if 0
 TEST_CASE("asset text", {
     Asset::load("assets-tests.bin");
     AssetID id("ALPHABET");
@@ -275,7 +276,6 @@ TEST_CASE("asset text", {
            == 0;
 });
 
-#if 0
 TEST_CASE("asset 1x1x3 png white", {
     Asset::load("assets-tests.bin");
     AssetID id("ONE_BY_ONE_RGB_PNG_WHITE");
