@@ -28,9 +28,6 @@ f32 delta() { return GAMESTATE()->delta; }
 f32 time() { return GAMESTATE()->time; }
 u32 frame() { return GAMESTATE()->frame; }
 
-GFX::Mesh mesh;
-GFX::Texture texture;
-
 void init_game(GameState *gamestate, int width, int height) {
     _global_gs = gamestate;
     GAMESTATE()->main_thread = SDL_GetThreadID(NULL);
@@ -114,9 +111,9 @@ void draw() {
     Asset::fetch_image("RGBA")->bind(0);
     shader.upload_tex(0);
 
-    Mat model_matrix = Mat::translate(Math::cos(time()) * 0.2,
-            Math::sin(time()) * 0.2,
-            -0.5) * Mat::scale(0.1);
+    GFX::Mesh mesh = *Asset::fetch_mesh("MONKEY");
+
+    Mat model_matrix = Mat::translate(Math::cos(time()) * 0.2, Math::sin(time()) * 0.2, -0.5) * Mat::scale(0.1);
     shader.upload_model(model_matrix);
     mesh.draw();
 
