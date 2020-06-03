@@ -76,6 +76,8 @@ void update() {
         GAMESTATE()->input.mouse_capture ^= 1;
     }
 
+    EventSystem::handle_events();
+
     // Debug camera movement
     {
         Vec3 move = {Input::value(Ac::MoveX), 0, Input::value(Ac::MoveZ)};
