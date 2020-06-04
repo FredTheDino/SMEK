@@ -66,6 +66,9 @@ void reload_game(GameState *game) {
     test_source.sample = 0;
     game->audio_struct->sources[0] = test_source;
     game->audio_struct->unlock();
+
+    Player player;
+    game->entity_system.add(player);
 }
 
 void update() {
@@ -85,6 +88,7 @@ void update() {
         GFX::main_camera()->move_relative(move);
         GFX::main_camera()->move(Vec3(0, Input::value(Ac::MoveY) * delta(), 0));
     }
+    GAMESTATE()->entity_system.update();
 }
 
 void draw() {
@@ -111,21 +115,22 @@ void draw() {
     Asset::fetch_image("RGBA")->bind(0);
     shader.upload_tex(0);
 
-    GFX::Mesh mesh = *Asset::fetch_mesh("MONKEY");
+    GAMESTATE()->entity_system.draw();
 
+#if 0
+    GFX::Mesh mesh = *Asset::fetch_mesh("MONKEY");
     Mat model_matrix = Mat::translate(Math::cos(time()) * 0.2, Math::sin(time()) * 0.2, -0.5) * Mat::scale(0.1);
     shader.upload_model(model_matrix);
     mesh.draw();
 
-    model_matrix = Mat::translate(-Math::cos(time()) * 0.2,
-            -Math::sin(time()) * 0.2,
-            -0.5) * Mat::scale(0.1);
+    model_matrix = Mat::translate(-Math::cos(time()) * 0.2, -Math::sin(time()) * 0.2, -0.5) * Mat::scale(0.1);
     shader.upload_model(model_matrix);
     mesh.draw();
 
     model_matrix = Mat::translate(0, 0, -0.6) * Mat::scale(0.1);
     shader.upload_model(model_matrix);
     mesh.draw();
+#endif
 
     ImGui::Begin("Hello, world!");
     if (ImGui::Button("Reset camera"))

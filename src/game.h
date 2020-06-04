@@ -5,6 +5,7 @@
 #include "renderer/renderer.h"
 #include "input.h"
 #include "audio.h"
+#include "entity/entity.h"
 
 #include <queue>
 
@@ -18,6 +19,7 @@ struct GameState {
     GFX::Renderer renderer = {};
     Input::Input input = {};
     Audio::AudioStruct *audio_struct;
+    EntitySystem entity_system;
     std::queue<EventSystem::Event> event_queue;
 
 
