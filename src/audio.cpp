@@ -48,14 +48,14 @@ void audio_callback(AudioStruct *audio_struct, f32 *stream, int len) {
                 right = sample;
             }
 
-            stream[i+0] += left;
-            stream[i+1] += right;
+            stream[i+0] += left * source->gain;
+            stream[i+1] += right * source->gain;
         }
     }
     audio_struct->unlock();
 }
 
-AudioID AudioStruct::play_sound(AssetID asset_id, bool repeat) {
+AudioID AudioStruct::play_sound(AssetID asset_id, f32 gain, bool repeat) {
     lock();
     for (u32 source_id = 0; source_id < NUM_SOURCES; source_id++) {
         SoundSource *source = sources + source_id;
@@ -66,6 +66,7 @@ AudioID AudioStruct::play_sound(AssetID asset_id, bool repeat) {
         *source = (SoundSource) {
             .asset_id = asset_id,
             .sample = 0.0,
+            .gain = gain,
             .active = true,
             .repeat = repeat,
             .gen = source->gen,
