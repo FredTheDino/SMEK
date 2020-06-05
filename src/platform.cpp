@@ -127,9 +127,7 @@ void platform_audio_callback(void *userdata, u8 *stream, int len);
 void platform_audio_callback(void *userdata, u8 *stream, int len) {
     f32 *f_stream = (f32 *) stream;
     Audio::AudioStruct *audio_struct_ptr = (Audio::AudioStruct *) userdata;
-    game_state.audio_struct->lock();
     game_lib.audio_callback(audio_struct_ptr, f_stream, len);
-    game_state.audio_struct->unlock();
 }
 
 void platform_audio_init() {

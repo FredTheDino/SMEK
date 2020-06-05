@@ -6,6 +6,7 @@
 namespace Audio {
 
 void audio_callback(AudioStruct *audio_struct, f32 *stream, int len) {
+    audio_struct->lock();
     const u32 SAMPLES = len / sizeof(f32);
     const f32 TIME_STEP = 1.0f / audio_struct->sample_rate;
 
@@ -51,6 +52,7 @@ void audio_callback(AudioStruct *audio_struct, f32 *stream, int len) {
             stream[i+1] += right;
         }
     }
+    audio_struct->unlock();
 }
 
 AudioID AudioStruct::play_sound(AssetID asset_id, bool repeat) {
