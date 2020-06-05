@@ -20,8 +20,12 @@ struct SoundSource {
     bool active;
     bool repeat;
 
-
     u32 gen;
+};
+
+struct SoundSourceSettings {
+    f32 gain = 0.33;
+    bool repeat = false;
 };
 
 struct AudioStruct {
@@ -39,7 +43,7 @@ struct AudioStruct {
             SDL_UnlockAudioDevice(dev);
     }
 
-    AudioID play_sound(AssetID asset_id, f32 gain=0.33, bool repeat=false);
+    AudioID play_sound(AssetID asset_id, SoundSourceSettings source_settings = {});
     void stop_sound(AudioID id);
 };
 

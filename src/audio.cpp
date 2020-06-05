@@ -55,7 +55,7 @@ void audio_callback(AudioStruct *audio_struct, f32 *stream, int len) {
     audio_struct->unlock();
 }
 
-AudioID AudioStruct::play_sound(AssetID asset_id, f32 gain, bool repeat) {
+AudioID AudioStruct::play_sound(AssetID asset_id, SoundSourceSettings source_settings) {
     lock();
     for (u32 source_id = 0; source_id < NUM_SOURCES; source_id++) {
         SoundSource *source = sources + source_id;
@@ -66,9 +66,9 @@ AudioID AudioStruct::play_sound(AssetID asset_id, f32 gain, bool repeat) {
         *source = (SoundSource) {
             .asset_id = asset_id,
             .sample = 0.0,
-            .gain = gain,
+            .gain = source_settings.gain,
             .active = true,
-            .repeat = repeat,
+            .repeat = source_settings.repeat,
             .gen = source->gen,
         };
         unlock();

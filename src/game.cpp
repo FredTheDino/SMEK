@@ -127,7 +127,7 @@ void draw() {
     // ImGui::DragFloat3("pos.", (float *) &from, 0.01);
     // ImGui::DragFloat3("rot.", (float *) &rotation, 0.01);
     if (ImGui::Button("Play sound")) {
-        GAMESTATE()->audio_struct->play_sound(sound_id);
+        GAMESTATE()->audio_struct->play_sound(sound_id, { .gain=0.3 });
     }
     ImGui::End();
 
