@@ -4,6 +4,11 @@
 #include "asset/asset.h"
 #include "util/log.h"
 
+struct AudioID {
+    u32 gen;
+    u32 slot;
+};
+
 namespace Audio {
 
 const u32 NUM_SOURCES = 10;
@@ -13,6 +18,8 @@ struct SoundSource {
     f32 sample;
     bool active;
     bool repeat;
+
+    u32 gen;
 };
 
 struct AudioStruct {
@@ -29,6 +36,9 @@ struct AudioStruct {
         if (active)
             SDL_UnlockAudioDevice(dev);
     }
+
+    AudioID play_sound(AssetID asset_id, bool repeat=false);
+    void stop_sound(AudioID id);
 };
 
 void audio_callback(AudioStruct *audio_struct, f32 *stream, int len);
