@@ -7,6 +7,7 @@ namespace Audio {
 
 void audio_callback(AudioStruct *audio_struct, f32 *stream, int len) {
     audio_struct->lock();
+    defer { audio_struct->unlock(); };
     const u32 SAMPLES = len / sizeof(f32);
     const f32 TIME_STEP = 1.0f / audio_struct->sample_rate;
 
@@ -52,11 +53,11 @@ void audio_callback(AudioStruct *audio_struct, f32 *stream, int len) {
             stream[i+1] += right * source->gain;
         }
     }
-    audio_struct->unlock();
 }
 
 AudioID AudioStruct::play_sound(AssetID asset_id, SoundSourceSettings source_settings) {
     lock();
+    defer { unlock(); };
     for (u32 source_id = 0; source_id < NUM_SOURCES; source_id++) {
         SoundSource *source = sources + source_id;
         if (source->active) {
@@ -71,10 +72,8 @@ AudioID AudioStruct::play_sound(AssetID asset_id, SoundSourceSettings source_set
             .repeat = source_settings.repeat,
             .gen = source->gen,
         };
-        unlock();
         return id;
     }
-    unlock();
     ERROR("No free sources, skipping sound");
     return { .gen = 0, .slot = NUM_SOURCES };
 }
@@ -86,14 +85,13 @@ void AudioStruct::stop_sound(AudioID id) {
     }
     ASSERT(id.slot < NUM_SOURCES, "Tried to stop invalid AudioID");
     lock();
+    defer { unlock(); };
     SoundSource *source = sources + id.slot;
     if (id.gen != source->gen) {
         WARN("Tried to stop outdated AudioID");
-        unlock();
         return;
     }
     source->active = false;
-    unlock();
     return;
 }
 
