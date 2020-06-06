@@ -128,6 +128,7 @@ void draw() {
     mesh.draw();
 #endif
 
+    ImGui::Begin("Tweaks");
     if (ImGui::Button("Reset camera"))
         *GFX::main_camera() = GFX::Camera::init();
     // ImGui::DragFloat3("pos.", (float *) &from, 0.01);
