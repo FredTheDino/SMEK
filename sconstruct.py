@@ -166,7 +166,6 @@ if GetOption("jumbo"):
     tests_source = [tests_dir + "test.cpp"]
 else:
     tests_source = [re.sub("^src/", tests_dir, f) for f in source]
-print(tests_source)
 tests = tests_env.Program(target=tests_dir + "tests", source=tests_source)
 tests_target = env.Alias("tests", tests, "cd " + tests_dir + "; " + tests[0].abspath + " " + " ".join(tests_runtime_flags))
 Depends(tests_target, tests_assets)
@@ -182,10 +181,6 @@ AlwaysBuild(docs)
 if GetOption("tags"):
     shell(["ctags", "-R", "src"])
 
-env.Clean(smek, glob("bin/**/*.o", recursive=True))  # always remove *.o
-env.Clean(tests, glob("bin/**/*.o", recursive=True))  # always remove *.o
-env.Clean(smek, glob("bin/**/*.txt", recursive=True))
-env.Clean(tests, glob("bin/**/*.txt", recursive=True))
-env.Clean(libsmek, glob("bin/**/libSMEK*", recursive=True))
+env.Clean(smek_target, glob("bin/**/*.o", recursive=True))  # always remove *.o
+env.Clean(tests_target, glob("bin/**/*.o", recursive=True))  # always remove *.o
 env.Clean(docs, "docs/index.html")
-env.Clean(assets, glob("bin/**/assets*.bin"))
