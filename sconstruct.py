@@ -4,6 +4,7 @@ import re
 from glob import glob
 from subprocess import Popen, PIPE
 from collections import defaultdict
+from itertools import chain
 
 
 def shell(command):
@@ -46,6 +47,11 @@ AddOption("--no-imgui",
           dest="no_imgui",
           action="store_true",
           help="Compiles out all ImGui code")
+
+AddOption("--jumbo",
+          dest="jumbo",
+          action="store_true",
+          help="Compiles the code using Jumbo, this make it faster for clean builds")
 
 env = Environment(ENV=os.environ)
 env.Replace(CXX="g++")
@@ -111,9 +117,32 @@ smek_source = [re.sub("^src/", smek_dir, f) for f in source]
 smek_source.remove(smek_dir + "test.cpp")
 smek_source.remove(smek_dir + "platform.cpp")  # The platform layer
 
+if GetOption("jumbo"):
+    jumbo_source = source.copy()
+    jumbo_source.remove("src/test.cpp")
+    jumbo_source.remove("src/platform.cpp")
+    jumbo_source.remove("src/game.cpp")
+    jumbo_main = smek_dir + "game.cpp"
+
+    jumbo_smek_env = env.Clone();
+    jumbo_smek_env.Append(CXXFLAGS=list(chain(("-include", source) for source in jumbo_source)))
+    libsmek = jumbo_smek_env.SharedLibrary(target=smek_dir + "libSMEK", source=jumbo_main)
+
+    if False:
+        jumbo_source = source.copy()
+        jumbo_source.remove("src/test.cpp")
+        jumbo_source.remove("src/game.cpp")
+        jumbo_platform = smek_dir + "platform.cpp"
+
+        jumbo_plt_env = env.Clone();
+        jumbo_plt_env.Append(CXXFLAGS=list(chain(("-include", source) for source in jumbo_source)))
+        smek = jumbo_plt_env.Program(target=smek_dir + "SMEK", source=jumbo_main)
+else:
+    libsmek = env.SharedLibrary(target=smek_dir + "libSMEK", source=smek_source)
+
 platform_source = [re.sub("^src/", smek_dir, f) for f in source if "imgui" in f or "glad" in f or "platform" in f]
 smek = env.Program(target=smek_dir + "SMEK", source=[platform_source, smek_dir + "util/tprint.cpp"])
-libsmek = env.SharedLibrary(target=smek_dir + "libSMEK", source=smek_source)
+
 AddPostAction(libsmek, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
 Depends(smek, libsmek)
 Depends(smek, assets)
