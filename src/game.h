@@ -11,6 +11,9 @@
 
 #include "event.h"
 
+///# Game
+//
+
 ///* GameState
 struct GameState {
     SDL_Window *window;
