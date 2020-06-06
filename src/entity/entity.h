@@ -59,3 +59,4 @@ EntityID EntitySystem::add(E entity) {
     return id;
 }
 
+EntitySystem *entity_system();
