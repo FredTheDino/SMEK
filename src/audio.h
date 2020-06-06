@@ -17,7 +17,10 @@ namespace Audio {
 const u32 NUM_SOURCES = 10;
 
 struct SoundSource {
-    AssetID asset_id;
+    u32 channels;
+    u32 sample_rate;
+    u32 num_samples;
+    f32 *data;
     f32 sample;
     f32 gain;
     bool active;

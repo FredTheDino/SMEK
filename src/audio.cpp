@@ -20,12 +20,11 @@ void audio_callback(AudioStruct *audio_struct, f32 *stream, int len) {
         if (!source->active) continue;
 
         u64 index;
-        Asset::Sound *sound = Asset::fetch_sound(source->asset_id);
         for (u32 i = 0; i < SAMPLES; i += 2) {
-            source->sample += sound->sample_rate * TIME_STEP;
+            source->sample += source->sample_rate * TIME_STEP;
             index = source->sample;
 
-            if (index * sound->channels >= sound->num_samples) {
+            if (index * source->channels >= source->num_samples) {
                 if (source->repeat) {
                     source->sample = 0;
                     index = 0;
@@ -38,13 +37,13 @@ void audio_callback(AudioStruct *audio_struct, f32 *stream, int len) {
             f32 left;
             f32 right;
 
-            if (sound->channels == 2) {
-                left = sound->data[index * 2 + 0];
-                right = sound->data[index * 2 + 1];
+            if (source->channels == 2) {
+                left = source->data[index * 2 + 0];
+                right = source->data[index * 2 + 1];
             } else {
                 // mono
                 f32 sample;
-                sample = sound->data[index];
+                sample = source->data[index];
                 left = sample;
                 right = sample;
             }
@@ -63,9 +62,13 @@ AudioID AudioStruct::play_sound(AssetID asset_id, SoundSourceSettings source_set
         if (source->active) {
             continue;
         }
+        Asset::Sound *sound = Asset::fetch_sound(asset_id);
         AudioID id = { .gen = ++source->gen, .slot = source_id };
         *source = (SoundSource) {
-            .asset_id = asset_id,
+            .channels = sound->channels,
+            .sample_rate = sound->sample_rate,
+            .num_samples = sound->num_samples,
+            .data = sound->data,
             .sample = 0.0,
             .gain = source_settings.gain,
             .active = true,
