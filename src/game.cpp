@@ -47,8 +47,13 @@ void init_game(GameState *gamestate, int width, int height) {
     Input::bind(Ac::MoveY, 1, SDLK_e, -1.0);
     Input::bind(Ac::MoveZ, 0, SDLK_w, -1.0);
     Input::bind(Ac::MoveZ, 1, SDLK_s,  1.0);
+    Input::bind(Ac::Jump, 0, SDLK_SPACE, 1.0);
+    Input::bind(Ac::Shoot, 0, SDLK_f, 1.0);
     Input::bind(Ac::MouseToggle, 0, SDLK_m);
     Input::bind(Ac::Rebind, 1, SDLK_r);
+
+    Player player;
+    GAMESTATE()->entity_system.add(player);
 }
 
 void reload_game(GameState *game) {
@@ -66,9 +71,6 @@ void reload_game(GameState *game) {
     test_source.sample = 0;
     game->audio_struct->sources[0] = test_source;
     game->audio_struct->unlock();
-
-    Player player;
-    game->entity_system.add(player);
 }
 
 void update() {
@@ -78,7 +80,7 @@ void update() {
 
     EventSystem::handle_events();
 
-    // Debug camera movement
+    // Debug camera movement, overwritten by player currently.
     {
         Vec3 move = {Input::value(Ac::MoveX), 0, Input::value(Ac::MoveZ)};
         Vec2 turn = Input::mouse_move();
@@ -132,12 +134,10 @@ void draw() {
     mesh.draw();
 #endif
 
-    ImGui::Begin("Hello, world!");
     if (ImGui::Button("Reset camera"))
         *GFX::main_camera() = GFX::Camera::init();
     // ImGui::DragFloat3("pos.", (float *) &from, 0.01);
     // ImGui::DragFloat3("rot.", (float *) &rotation, 0.01);
-    ImGui::End();
 
     GFX::debug_shader().use();
     GFX::main_camera()->upload(GFX::debug_shader());

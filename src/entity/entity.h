@@ -19,6 +19,8 @@ struct Entity {
 };
 
 struct Player: public Entity {
+    Vec3 velocity;
+
     void update() override;
     void draw() override;
 };

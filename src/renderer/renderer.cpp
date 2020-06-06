@@ -25,15 +25,6 @@ void Camera::set_aspect_ratio(f32 aspect_ratio) {
     this->aspect_ratio = aspect_ratio;
 }
 
-void Camera::look_at_from(Vec3 from, Vec3 target) {
-    // position = from;
-    // look_at(target);
-}
-
-void Camera::look_at(Vec3 target) {
-    // forward = target + position;
-}
-
 void Camera::turn(f32 jaw, f32 pitch) {
     rotation = normalized(H::from(0.0, -pitch, 0.0) * rotation * H::from(-jaw, 0.0, 0.0));
 }

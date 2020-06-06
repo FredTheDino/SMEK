@@ -51,9 +51,6 @@ struct Camera {
 
     void set_aspect_ratio(f32 aspect_ratio);
 
-    void look_at(Vec3 target);
-    void look_at_from(Vec3 from, Vec3 target);
-
     void turn(f32 jaw, f32 pitch);
 
     void move(Vec3 movement);
