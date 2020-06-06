@@ -22,11 +22,14 @@ struct GameState {
     EntitySystem entity_system;
     std::queue<EventSystem::Event> event_queue;
 
-
     SDL_threadID main_thread;
     f32 delta;
     f32 time;
     u32 frame;
+
+    f32 player_jump_speed = 2.0;
+    f32 player_movement_speed = 4.0;
+    f32 player_mouse_sensitivity = 1.0;
 
     bool running;
 };
