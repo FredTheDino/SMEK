@@ -37,11 +37,14 @@ AddOption("--tags",
           action="store_true",
           help="Runs ctags and generates a tag file.")
 
+AddOption("--release",
+          dest="release",
+          action="store_true",
+          help="Compiles the target in release mode")
+
 env = Environment(ENV=os.environ)
 env.Replace(CXX="g++")
 env.Append(CXXFLAGS="-Wall")
-env.Append(CXXFLAGS="-ggdb")
-env.Append(CXXFLAGS="-O0")
 env.Append(CXXFLAGS="-std=c++20")
 env.Append(CXXFLAGS="-Wno-unused -Wno-return-type-c-linkage")
 env.Append(CXXFLAGS=shell(["sdl2-config", "--cflags"]))
@@ -50,6 +53,9 @@ env.Append(LINKFLAGS=shell(["sdl2-config", "--libs"]))
 env.Append(LINKFLAGS="-ldl")
 env.Append(LINKFLAGS="-rdynamic")  # Gives backtrace information
 
+debug_flags = ["-ggdb", "-O0", "-DDEBUG"]
+release_flags = ["-O2", "-DRELEASE"]
+
 if GetOption("verbose"):
     env.Append(CPPDEFINES="VERBOSE")
     env.Append(ASSETS_VERBOSE="--verbose")
@@ -57,10 +63,14 @@ if GetOption("verbose"):
 if not GetOption("color"):
     env.Append(CPPDEFINES="NO_COLOR")
 
-smek_dir = "bin/debug/"
+if GetOption("release"):
+    smek_dir = "bin/release/"
+else:
+    smek_dir = "bin/debug/"
+    env.Append(CXXFLAGS=debug_flags)
 VariantDir(smek_dir, "src", duplicate=0)
 
-tests_dir = "bin/tests/"
+tests_dir = smek_dir + "tests/"
 VariantDir(tests_dir, "src", duplicate=0)
 
 
