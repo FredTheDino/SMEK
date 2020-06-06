@@ -13,6 +13,8 @@ enum class Action {
     MoveX,
     MoveY,
     MoveZ,
+    Jump,
+    Shoot,
     Jaw,
     Pitch,
 

@@ -47,8 +47,13 @@ void init_game(GameState *gamestate, int width, int height) {
     Input::bind(Ac::MoveY, 1, SDLK_e, -1.0);
     Input::bind(Ac::MoveZ, 0, SDLK_w, -1.0);
     Input::bind(Ac::MoveZ, 1, SDLK_s,  1.0);
+    Input::bind(Ac::Jump, 0, SDLK_SPACE, 1.0);
+    Input::bind(Ac::Shoot, 0, SDLK_f, 1.0);
     Input::bind(Ac::MouseToggle, 0, SDLK_m);
     Input::bind(Ac::Rebind, 1, SDLK_r);
+
+    Player player;
+    GAMESTATE()->entity_system.add(player);
 }
 
 void reload_game(GameState *game) {
@@ -75,7 +80,7 @@ void update() {
 
     EventSystem::handle_events();
 
-    // Debug camera movement
+    // Debug camera movement, overwritten by player currently.
     {
         Vec3 move = {Input::value(Ac::MoveX), 0, Input::value(Ac::MoveZ)};
         Vec2 turn = Input::mouse_move();
@@ -85,6 +90,7 @@ void update() {
         GFX::main_camera()->move_relative(move);
         GFX::main_camera()->move(Vec3(0, Input::value(Ac::MoveY) * delta(), 0));
     }
+    GAMESTATE()->entity_system.update();
 }
 
 void draw() {
@@ -111,28 +117,27 @@ void draw() {
     Asset::fetch_image("RGBA")->bind(0);
     shader.upload_tex(0);
 
-    GFX::Mesh mesh = *Asset::fetch_mesh("MONKEY");
+    GAMESTATE()->entity_system.draw();
 
+#if 0
+    GFX::Mesh mesh = *Asset::fetch_mesh("MONKEY");
     Mat model_matrix = Mat::translate(Math::cos(time()) * 0.2, Math::sin(time()) * 0.2, -0.5) * Mat::scale(0.1);
     shader.upload_model(model_matrix);
     mesh.draw();
 
-    model_matrix = Mat::translate(-Math::cos(time()) * 0.2,
-            -Math::sin(time()) * 0.2,
-            -0.5) * Mat::scale(0.1);
+    model_matrix = Mat::translate(-Math::cos(time()) * 0.2, -Math::sin(time()) * 0.2, -0.5) * Mat::scale(0.1);
     shader.upload_model(model_matrix);
     mesh.draw();
 
     model_matrix = Mat::translate(0, 0, -0.6) * Mat::scale(0.1);
     shader.upload_model(model_matrix);
     mesh.draw();
+#endif
 
-    ImGui::Begin("Hello, world!");
     if (ImGui::Button("Reset camera"))
         *GFX::main_camera() = GFX::Camera::init();
     // ImGui::DragFloat3("pos.", (float *) &from, 0.01);
     // ImGui::DragFloat3("rot.", (float *) &rotation, 0.01);
-    ImGui::End();
 
     GFX::debug_shader().use();
     GFX::main_camera()->upload(GFX::debug_shader());
