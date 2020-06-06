@@ -42,6 +42,11 @@ AddOption("--release",
           action="store_true",
           help="Compiles the target in release mode")
 
+AddOption("--no-imgui",
+          dest="no_imgui",
+          action="store_true",
+          help="Compiles out all ImGui code")
+
 env = Environment(ENV=os.environ)
 env.Replace(CXX="g++")
 env.Append(CXXFLAGS="-Wall")
@@ -54,7 +59,7 @@ env.Append(LINKFLAGS="-ldl")
 env.Append(LINKFLAGS="-rdynamic")  # Gives backtrace information
 
 debug_flags = ["-ggdb", "-O0", "-DDEBUG"]
-release_flags = ["-O2", "-DRELEASE", "-DIMGUI_DISABLE"]
+release_flags = ["-O2", "-DRELEASE"]
 
 if GetOption("verbose"):
     env.Append(CPPDEFINES="VERBOSE")
@@ -70,11 +75,13 @@ else:
     smek_dir = "bin/debug/"
     env.Append(CXXFLAGS=debug_flags)
 
+if GetOption("no_imgui"):
+    env.Append(CPPDEFINES="IMGUI_DISABLE")
+
 VariantDir(smek_dir, "src", duplicate=0)
 
 tests_dir = smek_dir + "tests/"
 VariantDir(tests_dir, "src", duplicate=0)
-
 
 asset_gen = Builder(action="./asset-gen.py -o $TARGET -f $SOURCES $ASSETS_VERBOSE")
 env.Append(BUILDERS={"Assets": asset_gen})
