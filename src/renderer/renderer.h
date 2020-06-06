@@ -219,4 +219,8 @@ void push_debug_triangle(Vec3 p1, Vec4 c1, Vec3 p2, Vec4 c2, Vec3 p3, Vec4 c3);
 
 void draw_primitivs();
 
+template<> void Camera::upload<MasterShader>(const MasterShader &shader);
+template<> void Camera::upload<DebugShader>(const DebugShader &shader);
+
+
 } // namespace GFX

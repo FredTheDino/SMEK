@@ -110,6 +110,7 @@ def all_asset_targets(build_dir):
 tests_assets = env.Assets(tests_dir + "assets-tests.bin", glob("res/tests/*.*"))
 assets = all_asset_targets(smek_dir)
 env.Alias("assets", assets)
+AddPostAction(assets, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
 
 source = glob("src/**/*.c*", recursive=True)
 
@@ -144,11 +145,11 @@ platform_source = [re.sub("^src/", smek_dir, f) for f in source if "imgui" in f 
 smek = env.Program(target=smek_dir + "SMEK", source=[platform_source, smek_dir + "util/tprint.cpp"])
 
 AddPostAction(libsmek, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
-Depends(smek, libsmek)
-Depends(smek, assets)
-AddPostAction(assets, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
-Default(smek)
-env.Alias("smek", smek)
+smek_target = env.Alias("smek", smek)
+Depends(smek_target, assets)
+Depends(smek_target, libsmek)
+Depends(smek_target, smek)
+Default(smek_target)
 
 tests_runtime_flags = []
 if GetOption("ci"):
@@ -159,13 +160,21 @@ if GetOption("report"):
 
 tests_env = env.Clone()
 tests_env.Append(CPPDEFINES="TESTS")
-tests_source = [re.sub("^src/", tests_dir, f) for f in source]
+tests_env.Append(CPPDEFINES="IMGUI_DISABLE")
+if GetOption("jumbo"):
+    tests_env.Append(CXXFLAGS=list(chain(("-include", s) for s in source if "imgui" not in s and "test" not in s)))
+    tests_source = [tests_dir + "test.cpp"]
+else:
+    tests_source = [re.sub("^src/", tests_dir, f) for f in source]
+print(tests_source)
 tests = tests_env.Program(target=tests_dir + "tests", source=tests_source)
-Depends(tests, tests_assets)
+tests_target = env.Alias("tests", tests, "cd " + tests_dir + "; " + tests[0].abspath + " " + " ".join(tests_runtime_flags))
+Depends(tests_target, tests_assets)
+Depends(tests_target, tests)
 
-AlwaysBuild(env.Alias("run", smek, "cd " + smek_dir + "; " + smek[0].abspath))
-AlwaysBuild(env.Alias("tests", tests, "cd " + tests_dir + "; " + tests[0].abspath + " " + " ".join(tests_runtime_flags)))
-AlwaysBuild(env.Alias("debug", smek, "cd " + smek_dir + "; " + "gdb " + smek[0].abspath))
+AlwaysBuild(env.Alias("run", smek_target, "cd " + smek_dir + "; " + smek[0].abspath))
+AlwaysBuild(env.Alias("debug", smek_target, "cd " + smek_dir + "; " + "gdb " + smek[0].abspath))
+AlwaysBuild(tests_target)
 
 docs = env.Alias("docs", "", "docs/doc-builder.py")
 AlwaysBuild(docs)
