@@ -91,12 +91,12 @@ TEST_CASE("entity_adding", {
     auto b_id = entity_system()->add(b);
     calls = 0;
     entity_system()->update();
-    ASSERT(calls == 2, "Got %d calls to update.", calls);
+    ASSERT(calls == 2, "Got {} calls to update.", calls);
 
     entity_system()->remove(b_id);
     calls = 0;
     entity_system()->update();
-    ASSERT(calls == 1, "Got %d calls to update.", calls);
+    ASSERT(calls == 1, "Got {} calls to update.", calls);
     return true;
 });
 
