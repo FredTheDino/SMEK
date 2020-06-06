@@ -98,6 +98,15 @@ void AudioStruct::stop_sound(AudioID id) {
     return;
 }
 
+void AudioStruct::stop_all() {
+    lock();
+    defer { unlock(); };
+    for (u32 source_id = 0; source_id < NUM_SOURCES; source_id++) {
+        SoundSource *source = sources + source_id;
+        source->active = false;
+    }
+}
+
 } // namespace Audio
 
 void audio_callback(Audio::AudioStruct *audio_struct, f32 *stream, int len) {

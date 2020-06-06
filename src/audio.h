@@ -57,6 +57,8 @@ struct AudioStruct {
 
     AudioID play_sound(AssetID asset_id, SoundSourceSettings source_settings = {});
     void stop_sound(AudioID id);
+
+    void stop_all();
 };
 
 void audio_callback(AudioStruct *audio_struct, f32 *stream, int len);
@@ -82,5 +84,13 @@ play_sound(asset_id, { .gain=0.3 });
 play_sound(asset_id, { .repeat=true });
 //
 // And so on for other settings.
+
+///*
+// Stop a currently playing sound.
+void stop_sound(AudioID id);
+
+///*
+// Stop all currently playing sounds.
+void stop_all();
 
 #endif

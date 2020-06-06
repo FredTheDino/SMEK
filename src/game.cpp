@@ -126,9 +126,11 @@ void draw() {
         *GFX::main_camera() = GFX::Camera::init();
     // ImGui::DragFloat3("pos.", (float *) &from, 0.01);
     // ImGui::DragFloat3("rot.", (float *) &rotation, 0.01);
-    if (ImGui::Button("Play sound")) {
+    ImGui::Separator();
+    if (ImGui::Button("Play sound"))
         GAMESTATE()->audio_struct->play_sound(sound_id, { .gain=0.3 });
-    }
+    if (ImGui::Button("Stop all sounds"))
+        GAMESTATE()->audio_struct->stop_all();
     ImGui::End();
 
     GFX::debug_shader().use();
