@@ -119,6 +119,7 @@ Depends(smek, libsmek)
 Depends(smek, assets)
 AddPostAction(assets, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
 Default(smek)
+env.Alias("smek", smek)
 
 tests_runtime_flags = []
 if GetOption("ci"):
