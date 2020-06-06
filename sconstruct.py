@@ -37,11 +37,19 @@ AddOption("--tags",
           action="store_true",
           help="Runs ctags and generates a tag file.")
 
+AddOption("--release",
+          dest="release",
+          action="store_true",
+          help="Compiles the target in release mode")
+
+AddOption("--no-imgui",
+          dest="no_imgui",
+          action="store_true",
+          help="Compiles out all ImGui code")
+
 env = Environment(ENV=os.environ)
 env.Replace(CXX="g++")
 env.Append(CXXFLAGS="-Wall")
-env.Append(CXXFLAGS="-ggdb")
-env.Append(CXXFLAGS="-O0")
 env.Append(CXXFLAGS="-std=c++20")
 env.Append(CXXFLAGS="-Wno-unused -Wno-return-type-c-linkage")
 env.Append(CXXFLAGS=shell(["sdl2-config", "--cflags"]))
@@ -50,6 +58,9 @@ env.Append(LINKFLAGS=shell(["sdl2-config", "--libs"]))
 env.Append(LINKFLAGS="-ldl")
 env.Append(LINKFLAGS="-rdynamic")  # Gives backtrace information
 
+debug_flags = ["-ggdb", "-O0", "-DDEBUG"]
+release_flags = ["-O2", "-DRELEASE"]
+
 if GetOption("verbose"):
     env.Append(CPPDEFINES="VERBOSE")
     env.Append(ASSETS_VERBOSE="--verbose")
@@ -57,12 +68,20 @@ if GetOption("verbose"):
 if not GetOption("color"):
     env.Append(CPPDEFINES="NO_COLOR")
 
-smek_dir = "bin/debug/"
+if GetOption("release"):
+    smek_dir = "bin/release/"
+    env.Append(CXXFLAGS=release_flags)
+else:
+    smek_dir = "bin/debug/"
+    env.Append(CXXFLAGS=debug_flags)
+
+if GetOption("no_imgui"):
+    env.Append(CPPDEFINES="IMGUI_DISABLE")
+
 VariantDir(smek_dir, "src", duplicate=0)
 
-tests_dir = "bin/tests/"
+tests_dir = smek_dir + "tests/"
 VariantDir(tests_dir, "src", duplicate=0)
-
 
 asset_gen = Builder(action="./asset-gen.py -o $TARGET -f $SOURCES $ASSETS_VERBOSE")
 env.Append(BUILDERS={"Assets": asset_gen})
@@ -100,6 +119,7 @@ Depends(smek, libsmek)
 Depends(smek, assets)
 AddPostAction(assets, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
 Default(smek)
+env.Alias("smek", smek)
 
 tests_runtime_flags = []
 if GetOption("ci"):
