@@ -114,35 +114,36 @@ AddPostAction(assets, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || t
 
 source = glob("src/**/*.c*", recursive=True)
 
-smek_source = [re.sub("^src/", smek_dir, f) for f in source]
-smek_source.remove(smek_dir + "test.cpp")
-smek_source.remove(smek_dir + "platform.cpp")  # The platform layer
 
+
+imgui = env.Object(smek_dir + "imgui.cpp")
+glad = env.Object(smek_dir + "glad.cpp")
 if GetOption("jumbo"):
     jumbo_source = source.copy()
     jumbo_source.remove("src/test.cpp")
     jumbo_source.remove("src/platform.cpp")
     jumbo_source.remove("src/game.cpp")
-    jumbo_main = smek_dir + "game.cpp"
+    jumbo_source.remove("src/imgui.cpp")
+    jumbo_source.remove("src/glad.cpp")
 
-    jumbo_smek_env = env.Clone();
-    jumbo_smek_env.Append(CXXFLAGS=list(chain(("-include", source) for source in jumbo_source)))
-    libsmek = jumbo_smek_env.SharedLibrary(target=smek_dir + "libSMEK", source=jumbo_main)
+    jumbo_env = env.Clone()
+    jumbo_env.Append(CXXFLAGS=list(chain(("-include", source) for source in jumbo_source)))
+    libsmek = jumbo_env.SharedLibrary(smek_dir + "libSMEK", [smek_dir + "game.cpp"])
 
-    if False:
-        jumbo_source = source.copy()
-        jumbo_source.remove("src/test.cpp")
-        jumbo_source.remove("src/game.cpp")
-        jumbo_platform = smek_dir + "platform.cpp"
-
-        jumbo_plt_env = env.Clone();
-        jumbo_plt_env.Append(CXXFLAGS=list(chain(("-include", source) for source in jumbo_source)))
-        smek = jumbo_plt_env.Program(target=smek_dir + "SMEK", source=jumbo_main)
+    plt_env = env.Clone()
+    plt_env.Append(CXXFLAGS=["-include", "src/util/tprint.cpp"])
+    platform_source = plt_env.Object(smek_dir + "platform.cpp")
+    smek = env.Program(smek_dir + "SMEK", [platform_source, glad, imgui])
 else:
-    libsmek = env.SharedLibrary(target=smek_dir + "libSMEK", source=smek_source)
+    smek_source = [re.sub("^src/", smek_dir, f) for f in source]
+    smek_source.remove(smek_dir + "test.cpp")
+    smek_source.remove(smek_dir + "platform.cpp")
+    smek_source.remove(smek_dir + "imgui.cpp")
+    smek_source.remove(smek_dir + "glad.cpp")
+    libsmek = env.SharedLibrary(smek_dir + "libSMEK", [*smek_source])
 
-platform_source = [re.sub("^src/", smek_dir, f) for f in source if "imgui" in f or "glad" in f or "platform" in f]
-smek = env.Program(target=smek_dir + "SMEK", source=[platform_source, smek_dir + "util/tprint.cpp"])
+    platform_source = [smek_dir + "platform.cpp", smek_dir + "util/tprint.cpp"]
+    smek = env.Program(smek_dir + "SMEK", [*platform_source, glad, imgui])
 
 AddPostAction(libsmek, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
 smek_target = env.Alias("smek", smek)
