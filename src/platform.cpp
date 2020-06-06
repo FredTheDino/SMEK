@@ -1,24 +1,25 @@
+#ifndef IMGUI_DISABLE
 #define IMGUI_IMPL_OPENGL_LOADER_GLAD
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl3.h"
-#include "glad/glad.h"
+#endif
 
+#include "glad/glad.h"
 #include "game.h"
+#include "math/smek_math.h"
 #include "util/log.h"
 #include "input.h"
-#include <unordered_map>
-#include <csignal>
-#include <cstring>
-#include <cstdlib>
-
-#include "math/smek_math.h"
 #include "audio.h"
 
 #include "platform_input.h"
 
 // This is very UNIX-y
 #include <dlfcn.h>
+#include <unordered_map>
+#include <csignal>
+#include <cstring>
+#include <cstdlib>
 
 #define MS_PER_FRAME 8
 
@@ -156,6 +157,54 @@ void platform_audio_init() {
     SDL_PauseAudioDevice(platform_audio_struct.dev, 0);
 }
 
+#ifndef IMGUI_DISABLE
+static void imgui_platform_start() {
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    // Enable Keyboard and gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+    ImGui::StyleColorsDark();
+    ImGui_ImplSDL2_InitForOpenGL(game_state.window, game_state.gl_context);
+    ImGui_ImplOpenGL3_Init("#version 330");
+}
+
+static bool imgui_eats_input(SDL_Event *event) {
+    ImGui_ImplSDL2_ProcessEvent(event);
+
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    if ((event->type == SDL_KEYDOWN
+     || event->type == SDL_KEYUP)
+     && io.WantCaptureKeyboard)
+        return true;
+
+    if ((event->type == SDL_MOUSEMOTION
+     || event->type == SDL_MOUSEBUTTONDOWN
+     || event->type == SDL_MOUSEBUTTONUP
+     || event->type == SDL_MOUSEWHEEL)
+     && io.WantCaptureMouse)
+        return true;
+    return false;
+}
+
+static void imgui_start_frame() {
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplSDL2_NewFrame(game_state.window);
+    ImGui::NewFrame();
+}
+
+static void imgui_end_frame() {
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+#else
+static void imgui_platform_start() {}
+static constexpr bool imgui_eats_input(SDL_Event *event) { return false; }
+static void imgui_start_frame() {}
+static void imgui_end_frame() {}
+#endif
+
 #ifndef TESTS
 #include "util/log.cpp" // I know, just meh.
 int main(int argc, char **argv) { // Game entrypoint
@@ -210,15 +259,8 @@ int main(int argc, char **argv) { // Game entrypoint
     if (gladLoadGL() == 0) {
         UNREACHABLE("Failed to load glad");
     }
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    // Enable Keyboard and gamepad Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-    ImGui::StyleColorsDark();
-    ImGui_ImplSDL2_InitForOpenGL(game_state.window, game_state.gl_context);
-    ImGui_ImplOpenGL3_Init("#version 330");
+
+    imgui_platform_start();
 
     game_lib.reload(&game_state);
 
@@ -243,7 +285,7 @@ int main(int argc, char **argv) { // Game entrypoint
             // Read in input
             SDL_Event event;
             while (SDL_PollEvent(&event)) {
-                ImGui_ImplSDL2_ProcessEvent(&event);
+                if (imgui_eats_input(&event)) continue;
                 if (event.type == SDL_QUIT) {
                     game_state.running = false;
                 }
@@ -252,7 +294,6 @@ int main(int argc, char **argv) { // Game entrypoint
                         game_state.running = false;
                 }
                 if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
-                    if (io.WantCaptureKeyboard) continue;
                     SDL_KeyboardEvent key = event.key;
                     if (key.repeat) continue;
                     GameInput::Button button = key.keysym.sym;
@@ -260,7 +301,6 @@ int main(int argc, char **argv) { // Game entrypoint
                     if (down && global_input.eaten_by_rebind(button)) continue;
                     global_input.update_press(button, down);
                 }
-                if (io.WantCaptureMouse) continue;
                 if (event.type == SDL_MOUSEMOTION) {
                     if (!game_state.input.mouse_capture) continue;
                     SDL_MouseMotionEvent mouse = event.motion;
@@ -281,15 +321,13 @@ int main(int argc, char **argv) { // Game entrypoint
 
             game_state = game_lib.update(&game_state, GSUM::UPDATE);
         }
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplSDL2_NewFrame(game_state.window);
-        ImGui::NewFrame();
+
+        imgui_start_frame();
 
         game_state = game_lib.update(&game_state, GSUM::RENDER);
         SDL_SetRelativeMouseMode((SDL_bool) game_state.input.mouse_capture);
 
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        imgui_end_frame();
         SDL_GL_SwapWindow(game_state.window);
     }
     return 0;

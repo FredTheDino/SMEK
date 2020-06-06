@@ -54,7 +54,7 @@ env.Append(LINKFLAGS="-ldl")
 env.Append(LINKFLAGS="-rdynamic")  # Gives backtrace information
 
 debug_flags = ["-ggdb", "-O0", "-DDEBUG"]
-release_flags = ["-O2", "-DRELEASE"]
+release_flags = ["-O2", "-DRELEASE", "-DIMGUI_DISABLE"]
 
 if GetOption("verbose"):
     env.Append(CPPDEFINES="VERBOSE")
@@ -65,9 +65,11 @@ if not GetOption("color"):
 
 if GetOption("release"):
     smek_dir = "bin/release/"
+    env.Append(CXXFLAGS=release_flags)
 else:
     smek_dir = "bin/debug/"
     env.Append(CXXFLAGS=debug_flags)
+
 VariantDir(smek_dir, "src", duplicate=0)
 
 tests_dir = smek_dir + "tests/"

@@ -128,17 +128,17 @@ void draw() {
     mesh.draw();
 #endif
 
+#ifndef IMGUI_DISABLE
     ImGui::Begin("Tweaks");
     if (ImGui::Button("Reset camera"))
         *GFX::main_camera() = GFX::Camera::init();
-    // ImGui::DragFloat3("pos.", (float *) &from, 0.01);
-    // ImGui::DragFloat3("rot.", (float *) &rotation, 0.01);
     ImGui::Separator();
     if (ImGui::Button("Play sound"))
         GAMESTATE()->audio_struct->play_sound(sound_id, { .gain=0.3 });
     if (ImGui::Button("Stop all sounds"))
         GAMESTATE()->audio_struct->stop_all();
     ImGui::End();
+#endif
 
     GFX::debug_shader().use();
     GFX::main_camera()->upload(GFX::debug_shader());

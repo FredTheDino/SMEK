@@ -42,10 +42,12 @@ void Player::update() {
 }
 
 void Player::draw() {
+#ifndef IMGUI_DISABLE
     ImGui::SliderFloat("Jump speed", &GAMESTATE()->player_jump_speed, 0.0, 10.0, "%.2f");
     ImGui::SliderFloat("Movement speed", &GAMESTATE()->player_movement_speed, 0.0, 10.0, "%.2f");
     ImGui::SliderFloat("Mouse sensitivity", &GAMESTATE()->player_mouse_sensitivity, 0.0, 2.0, "%.2f");
     ImGui::Separator();
+#endif
 
     GFX::MasterShader shader = GFX::master_shader();
     GFX::Mesh mesh = *Asset::fetch_mesh("MONKEY");
