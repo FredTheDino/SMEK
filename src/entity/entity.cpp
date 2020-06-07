@@ -73,6 +73,10 @@ void EntitySystem::update() {
 }
 
 void EntitySystem::draw() {
+#ifndef IMGUI_DISABLE
+    ImGui::Text("Entities: %ld", entities.size());
+    ImGui::Separator();
+#endif
     for (auto [_, e]: entities) {
         e->draw();
     }

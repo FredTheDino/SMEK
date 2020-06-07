@@ -3,6 +3,7 @@
 #include "../math/smek_math.h"
 #include "../math/smek_vec.h"
 #include "../math/smek_quat.h"
+#include "../audio.h"
 
 using EntityID = u64;
 
@@ -10,6 +11,16 @@ struct BaseEntity {
     virtual ~BaseEntity() {};
     virtual void update() = 0;
     virtual void draw() = 0;
+};
+
+struct SoundEntity: public BaseEntity {
+    u64 asset_id_hash;
+    Audio::SoundSourceSettings sound_source_settings;
+
+    AudioID audio_id;
+
+    virtual void update() {};
+    virtual void draw() {};
 };
 
 struct Entity: public BaseEntity {

@@ -3,17 +3,22 @@
 #include <queue>
 
 #include "math/smek_math.h"
+#include "entity/entity.h"
 
 namespace EventSystem {
 
 enum EventType {
-    A,
+    CREATE_SOUND_ENTITY,
 
     NUM_TYPES,
 };
 
-struct EventA {
-    f32 a;
+struct EventCreateSoundEntity {
+    //TODO(gu) Wrap in existing sound source settings etc.
+    // Becomes "non-trivial" for now. std::variant?
+    u64 asset_id_hash;
+    f32 gain;
+    bool repeat;
 
     void callback();
 };
@@ -21,7 +26,7 @@ struct EventA {
 struct Event {
     EventType type;
     union {
-        EventA A;
+        EventCreateSoundEntity CREATE_SOUND_ENTITY;
     };
 };
 

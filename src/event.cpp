@@ -4,10 +4,6 @@
 
 namespace EventSystem {
 
-void EventA::callback() {
-    LOG("A: {}", a);
-}
-
 void handle_events() {
 #define CASE(NAME) case NAME: e.NAME.callback(); break
     GameState *state = GAMESTATE();
@@ -16,7 +12,7 @@ void handle_events() {
         e = state->event_queue.front();
         state->event_queue.pop();
         switch (e.type) {
-        CASE(A);
+        CASE(CREATE_SOUND_ENTITY);
         default:
             ERROR("Unkown event type {}", e.type);
         }

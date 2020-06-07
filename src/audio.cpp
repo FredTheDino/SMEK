@@ -2,6 +2,9 @@
 
 #include "util/log.h"
 #include "math/smek_math.h"
+#include "entity/entity.h"
+#include "event.h"
+#include "game.h"
 
 namespace Audio {
 
@@ -63,7 +66,10 @@ AudioID AudioStruct::play_sound(AssetID asset_id, SoundSourceSettings source_set
             continue;
         }
         Asset::Sound *sound = Asset::fetch_sound(asset_id);
-        AudioID id = { .gen = ++source->gen, .slot = source_id };
+        AudioID audio_id = {
+            .gen = ++source->gen,
+            .slot = source_id,
+        };
         *source = (SoundSource) {
             .channels = sound->channels,
             .sample_rate = sound->sample_rate,
@@ -75,7 +81,12 @@ AudioID AudioStruct::play_sound(AssetID asset_id, SoundSourceSettings source_set
             .repeat = source_settings.repeat,
             .gen = source->gen,
         };
-        return id;
+        SoundEntity sound_entity = {};
+        sound_entity.asset_id_hash = asset_id.id;
+        sound_entity.sound_source_settings = source_settings;
+        sound_entity.audio_id = audio_id;
+        EntityID entity_id = GAMESTATE()->entity_system.add(sound_entity);
+        return audio_id;
     }
     ERROR("No free sources, skipping sound");
     return { .gen = 0, .slot = NUM_SOURCES };
@@ -108,6 +119,10 @@ void AudioStruct::stop_all() {
 }
 
 } // namespace Audio
+
+void EventSystem::EventCreateSoundEntity::callback() {
+    GAMESTATE()->audio_struct->play_sound(AssetID(asset_id_hash), { .gain = gain, .repeat = repeat });
+}
 
 void audio_callback(Audio::AudioStruct *audio_struct, f32 *stream, int len) {
     Audio::audio_callback(audio_struct, stream, len);
