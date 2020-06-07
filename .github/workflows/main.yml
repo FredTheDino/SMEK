@@ -19,7 +19,7 @@ jobs:
           python3 -m pip install --user pillow
       - name: Run tests
         run: |
-          scons -Q tests --ci --report
+          scons -Q tests --ci --report --jumbo
       - name: Upload build
         if: ${{ !success() }}
         uses: actions/upload-artifact@v2
@@ -37,4 +37,4 @@ jobs:
             bin/tests/report.txt
       - name: Try to build release version
         run: |
-          scons -Q --release --no-imgui
+          scons -Q --release --no-imgui --jumbo

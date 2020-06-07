@@ -4,6 +4,7 @@ import re
 from glob import glob
 from subprocess import Popen, PIPE
 from collections import defaultdict
+from itertools import chain
 
 
 def shell(command):
@@ -46,6 +47,11 @@ AddOption("--no-imgui",
           dest="no_imgui",
           action="store_true",
           help="Compiles out all ImGui code")
+
+AddOption("--jumbo",
+          dest="jumbo",
+          action="store_true",
+          help="Compiles the code using Jumbo, this make it faster for clean builds")
 
 env = Environment(ENV=os.environ)
 env.Replace(CXX="g++")
@@ -104,22 +110,47 @@ def all_asset_targets(build_dir):
 tests_assets = env.Assets(tests_dir + "assets-tests.bin", glob("res/tests/*.*"))
 assets = all_asset_targets(smek_dir)
 env.Alias("assets", assets)
+AddPostAction(assets, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
 
 source = glob("src/**/*.c*", recursive=True)
 
-smek_source = [re.sub("^src/", smek_dir, f) for f in source]
-smek_source.remove(smek_dir + "test.cpp")
-smek_source.remove(smek_dir + "platform.cpp")  # The platform layer
 
-platform_source = [re.sub("^src/", smek_dir, f) for f in source if "imgui" in f or "glad" in f or "platform" in f]
-smek = env.Program(target=smek_dir + "SMEK", source=[platform_source, smek_dir + "util/tprint.cpp"])
-libsmek = env.SharedLibrary(target=smek_dir + "libSMEK", source=smek_source)
+
+imgui = env.Object(smek_dir + "imgui.cpp")
+glad = env.Object(smek_dir + "glad.cpp")
+if GetOption("jumbo"):
+    jumbo_source = source.copy()
+    jumbo_source.remove("src/test.cpp")
+    jumbo_source.remove("src/platform.cpp")
+    jumbo_source.remove("src/game.cpp")
+    jumbo_source.remove("src/imgui.cpp")
+    jumbo_source.remove("src/glad.cpp")
+
+    jumbo_env = env.Clone()
+    jumbo_env.Append(CXXFLAGS=list(chain(("-include", source) for source in jumbo_source)))
+    libsmek = jumbo_env.SharedLibrary(smek_dir + "libSMEK", [smek_dir + "game.cpp"])
+
+    plt_env = env.Clone()
+    plt_env.Append(CXXFLAGS=["-include", "src/util/tprint.cpp"])
+    platform_source = plt_env.Object(smek_dir + "platform.cpp")
+    smek = env.Program(smek_dir + "SMEK", [platform_source, glad, imgui])
+else:
+    smek_source = [re.sub("^src/", smek_dir, f) for f in source]
+    smek_source.remove(smek_dir + "test.cpp")
+    smek_source.remove(smek_dir + "platform.cpp")
+    smek_source.remove(smek_dir + "imgui.cpp")
+    smek_source.remove(smek_dir + "glad.cpp")
+    libsmek = env.SharedLibrary(smek_dir + "libSMEK", [*smek_source])
+
+    platform_source = [smek_dir + "platform.cpp", smek_dir + "util/tprint.cpp"]
+    smek = env.Program(smek_dir + "SMEK", [*platform_source, glad, imgui])
+
 AddPostAction(libsmek, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
-Depends(smek, libsmek)
-Depends(smek, assets)
-AddPostAction(assets, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
-Default(smek)
-env.Alias("smek", smek)
+smek_target = env.Alias("smek", smek)
+Depends(smek_target, assets)
+Depends(smek_target, libsmek)
+Depends(smek_target, smek)
+Default(smek_target)
 
 tests_runtime_flags = []
 if GetOption("ci"):
@@ -130,13 +161,20 @@ if GetOption("report"):
 
 tests_env = env.Clone()
 tests_env.Append(CPPDEFINES="TESTS")
-tests_source = [re.sub("^src/", tests_dir, f) for f in source]
+tests_env.Append(CPPDEFINES="IMGUI_DISABLE")
+if GetOption("jumbo"):
+    tests_env.Append(CXXFLAGS=list(chain(("-include", s) for s in source if "imgui" not in s and "test" not in s)))
+    tests_source = [tests_dir + "test.cpp"]
+else:
+    tests_source = [re.sub("^src/", tests_dir, f) for f in source]
 tests = tests_env.Program(target=tests_dir + "tests", source=tests_source)
-Depends(tests, tests_assets)
+tests_target = env.Alias("tests", tests, "cd " + tests_dir + "; " + tests[0].abspath + " " + " ".join(tests_runtime_flags))
+Depends(tests_target, tests_assets)
+Depends(tests_target, tests)
 
-AlwaysBuild(env.Alias("run", smek, "cd " + smek_dir + "; " + smek[0].abspath))
-AlwaysBuild(env.Alias("tests", tests, "cd " + tests_dir + "; " + tests[0].abspath + " " + " ".join(tests_runtime_flags)))
-AlwaysBuild(env.Alias("debug", smek, "cd " + smek_dir + "; " + "gdb " + smek[0].abspath))
+AlwaysBuild(env.Alias("run", smek_target, "cd " + smek_dir + "; " + smek[0].abspath))
+AlwaysBuild(env.Alias("debug", smek_target, "cd " + smek_dir + "; " + "gdb " + smek[0].abspath))
+AlwaysBuild(tests_target)
 
 docs = env.Alias("docs", "", "docs/doc-builder.py")
 AlwaysBuild(docs)
@@ -144,10 +182,6 @@ AlwaysBuild(docs)
 if GetOption("tags"):
     shell(["ctags", "-R", "src"])
 
-env.Clean(smek, glob("bin/**/*.o", recursive=True))  # always remove *.o
-env.Clean(tests, glob("bin/**/*.o", recursive=True))  # always remove *.o
-env.Clean(smek, glob("bin/**/*.txt", recursive=True))
-env.Clean(tests, glob("bin/**/*.txt", recursive=True))
-env.Clean(libsmek, glob("bin/**/libSMEK*", recursive=True))
+env.Clean(smek_target, glob("bin/**/*.o", recursive=True))  # always remove *.o
+env.Clean(tests_target, glob("bin/**/*.o", recursive=True))  # always remove *.o
 env.Clean(docs, "docs/index.html")
-env.Clean(assets, glob("bin/**/assets*.bin"))
