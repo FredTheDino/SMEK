@@ -6,16 +6,16 @@
 
 using EntityID = u64;
 
-// The base entity class
-struct Entity {
-    // This is so normal that all entities should have it.
+struct BaseEntity {
+    virtual ~BaseEntity() {};
+    virtual void update() = 0;
+    virtual void draw() = 0;
+};
+
+struct Entity: public BaseEntity {
     Vec3 position;
     Vec3 scale;
     Quat rotation;
-
-    virtual ~Entity() {};
-    virtual void update() = 0;
-    virtual void draw() = 0;
 };
 
 struct Player: public Entity {
@@ -27,7 +27,7 @@ struct Player: public Entity {
 
 struct EntitySystem {
     EntityID next_id;
-    std::unordered_map<u64, Entity*> entities;
+    std::unordered_map<u64, BaseEntity*> entities;
 
     bool valid(EntityID id);
 
