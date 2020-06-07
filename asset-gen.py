@@ -238,6 +238,31 @@ def model_asset(path, verbose):
 
     return header, struct.pack(fmt, points_per_face, num_faces, 0, *data)
 
+from collada import Collada
+from itertools import chain
+def colada_asset(path, verbose):
+    col = Collada(path)
+    assert len(col.geometries) == 1, "Does not read multiple geometries"
+    mesh = col.geometries[0]
+    assert len(mesh.primitives) == 1, "Does not read multiple primitives"
+    triangles = list(mesh.primitives[0])
+    data = []
+    for tri in triangles:
+        for p, t, n in zip(tri.vertices, tri.texcoords[0], tri.normals):
+            data += list(p)
+            data += list(t)
+            data += list(n)
+
+    fmt = "IIP{}f".format(len(data))
+
+    header = default_header()
+    header["type"] = TYPE_MODEL
+    header["data_size"] = struct.calcsize(fmt)
+
+    points_per_face = 3
+    num_faces = len(data) / points_per_face
+    assert num_faces % 1 == 0.0, "Can only parse triangles in collada files"
+    return header, struct.pack(fmt, points_per_face, int(num_faces), 0, *data)
 
 def wav_asset(path, verbose):
     """Load a .wav-file.
@@ -296,6 +321,7 @@ EXTENSIONS = {
     "txt": string_asset,
     "glsl": shader_asset,
     "obj": model_asset,
+    "dae": colada_asset,
     "wav": wav_asset,
 }
 
