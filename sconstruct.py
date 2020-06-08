@@ -18,9 +18,8 @@ AddOption("--verbose",
           help="Print verbose output. Not fully respected.")
 
 AddOption("--no-color",
-          dest="color",
-          action="store_false",
-          default=True,
+          dest="no_color",
+          action="store_true",
           help="Remove all color from output.")
 
 AddOption("--ci",
@@ -71,8 +70,8 @@ if GetOption("verbose"):
     env.Append(CPPDEFINES="VERBOSE")
     env.Append(ASSETS_VERBOSE="--verbose")
 
-if not GetOption("color"):
-    env.Append(CPPDEFINES="NO_COLOR")
+if GetOption("no_color"):
+    env.Append(CPPDEFINES="COLOR_DISABLE")
 
 if GetOption("release"):
     smek_dir = "bin/release/"

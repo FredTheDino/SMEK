@@ -1,4 +1,4 @@
-#ifdef NO_COLOR
+#ifdef COLOR_DISABLE
 #define RESET
 
 #define BLACK
@@ -65,9 +65,9 @@ printf("\r" CLEAR "\rLoading asset 3...");
 printf("\r" CLEAR "Done loading assets!\n");
 
 
-//// NO_COLOR
+//// COLOR_DISABLE
 // This flag disables all color output if you want to compile and run in
 // something that doesn't support color text output.
-#define NO_COLOR
+#define COLOR_DISABLE
 
 #endif
