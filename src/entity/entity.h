@@ -11,18 +11,20 @@ struct BaseEntity {
     bool remove = false;
 
     virtual ~BaseEntity() {};
-    virtual void update() = 0;
-    virtual void draw() = 0;
+    virtual void update() {};
+    virtual void draw() {};
+    virtual void on_remove() {};
 };
 
 struct SoundEntity: public BaseEntity {
-    u64 asset_id_hash;
+    AssetID asset_id;
     Audio::SoundSourceSettings sound_source_settings;
 
     AudioID audio_id;
 
-    virtual void update() override;
-    virtual void draw() {} override;
+    void update() override;
+    void draw() override;
+    void on_remove() override;
 };
 
 struct Entity: public BaseEntity {

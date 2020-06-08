@@ -82,7 +82,7 @@ AudioID AudioStruct::play_sound(AssetID asset_id, SoundSourceSettings source_set
             .gen = source->gen,
         };
         SoundEntity sound_entity = {};
-        sound_entity.asset_id_hash = asset_id.id;
+        sound_entity.asset_id = asset_id;
         sound_entity.sound_source_settings = source_settings;
         sound_entity.audio_id = audio_id;
         EntityID entity_id = GAMESTATE()->entity_system.add(sound_entity);

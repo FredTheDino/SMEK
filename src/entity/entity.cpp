@@ -57,7 +57,19 @@ void Player::draw() {
 }
 
 void SoundEntity::update() {
-    remove = !GAMESTATE()->audio_struct->is_playing(audio_id);
+    remove |= !GAMESTATE()->audio_struct->is_playing(audio_id);
+}
+
+void SoundEntity::draw() {
+#ifndef IMGUI_DISABLE
+    ImGui::PushID(this);
+    remove |= ImGui::Button("Stop sound entity");
+    ImGui::PopID();
+#endif
+}
+
+void SoundEntity::on_remove() {
+    GAMESTATE()->audio_struct->stop_sound(audio_id);
 }
 
 bool EntitySystem::valid(EntityID id) {
@@ -74,10 +86,15 @@ void EntitySystem::update() {
     for (auto [_, e]: entities) {
         e->update();
     }
-    std::erase_if(entities, [](const auto &item) {
-        auto const &[_, e] = item;
-        return e->remove;
-    });
+    for (auto i = entities.begin(), last = entities.end(); i != last; ) {
+        BaseEntity *e = i->second;
+        if (e->remove) {
+            e->on_remove();
+            i = entities.erase(i);
+        } else {
+            i++;
+        }
+    }
 }
 
 void EntitySystem::draw() {
@@ -130,11 +147,11 @@ TEST_CASE("entity_remove", {
     auto b_id = entity_system()->add(b);
     calls = 0;
     entity_system()->update(); // + 1
-    ASSERT(calls == 1, "Got %d calls to update.", calls);
+    ASSERT(calls == 1, "Got {} calls to update.", calls);
 
     entity_system()->remove(b_id); // * 4
     entity_system()->update();  // Should not add
-    ASSERT(calls == 4, "Got %d calls to update.", calls);
+    ASSERT(calls == 4, "Got {} calls to update.", calls);
     return true;
 });
 
