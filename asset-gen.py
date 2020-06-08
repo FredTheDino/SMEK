@@ -84,6 +84,7 @@ TYPE_STRING = 2
 TYPE_MODEL = 3
 TYPE_SHADER = 4
 TYPE_SOUND = 5
+TYPE_SKINNED_MESH = 6
 
 
 def ll(x):
@@ -238,25 +239,47 @@ def model_asset(path, verbose):
 
     return header, struct.pack(fmt, points_per_face, num_faces, 0, *data)
 
+#import xml.etree.ElementTree as ET
+#def collada_asset(path, verbose):
+#    ns = {"bs": "http://www.collada.org/2005/11/COLLADASchema"}
+#    root = ET.parse(path).getroot()
+#    for geo in root.findall("bs:library_geometries", ns):
+#        temp_data = {}
+#        for source in geo.find("bs:geometry", ns).find("bs:mesh", ns).findall("bs:source", ns):
+#            source_name = source.get("id").split("-")[-1]
+#            data[source] = [float(x) for x in source.find("bs:float_array", ns).text.split()]
+
 from collada import Collada
-from itertools import chain
-def colada_asset(path, verbose):
+def collada_asset(path, verbose):
     col = Collada(path)
     assert len(col.geometries) == 1, "Does not read multiple geometries"
     mesh = col.geometries[0]
     assert len(mesh.primitives) == 1, "Does not read multiple primitives"
     triangles = list(mesh.primitives[0])
+    cont = col.controllers[0]
+    jw_list = zip(cont.joint_index, [cont.weights[wi] for wi in cont.weight_index])
     data = []
     for tri in triangles:
-        for p, t, n in zip(tri.vertices, tri.texcoords[0], tri.normals):
+        for jw, p, t, n in zip(jw_list, tri.vertices, tri.texcoords[0], tri.normals):
+            print(jw)
+            joints, weights = zip(*jw)
+            joints = [float(j) if j else 0.0 for j in joints[3:]]
+            weights = [float(w) if w else 0.0 for w in weights[3:]]
+            total_weight = sum(weights)
+            if total_weight:
+                weights = [w / total_weight for w in weights]
             data += list(p)
             data += list(t)
             data += list(n)
+            data += weights
+            data += joints
+
+    bone_names = list(cont.weight_joints)
 
     fmt = "IIP{}f".format(len(data))
 
     header = default_header()
-    header["type"] = TYPE_MODEL
+    header["type"] = TYPE_SKINNED_MESH
     header["data_size"] = struct.calcsize(fmt)
 
     points_per_face = 3
@@ -321,7 +344,7 @@ EXTENSIONS = {
     "txt": string_asset,
     "glsl": shader_asset,
     "obj": model_asset,
-    "dae": colada_asset,
+    "dae": collada_asset,
     "wav": wav_asset,
 }
 
