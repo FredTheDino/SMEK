@@ -45,6 +45,7 @@ typedef enum {
     MESH = 3,
     SHADER = 4,
     SOUND = 5,
+    SKINNED_MESH = 6,
 
     NUM_TYPES,
 } AssetType;
@@ -99,6 +100,7 @@ struct UsableAsset {
         GFX::Texture texture;
         GFX::Shader shader;
         GFX::Mesh mesh;
+        GFX::SkinnedMesh skinned;
         StringAsset string;
         Sound sound;
     };
@@ -158,6 +160,10 @@ GFX::Shader *fetch_shader(AssetID id);
 ///*
 // Fetch a 3D-model.
 GFX::Mesh *fetch_mesh(AssetID id);
+
+///*
+// Fetch a skinned 3D-model. (AKA, one with a skeleton/rig)
+GFX::SkinnedMesh *fetch_skinned_mesh(AssetID id);
 
 Sound *fetch_sound(AssetID id);
 

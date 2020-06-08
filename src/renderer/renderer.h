@@ -78,6 +78,25 @@ struct Mesh {
     void draw();
 };
 
+struct SkinnedMesh {
+    struct Vertex {
+        Vec3 position;
+        Vec2 texture;
+        Vec3 normal;
+        Vec3 joint;
+        Vec3 weight;
+    };
+
+    u32 vao, vbo;
+    u32 draw_length;
+
+    static SkinnedMesh init(Vertex *vericies, u32 num_verticies);
+
+    void destroy();
+
+    void draw();
+};
+
 struct Shader {
     i32 program_id;
 

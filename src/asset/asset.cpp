@@ -101,6 +101,24 @@ static void load_model(UsableAsset *asset, FILE *file) {
     asset->mesh = GFX::Mesh::init(model.data, size);
 }
 
+static void load_skinned_mesh(UsableAsset *asset, FILE *file) {
+    if (asset->loaded) {
+        asset->skinned.destroy();
+    }
+
+    struct {
+        // read from file
+        u32 num_floats;
+        GFX::SkinnedMesh::Vertex *data;
+    } mesh;
+
+    read(file, &mesh);
+    u32 size = mesh.num_floats / (sizeof(GFX::SkinnedMesh::Vertex) / sizeof(real));
+    mesh.data = new GFX::SkinnedMesh::Vertex[size];
+    read(file, mesh.data, size);
+    asset->skinned = GFX::SkinnedMesh::init(mesh.data, size);
+}
+
 static void load_asset(UsableAsset *asset) {
     ASSERT(GAMESTATE()->main_thread == SDL_GetThreadID(NULL), "Should only be called from main thread");
 
@@ -119,6 +137,9 @@ static void load_asset(UsableAsset *asset) {
     } break;
     case AssetType::MESH: {
         load_model(asset, file);
+    } break;
+    case AssetType::SKINNED_MESH: {
+        load_skinned_mesh(asset, file);
     } break;
     case AssetType::SHADER: {
         load_shader(asset, file);
@@ -170,6 +191,10 @@ GFX::Shader *fetch_shader(AssetID id) {
 
 GFX::Mesh *fetch_mesh(AssetID id) {
     return &_raw_fetch(AssetType::MESH, id)->mesh;
+}
+
+GFX::SkinnedMesh *fetch_skinned_mesh(AssetID id) {
+    return &_raw_fetch(AssetType::SKINNED_MESH, id)->skinned;
 }
 
 Sound *fetch_sound(AssetID id) {

@@ -113,7 +113,7 @@ void draw() {
 
     GAMESTATE()->entity_system.draw();
 
-    GFX::Mesh mesh = *Asset::fetch_mesh("ANIMATED_CUBE");
+    GFX::SkinnedMesh mesh = *Asset::fetch_skinned_mesh("ANIMATED_CUBE");
     Mat model_matrix = Mat::translate(Math::cos(time()) * 0.2, Math::sin(time()) * 0.2, -0.5) * Mat::scale(0.1);
     shader.upload_model(model_matrix);
     mesh.draw();

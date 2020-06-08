@@ -126,6 +126,45 @@ void Mesh::draw() {
     glBindVertexArray(0);
 }
 
+void SkinnedMesh::destroy() {
+    glDeleteVertexArrays(11, &vao);
+    glDeleteBuffers(1, &vbo);
+}
+
+SkinnedMesh SkinnedMesh::init(Vertex *verticies, u32 num_verticies) {
+    u32 vao, vbo;
+
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * num_verticies, verticies, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, position));
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, texture));
+
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, normal));
+
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, joint));
+
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(3, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, weight));
+    glBindVertexArray(0);
+
+    return {vao, vbo, num_verticies};
+}
+
+void SkinnedMesh::draw() {
+    glBindVertexArray(vao);
+    glDrawArrays(GL_TRIANGLES, 0, draw_length);
+    glBindVertexArray(0);
+}
 
 void Shader::use() { glUseProgram(program_id); }
 

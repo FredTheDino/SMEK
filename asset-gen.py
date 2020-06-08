@@ -257,17 +257,20 @@ def collada_asset(path, verbose):
     assert len(mesh.primitives) == 1, "Does not read multiple primitives"
     triangles = list(mesh.primitives[0])
     cont = col.controllers[0]
-    jw_list = zip(cont.joint_index, [cont.weights[wi] for wi in cont.weight_index])
+    jw_list = zip([cont.weights[wi] for wi in cont.weight_index], cont.joint_index)
     data = []
     for tri in triangles:
         for jw, p, t, n in zip(jw_list, tri.vertices, tri.texcoords[0], tri.normals):
-            print(jw)
-            joints, weights = zip(*jw)
-            joints = [float(j) if j else 0.0 for j in joints[3:]]
-            weights = [float(w) if w else 0.0 for w in weights[3:]]
+            joints, weights = zip(*sorted(list(zip(*jw)), reverse=True))
+            joints = [float(j) for j in (list(joints) + [0.0] * 3)[:3]]
+            weights = [float(w) for w in (list(weights) + [0.0] * 3)[:3]]
             total_weight = sum(weights)
             if total_weight:
                 weights = [w / total_weight for w in weights]
+            joints = (joints + [0.0, 0.0, 0.0])[:3]
+            weights = (weights + [0.0, 0.0, 0.0])[:3]
+            assert len(joints) == 3
+            assert len(weights) == 3
             data += list(p)
             data += list(t)
             data += list(n)
@@ -276,16 +279,13 @@ def collada_asset(path, verbose):
 
     bone_names = list(cont.weight_joints)
 
-    fmt = "IIP{}f".format(len(data))
+    fmt = "IP{}f".format(len(data))
 
     header = default_header()
     header["type"] = TYPE_SKINNED_MESH
     header["data_size"] = struct.calcsize(fmt)
 
-    points_per_face = 3
-    num_faces = len(data) / points_per_face
-    assert num_faces % 1 == 0.0, "Can only parse triangles in collada files"
-    return header, struct.pack(fmt, points_per_face, int(num_faces), 0, *data)
+    return header, struct.pack(fmt, len(data), 0, *data)
 
 def wav_asset(path, verbose):
     """Load a .wav-file.
