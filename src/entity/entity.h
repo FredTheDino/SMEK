@@ -8,6 +8,8 @@
 using EntityID = u64;
 
 struct BaseEntity {
+    bool remove = false;
+
     virtual ~BaseEntity() {};
     virtual void update() = 0;
     virtual void draw() = 0;
@@ -19,8 +21,8 @@ struct SoundEntity: public BaseEntity {
 
     AudioID audio_id;
 
-    virtual void update() {};
-    virtual void draw() {};
+    virtual void update() override;
+    virtual void draw() {} override;
 };
 
 struct Entity: public BaseEntity {

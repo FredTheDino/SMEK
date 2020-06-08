@@ -59,6 +59,8 @@ struct AudioStruct {
     void stop_sound(AudioID id);
 
     void stop_all();
+
+    bool is_playing(AudioID id);
 };
 
 void audio_callback(AudioStruct *audio_struct, f32 *stream, int len);

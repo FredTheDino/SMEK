@@ -56,6 +56,10 @@ void Player::draw() {
     mesh.draw();
 }
 
+void SoundEntity::update() {
+    remove = !GAMESTATE()->audio_struct->is_playing(audio_id);
+}
+
 bool EntitySystem::valid(EntityID id) {
     return entities.count(id);
 }
@@ -70,6 +74,10 @@ void EntitySystem::update() {
     for (auto [_, e]: entities) {
         e->update();
     }
+    std::erase_if(entities, [](const auto &item) {
+        auto const &[_, e] = item;
+        return e->remove;
+    });
 }
 
 void EntitySystem::draw() {

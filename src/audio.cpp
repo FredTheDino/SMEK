@@ -97,7 +97,10 @@ void AudioStruct::stop_sound(AudioID id) {
         WARN("Tried to stop AudioID that was never started");
         return;
     }
-    ASSERT(id.slot < NUM_SOURCES, "Tried to stop invalid AudioID");
+    if (id.slot >= NUM_SOURCES) {
+        WARN("Tried to stop invalid AudioID");
+        return;
+    }
     lock();
     defer { unlock(); };
     SoundSource *source = sources + id.slot;
@@ -116,6 +119,13 @@ void AudioStruct::stop_all() {
         SoundSource *source = sources + source_id;
         source->active = false;
     }
+}
+
+bool AudioStruct::is_playing(AudioID id) {
+    CHECK(id.slot < NUM_SOURCES, "Tried to access invalid AudioID");
+    SoundSource source = sources[id.slot];
+    CHECK(id.gen <= source.gen, "Tried to access AudioID from the future?");
+    return id.gen == source.gen && source.active;
 }
 
 } // namespace Audio
