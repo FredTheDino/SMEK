@@ -78,6 +78,7 @@ bool EntitySystem::valid(EntityID id) {
 
 void EntitySystem::remove(EntityID id) {
     ASSERT(valid(id), "Cannot remove entity that doesn't exist");
+    entities[id]->on_remove();
     delete entities[id];
     entities.erase(id);
 }
@@ -90,6 +91,7 @@ void EntitySystem::update() {
         BaseEntity *e = i->second;
         if (e->remove) {
             e->on_remove();
+            delete entities[id];
             i = entities.erase(i);
         } else {
             i++;
