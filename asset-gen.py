@@ -239,53 +239,90 @@ def model_asset(path, verbose):
 
     return header, struct.pack(fmt, points_per_face, num_faces, 0, *data)
 
-#import xml.etree.ElementTree as ET
-#def collada_asset(path, verbose):
-#    ns = {"bs": "http://www.collada.org/2005/11/COLLADASchema"}
-#    root = ET.parse(path).getroot()
-#    for geo in root.findall("bs:library_geometries", ns):
-#        temp_data = {}
-#        for source in geo.find("bs:geometry", ns).find("bs:mesh", ns).findall("bs:source", ns):
-#            source_name = source.get("id").split("-")[-1]
-#            data[source] = [float(x) for x in source.find("bs:float_array", ns).text.split()]
-
-from collada import Collada
+from bs4 import BeautifulSoup
 def collada_asset(path, verbose):
-    col = Collada(path)
-    assert len(col.geometries) == 1, "Does not read multiple geometries"
-    mesh = col.geometries[0]
-    assert len(mesh.primitives) == 1, "Does not read multiple primitives"
-    triangles = list(mesh.primitives[0])
-    cont = col.controllers[0]
-    jw_list = zip([cont.weights[wi] for wi in cont.weight_index], cont.joint_index)
-    data = []
-    for tri in triangles:
-        for jw, p, t, n in zip(jw_list, tri.vertices, tri.texcoords[0], tri.normals):
-            joints, weights = zip(*sorted(list(zip(*jw)), reverse=True))
-            joints = [float(j) for j in (list(joints) + [0.0] * 3)[:3]]
-            weights = [float(w) for w in (list(weights) + [0.0] * 3)[:3]]
-            total_weight = sum(weights)
-            if total_weight:
-                weights = [w / total_weight for w in weights]
-            joints = (joints + [0.0, 0.0, 0.0])[:3]
-            weights = (weights + [0.0, 0.0, 0.0])[:3]
-            assert len(joints) == 3
-            assert len(weights) == 3
-            data += list(p)
-            data += list(t)
-            data += list(n)
-            data += weights
-            data += joints
 
-    bone_names = list(cont.weight_joints)
+    # Some helper functions
+    def to_int_array(text):
+        return [int(x) for x in text.split()]
 
-    fmt = "IP{}f".format(len(data))
+    def to_float_array(text):
+        return [float(x) for x in text.split()]
 
-    header = default_header()
-    header["type"] = TYPE_SKINNED_MESH
-    header["data_size"] = struct.calcsize(fmt)
+    def css(id):
+        found = soup.select(id)
+        if found:
+            return found[0]
+        return None
 
-    return header, struct.pack(fmt, len(data), 0, *data)
+    def find_rec(id):
+        if input_tag := css(id + " input"):
+            return find_rec(input_tag["source"])
+        return css(id + " float_array")
+
+    with open(path, "r") as f:
+        soup = BeautifulSoup(f, features="lxml")
+
+    # This assumes there's only one skinned mesh in the file
+    skin = soup("skin")[0]
+    triangles = css(skin["source"] + " triangles")
+
+    indicies_array = triangles.find("p").text
+
+    vertex_weights = skin.find("vertex_weights")
+    data = {}
+    for input_tag in vertex_weights.find_all("input"):
+        if input_tag["semantic"] == "WEIGHT":
+            data[input_tag["semantic"]] = to_float_array(find_rec(input_tag["source"]).text)
+        else:
+            # Why, WHY!? Is "Name_array" capitalized?
+            data[input_tag["semantic"]] = css(input_tag["source"] + " Name_array").text.split()
+    vcount = to_int_array(skin.find("vcount").text)
+    indicies = to_int_array(skin.find("v").text)
+
+
+    for input_tag in triangles.find_all("input"):
+        data[input_tag["semantic"]] = to_float_array(find_rec(input_tag["source"]).text)
+    print(data)
+
+
+    # TODO(ed): Combine all the data, bake out the vertex data, and then index the
+    # position array with it. It's gonna be good.
+#    return
+#
+#    assert len(col.geometries) == 1, "Does not read multiple geometries"
+#    mesh = col.geometries[0]
+#    assert len(mesh.primitives) == 1, "Does not read multiple primitives"
+#    triangles = list(mesh.primitives[0])
+#    cont = col.controllers[0]
+#    jw_list = zip([cont.weights[wi] for wi in cont.weight_index], cont.joint_index)
+#    data = []
+#    assert len(list(jw_list)) == len(triangles)
+#    for tri in triangles:
+#        for jw, p, t, n in zip(jw_list, tri.vertices, tri.texcoords[0], tri.normals):
+#            joints, weights = zip(*sorted(list(zip(*jw)), reverse=True))
+#            joints = [float(j) for j in (list(joints) + [0.0] * 3)[:3]]
+#            weights = [float(w) for w in (list(weights) + [0.0] * 3)[:3]]
+#            total_weight = sum(weights)
+#            if total_weight:
+#                weights = [w / total_weight for w in weights]
+#            assert len(joints) == 3
+#            assert len(weights) == 3
+#            data += list(p)
+#            data += list(t)
+#            data += list(n)
+#            data += weights
+#            data += joints
+#
+#    bone_names = list(cont.weight_joints)
+#
+#    fmt = "IP{}f".format(len(data))
+#
+#    header = default_header()
+#    header["type"] = TYPE_SKINNED_MESH
+#    header["data_size"] = struct.calcsize(fmt)
+#
+#    return header, struct.pack(fmt, len(data), 0, *data)
 
 def wav_asset(path, verbose):
     """Load a .wav-file.
