@@ -54,8 +54,10 @@ void init_game(GameState *gamestate, int width, int height) {
     Input::bind(Ac::MouseToggle, 0, SDLK_m);
     Input::bind(Ac::Rebind, 1, SDLK_r);
 
-    Player player;
-    GAMESTATE()->entity_system.add(player);
+    EventSystem::Event e = {
+        .type = EventSystem::EventType::CREATE_PLAYER,
+    };
+    GAMESTATE()->event_queue.push(e);
 }
 
 void reload_game(GameState *game) {

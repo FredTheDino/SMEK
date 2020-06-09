@@ -91,7 +91,7 @@ void EntitySystem::update() {
         BaseEntity *e = i->second;
         if (e->remove) {
             e->on_remove();
-            delete entities[id];
+            delete e;
             i = entities.erase(i);
         } else {
             i++;
