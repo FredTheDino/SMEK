@@ -63,6 +63,7 @@ struct AudioStruct {
     void stop_all();
 
     bool is_valid(AudioID id);
+    SoundSource *fetch_source(AudioID id);
 };
 
 void audio_callback(AudioStruct *audio_struct, f32 *stream, int len);

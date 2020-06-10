@@ -140,6 +140,11 @@ bool AudioStruct::is_valid(AudioID id) {
     return id.gen == source.gen && source.active;
 }
 
+SoundSource *AudioStruct::fetch_source(AudioID id) {
+    if (!is_valid(id)) return nullptr;
+    return sources + id.slot;
+}
+
 } // namespace Audio
 
 void EventSystem::EventCreateSoundEntity::callback() {
