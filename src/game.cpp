@@ -54,8 +54,10 @@ void init_game(GameState *gamestate, int width, int height) {
     Input::bind(Ac::MouseToggle, 0, SDLK_m);
     Input::bind(Ac::Rebind, 1, SDLK_r);
 
-    Player player;
-    GAMESTATE()->entity_system.add(player);
+    EventSystem::Event e = {
+        .type = EventSystem::EventType::CREATE_PLAYER,
+    };
+    GAMESTATE()->event_queue.push(e);
 }
 
 void reload_game(GameState *game) {
@@ -133,8 +135,16 @@ void draw() {
     if (ImGui::Button("Reset camera"))
         *GFX::main_camera() = GFX::Camera::init();
     ImGui::Separator();
-    if (ImGui::Button("Play sound"))
-        GAMESTATE()->audio_struct->play_sound(sound_id, { .gain=0.3 });
+    if (ImGui::Button("Play sound")) {
+        EventSystem::Event e = {
+            .type = EventSystem::EventType::CREATE_SOUND_ENTITY,
+            .CREATE_SOUND_ENTITY = {
+                .asset_id = sound_id,
+                .source_settings = { .gain = 0.3, .repeat = false },
+            },
+        };
+        GAMESTATE()->event_queue.push(e);
+    }
     if (ImGui::Button("Stop all sounds"))
         GAMESTATE()->audio_struct->stop_all();
     ImGui::End();

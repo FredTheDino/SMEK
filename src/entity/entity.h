@@ -3,19 +3,37 @@
 #include "../math/smek_math.h"
 #include "../math/smek_vec.h"
 #include "../math/smek_quat.h"
+#include "../audio.h"
+
+///# Entity system
+//
 
 using EntityID = u64;
 
-// The base entity class
-struct Entity {
-    // This is so normal that all entities should have it.
+struct BaseEntity {
+    bool remove = false;
+
+    virtual ~BaseEntity() {};
+    virtual void update() {};
+    virtual void draw() {};
+    virtual void on_remove() {};
+};
+
+struct SoundEntity: public BaseEntity {
+    AssetID asset_id;
+    Audio::SoundSourceSettings sound_source_settings;
+
+    AudioID audio_id;
+
+    void update() override;
+    void draw() override;
+    void on_remove() override;
+};
+
+struct Entity: public BaseEntity {
     Vec3 position;
     Vec3 scale;
     Quat rotation;
-
-    virtual ~Entity() {};
-    virtual void update() = 0;
-    virtual void draw() = 0;
 };
 
 struct Player: public Entity {
@@ -27,7 +45,7 @@ struct Player: public Entity {
 
 struct EntitySystem {
     EntityID next_id;
-    std::unordered_map<u64, Entity*> entities;
+    std::unordered_map<u64, BaseEntity*> entities;
 
     bool valid(EntityID id);
 
@@ -60,3 +78,29 @@ EntityID EntitySystem::add(E entity) {
 }
 
 EntitySystem *entity_system();
+
+#if 0
+
+///* BaseEntity
+// The base entity all other entities inherit from.
+struct BaseEntity {
+    bool remove = false;
+    virtual ~BaseEntity() {}
+    virtual void update() {}
+    virtual void draw() {}
+    virtual void on_remove() {}
+}
+//
+// <code>remove</code> is checked for all entities after each update cycle.
+
+///* SoundEntity
+// A sound entity is an entity that plays a sound (no kidding).
+// Removing the entity stops the sound from playing, and,
+// equivalently, the entity is removed when the sound is done playing.
+struct SoundEntity: public BaseEntity {
+    AssetID asset_id;
+    Audio::SoundSourceSettings sound_source_settings;
+    AudioID audio_id;
+};
+
+#endif

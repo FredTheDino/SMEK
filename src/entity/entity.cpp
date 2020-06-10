@@ -56,12 +56,29 @@ void Player::draw() {
     mesh.draw();
 }
 
+void SoundEntity::update() {
+    remove |= !GAMESTATE()->audio_struct->is_playing(audio_id);
+}
+
+void SoundEntity::draw() {
+#ifndef IMGUI_DISABLE
+    ImGui::PushID(this);
+    remove |= ImGui::Button("Stop sound entity");
+    ImGui::PopID();
+#endif
+}
+
+void SoundEntity::on_remove() {
+    GAMESTATE()->audio_struct->stop_sound(audio_id);
+}
+
 bool EntitySystem::valid(EntityID id) {
     return entities.count(id);
 }
 
 void EntitySystem::remove(EntityID id) {
     ASSERT(valid(id), "Cannot remove entity that doesn't exist");
+    entities[id]->on_remove();
     delete entities[id];
     entities.erase(id);
 }
@@ -70,9 +87,23 @@ void EntitySystem::update() {
     for (auto [_, e]: entities) {
         e->update();
     }
+    for (auto i = entities.begin(), last = entities.end(); i != last; ) {
+        BaseEntity *e = i->second;
+        if (e->remove) {
+            e->on_remove();
+            delete e;
+            i = entities.erase(i);
+        } else {
+            i++;
+        }
+    }
 }
 
 void EntitySystem::draw() {
+#ifndef IMGUI_DISABLE
+    ImGui::Text("Entities: %ld", entities.size());
+    ImGui::Separator();
+#endif
     for (auto [_, e]: entities) {
         e->draw();
     }
@@ -118,11 +149,11 @@ TEST_CASE("entity_remove", {
     auto b_id = entity_system()->add(b);
     calls = 0;
     entity_system()->update(); // + 1
-    ASSERT(calls == 1, "Got %d calls to update.", calls);
+    ASSERT(calls == 1, "Got {} calls to update.", calls);
 
     entity_system()->remove(b_id); // * 4
     entity_system()->update();  // Should not add
-    ASSERT(calls == 4, "Got %d calls to update.", calls);
+    ASSERT(calls == 4, "Got {} calls to update.", calls);
     return true;
 });
 
