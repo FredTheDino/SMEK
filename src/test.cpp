@@ -79,8 +79,13 @@ unsigned int TestSuite::run(bool ci, bool write_report, const char *path) {
         PRE = "";
         POST = "\n";
     } else {
+#ifdef COLOR_DISABLE
+        PRE = "";
+        POST = "\n";
+#else
         PRE = CLEAR "\r";
         POST = "\r";
+#endif
     }
 
     std::fprintf(STREAM, "Running %d tests\n", num_tests);
