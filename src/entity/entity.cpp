@@ -43,10 +43,11 @@ void Player::update() {
 
 void Player::draw() {
 #ifndef IMGUI_DISABLE
+    ImGui::BeginChild("Player");
     ImGui::SliderFloat("Jump speed", &GAMESTATE()->player_jump_speed, 0.0, 10.0, "%.2f");
     ImGui::SliderFloat("Movement speed", &GAMESTATE()->player_movement_speed, 0.0, 10.0, "%.2f");
     ImGui::SliderFloat("Mouse sensitivity", &GAMESTATE()->player_mouse_sensitivity, 0.0, 2.0, "%.2f");
-    ImGui::Separator();
+    ImGui::EndChild();
 #endif
 
     GFX::MasterShader shader = GFX::master_shader();
@@ -62,9 +63,23 @@ void SoundEntity::update() {
 
 void SoundEntity::draw() {
 #ifndef IMGUI_DISABLE
+    Audio::SoundSource *source = GAMESTATE()->audio_struct->fetch_source(audio_id);
+    if (!source) return;
+    ImGui::BeginChild("Sound entities");
     ImGui::PushID(this);
-    remove |= ImGui::Button("Stop sound entity");
+    ImGui::Indent();
+    ImGui::Text(asset_id.name ? asset_id.name : "NO_NAME");
+    ImGui::SameLine();
+    ImGui::Text("%.2f/%.2f",
+                (f32) source->sample / source->sample_rate,
+                (f32) source->num_samples / source->channels / source->sample_rate);
+    ImGui::SameLine();
+    if (ImGui::Button("Play/pause")) GAMESTATE()->audio_struct->toggle_pause_sound(audio_id);
+    ImGui::SameLine();
+    remove |= ImGui::Button("Stop");
+    ImGui::Unindent();
     ImGui::PopID();
+    ImGui::EndChild();
 #endif
 }
 
@@ -101,12 +116,27 @@ void EntitySystem::update() {
 
 void EntitySystem::draw() {
 #ifndef IMGUI_DISABLE
-    ImGui::Text("Entities: %ld", entities.size());
-    ImGui::Separator();
+    ImGui::Begin("Entities");
+    ImGui::Text("Current entities: %ld", entities.size());
+
+    ImGui::BeginChild("Sound entities", ImVec2(0, 128), true);
+    ImGui::Text("Sound entities:");
+    if (ImGui::Button("Create sound"))
+        GAMESTATE()->show_create_sound_window = true;
+    ImGui::SameLine();
+    if (ImGui::Button("Stop all sounds"))
+        GAMESTATE()->audio_struct->stop_all();
+    ImGui::Spacing();
+    ImGui::EndChild();
+
+    ImGui::BeginChild("Player", ImVec2(0, 100), true);
+    ImGui::Text("Player:");
+    ImGui::EndChild();
 #endif
     for (auto [_, e]: entities) {
         e->draw();
     }
+    ImGui::End();
 }
 
 TEST_CASE("entity_adding", {

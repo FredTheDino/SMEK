@@ -35,6 +35,11 @@ struct GameState {
     f32 player_mouse_sensitivity = 1.0;
 
     bool running;
+
+#ifndef IMGUI_DISABLE
+    // state for imgui
+    bool show_create_sound_window = true;
+#endif
 };
 
 ///*

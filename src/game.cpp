@@ -16,8 +16,6 @@ GameState *_global_gs;
 GameState *GAMESTATE() { return _global_gs; }
 #endif
 
-AssetID sound_id;
-
 bool should_update(GSUM gsmu) {
     return gsmu == GSUM::UPDATE || gsmu == GSUM::UPDATE_AND_RENDER;
 }
@@ -64,9 +62,6 @@ void reload_game(GameState *game) {
     _global_gs = game;
     GFX::reload(game);
     Asset::reload();
-
-    sound_id = AssetID("NOISE_STEREO_8K");
-    Asset::fetch_sound(sound_id); // Should always be done on main thread.
 }
 
 void update() {
@@ -115,6 +110,54 @@ void draw() {
 
     GAMESTATE()->entity_system.draw();
 
+#ifndef IMGUI_DISABLE
+    if (GAMESTATE()->show_create_sound_window) {
+        ImGui::Begin("Create sound");
+
+        static AssetID item_current_idx;
+        static f32 gain = 0.3;
+        static bool repeat = true;
+
+        if (!Asset::valid_asset(item_current_idx)) {
+            item_current_idx = AssetID::NONE();
+        }
+
+        const char *id_preview = (Asset::valid_asset(item_current_idx) ?
+                GAMESTATE()->asset_system.assets[item_current_idx].header->name :
+                "Sound asset");
+
+        if (ImGui::BeginCombo("", id_preview)) {
+            for (auto &it : GAMESTATE()->asset_system.assets ) {
+                Asset::UsableAsset asset = it.second;
+                if (asset.header->type != Asset::AssetType::SOUND) continue;
+                const bool is_selected = (item_current_idx == it.first);
+                if (ImGui::Selectable(asset.header->name, is_selected))
+                    item_current_idx = it.first;
+            }
+            ImGui::EndCombo();
+        }
+        ImGui::SliderFloat("Gain", &gain, 0.0, 1.0, "%.2f");
+        ImGui::Checkbox("Repeat", &repeat);
+
+        if (ImGui::Button("Play") && (item_current_idx != AssetID::NONE())) {
+            AssetID asset_id = AssetID(GAMESTATE()->asset_system.assets[item_current_idx].header->name_hash);
+            Asset::fetch_sound(asset_id);
+            //EventSystem::add_entity((SoundEntity) {.asset = asset_id, });
+            EventSystem::Event e = {
+                .type = EventSystem::EventType::CREATE_SOUND_ENTITY,
+                .CREATE_SOUND_ENTITY = {
+                    .asset_id = asset_id,
+                    .source_settings = { .gain = gain, .repeat = repeat },
+                },
+            };
+            GAMESTATE()->event_queue.push(e);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Close")) GAMESTATE()->show_create_sound_window = false;
+        ImGui::End();
+    }
+#endif
+
 #if 0
     GFX::Mesh mesh = *Asset::fetch_mesh("MONKEY");
     Mat model_matrix = Mat::translate(Math::cos(time()) * 0.2, Math::sin(time()) * 0.2, -0.5) * Mat::scale(0.1);
@@ -128,26 +171,6 @@ void draw() {
     model_matrix = Mat::translate(0, 0, -0.6) * Mat::scale(0.1);
     shader.upload_model(model_matrix);
     mesh.draw();
-#endif
-
-#ifndef IMGUI_DISABLE
-    ImGui::Begin("Tweaks");
-    if (ImGui::Button("Reset camera"))
-        *GFX::main_camera() = GFX::Camera::init();
-    ImGui::Separator();
-    if (ImGui::Button("Play sound")) {
-        EventSystem::Event e = {
-            .type = EventSystem::EventType::CREATE_SOUND_ENTITY,
-            .CREATE_SOUND_ENTITY = {
-                .asset_id = sound_id,
-                .source_settings = { .gain = 0.3, .repeat = false },
-            },
-        };
-        GAMESTATE()->event_queue.push(e);
-    }
-    if (ImGui::Button("Stop all sounds"))
-        GAMESTATE()->audio_struct->stop_all();
-    ImGui::End();
 #endif
 
     GFX::debug_shader().use();
