@@ -53,6 +53,7 @@ struct FileHeader {
     // read from file
     u64 num_assets;
     u64 header_offset;
+    u64 name_offset;
     u64 data_offset;
 };
 
@@ -61,8 +62,12 @@ struct AssetHeader {
     AssetType type;
     u64 name_hash;
     u64 data_hash;
+    u64 name_size;
+    u64 name_offset;
     u64 data_size;
     u64 data_offset;
+
+    char *name;
 };
 
 ///* Image

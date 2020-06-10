@@ -24,30 +24,41 @@ parameters cannot be added. The data consists of
 already packed bytes according to any arbitrary
 C-struct format. All data is packaged using the
 `struct`-module from the Python standard library.
+If an asset in the game wants to store a pointer
+to something, that pointer has to be specified in
+the format as well so it's read correctly.
 
 The following specification uses the same letters
 for formats as https://docs.python.org/3/library/struct.html.
 
 Format of binary file:
-  - File header
-  - Asset headers
-  - Asset data
+- File header
+- Asset headers
+- Asset names
+- Asset data
 
 Format of file header:
 - Q Number of assets
 - Q Adress of first header-byte
+- Q Adress of first name-byte
 - Q Adress of first data-byte
 
 Format of asset header:
 - I Type (texture, font, sprite etc)
 - Q Name hash
 - Q Data hash
+- Q Name size                     [bytes]
+- Q Name offset (first asset = 0) [bytes]
 - Q Data size                     [bytes]
 - Q Data offset (first asset = 0) [bytes]
+- P Name pointer
+
+The names are a number of character-bytes (ASCII)
+with length as specified by the asset header.
 
 Format of asset data is arbitrary. In addition to
 the formats specified by `struct`-documentation,
-the data format specifies "variable amount" as >.
+this data format specifies "variable amount" as >.
 For example, images specifies the following
 format:
 
@@ -72,8 +83,8 @@ from glob import glob
 from PIL import Image
 from collections import defaultdict
 
-FILE_HEADER_FMT = "QQQ"
-ASSET_HEADER_FMT = "IQQQQ"
+FILE_HEADER_FMT = "QQQQ"
+ASSET_HEADER_FMT = "IQQQQQQP"
 
 HEADER_OFFSET = struct.calcsize(FILE_HEADER_FMT)
 HEADER_SIZE = struct.calcsize(ASSET_HEADER_FMT)
@@ -110,12 +121,17 @@ def default_header():
 
     Any additional parameters will invalidate the
     binary file."""
+    # the ordering here matters and has to match the format string
     return {
         "type": TYPE_NONE,
         "name_hash": 0,
         "data_hash": 0,
+        "name_size": 0,
+        "name_offset": 0,
         "data_size": 0,
         "data_offset": 0,
+
+        "name_pointer": 0,
     }
 
 
@@ -159,7 +175,7 @@ def string_asset(path, verbose):
     """Load an ASCII text file.
 
     Data format:
-    - I  Number of characters
+    - Q  Number of characters
     - P  Data pointer
     - s> Data
     """
@@ -306,6 +322,7 @@ def pack(asset_files, out_file, verbose=False):
 
     num_assets = 0
     cur_asset_offset = 0
+    cur_name_offset = 0
 
     headers = []
     data = []
@@ -334,27 +351,35 @@ def pack(asset_files, out_file, verbose=False):
             asset_header, asset_data = EXTENSIONS[ext](asset, verbose)
             if asset_header and asset_data:
                 num_assets += 1
-                asset_header["data_offset"] = cur_asset_offset
                 asset_header["name_hash"] = name_hash
                 asset_header["data_hash"] = hash_bytes(asset_data)
+                asset_header["name_size"] = len(name)+1
+                asset_header["name_offset"] = cur_name_offset
+                asset_header["data_offset"] = cur_asset_offset
                 cur_asset_offset += asset_header["data_size"]
+                cur_name_offset += asset_header["name_size"]
                 headers.append(asset_header)
-                data.append(asset_data)
                 names.append(name)
+                data.append(asset_data)
         else:
             print("Extension {} not supported".format(ext))
 
-    data_offset = HEADER_OFFSET + HEADER_SIZE * num_assets
+    names = [struct.pack("{}s".format(len(name)+1), str.encode(name, "ascii") + b'\0') for name in names]
+
+    name_offset = HEADER_OFFSET + HEADER_SIZE * num_assets
+    data_offset = name_offset + sum([len(name) for name in names])
 
     if verbose:
         print("=== PACKING THE FOLLOWING ASSETS ===")
         print("\n".join(names))
     with open(out_file, "wb") as f:
-        f.write(struct.pack(FILE_HEADER_FMT, num_assets, HEADER_OFFSET, data_offset))
+        f.write(struct.pack(FILE_HEADER_FMT, num_assets, HEADER_OFFSET, name_offset, data_offset))
         for h in sorted(headers, key=lambda x: x["name_hash"]):
             f.write(struct.pack(ASSET_HEADER_FMT, *h.values()))
             if verbose:
                 print("Writing header {} as {}".format(h, [hex(val) for val in [*h.values()]]))
+        for n in names:
+            f.write(n)
         for d in data:
             f.write(d)
 

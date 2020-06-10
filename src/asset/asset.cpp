@@ -194,7 +194,6 @@ bool reload() {
 
     AssetHeader *headers = new AssetHeader[num_assets];
     read(file, headers, num_assets);
-    fclose(file);
 
     ASSERT(SDL_LockMutex(system->asset_lock) == 0, "Failed to lock asset system");
     system->file_header = file_header;
@@ -206,21 +205,33 @@ bool reload() {
             UsableAsset &asset = system->assets[id];
             asset.dirty = asset.header->data_hash != header->data_hash;
             asset.dirty = true;
+            delete[] asset.header->name;
             asset.header = header;
+            asset.header->name = new char[asset.header->name_size];
+
+            fseek(file, file_header.name_offset + asset.header->name_offset, SEEK_SET);
+            read(file, asset.header->name, asset.header->name_size);
         } else {
             // New asset
             UsableAsset data = {};
             data.header = header;
+            data.header->name = new char[data.header->name_size];
             data.dirty = true;
             system->assets[id] = data;
+
+            fseek(file, file_header.name_offset + data.header->name_offset, SEEK_SET);
+            read(file, data.header->name, data.header->name_size);
         }
     }
     delete[] system->headers;
     system->headers = headers;
 
+    fclose(file);
+
     for (auto it = system->assets.cbegin(), next = it; it != system->assets.cend(); it = next) {
         ++next;
         if (headers > it->second.header && it->second.header >= (headers + num_assets)) {
+            delete[] it->second.header->name;
             system->assets.erase(it);
         }
     }
