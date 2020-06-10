@@ -57,7 +57,7 @@ void Player::draw() {
 }
 
 void SoundEntity::update() {
-    remove |= !GAMESTATE()->audio_struct->is_playing(audio_id);
+    remove |= !GAMESTATE()->audio_struct->is_valid(audio_id);
 }
 
 void SoundEntity::draw() {

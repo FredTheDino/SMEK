@@ -121,7 +121,7 @@ void AudioStruct::stop_all() {
     }
 }
 
-bool AudioStruct::is_playing(AudioID id) {
+bool AudioStruct::is_valid(AudioID id) {
     CHECK(id.slot < NUM_SOURCES, "Tried to access invalid AudioID");
     SoundSource source = sources[id.slot];
     CHECK(id.gen <= source.gen, "Tried to access AudioID from the future?");
