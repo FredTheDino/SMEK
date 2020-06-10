@@ -136,7 +136,9 @@ void EntitySystem::draw() {
     for (auto [_, e]: entities) {
         e->draw();
     }
+#ifndef IMGUI_DISABLE
     ImGui::End();
+#endif
 }
 
 TEST_CASE("entity_adding", {
