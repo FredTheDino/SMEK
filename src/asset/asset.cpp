@@ -16,6 +16,7 @@ static u64 hash(const char *string) {
 
 AssetID::AssetID(const char *str) {
     id = hash(str);
+    name = str;
 }
 
 namespace Asset {

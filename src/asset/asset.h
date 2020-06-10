@@ -9,12 +9,13 @@
 
 struct AssetID {
     AssetID(const char *);
-    AssetID(u64 id): id(id) {}
-    AssetID(): id(NONE()) {}
+    AssetID(u64 id): id(id), name("NO_NAME") {}
+    AssetID(): id(NONE()), name("NO_NAME") {}
 
     static AssetID NONE() { return 0xFFFFFFFF; }
 
     u64 id;
+    const char *name;
 
     bool operator ==(AssetID &other) const {
         return id == other;
