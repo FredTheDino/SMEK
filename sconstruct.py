@@ -89,12 +89,14 @@ VariantDir(smek_dir, "src", duplicate=0)
 tests_dir = smek_dir + "tests/"
 VariantDir(tests_dir, "src", duplicate=0)
 
+help(Builder)
 asset_gen = Builder(action="./asset-gen.py -o $TARGET -f $SOURCES $ASSETS_VERBOSE")
 env.Append(BUILDERS={"Assets": asset_gen})
 
 def all_asset_targets(build_dir):
     asset_files = defaultdict(list)
-    global_asset_files = []
+    # Depends on the code, since it can't load it.
+    global_asset_files = ["asset-gen.py"]
     for f in glob("res/**/*.*", recursive=True):
         if f.count("/") == 1:
             global_asset_files.append(f)
@@ -107,7 +109,9 @@ def all_asset_targets(build_dir):
         assets.append(env.Assets(build_dir + out_file + ".bin", files))
     return assets
 
-tests_assets = env.Assets(tests_dir + "assets-tests.bin", glob("res/tests/*.*"))
+# Depends on the code, since it can't load it.
+tests_assets = env.Assets(tests_dir + "assets-tests.bin",
+                          glob("res/tests/*.*") + ["asset-gen.py"])
 assets = all_asset_targets(smek_dir)
 env.Alias("assets", assets)
 AddPostAction(assets, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
