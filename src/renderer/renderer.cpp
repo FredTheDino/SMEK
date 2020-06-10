@@ -134,6 +134,7 @@ void SkinnedMesh::destroy() {
 SkinnedMesh SkinnedMesh::init(Vertex *verticies, u32 num_verticies) {
     u32 vao, vbo;
 
+    LOG("I'm here!");
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
 
@@ -154,7 +155,7 @@ SkinnedMesh SkinnedMesh::init(Vertex *verticies, u32 num_verticies) {
     glVertexAttribPointer(3, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, joint));
 
     glEnableVertexAttribArray(4);
-    glVertexAttribPointer(3, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, weight));
+    glVertexAttribPointer(4, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, weight));
     glBindVertexArray(0);
 
     return {vao, vbo, num_verticies};

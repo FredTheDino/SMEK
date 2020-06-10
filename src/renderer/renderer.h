@@ -83,8 +83,8 @@ struct SkinnedMesh {
         Vec3 position;
         Vec2 texture;
         Vec3 normal;
-        Vec3 joint;
         Vec3 weight;
+        Vec3 joint;
     };
 
     u32 vao, vbo;

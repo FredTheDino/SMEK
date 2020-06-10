@@ -239,6 +239,7 @@ def model_asset(path, verbose):
 
     return header, struct.pack(fmt, points_per_face, num_faces, 0, *data)
 
+
 from bs4 import BeautifulSoup
 def collada_asset(path, verbose):
 
@@ -265,10 +266,10 @@ def collada_asset(path, verbose):
 
     # This assumes there's only one skinned mesh in the file
     skin = soup("skin")[0]
-    triangles = css(skin["source"] + " triangles")
 
-    indicies_array = triangles.find("p").text
-
+    #
+    # Parses the <vertex_weights> tag
+    #
     vertex_weights = skin.find("vertex_weights")
     data = {}
     for input_tag in vertex_weights.find_all("input"):
@@ -277,52 +278,59 @@ def collada_asset(path, verbose):
         else:
             # Why, WHY!? Is "Name_array" capitalized?
             data[input_tag["semantic"]] = css(input_tag["source"] + " Name_array").text.split()
-    vcount = to_int_array(skin.find("vcount").text)
-    indicies = to_int_array(skin.find("v").text)
 
+    def list_eater(l, sizes):
+        gen_wj_pair = lambda: (l.pop(0), data["WEIGHT"][l.pop(0)])[::-1]
+        return [[gen_wj_pair() for _ in range(size)] for size in sizes]
 
+    def fill_out_to_three(l):
+        # Contains side effects
+        for i, weights in enumerate(l):
+            weights = (sorted(weights) + [(0,0)] * 3)[:3]
+            total = sum(map(lambda x: x[0], weights))
+            if total:
+                weights = [(w / total, j) for w, j in weights]
+            l[i] = weights
+
+    weights = to_int_array(skin.find("v").text)
+    count =  to_int_array(skin.find("vcount").text)
+    joint_weight_list = list_eater(weights, count)
+    print(list_eater)
+    assert len(weights) == 0
+    fill_out_to_three(joint_weight_list) # Note: Side effects
+
+    #
+    # Parses the geometry for a skin, the <triangles> tag
+    #
+    triangles = css(skin["source"] + " triangles")
     for input_tag in triangles.find_all("input"):
-        data[input_tag["semantic"]] = to_float_array(find_rec(input_tag["source"]).text)
-    print(data)
+        source = find_rec(input_tag["source"])
+        stride = int(source.parent.find("accessor")["stride"])
+        raw_floats = to_float_array(source.text)
+        data[input_tag["semantic"]] = list(zip(*[raw_floats[i::stride] for i in range(stride)]))
 
+    #
+    # Parse out the indicies
+    #
+    ia = to_int_array(triangles.find("p").text)
+    stride = 3
+    vb = []
+    for v, n, t in zip(ia[0::3], ia[1::3], ia[2::3]):
+        vert = []
+        vert.extend(data["VERTEX"][v])
+        vert.extend(data["TEXCOORD"][t])
+        vert.extend(data["NORMAL"][n])
+        vert.extend(map(lambda x: x[0], joint_weight_list[v]))
+        vert.extend(map(lambda x: x[1], joint_weight_list[v]))
+        vb.extend(vert)
 
-    # TODO(ed): Combine all the data, bake out the vertex data, and then index the
-    # position array with it. It's gonna be good.
-#    return
-#
-#    assert len(col.geometries) == 1, "Does not read multiple geometries"
-#    mesh = col.geometries[0]
-#    assert len(mesh.primitives) == 1, "Does not read multiple primitives"
-#    triangles = list(mesh.primitives[0])
-#    cont = col.controllers[0]
-#    jw_list = zip([cont.weights[wi] for wi in cont.weight_index], cont.joint_index)
-#    data = []
-#    assert len(list(jw_list)) == len(triangles)
-#    for tri in triangles:
-#        for jw, p, t, n in zip(jw_list, tri.vertices, tri.texcoords[0], tri.normals):
-#            joints, weights = zip(*sorted(list(zip(*jw)), reverse=True))
-#            joints = [float(j) for j in (list(joints) + [0.0] * 3)[:3]]
-#            weights = [float(w) for w in (list(weights) + [0.0] * 3)[:3]]
-#            total_weight = sum(weights)
-#            if total_weight:
-#                weights = [w / total_weight for w in weights]
-#            assert len(joints) == 3
-#            assert len(weights) == 3
-#            data += list(p)
-#            data += list(t)
-#            data += list(n)
-#            data += weights
-#            data += joints
-#
-#    bone_names = list(cont.weight_joints)
-#
-#    fmt = "IP{}f".format(len(data))
-#
-#    header = default_header()
-#    header["type"] = TYPE_SKINNED_MESH
-#    header["data_size"] = struct.calcsize(fmt)
-#
-#    return header, struct.pack(fmt, len(data), 0, *data)
+    fmt = "IP{}f".format(len(vb))
+    header = default_header()
+    header["type"] = TYPE_SKINNED_MESH
+    header["data_size"] = struct.calcsize(fmt)
+
+    return header, struct.pack(fmt, len(vb), 0, *vb)
+
 
 def wav_asset(path, verbose):
     """Load a .wav-file.
