@@ -131,7 +131,7 @@ bool AudioStruct::is_playing(AudioID id) {
 } // namespace Audio
 
 void EventSystem::EventCreateSoundEntity::callback() {
-    GAMESTATE()->audio_struct->play_sound(AssetID(asset_id_hash), { .gain = gain, .repeat = repeat });
+    GAMESTATE()->audio_struct->play_sound(asset_id, { .gain = source_settings.gain, .repeat = source_settings.repeat });
 }
 
 void audio_callback(Audio::AudioStruct *audio_struct, f32 *stream, int len) {

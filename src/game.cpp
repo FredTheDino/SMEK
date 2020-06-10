@@ -139,9 +139,8 @@ void draw() {
         EventSystem::Event e = {
             .type = EventSystem::EventType::CREATE_SOUND_ENTITY,
             .CREATE_SOUND_ENTITY = {
-                .asset_id_hash = sound_id.id,
-                .gain = 0.3,
-                .repeat = false
+                .asset_id = sound_id,
+                .source_settings = { .gain = 0.3, .repeat = false },
             },
         };
         GAMESTATE()->event_queue.push(e);
