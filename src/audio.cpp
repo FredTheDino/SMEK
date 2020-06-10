@@ -21,6 +21,7 @@ void audio_callback(AudioStruct *audio_struct, f32 *stream, int len) {
     for (u32 source_id = 0; source_id < NUM_SOURCES; source_id++) {
         SoundSource *source = audio_struct->sources + source_id;
         if (!source->active) continue;
+        if (source->paused) continue;
 
         u64 index;
         for (u32 i = 0; i < SAMPLES; i += 2) {
@@ -78,6 +79,7 @@ AudioID AudioStruct::play_sound(AssetID asset_id, SoundSourceSettings source_set
             .sample = 0.0,
             .gain = source_settings.gain,
             .active = true,
+            .paused = false,
             .repeat = source_settings.repeat,
             .gen = source->gen,
         };
@@ -110,6 +112,16 @@ void AudioStruct::stop_sound(AudioID id) {
     }
     source->active = false;
     return;
+}
+
+void AudioStruct::toggle_pause_sound(AudioID id) {
+    if (!is_valid(id)) {
+        WARN("Unable to pause audio id");
+        return;
+    }
+    lock();
+    sources[id.slot].paused = !sources[id.slot].paused;
+    unlock();
 }
 
 void AudioStruct::stop_all() {
