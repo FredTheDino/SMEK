@@ -89,7 +89,6 @@ VariantDir(smek_dir, "src", duplicate=0)
 tests_dir = smek_dir + "tests/"
 VariantDir(tests_dir, "src", duplicate=0)
 
-help(Builder)
 asset_gen = Builder(action="./asset-gen.py -o $TARGET -f $SOURCES $ASSETS_VERBOSE")
 env.Append(BUILDERS={"Assets": asset_gen})
 

@@ -71,6 +71,7 @@ import wave
 from glob import glob
 from PIL import Image
 from collections import defaultdict
+from bs4 import BeautifulSoup
 
 FILE_HEADER_FMT = "QQQ"
 ASSET_HEADER_FMT = "IQQQQ"
@@ -240,7 +241,6 @@ def model_asset(path, verbose):
     return header, struct.pack(fmt, points_per_face, num_faces, 0, *data)
 
 
-from bs4 import BeautifulSoup
 def collada_asset(path, verbose):
 
     # Some helper functions

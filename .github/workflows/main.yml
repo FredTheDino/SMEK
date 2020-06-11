@@ -16,7 +16,7 @@ jobs:
           pacman -Syy
           pacman --noconfirm -S binutils gcc python python-pip sdl2 scons
           python3 -m pip install --user --upgrade pip setuptools
-          python3 -m pip install --user pillow
+          python3 -m pip install --user pillow beautifulsoup
       - name: Run tests
         run: |
           scons -Q tests --ci --report --jumbo
