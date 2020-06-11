@@ -295,7 +295,6 @@ def collada_asset(path, verbose):
     weights = to_int_array(skin.find("v").text)
     count =  to_int_array(skin.find("vcount").text)
     joint_weight_list = list_eater(weights, count)
-    print(list_eater)
     assert len(weights) == 0
     fill_out_to_three(joint_weight_list) # Note: Side effects
 
