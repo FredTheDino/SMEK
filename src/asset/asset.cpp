@@ -114,9 +114,7 @@ static void load_skinned_mesh(UsableAsset *asset, FILE *file) {
 
     read(file, &mesh);
     u32 floats_per_vertex = (sizeof(GFX::SkinnedMesh::Vertex) / sizeof(real));
-    LOG("FLOATS: {}", floats_per_vertex);
     u32 size = mesh.num_floats / floats_per_vertex;
-    LOG("SIZE: {}", size);
     mesh.data = new GFX::SkinnedMesh::Vertex[size];
     read(file, mesh.data, size);
     asset->skinned = GFX::SkinnedMesh::init(mesh.data, size);
