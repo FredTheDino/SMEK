@@ -74,6 +74,14 @@ void SoundEntity::draw() {
                 (f32) source->sample / source->sample_rate,
                 (f32) source->num_samples / source->channels / source->sample_rate);
     ImGui::SameLine();
+    ImGui::SetNextItemWidth(100.0);
+    f32 gain = source->gain;
+    if (ImGui::SliderFloat("Gain", &gain, 0.0, 1.0, "%.2f")) {
+        GAMESTATE()->audio_struct->lock();
+        source->gain = gain;
+        GAMESTATE()->audio_struct->unlock();
+    }
+    ImGui::SameLine();
     if (ImGui::Button("Play/pause")) GAMESTATE()->audio_struct->toggle_pause_sound(audio_id);
     ImGui::SameLine();
     remove |= ImGui::Button("Stop");
