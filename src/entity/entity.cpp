@@ -127,7 +127,9 @@ void EntitySystem::draw() {
     ImGui::Begin("Entities");
     ImGui::Text("Current entities: %ld", entities.size());
 
-    ImGui::BeginChild("Sound entities", ImVec2(0, 128), true);
+    //TODO(gu) filter for sound entities
+    //TODO(gu) formatting, spacing, the whole lot
+    ImGui::BeginChild("Sound entities", ImVec2(0, 170 + ((ImGui::GetTextLineHeightWithSpacing() + 6) * 4)), true);
     ImGui::Text("Sound entities:");
     if (ImGui::Button("Create sound"))
         GAMESTATE()->show_create_sound_window = true;
@@ -135,11 +137,57 @@ void EntitySystem::draw() {
     if (ImGui::Button("Stop all sounds"))
         GAMESTATE()->audio_struct->stop_all();
     ImGui::Spacing();
+
+    {
+        ImGui::BeginChild("Create sound entity", ImVec2(0, 110), true);
+        static AssetID item_current_idx;
+        static f32 gain = 0.3;
+        static bool repeat = true;
+
+        if (!Asset::valid_asset(item_current_idx)) {
+            item_current_idx = AssetID::NONE();
+        }
+
+        const char *id_preview = (Asset::valid_asset(item_current_idx) ?
+                GAMESTATE()->asset_system.assets[item_current_idx].header->name :
+                "Sound asset");
+
+        if (ImGui::BeginCombo("", id_preview)) {
+            for (auto &it : GAMESTATE()->asset_system.assets ) {
+                Asset::UsableAsset asset = it.second;
+                if (asset.header->type != Asset::AssetType::SOUND) continue;
+                const bool is_selected = (item_current_idx == it.first);
+                if (ImGui::Selectable(asset.header->name, is_selected))
+                    item_current_idx = it.first;
+            }
+            ImGui::EndCombo();
+        }
+        ImGui::SliderFloat("Gain", &gain, 0.0, 1.0, "%.2f");
+        ImGui::Checkbox("Repeat", &repeat);
+
+        if (ImGui::Button("Play") && (item_current_idx != AssetID::NONE())) {
+            AssetID asset_id = AssetID(GAMESTATE()->asset_system.assets[item_current_idx].header->name);
+            Asset::fetch_sound(asset_id);
+            //EventSystem::add_entity((SoundEntity) {.asset = asset_id, });
+            EventSystem::Event e = {
+                .type = EventSystem::EventType::CREATE_SOUND_ENTITY,
+                .CREATE_SOUND_ENTITY = {
+                    .asset_id = asset_id,
+                    .source_settings = { .gain = gain, .repeat = repeat },
+                },
+            };
+            GAMESTATE()->event_queue.push(e);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Close")) GAMESTATE()->show_create_sound_window = false;
+        ImGui::EndChild();
+    }
     ImGui::EndChild();
 
     ImGui::BeginChild("Player", ImVec2(0, 100), true);
     ImGui::Text("Player:");
     ImGui::EndChild();
+
 #endif
     for (auto [_, e]: entities) {
         e->draw();

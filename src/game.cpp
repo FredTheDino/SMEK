@@ -110,54 +110,6 @@ void draw() {
 
     GAMESTATE()->entity_system.draw();
 
-#ifndef IMGUI_DISABLE
-    if (GAMESTATE()->show_create_sound_window) {
-        ImGui::Begin("Create sound");
-
-        static AssetID item_current_idx;
-        static f32 gain = 0.3;
-        static bool repeat = true;
-
-        if (!Asset::valid_asset(item_current_idx)) {
-            item_current_idx = AssetID::NONE();
-        }
-
-        const char *id_preview = (Asset::valid_asset(item_current_idx) ?
-                GAMESTATE()->asset_system.assets[item_current_idx].header->name :
-                "Sound asset");
-
-        if (ImGui::BeginCombo("", id_preview)) {
-            for (auto &it : GAMESTATE()->asset_system.assets ) {
-                Asset::UsableAsset asset = it.second;
-                if (asset.header->type != Asset::AssetType::SOUND) continue;
-                const bool is_selected = (item_current_idx == it.first);
-                if (ImGui::Selectable(asset.header->name, is_selected))
-                    item_current_idx = it.first;
-            }
-            ImGui::EndCombo();
-        }
-        ImGui::SliderFloat("Gain", &gain, 0.0, 1.0, "%.2f");
-        ImGui::Checkbox("Repeat", &repeat);
-
-        if (ImGui::Button("Play") && (item_current_idx != AssetID::NONE())) {
-            AssetID asset_id = AssetID(GAMESTATE()->asset_system.assets[item_current_idx].header->name);
-            Asset::fetch_sound(asset_id);
-            //EventSystem::add_entity((SoundEntity) {.asset = asset_id, });
-            EventSystem::Event e = {
-                .type = EventSystem::EventType::CREATE_SOUND_ENTITY,
-                .CREATE_SOUND_ENTITY = {
-                    .asset_id = asset_id,
-                    .source_settings = { .gain = gain, .repeat = repeat },
-                },
-            };
-            GAMESTATE()->event_queue.push(e);
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Close")) GAMESTATE()->show_create_sound_window = false;
-        ImGui::End();
-    }
-#endif
-
 #if 0
     GFX::Mesh mesh = *Asset::fetch_mesh("MONKEY");
     Mat model_matrix = Mat::translate(Math::cos(time()) * 0.2, Math::sin(time()) * 0.2, -0.5) * Mat::scale(0.1);
