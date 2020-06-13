@@ -140,7 +140,7 @@ void draw() {
         ImGui::Checkbox("Repeat", &repeat);
 
         if (ImGui::Button("Play") && (item_current_idx != AssetID::NONE())) {
-            AssetID asset_id = AssetID(GAMESTATE()->asset_system.assets[item_current_idx].header->name_hash);
+            AssetID asset_id = AssetID(GAMESTATE()->asset_system.assets[item_current_idx].header->name);
             Asset::fetch_sound(asset_id);
             //EventSystem::add_entity((SoundEntity) {.asset = asset_id, });
             EventSystem::Event e = {
