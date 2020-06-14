@@ -165,6 +165,8 @@ static void imgui_platform_start() {
     // Enable Keyboard and gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
     ImGui::StyleColorsDark();
     ImGui_ImplSDL2_InitForOpenGL(game_state.window, game_state.gl_context);
     ImGui_ImplOpenGL3_Init("#version 330");
@@ -197,6 +199,12 @@ static void imgui_start_frame() {
 static void imgui_end_frame() {
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    SDL_Window *backup_current_window = SDL_GL_GetCurrentWindow();
+    SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
+    ImGui::UpdatePlatformWindows();
+    ImGui::RenderPlatformWindowsDefault();
+    SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
 }
 #else
 static void imgui_platform_start() {}
