@@ -47,6 +47,7 @@ u32 smek_snprint(char *out_buffer, u32 buf_size, const char *in_buffer) {
 
 template<>
 i32 sntprint<>(char *buffer, u32 buf_size, const char *fmt) {
+    if (buf_size == 0) return 0;
     u32 head = 0;
     while (fmt[head]) {
         if (buf_size == head) { buffer[head-1] = '\0'; return -1; }
