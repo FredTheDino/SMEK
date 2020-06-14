@@ -82,6 +82,8 @@ else:
 
 if GetOption("no_imgui"):
     env.Append(CPPDEFINES="IMGUI_DISABLE")
+else:
+    env.Append(CPPDEFINES="IMGUI_IMPL_OPENGL_LOADER_GLAD")
 
 VariantDir(smek_dir, "src", duplicate=0)
 
