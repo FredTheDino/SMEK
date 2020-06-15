@@ -1,6 +1,6 @@
 import bpy
 import bmesh
-
+import mathutils
 
 def error_box(context, title, text):
     icon = "ERROR"
@@ -50,11 +50,36 @@ def write_animation(context, filepath, obj, armature):
         
         def write_bones(node, parent=-1):
             index, name, bone, children = node
-            f.write(f"b {parent} {index} {name} ??\n")
+            mat = bone.matrix
+            scale = mat.to_scale()
+            rotation = mat.to_quaternion()
+            translation = mat.to_translation()
+            f.write(f"b {parent} {index} {name} {scale} {rotation} {translation}\n")
             for child in children:
                 write_bones(child, index)
 
         write_bones(all_bones[root])
+        
+        def write_animation(nodes):
+            sorted_bones = list(sorted(nodes.values()))
+            frame_range = armature.animation_data.action.frame_range
+            frames = int(frame_range.y - frame_range.x + 1)
+            
+            def bake_transform(frame, bone):
+                bpy.context.scene.frame_set(frame)
+                mat = bone.matrix
+                scale = mat.to_scale()
+                rotation = mat.to_quaternion()
+                translation = mat.to_translation()
+                return f"{scale} {rotation} {translation}"
+            
+            transforms = [[bake_transform(frame, bone)
+                            for _, _, bone, _ in sorted_bones]
+                            for frame in range(frames)]
+            
+            f.write(f"a {transforms}")
+            
+        write_animation(all_bones) 
         
     return {'FINISHED'}
 
