@@ -1,3 +1,20 @@
+# The edanim exporter, exports skinned meshes to a special
+# format that is easy to parse and is written in plain text.
+#
+# This code is heavily based on the standard blender exporter
+# and gives a very handy way to export data.
+#
+# There is a lot of work left to do if this is to become a
+# "fully featured" exporter.
+#
+# The file format this generates, specifies what each line
+# does, currently its "geo:" for geometry data. "arm:" for
+# armature "anim:##name##:" is the animation with the name
+# "##name##"
+#
+# For more details, I'd recomend you to just read the code,
+# it will probably be faster.
+#
 import bpy
 import bmesh
 import mathutils
@@ -27,19 +44,26 @@ def write_animation(context, filepath, obj, armature):
     uv_lay = mesh.loops.layers.uv.active
     layer = mesh.verts.layers.deform.verify()
     with open(filepath, 'w', encoding='utf-8') as f:
+        verts = []
         for face in mesh.faces:
             for loop in face.loops:
                 vert = loop.vert
-                f.write(f"p:%f %f %f " % vert.co[:])
-                f.write(f"n:%f %f %f " % vert.normal[:])
+                verts.extend(vert.co[:])
+                verts.extend(vert.normal[:])
                 uv = loop[uv_lay].uv
+                verts.extend(uv[:])
                 weights = only_three(vert[layer].items())
                 for i, w in weights:
-                    f.write("w: %d %f " % (i, w))
-                f.write("\n")
+                    verts.append(float(i))
+                    verts.append(w)
+        # Writes the position data
+        f.write("geo:")
+        f.write(" ".join(map(str, verts)))
+        f.write("\n")
         mesh.free()
 
-        all_bones = {x[0]: [i, x[0], x[1], []] for i, x in enumerate(armature.pose.bones.items())}
+        bones = armature.pose.bones
+        all_bones = {x[0]: [i, x[0], x[1], []] for i, x in enumerate(bones.items())}
         root = ""
         for name, bone in list(all_bones.items()):
             parent = bone[2].parent
@@ -47,40 +71,96 @@ def write_animation(context, filepath, obj, armature):
                 all_bones[parent.name][3].append(bone)
             else:
                 root = name
-        
+
+        # Exports bone structure.
         def write_bones(node, parent=-1):
+            # TODO(ed):
+            # This assumes the current frame of animation
+            # we are on is the root pose of the model. This
+            # is almost never true and needs to be managed
+            # somehow.
             index, name, bone, children = node
             mat = bone.matrix
             scale = mat.to_scale()
             rotation = mat.to_quaternion()
             translation = mat.to_translation()
-            f.write(f"b {parent} {index} {name} {scale} {rotation} {translation}\n")
+            if parent != -1:
+                f.write("|")
+            f.write(f"{parent} {index} {name} ")
+            f.write(f"{scale.x} {scale.y} {scale.z} ")
+            f.write(f"{rotation.w} {rotation.x} {rotation.y} {rotation.z} ")
+            f.write(f"{translation.x} {translation.y} {translation.z}")
             for child in children:
                 write_bones(child, index)
 
+        f.write("arm:")
         write_bones(all_bones[root])
-        
-        def write_animation(nodes):
-            sorted_bones = list(sorted(nodes.values()))
-            frame_range = armature.animation_data.action.frame_range
-            frames = int(frame_range.y - frame_range.x + 1)
-            
+        f.write("\n")
+
+        # Exporting of animations
+        def write_animation(action, nodes):
             def bake_transform(frame, bone):
+                # TODO(ed): This can be moved out. But meh...
                 bpy.context.scene.frame_set(frame)
                 mat = bone.matrix
                 scale = mat.to_scale()
                 rotation = mat.to_quaternion()
                 translation = mat.to_translation()
-                return f"{scale} {rotation} {translation}"
-            
-            transforms = [[bake_transform(frame, bone)
-                            for _, _, bone, _ in sorted_bones]
-                            for frame in range(frames)]
-            
-            f.write(f"a {transforms}")
-            
-        write_animation(all_bones) 
-        
+                return f"{scale.x} {scale.y} {scale.z} "\
+                       f"{rotation.w} {rotation.x} {rotation.y} {rotation.z} "\
+                       f"{translation.x} {translation.y} {translation.z}"
+
+            sorted_bones = list(sorted(nodes.values()))
+
+            times = set()
+            for c in action.fcurves:
+                for p in c.keyframe_points:
+                    times.add(int(p.co.x))
+
+            start_frame = bpy.context.scene.frame_current
+            transforms = [(t, [bake_transform(t, bone)
+                           for _, _, bone, _ in sorted_bones])
+                           for t in times]
+            bpy.context.scene.frame_set(start_frame)
+
+            output = ";".join([f"{t}=" + "|".join(trans) for t, trans in transforms])
+            f.write(f"anim:{action.name_full}:{output}\n")
+
+        # TODO(ed): Find the other actions
+        write_animation(armature.animation_data.action, all_bones)
+        # TODO(ed):
+        # TL;DR: We need bezier curve support.
+        #
+        # If we want more control, we could export each
+        # channel separately, by parsing the fcurves directly.
+        # This would give a lot more control over the animation,
+        # but that would be substantially more work. I have some
+        # sketches of a storage format, which I think would be
+        # quite optimal in the engine as well.
+        #
+        # The key is
+        # parsing the string from this value:
+        #
+        # action.fcurves[0].data_path <- Name ends with
+        # paired with:
+        # action.fcurves[0].array_index
+        #
+        # This gives us a way to map each datapoint to a meaningfull
+        # value, there might be another way, but I haven't found it.
+        # (Don't ask how long this took to find.)
+        #
+        # The problem right now, is that the view in blender will
+        # not match what is going on in the engine, since the
+        # bezier values aren't being passed on.
+        #
+        # We could also just, dump every frame of animation, and hope
+        # we can handle it. It shouldn't affect the animation workflow
+        # if we switch exporter mid development.
+        #
+        # TODO(ed):
+        # It would also be cool if we could save the animations to
+        # a seperate file format
+
     return {'FINISHED'}
 
 
@@ -91,13 +171,12 @@ from bpy.props import StringProperty, BoolProperty, EnumProperty
 from bpy.types import Operator
 
 
-class ExportSomeData(Operator, ExportHelper):
-    """This appears in the tooltip of the operator and in the generated docs"""
-    bl_idname = "export_test.some_data"  # important since its how bpy.ops.import_test.some_data is constructed
-    bl_label = "Export Some Data"
+class EdAnimExporter(Operator, ExportHelper):
+    """Exports a skeleton and animations in a easy to read format. (For me)"""
+    bl_idname = "edanim_exporter.all"  # important since its how bpy.ops.import_test.some_data is constructed
+    bl_label = "Exports a skeleton and animations"
 
-    # ExportHelper mixin class uses this
-    filename_ext = ".edme"
+    filename_ext = ".edan"
 
     filter_glob: StringProperty(
         default="*" + filename_ext,
@@ -107,27 +186,26 @@ class ExportSomeData(Operator, ExportHelper):
 
     def execute(self, context):
         objs = context.selected_objects
-        if not objs:
-            error_box(context, "Error exporting", "Cannot export if nothing is selected")
+        if len(objs) != 2:
+            error_box(context, "Error exporting", "Can only export if you select the bone and the armature.")
             return {'CANCELLED'}
-        # Only export first object
-        obj = objs[0]
-        armature = objs[1]
+
+        armature, obj = sorted(objs, key=lambda x: x.type)
         return write_animation(context, self.filepath, obj, armature)
 
 
 # Only needed if you want to add into a dynamic menu
 def menu_func_export(self, context):
-    self.layout.operator(ExportSomeData.bl_idname, text="Text Export Operator")
+    self.layout.operator(EdAnimExporter.bl_idname, text="Ed Animation (edan)")
 
 
 def register():
-    bpy.utils.register_class(ExportSomeData)
+    bpy.utils.register_class(EdAnimExporter)
     bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
 
 
 def unregister():
-    bpy.utils.unregister_class(ExportSomeData)
+    bpy.utils.unregister_class(EdAnimExporter)
     bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
 
 
@@ -135,4 +213,4 @@ if __name__ == "__main__":
     register()
 
     # test call
-    bpy.ops.export_test.some_data('INVOKE_DEFAULT')
+    bpy.ops.edanim_exporter.all('INVOKE_DEFAULT')
