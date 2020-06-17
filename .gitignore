@@ -10,3 +10,6 @@ docs/index.html
 # Misc
 tags
 __pycache__/
+
+# Temporary worktree
+tmp
