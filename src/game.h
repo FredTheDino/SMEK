@@ -38,7 +38,7 @@ struct GameState {
 
 #ifndef IMGUI_DISABLE
     // state for imgui
-    bool show_create_sound_window = true;
+    bool show_create_sound_window = false;
 #endif
 };
 

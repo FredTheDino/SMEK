@@ -138,7 +138,7 @@ void EntitySystem::draw() {
         GAMESTATE()->audio_struct->stop_all();
     ImGui::Spacing();
 
-    {
+    if (GAMESTATE()->show_create_sound_window) {
         ImGui::BeginChild("Create sound entity", ImVec2(0, 110), true);
         static AssetID item_current_idx;
         static f32 gain = 0.3;
