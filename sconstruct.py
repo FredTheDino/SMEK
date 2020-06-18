@@ -62,6 +62,7 @@ env.Append(CXXFLAGS="-Iinc")
 env.Append(LINKFLAGS=shell(["sdl2-config", "--libs"]))
 env.Append(LINKFLAGS="-ldl")
 env.Append(LINKFLAGS="-rdynamic")  # Gives backtrace information
+env.Append(CPPDEFINES="IMGUI_IMPL_OPENGL_LOADER_GLAD")
 
 debug_flags = ["-ggdb", "-O0", "-DDEBUG"]
 release_flags = ["-O2", "-DRELEASE"]
