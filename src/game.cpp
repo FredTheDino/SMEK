@@ -16,8 +16,6 @@ GameState *_global_gs;
 GameState *GAMESTATE() { return _global_gs; }
 #endif
 
-AssetID sound_id;
-
 bool should_update(GSUM gsmu) {
     return gsmu == GSUM::UPDATE || gsmu == GSUM::UPDATE_AND_RENDER;
 }
@@ -64,9 +62,6 @@ void reload_game(GameState *game) {
     _global_gs = game;
     GFX::reload(game);
     Asset::reload();
-
-    sound_id = AssetID("NOISE_STEREO_8K");
-    Asset::fetch_sound(sound_id); // Should always be done on main thread.
 }
 
 void update() {
@@ -128,26 +123,6 @@ void draw() {
     model_matrix = Mat::translate(0, 0, -0.6) * Mat::scale(0.1);
     shader.upload_model(model_matrix);
     mesh.draw();
-#endif
-
-#ifndef IMGUI_DISABLE
-    ImGui::Begin("Tweaks");
-    if (ImGui::Button("Reset camera"))
-        *GFX::main_camera() = GFX::Camera::init();
-    ImGui::Separator();
-    if (ImGui::Button("Play sound")) {
-        EventSystem::Event e = {
-            .type = EventSystem::EventType::CREATE_SOUND_ENTITY,
-            .CREATE_SOUND_ENTITY = {
-                .asset_id = sound_id,
-                .source_settings = { .gain = 0.3, .repeat = false },
-            },
-        };
-        GAMESTATE()->event_queue.push(e);
-    }
-    if (ImGui::Button("Stop all sounds"))
-        GAMESTATE()->audio_struct->stop_all();
-    ImGui::End();
 #endif
 
     GFX::debug_shader().use();

@@ -43,10 +43,11 @@ void Player::update() {
 
 void Player::draw() {
 #ifndef IMGUI_DISABLE
+    ImGui::BeginChild("Player");
     ImGui::SliderFloat("Jump speed", &GAMESTATE()->player_jump_speed, 0.0, 10.0, "%.2f");
     ImGui::SliderFloat("Movement speed", &GAMESTATE()->player_movement_speed, 0.0, 10.0, "%.2f");
     ImGui::SliderFloat("Mouse sensitivity", &GAMESTATE()->player_mouse_sensitivity, 0.0, 2.0, "%.2f");
-    ImGui::Separator();
+    ImGui::EndChild();
 #endif
 
     GFX::MasterShader shader = GFX::master_shader();
@@ -57,14 +58,36 @@ void Player::draw() {
 }
 
 void SoundEntity::update() {
-    remove |= !GAMESTATE()->audio_struct->is_playing(audio_id);
+    remove |= !GAMESTATE()->audio_struct->is_valid(audio_id);
 }
 
 void SoundEntity::draw() {
 #ifndef IMGUI_DISABLE
+    Audio::SoundSource *source = GAMESTATE()->audio_struct->fetch_source(audio_id);
+    if (!source) return;
+    ImGui::BeginChild("Sound entities");
     ImGui::PushID(this);
-    remove |= ImGui::Button("Stop sound entity");
+    ImGui::Indent();
+    ImGui::Text("SoundEntity");
+    ImGui::SameLine();
+    ImGui::Text("%.2f/%.2f",
+                (f32) source->sample / source->sample_rate,
+                (f32) source->num_samples / source->channels / source->sample_rate);
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(100.0);
+    f32 gain = source->gain;
+    if (ImGui::SliderFloat("Gain", &gain, 0.0, 1.0, "%.2f")) {
+        GAMESTATE()->audio_struct->lock();
+        source->gain = gain;
+        GAMESTATE()->audio_struct->unlock();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Play/pause")) GAMESTATE()->audio_struct->toggle_pause_sound(audio_id);
+    ImGui::SameLine();
+    remove |= ImGui::Button("Stop");
+    ImGui::Unindent();
     ImGui::PopID();
+    ImGui::EndChild();
 #endif
 }
 
@@ -101,12 +124,77 @@ void EntitySystem::update() {
 
 void EntitySystem::draw() {
 #ifndef IMGUI_DISABLE
-    ImGui::Text("Entities: %ld", entities.size());
-    ImGui::Separator();
+    ImGui::Begin("Entities");
+    ImGui::Text("Current entities: %ld", entities.size());
+
+    //TODO(gu) filter for sound entities
+    //TODO(gu) formatting, spacing, the whole lot
+    ImGui::BeginChild("Sound entities", ImVec2(0, 170 + ((ImGui::GetTextLineHeightWithSpacing() + 6) * 4)), true);
+    ImGui::Text("Sound entities:");
+    if (ImGui::Button("Create sound"))
+        GAMESTATE()->show_create_sound_window = true;
+    ImGui::SameLine();
+    if (ImGui::Button("Stop all sounds"))
+        GAMESTATE()->audio_struct->stop_all();
+    ImGui::Spacing();
+
+    if (GAMESTATE()->show_create_sound_window) {
+        ImGui::BeginChild("Create sound entity", ImVec2(0, 110), true);
+        static AssetID item_current_idx;
+        static f32 gain = 0.3;
+        static bool repeat = true;
+
+        if (!Asset::valid_asset(item_current_idx)) {
+            item_current_idx = AssetID::NONE();
+        }
+
+        const char *id_preview = (Asset::valid_asset(item_current_idx) ?
+                GAMESTATE()->asset_system.assets[item_current_idx].header->name :
+                "Sound asset");
+
+        if (ImGui::BeginCombo("", id_preview)) {
+            for (auto &it : GAMESTATE()->asset_system.assets ) {
+                Asset::UsableAsset asset = it.second;
+                if (asset.header->type != Asset::AssetType::SOUND) continue;
+                const bool is_selected = (item_current_idx == it.first);
+                if (ImGui::Selectable(asset.header->name, is_selected))
+                    item_current_idx = it.first;
+            }
+            ImGui::EndCombo();
+        }
+        ImGui::SliderFloat("Gain", &gain, 0.0, 1.0, "%.2f");
+        ImGui::Checkbox("Repeat", &repeat);
+
+        if (ImGui::Button("Play") && (item_current_idx != AssetID::NONE())) {
+            AssetID asset_id = AssetID(GAMESTATE()->asset_system.assets[item_current_idx].header->name);
+            Asset::fetch_sound(asset_id);
+            //EventSystem::add_entity((SoundEntity) {.asset = asset_id, });
+            EventSystem::Event e = {
+                .type = EventSystem::EventType::CREATE_SOUND_ENTITY,
+                .CREATE_SOUND_ENTITY = {
+                    .asset_id = asset_id,
+                    .source_settings = { .gain = gain, .repeat = repeat },
+                },
+            };
+            GAMESTATE()->event_queue.push(e);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Close")) GAMESTATE()->show_create_sound_window = false;
+        ImGui::EndChild();
+    }
+    ImGui::EndChild();
+
+    ImGui::BeginChild("Player", ImVec2(0, 100), true);
+    ImGui::Text("Player:");
+    ImGui::EndChild();
+
 #endif
     for (auto [_, e]: entities) {
         e->draw();
     }
+#ifndef IMGUI_DISABLE
+    ImGui::End();
+#endif
 }
 
 TEST_CASE("entity_adding", {

@@ -15,8 +15,6 @@ enum EventType {
 };
 
 struct EventCreateSoundEntity {
-    //TODO(gu) Wrap in existing sound source settings etc.
-    // Becomes "non-trivial" for now. std::variant?
     AssetID asset_id;
     Audio::SoundSourceSettings source_settings;
 

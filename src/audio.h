@@ -24,6 +24,7 @@ struct SoundSource {
     f32 sample;
     f32 gain;
     bool active;
+    bool paused;
     bool repeat;
 
     u32 gen;
@@ -57,10 +58,12 @@ struct AudioStruct {
 
     AudioID play_sound(AssetID asset_id, SoundSourceSettings source_settings = {});
     void stop_sound(AudioID id);
+    void toggle_pause_sound(AudioID id);
 
     void stop_all();
 
-    bool is_playing(AudioID id);
+    bool is_valid(AudioID id);
+    SoundSource *fetch_source(AudioID id);
 };
 
 void audio_callback(AudioStruct *audio_struct, f32 *stream, int len);
