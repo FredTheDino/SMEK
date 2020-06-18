@@ -68,7 +68,7 @@ void SoundEntity::draw() {
     ImGui::BeginChild("Sound entities");
     ImGui::PushID(this);
     ImGui::Indent();
-    ImGui::Text(asset_id.name);  //TODO(gu) wont work when creating sounds from other clients since we're just passing pointers
+    ImGui::Text("SoundEntity");
     ImGui::SameLine();
     ImGui::Text("%.2f/%.2f",
                 (f32) source->sample / source->sample_rate,
