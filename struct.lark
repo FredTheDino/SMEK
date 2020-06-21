@@ -12,9 +12,9 @@ _member: field
 
 field: TYPE pointer? NAME ("[" INT? "]")? ("=" INITIALIZER_VALUE)? ";"
 
-method: VIRTUAL? TYPE NAME "(" PARAMETERS? ")" OVERRIDE? "{" METHOD_BODY? "}" ";"?
-      | VIRTUAL? TYPE NAME "(" PARAMETERS? ")" OVERRIDE? ";"
-      | VIRTUAL  TYPE NAME "(" PARAMETERS? ")" "=" "0" ";"
+method: VIRTUAL? (TYPE | destructor) NAME "(" PARAMETERS? ")" OVERRIDE? "{" METHOD_BODY? "}" ";"?
+      | VIRTUAL? (TYPE | destructor) NAME "(" PARAMETERS? ")" OVERRIDE? ";"
+      | VIRTUAL  (TYPE | destructor) NAME "(" PARAMETERS? ")" "=" "0" ";"
 
 PARAMETERS: PARAMETER ("," PARAMETER)*
 PARAMETER: TYPE NAME?
@@ -23,6 +23,7 @@ METHOD_BODY: /[^}]*}/
 
 NAME: ALPHANUMWORD
 pointer: "*"                             -> pointer
+destructor: "~"                          -> destructor
 TYPE: (ALPHANUMWORD "::")* ALPHANUMWORD
 INITIALIZER_VALUE: /[^;]+/
 VIRTUAL: "virtual"
