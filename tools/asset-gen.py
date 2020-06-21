@@ -168,7 +168,7 @@ def sprite_asset(path, verbose):
     header["type"] = TYPE_TEXTURE
     header["data_size"] = struct.calcsize(fmt)
 
-    return header, struct.pack(fmt, w, h, c, 0, *data)
+    yield header, struct.pack(fmt, w, h, c, 0, *data)
 
 
 def string_asset(path, verbose):
@@ -187,7 +187,7 @@ def string_asset(path, verbose):
     header["type"] = TYPE_STRING
     header["data_size"] = struct.calcsize(fmt)
 
-    return header, struct.pack(fmt, len(data)+1, 0, str.encode(data, "ascii"))
+    yield header, struct.pack(fmt, len(data)+1, 0, str.encode(data, "ascii"))
 
 
 def shader_asset(path, verbose):
@@ -195,9 +195,9 @@ def shader_asset(path, verbose):
 
     Format is the same as for strings but with another type.
     """
-    header, data = string_asset(path, verbose)
+    header, data = next(string_asset(path, verbose))
     header["type"] = TYPE_SHADER
-    return header, data
+    yield header, data
 
 
 def model_asset(path, verbose):
@@ -252,7 +252,7 @@ def model_asset(path, verbose):
     header["type"] = TYPE_MODEL
     header["data_size"] = struct.calcsize(fmt)
 
-    return header, struct.pack(fmt, points_per_face, num_faces, 0, *data)
+    yield header, struct.pack(fmt, points_per_face, num_faces, 0, *data)
 
 
 def wav_asset(path, verbose):
@@ -303,7 +303,7 @@ def wav_asset(path, verbose):
         header = default_header()
         header["type"] = TYPE_SOUND
         header["data_size"] = struct.calcsize(fmt)
-        return header, struct.pack(fmt, channels, sample_rate, len(data), 0, *data)
+        yield header, struct.pack(fmt, channels, sample_rate, len(data), 0, *data)
 
 
 EXTENSIONS = {
@@ -348,8 +348,8 @@ def pack(asset_files, out_file, verbose=False):
                 print(f"\nName hash collision! ({name})")
                 sys.exit(1)
             seen_name_hashes.add(name_hash)
-            asset_header, asset_data = EXTENSIONS[ext](asset, verbose)
-            if asset_header and asset_data:
+            for asset_header, asset_data in EXTENSIONS[ext](asset, verbose):
+                if not (asset_header and asset_data): continue
                 num_assets += 1
                 asset_header["name_hash"] = name_hash
                 asset_header["data_hash"] = hash_bytes(asset_data)
