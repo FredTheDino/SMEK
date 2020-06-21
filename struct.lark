@@ -10,7 +10,7 @@ _member: field
       | method
       | ";"
 
-field: TYPE NAME ("[" INT? "]")? ("=" INITIALIZER_VALUE)? ";"
+field: TYPE pointer? NAME ("[" INT? "]")? ("=" INITIALIZER_VALUE)? ";"
 
 method: VIRTUAL? TYPE NAME "(" PARAMETERS? ")" OVERRIDE? "{" METHOD_BODY? "}" ";"?
       | VIRTUAL? TYPE NAME "(" PARAMETERS? ")" OVERRIDE? ";"
@@ -22,6 +22,7 @@ PARAMETER: TYPE NAME?
 METHOD_BODY: /[^}]*}/
 
 NAME: ALPHANUMWORD
+pointer: "*"                             -> pointer
 TYPE: (ALPHANUMWORD "::")* ALPHANUMWORD
 INITIALIZER_VALUE: /[^;]+/
 VIRTUAL: "virtual"
