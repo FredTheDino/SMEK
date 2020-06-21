@@ -1,11 +1,12 @@
 import glob
 import lark
 import re
-import sys
 
 
 class Struct():
-    """A struct or a class in C/C++. Can be used in a tree.
+    """A struct or a class in C/C++.
+
+    Can be used in a tree since it knows about its base.
 
     Members:
       - name   : str
@@ -54,7 +55,6 @@ def process_source(src):
 
 def find_struct_source(src, index):
     """Parse a string and return its top level Struct objects."""
-    l = len(src)
     prev_index = index
     index = src.index("{", index) + 1
     struct = src[prev_index:index]
@@ -141,21 +141,12 @@ def find_structs(paths):
             struct.parent = structs[struct.parent]
         else:
             struct.parent = None
-
     return structs
 
 
-def lex(source):
-    print(source)
-    struct_grammar = ""
-    with open("struct.lark", "r") as f:
-        struct_grammar = "".join(f.readlines())
-    assert struct_grammar, "Unable to read grammar"
-    struct_parser = lark.Lark(struct_grammar, start="structs")
-    return struct_parser.parse(source).pretty()
-
-
 if __name__ == "__main__":
+    lexer = lark.Lark.open("struct.lark", start="structs")
     for name, struct in find_structs(glob.glob("src/**/*.*", recursive=True)).items():
-        if struct.parents_contain("BaseEntity"):
-            print(lex(struct.source))
+        if struct.parents_contain("BaseEntity") or name == "BaseEntity":
+            print(struct.source)
+            print(lexer.parse(struct.source).pretty())
