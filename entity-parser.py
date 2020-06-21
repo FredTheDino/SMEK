@@ -1,9 +1,12 @@
 import glob
+from lark import lark
 import re
 
 
 class Struct():
-    """A struct or a class in C/C++. Can be used in a tree.
+    """A struct or a class in C/C++.
+
+    Can be used in a tree since it knows about its base.
 
     Members:
       - name   : str
@@ -52,7 +55,6 @@ def process_source(src):
 
 def find_struct_source(src, index):
     """Parse a string and return its top level Struct objects."""
-    l = len(src)
     prev_index = index
     index = src.index("{", index) + 1
     struct = src[prev_index:index]
@@ -76,7 +78,7 @@ def find_struct_source(src, index):
             index = src.find("{", index) + 1
             struct += src[prev_index:index]
             brace_depth += 1
-    return struct
+    return struct + ";"
 
 
 def find_structs(paths):
@@ -129,7 +131,6 @@ def find_structs(paths):
                 else:
                     name, parent = match[2], match[5]
                 structs[name] = Struct(name, parent)
-                print(name, match.span())
                 structs[name].source = find_struct_source(source, match.start())
                 last_struct_end = match.start() + len(structs[name].source)
 
@@ -140,11 +141,12 @@ def find_structs(paths):
             struct.parent = structs[struct.parent]
         else:
             struct.parent = None
-
     return structs
 
 
 if __name__ == "__main__":
+    lexer = lark.Lark.open("struct.lark", start="structs")
     for name, struct in find_structs(glob.glob("src/**/*.*", recursive=True)).items():
-        if struct.parents_contain("BaseEntity"):
-            print(f"{struct}\n{struct.source}\ndone\n")
+        if struct.parents_contain("BaseEntity") or name == "BaseEntity":
+            print(struct.source)
+            print(lexer.parse(struct.source).pretty())
