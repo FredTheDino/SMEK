@@ -126,6 +126,65 @@ void Mesh::draw() {
     glBindVertexArray(0);
 }
 
+void Skin::destroy() {
+    glDeleteVertexArrays(11, &vao);
+    glDeleteBuffers(1, &vbo);
+}
+
+Skin Skin::init(Vertex *verticies, u32 num_verticies) {
+    u32 vao, vbo;
+
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+
+    LOG(": {}", sizeof(Vertex));
+
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * num_verticies, verticies, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, position));
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, texture));
+
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, normal));
+
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 2, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, weight1));
+
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 2, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, weight2));
+
+    glEnableVertexAttribArray(5);
+    glVertexAttribPointer(5, 2, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, weight3));
+    glBindVertexArray(0);
+
+    return {vao, vbo, num_verticies};
+}
+
+void Skin::draw() {
+    glBindVertexArray(vao);
+    glDrawArrays(GL_TRIANGLES, 0, draw_length);
+    glBindVertexArray(0);
+}
+
+Skeleton Skeleton::init(Bone *bones, u32 num_bones) {
+    return {};
+}
+
+void Skeleton::destroy() {
+}
+
+Animation Animation::init(Frame *frames, u32 num_frames, u32 num_bones) {
+    return {};
+}
+
+void Animation::destroy() {
+}
+
 
 void Shader::use() { glUseProgram(program_id); }
 

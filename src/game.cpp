@@ -84,6 +84,7 @@ void update() {
     GAMESTATE()->entity_system.update();
 }
 
+
 void draw() {
     glClearColor(0.2, 0.1, 0.3, 1); // We don't need to do this...
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -110,20 +111,13 @@ void draw() {
 
     GAMESTATE()->entity_system.draw();
 
-#if 0
-    GFX::Mesh mesh = *Asset::fetch_mesh("MONKEY");
-    Mat model_matrix = Mat::translate(Math::cos(time()) * 0.2, Math::sin(time()) * 0.2, -0.5) * Mat::scale(0.1);
+    GFX::Skin *mesh = Asset::fetch_skin("SKIN_SWINGING_CUBE");
+    Mat model_matrix = Mat::translate(Math::cos(time()) * 0.2, Math::sin(time()) * 0.2, -0.5) * Mat::scale(0.5);
     shader.upload_model(model_matrix);
-    mesh.draw();
+    mesh->draw();
 
-    model_matrix = Mat::translate(-Math::cos(time()) * 0.2, -Math::sin(time()) * 0.2, -0.5) * Mat::scale(0.1);
-    shader.upload_model(model_matrix);
-    mesh.draw();
-
-    model_matrix = Mat::translate(0, 0, -0.6) * Mat::scale(0.1);
-    shader.upload_model(model_matrix);
-    mesh.draw();
-#endif
+    Vec3 p(Math::cos(time()) * 0.2, Math::sin(time()) * 0.2, -0.5);
+    GFX::push_point(Vec3(p.x, p.y, p.z));
 
     GFX::debug_shader().use();
     GFX::main_camera()->upload(GFX::debug_shader());

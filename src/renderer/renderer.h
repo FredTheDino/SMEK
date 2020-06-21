@@ -78,6 +78,57 @@ struct Mesh {
     void draw();
 };
 
+struct Skin {
+    struct Vertex {
+        Vec3 position;
+        Vec2 texture;
+        Vec3 normal;
+        Vec2 weight1;
+        Vec2 weight2;
+        Vec2 weight3;
+    };
+
+    u32 vao, vbo;
+    u32 draw_length;
+
+    static Skin init(Vertex *vericies, u32 num_verticies);
+
+    void destroy();
+
+    void draw();
+};
+
+struct Bone {
+    int parent;
+    int index;
+    Vec3 scale;
+    Quat rotation;
+    Vec3 position;
+};
+
+struct Skeleton {
+    u32 num_bones;
+    Bone *bones;
+
+    static Skeleton init(Bone *bones, u32 num_bones);
+
+    void destroy();
+};
+
+struct Animation {
+    struct Frame {
+        u32 t;
+        Bone *bones;
+    };
+    u32 num_bones;
+    u32 num_frames;
+    Frame *frames;
+
+    static Animation init(Frame *frames, u32 num_frames, u32 num_bones);
+
+    void destroy();
+};
+
 struct Shader {
     i32 program_id;
 

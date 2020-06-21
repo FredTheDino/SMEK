@@ -318,30 +318,36 @@ def skinned_asset(path, verbose):
 
     def parse_geo(line):
         data = flatmap(float, line.split())
-        return data, TYPE_SKINNED, f"{len(data)}f", "SKIN_"
+        return [len(data)] + data, TYPE_SKINNED, f"I{len(data)}f", "SKIN_"
 
     def parse_arm(line):
         bones = []
+        num_bones = line.count("|") + 1
         for bone in line.split("|"):
             splits = bone.split()
             parent, id = int(splits[0]), int(splits[1])
             transform = flatmap(float, splits[3:])
             bones += [parent, id, *transform]
-        return bones, TYPE_SKELETON, "2i10f" * (line.count("|") + 1), "SKEL_"
+        return [num_bones] + bones, TYPE_SKELETON, "i" + "ii10f" * num_bones, "SKEL_"
 
     def parse_anim(name, line):
-        num_bones = None
         num_frames = line.count(";") + 1
+        num_bones = None
 
         data = []
         for frame in line.split(";"):
-            t, transforms = frame.split("=")
-            data.append(int(t))
+            data.append(int(frame.split("=")[0]))
+
+        for frame in line.split(";"):
+            transforms = frame.split("=")[1]
             assert num_bones is None or num_bones == (transforms.count("|") + 1)
             num_bones = transforms.count("|") + 1
             for transform in transforms.split("|"):
                 data += flatmap(float, transform.split())
-        return data, TYPE_ANIMATION, f"i{10*num_bones}f" * num_frames, "ANIM_" + name.upper() + "_"
+        num_floats = 10 * num_bones * num_frames
+        fmt = "II" + f"{num_frames}I"+ f"{num_floats}f"
+        data = [num_frames, num_bones] + data
+        return data, TYPE_ANIMATION, fmt, "ANIM_" + name.upper() + "_"
 
 
     with open(path, "r") as f:
@@ -359,7 +365,8 @@ def skinned_asset(path, verbose):
             header = default_header()
             header["type"] = t
             header["data_size"] = struct.calcsize(fmt)
-            out = struct.pack(fmt, *data)
+            out = struct.pack(fmt, *(data[0:]))
+            print(header["data_size"])
             yield header, out, post
 
 

@@ -9,6 +9,9 @@ uniform sampler2D tex;
 layout(location=0) in vec3 pos;
 layout(location=1) in vec2 uv;
 layout(location=2) in vec3 norm;
+layout(location=3) in vec2 weight1;
+layout(location=4) in vec2 weight2;
+layout(location=5) in vec2 weight3;
 
 out vec2 pass_uv;
 out vec3 pass_norm;
