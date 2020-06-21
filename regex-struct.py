@@ -1,5 +1,7 @@
 import glob
+import lark
 import re
+import sys
 
 
 class Struct():
@@ -76,7 +78,7 @@ def find_struct_source(src, index):
             index = src.find("{", index) + 1
             struct += src[prev_index:index]
             brace_depth += 1
-    return struct
+    return struct + ";"
 
 
 def find_structs(paths):
@@ -129,7 +131,6 @@ def find_structs(paths):
                 else:
                     name, parent = match[2], match[5]
                 structs[name] = Struct(name, parent)
-                print(name, match.span())
                 structs[name].source = find_struct_source(source, match.start())
                 last_struct_end = match.start() + len(structs[name].source)
 
@@ -144,7 +145,17 @@ def find_structs(paths):
     return structs
 
 
+def lex(source):
+    print(source)
+    struct_grammar = ""
+    with open("struct.lark", "r") as f:
+        struct_grammar = "".join(f.readlines())
+    assert struct_grammar, "Unable to read grammar"
+    struct_parser = lark.Lark(struct_grammar, start="structs")
+    return struct_parser.parse(source).pretty()
+
+
 if __name__ == "__main__":
     for name, struct in find_structs(glob.glob("src/**/*.*", recursive=True)).items():
         if struct.parents_contain("BaseEntity"):
-            print(f"{struct}\n{struct.source}\ndone\n")
+            print(lex(struct.source))
