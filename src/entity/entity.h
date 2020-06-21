@@ -79,9 +79,8 @@ EntityID EntitySystem::add(E entity) {
 
 EntitySystem *entity_system();
 
-#if 0
-
-///* BaseEntity
+/*
+//// BaseEntity
 // The base entity all other entities inherit from.
 struct BaseEntity {
     bool remove = false;
@@ -93,7 +92,7 @@ struct BaseEntity {
 //
 // <code>remove</code> is checked for all entities after each update cycle.
 
-///* SoundEntity
+//// SoundEntity
 // A sound entity is an entity that plays a sound (no kidding).
 // Removing the entity stops the sound from playing, and,
 // equivalently, the entity is removed when the sound is done playing.
@@ -102,5 +101,4 @@ struct SoundEntity: public BaseEntity {
     Audio::SoundSourceSettings sound_source_settings;
     AudioID audio_id;
 };
-
-#endif
+*/
