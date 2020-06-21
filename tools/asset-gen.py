@@ -95,6 +95,9 @@ TYPE_STRING = 2
 TYPE_MODEL = 3
 TYPE_SHADER = 4
 TYPE_SOUND = 5
+TYPE_SKINNED = 6
+TYPE_SKELETON = 7
+TYPE_ANIMATION = 8
 
 
 def ll(x):
@@ -306,12 +309,69 @@ def wav_asset(path, verbose):
         yield header, struct.pack(fmt, channels, sample_rate, len(data), 0, *data), ""
 
 
+def skinned_asset(path, verbose):
+    """Reads a skinned mesh in the .edan format.
+
+    Spits out 2+N assets, 1 mesh, 1 skeleton and N animations.
+    """
+    flatmap = lambda x, y: list(map(x, y))
+
+    def parse_geo(line):
+        data = flatmap(float, line.split())
+        return data, TYPE_SKINNED, f"{len(data)}f", "SKIN_"
+
+    def parse_arm(line):
+        bones = []
+        for bone in line.split("|"):
+            splits = bone.split()
+            parent, id = int(splits[0]), int(splits[1])
+            transform = flatmap(float, splits[3:])
+            bones += [parent, id, *transform]
+        return bones, TYPE_SKELETON, "2i10f" * (line.count("|") + 1), "SKEL_"
+
+    def parse_anim(name, line):
+        num_bones = None
+        num_frames = line.count(";") + 1
+
+        data = []
+        for frame in line.split(";"):
+            t, transforms = frame.split("=")
+            data.append(int(t))
+            assert num_bones is None or num_bones == (transforms.count("|") + 1)
+            num_bones = transforms.count("|") + 1
+            for transform in transforms.split("|"):
+                data += flatmap(float, transform.split())
+        return data, TYPE_ANIMATION, f"i{10*num_bones}f" * num_frames, "ANIM_" + name.upper() + "_"
+
+
+    with open(path, "r") as f:
+        for line in f:
+            splits = line.split(":")
+            pre, splits = splits[0], splits[1:]
+
+            if pre == "geo":
+                data, t, fmt, post = parse_geo(*splits)
+            elif pre == "arm":
+                data, t, fmt, post = parse_arm(*splits)
+            elif pre == "anim":
+                data, t, fmt, post = parse_anim(*splits)
+
+            header = default_header()
+            header["type"] = t
+            header["data_size"] = struct.calcsize(fmt)
+            out = struct.pack(fmt, *data)
+            yield header, out, post
+
+
+
+
 EXTENSIONS = {
     "png": sprite_asset,
     "jpg": sprite_asset,
     "txt": string_asset,
     "glsl": shader_asset,
     "obj": model_asset,
+    "edan": skinned_asset,
     "wav": wav_asset,
 }
 
