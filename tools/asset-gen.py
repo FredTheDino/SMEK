@@ -168,7 +168,7 @@ def sprite_asset(path, verbose):
     header["type"] = TYPE_TEXTURE
     header["data_size"] = struct.calcsize(fmt)
 
-    yield header, struct.pack(fmt, w, h, c, 0, *data)
+    yield header, struct.pack(fmt, w, h, c, 0, *data), ""
 
 
 def string_asset(path, verbose):
@@ -187,7 +187,7 @@ def string_asset(path, verbose):
     header["type"] = TYPE_STRING
     header["data_size"] = struct.calcsize(fmt)
 
-    yield header, struct.pack(fmt, len(data)+1, 0, str.encode(data, "ascii"))
+    yield header, struct.pack(fmt, len(data)+1, 0, str.encode(data, "ascii")), ""
 
 
 def shader_asset(path, verbose):
@@ -195,9 +195,9 @@ def shader_asset(path, verbose):
 
     Format is the same as for strings but with another type.
     """
-    header, data = next(string_asset(path, verbose))
+    header, data, _ = next(string_asset(path, verbose))
     header["type"] = TYPE_SHADER
-    yield header, data
+    yield header, data, ""
 
 
 def model_asset(path, verbose):
@@ -252,7 +252,7 @@ def model_asset(path, verbose):
     header["type"] = TYPE_MODEL
     header["data_size"] = struct.calcsize(fmt)
 
-    yield header, struct.pack(fmt, points_per_face, num_faces, 0, *data)
+    yield header, struct.pack(fmt, points_per_face, num_faces, 0, *data), ""
 
 
 def wav_asset(path, verbose):
@@ -303,7 +303,7 @@ def wav_asset(path, verbose):
         header = default_header()
         header["type"] = TYPE_SOUND
         header["data_size"] = struct.calcsize(fmt)
-        yield header, struct.pack(fmt, channels, sample_rate, len(data), 0, *data)
+        yield header, struct.pack(fmt, channels, sample_rate, len(data), 0, *data), ""
 
 
 EXTENSIONS = {
@@ -320,7 +320,6 @@ def pack(asset_files, out_file, verbose=False):
     print("=== PACKING INTO {} ===".format(out_file))
     seen_name_hashes = set()
 
-    num_assets = 0
     cur_asset_offset = 0
     cur_name_offset = 0
 
@@ -332,25 +331,27 @@ def pack(asset_files, out_file, verbose=False):
         if asset.count(".") != 1:
             continue
         ext = asset.split(".")[-1]
-        name = re.sub(r"[^A-Z0-9]", "_", ""
-                      .join(asset
-                            .split("/")[-1]
-                            .split(".")[:-1])
-                      .upper())
-        print(asset + " -> ", end="")
         if ext in EXTENSIONS:
-            name_hash = hash_string(name)
-            if verbose:
-                print(f"{name} ({name_hash})")
-            else:
-                print(name)
-            if name_hash in seen_name_hashes:
-                print(f"\nName hash collision! ({name})")
-                sys.exit(1)
-            seen_name_hashes.add(name_hash)
-            for asset_header, asset_data in EXTENSIONS[ext](asset, verbose):
+            for asset_header, asset_data, asset_prefix in EXTENSIONS[ext](asset, verbose):
                 if not (asset_header and asset_data): continue
-                num_assets += 1
+                name = re.sub(r"[^A-Z0-9]", "_",
+                              asset_prefix +
+                              "".join((asset)
+                                    .split("/")[-1]
+                                    .split(".")[:-1])
+                              .upper())
+                print(asset + " -> ", end="")
+
+                name_hash = hash_string(name)
+                if verbose:
+                    print(f"{name} ({name_hash})")
+                else:
+                    print(name)
+                if name_hash in seen_name_hashes:
+                    print(f"\nName hash collision! ({name})")
+                    sys.exit(1)
+                seen_name_hashes.add(name_hash)
+
                 asset_header["name_hash"] = name_hash
                 asset_header["data_hash"] = hash_bytes(asset_data)
                 asset_header["name_size"] = len(name)+1
@@ -366,14 +367,14 @@ def pack(asset_files, out_file, verbose=False):
 
     names = [struct.pack("{}s".format(len(name)+1), str.encode(name, "ascii") + b'\0') for name in names]
 
-    name_offset = HEADER_OFFSET + HEADER_SIZE * num_assets
     data_offset = name_offset + sum([len(name) for name in names])
+    data_offset = HEADER_OFFSET + HEADER_SIZE * len(headers)
 
     if verbose:
         print("=== PACKING THE FOLLOWING ASSETS ===")
         print("\n".join(names))
     with open(out_file, "wb") as f:
-        f.write(struct.pack(FILE_HEADER_FMT, num_assets, HEADER_OFFSET, name_offset, data_offset))
+        f.write(struct.pack(FILE_HEADER_FMT, len(headers), HEADER_OFFSET, data_offset))
         for h in sorted(headers, key=lambda x: x["name_hash"]):
             f.write(struct.pack(ASSET_HEADER_FMT, *h.values()))
             if verbose:
