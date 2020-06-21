@@ -109,7 +109,6 @@ static void load_skin(UsableAsset *asset, FILE *file) {
     u32 num_floats = 0;
     read(file, &num_floats);
     u32 size = (sizeof(float) * num_floats) / sizeof(GFX::Skin::Vertex);
-    ASSERT(size * sizeof(GFX::Skin::Vertex) == num_floats * sizeof(float), "What!");
     GFX::Skin::Vertex *data = new GFX::Skin::Vertex[size];
     read(file, data, size);
     asset->skin = GFX::Skin::init(data, size);
@@ -134,16 +133,17 @@ static void load_animation(UsableAsset *asset, FILE *file) {
         asset->animation.destroy();
     }
 
-    u32 num_frames, num_bones;
+    u32 num_frames, trans_per_frame;
     read(file, &num_frames);
-    read(file, &num_bones);
+    read(file, &trans_per_frame);
 
     u32 *times = new u32[num_frames];
     read(file, times, num_frames);
 
-    GFX::Bone *bones = new GFX::Bone[num_bones*num_frames];
-    read(file, bones, num_bones*num_frames);
-    asset->animation = GFX::Animation::init(nullptr, num_frames, num_bones);
+    GFX::Transform *trans = new GFX::Transform[trans_per_frame*num_frames];
+    read(file, trans, trans_per_frame*num_frames);
+    // Ownership is passed to the animation for all pointers.
+    asset->animation = GFX::Animation::init(times, num_frames, trans, trans_per_frame);
 }
 
 static void load_asset(UsableAsset *asset) {
@@ -183,6 +183,7 @@ static void load_asset(UsableAsset *asset) {
         load_skeleton(asset, file);
     } break;
     case AssetType::ANIMATION: {
+        load_animation(asset, file);
     } break;
     default:
         ERROR("Unknown asset type {} in asset file {}",
@@ -228,6 +229,15 @@ GFX::Mesh *fetch_mesh(AssetID id) {
 GFX::Skin *fetch_skin(AssetID id) {
     return &_raw_fetch(AssetType::SKINNED, id)->skin;
 }
+
+GFX::Skeleton *fetch_skeleton(AssetID id) {
+    return &_raw_fetch(AssetType::SKELETON, id)->skeleton;
+}
+
+GFX::Animation *fetch_animation(AssetID id) {
+    return &_raw_fetch(AssetType::ANIMATION, id)->animation;
+}
+
 
 Sound *fetch_sound(AssetID id) {
     return &_raw_fetch(AssetType::SOUND, id)->sound;

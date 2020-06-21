@@ -7,24 +7,6 @@
 #include "../math/smek_vec.h"
 #include "../renderer/renderer.h"
 
-struct AssetID {
-    AssetID(const char *);
-    AssetID(u64 id): id(id) {}
-    AssetID(): id(NONE()) {}
-
-    static AssetID NONE() { return 0xFFFFFFFF; }
-
-    u64 id;
-
-    bool operator ==(AssetID &other) const {
-        return id == other;
-    }
-
-    operator u64() const {
-        return id;
-    }
-};
-
 namespace std {
     template<> struct hash<AssetID> {
         std::size_t operator()(const AssetID &id) const noexcept {
@@ -171,6 +153,10 @@ GFX::Shader *fetch_shader(AssetID id);
 GFX::Mesh *fetch_mesh(AssetID id);
 
 GFX::Skin *fetch_skin(AssetID id);
+
+GFX::Skeleton *fetch_skeleton(AssetID id);
+
+GFX::Animation *fetch_animation(AssetID id);
 
 Sound *fetch_sound(AssetID id);
 

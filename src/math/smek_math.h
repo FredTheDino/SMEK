@@ -1,6 +1,25 @@
 #pragma once
 #include "types.h"
 
+// The asset id is almost universal, and is needed almost everywhere.
+struct AssetID {
+    AssetID(const char *);
+    AssetID(u64 id): id(id) {}
+    AssetID(): id(NONE()) {}
+
+    static AssetID NONE() { return 0xFFFFFFFF; }
+
+    u64 id;
+
+    bool operator ==(AssetID &other) const {
+        return id == other;
+    }
+
+    operator u64() const {
+        return id;
+    }
+};
+
 namespace Math {
 
 ///# Numbers

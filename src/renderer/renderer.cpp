@@ -171,20 +171,120 @@ void Skin::draw() {
     glBindVertexArray(0);
 }
 
+Mat Transform::to_matrix() {
+    return Mat::translate(position) * Mat::from(rotation) * Mat::scale(scale);
+}
+
 Skeleton Skeleton::init(Bone *bones, u32 num_bones) {
-    return {};
+    return {num_bones, bones};
 }
 
 void Skeleton::destroy() {
+    delete[] bones;
+    num_bones = 0;
 }
 
-Animation Animation::init(Frame *frames, u32 num_frames, u32 num_bones) {
-    return {};
+#if 0
+Mat Skeleton::matrix(int i) {
+    if (i == -1) return Mat::scale(1.0);
+    ASSERT(bones[i].index == i, "Invalid bone order");
+    return bones[i].transform.to_matrix();
+}
+
+void Skeleton::draw() {
+    // TODO(ed): This can be made better since the order 0...n will allways result
+    // in correct updated animations.
+    for (int i = 0; i < num_bones; i++) {
+        Vec4 color = i == 0 ? Vec4(0, 0, 0, 1) : Vec4(1, 1, 1, 1);
+        matrix(i).gfx_dump(color);
+    }
+}
+#endif
+
+Animation Animation::init(u32 *times, u32 num_frames, Transform *trans, u32 trans_per_frame) {
+    defer { delete[] times; };
+
+    Animation anim = {trans_per_frame, num_frames};
+    anim.frames = new Frame[num_frames];
+    for (u32 frame = 0; frame < num_frames; frame++) {
+        anim.frames[frame].t = times[frame];
+        anim.frames[frame].trans = trans + (frame * trans_per_frame);
+    }
+    return anim;
 }
 
 void Animation::destroy() {
+    delete[] frames[0].trans;
+    delete[] frames;
 }
 
+AnimatedMesh AnimatedMesh::init(AssetID skin, AssetID skeleton, AssetID animation) {
+    // Type checking at runtime.
+    Asset::fetch_skin(skin);
+    Asset::fetch_skeleton(skeleton);
+    Asset::fetch_animation(animation);
+
+    return {skin, skeleton, animation, AnimatedMesh::STANDARD_FRAME_PER_SECOND};
+}
+
+static Mat lerp_to_matrix(Transform a, Transform b, f32 blend) {
+#define LERP(a, b, l) ((a) + (l) * ((b) - (a)))
+    // TODO(ed): Maybe break this out so you can lerp to a new transform.
+    // If this code needs to be reused that would be great.
+    return Mat::translate(LERP(a.position, b.position, blend)) *
+           // NOTE(ed): This should be a slerp to be "accurate", but this is less work
+           // and will probably not be noticed.
+           Mat::from(normalized(LERP(a.rotation, b.rotation, blend))) *
+           Mat::scale(LERP(a.scale, b.scale, blend));
+#undef LERP
+}
+
+void AnimatedMesh::lerp_bones_to_matrix(Transform *as, Transform *bs, Mat *out, f32 blend, u32 num_bones) {
+    Skeleton *skel = Asset::fetch_skeleton(skeleton);
+    // Calculate the transform to the new pose.
+    for (u32 i = 0; i < num_bones; i++) {
+        Mat to_pose = lerp_to_matrix(as[i], bs[i], blend);
+
+        Bone *bone = skel->bones + i;
+        ASSERT(bone->index == i, "Invalid skeleton.");
+        ASSERT(i > bone->parent || bone->parent == -1,
+               "Invalid bone ordering, parent should always be before child.");
+        out[i] = to_pose * out[bone->parent];
+    }
+
+    // Calculate the transform to the new pose.
+    for (u32 i = 0; i < num_bones; i++) {
+        out[i] = out[i] * skel->bones[i].transform.to_matrix().invert();
+    }
+}
+
+void AnimatedMesh::draw_at(float time) {
+    float frame = time * seconds_to_frame;
+    frame = 0.0;
+    Animation *anim = Asset::fetch_animation(animation);
+    // TODO(ed): This could be a method.
+
+    // Stop at the end of the animation.
+    f32 blend = 1.0;
+    Animation::Frame *a, *b;
+    for (int i = 0; i < anim->num_frames - 1; i++) {
+        a = anim->frames + i;
+        b = anim->frames + i + 1;
+        if (a->t <= frame && b->t <= frame) {
+            blend = frame / (b->t - a->t);
+            break;
+        }
+    }
+
+
+    Mat *pose_mat = new Mat[anim->trans_per_frame];
+    defer { delete[] pose_mat; };
+    lerp_bones_to_matrix(a->trans, b->trans, pose_mat, blend, anim->trans_per_frame);
+
+    for (int i = 0; i < anim->trans_per_frame; i++) {
+        pose_mat[i].gfx_dump();
+    }
+}
 
 void Shader::use() { glUseProgram(program_id); }
 
@@ -324,14 +424,14 @@ Texture Texture::upload(u32 width, u32 height, u32 components, u8 *data, Samplin
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
 
-    GLenum format;
+    GLenum format = GL_RED;
     if (components == 1) format = GL_RED;
     else if (components == 2) format = GL_RG;
     else if (components == 3) format = GL_RGB;
     else if (components == 4) format = GL_RGBA;
     else UNREACHABLE("Invalid number of components ({})", components);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-    GLenum gl_sampling;
+    GLenum gl_sampling = GL_LINEAR;
     if (sampling == Sampling::LINEAR) gl_sampling = GL_LINEAR;
     else if (sampling == Sampling::NEAREST) gl_sampling = GL_NEAREST;
     else UNREACHABLE("Unsupported sampling ({})", components);
@@ -484,10 +584,12 @@ void push_debug_triangle(Vec3 p1, Vec4 c1, Vec3 p2, Vec4 c2, Vec3 p3, Vec4 c3) {
 void draw_primitivs() {
     main_camera()->upload(debug_shader());
     std::vector<DebugPrimitive> *primitives = &GAMESTATE()->renderer.primitives;
+    glDisable(GL_DEPTH_TEST);
     for (DebugPrimitive &p : *primitives) {
         p.draw();
         p.clear();
     }
+    glEnable(GL_DEPTH_TEST);
     GAMESTATE()->renderer.first_empty = 0;
 }
 

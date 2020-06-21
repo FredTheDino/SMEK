@@ -98,12 +98,27 @@ struct Skin {
     void draw();
 };
 
-struct Bone {
-    int parent;
-    int index;
+struct Transform {
     Vec3 scale;
     Quat rotation;
     Vec3 position;
+
+    Mat to_matrix();
+};
+
+struct Bone {
+    int parent;
+    int index;
+    union {
+        struct {
+            Vec3 scale;
+            Quat rotation;
+            Vec3 position;
+        };
+        Transform transform;
+    };
+
+    Bone() {}
 };
 
 struct Skeleton {
@@ -113,20 +128,42 @@ struct Skeleton {
     static Skeleton init(Bone *bones, u32 num_bones);
 
     void destroy();
+
+    Mat matrix(int i);
 };
 
 struct Animation {
     struct Frame {
         u32 t;
-        Bone *bones;
+        Transform *trans;
     };
-    u32 num_bones;
+    u32 trans_per_frame;
     u32 num_frames;
+
     Frame *frames;
 
-    static Animation init(Frame *frames, u32 num_frames, u32 num_bones);
+    static Animation init(u32 *times, u32 num_frames, Transform *trans, u32 trans_per_frame);
+
+    const Frame &operator[](int i) {
+        return frames[i];
+    }
 
     void destroy();
+};
+
+struct AnimatedMesh {
+    static constexpr float STANDARD_FRAME_PER_SECOND = 1.0 / 60.0;
+    AssetID skin;
+    AssetID skeleton;
+    AssetID animation;
+
+    // f32 time; // Add this in to let the animation be stepped through.
+    f32 seconds_to_frame;
+
+    void lerp_bones_to_matrix(Transform *as, Transform *bs, Mat *out, f32 blend, u32 num_bones);
+    void draw_at(float time);
+
+    static AnimatedMesh init(AssetID skin, AssetID skeleton, AssetID animation);
 };
 
 struct Shader {

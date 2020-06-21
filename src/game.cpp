@@ -112,9 +112,16 @@ void draw() {
     GAMESTATE()->entity_system.draw();
 
     GFX::Skin *mesh = Asset::fetch_skin("SKIN_SWINGING_CUBE");
-    Mat model_matrix = Mat::translate(Math::cos(time()) * 0.2, Math::sin(time()) * 0.2, -0.5) * Mat::scale(0.5);
+    Mat model_matrix = Mat::translate(Math::cos(time()) * 0.2, Math::sin(time()) * 0.2, -0.5) * Mat::scale(1.0);
     shader.upload_model(model_matrix);
+    shader.upload_t(time());
     mesh->draw();
+
+    AssetID skin, skel, anim;
+    skin = "SKIN_SWINGING_CUBE";
+    skel = "SKEL_SWINGING_CUBE";
+    anim = "ANIM_SWINGING_SWINGING_CUBE";
+    GFX::AnimatedMesh::init(skin, skel, anim).draw_at(time());
 
     Vec3 p(Math::cos(time()) * 0.2, Math::sin(time()) * 0.2, -0.5);
     GFX::push_point(Vec3(p.x, p.y, p.z));

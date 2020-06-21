@@ -53,10 +53,11 @@ AddOption("--jumbo",
           help="Compiles the code using Jumbo, this make it faster for clean builds")
 
 env = Environment(ENV=os.environ)
-env.Replace(CXX="g++")
+env.Replace(CXX="clang++")
 env.Append(CXXFLAGS="-Wall")
 env.Append(CXXFLAGS="-std=c++20")
-env.Append(CXXFLAGS="-Wno-unused -Wno-return-type-c-linkage")
+# Annoying things.
+env.Append(CXXFLAGS="-Wno-unused -Wno-return-type-c-linkage -Wno-format-security")
 env.Append(CXXFLAGS=shell(["sdl2-config", "--cflags"]))
 env.Append(CXXFLAGS="-Iinc")
 env.Append(LINKFLAGS=shell(["sdl2-config", "--libs"]))
