@@ -82,6 +82,9 @@ import wave
 from glob import glob
 from PIL import Image
 from collections import defaultdict
+from bs4 import BeautifulSoup
+import numpy as np
+import quaternion as quaternion
 
 FILE_HEADER_FMT = "QQQQ"
 ASSET_HEADER_FMT = "IQQQQQQP"
@@ -366,8 +369,167 @@ def skinned_asset(path, verbose):
             header["type"] = t
             header["data_size"] = struct.calcsize(fmt)
             out = struct.pack(fmt, *(data[0:]))
-            print(header["data_size"])
             yield header, out, post
+
+
+def collada_asset(path, verbose):
+
+    # Some helper functions
+    def to_int_array(text):
+        return [int(x) for x in text.split()]
+
+    def to_float_array(text):
+        return [float(x) for x in text.split()]
+
+    def css(id):
+        found = soup.select(id)
+        if found:
+            return found[0]
+        return None
+
+    def find_rec(id):
+        if input_tag := css(id + " input"):
+            return find_rec(input_tag["source"])
+        return css(id + " float_array")
+
+    with open(path, "r") as f:
+        soup = BeautifulSoup(f, features="lxml")
+
+    # This assumes there's only one skinned mesh in the file
+    skin = soup("skin")[0]
+
+    #
+    # Parses the <vertex_weights> tag
+    #
+    vertex_weights = skin.find("vertex_weights")
+    data = {}
+    for input_tag in vertex_weights.find_all("input"):
+        if input_tag["semantic"] == "WEIGHT":
+            data[input_tag["semantic"]] = to_float_array(find_rec(input_tag["source"]).text)
+        else:
+            # Why, WHY!? Is "Name_array" capitalized?
+            data[input_tag["semantic"]] = css(input_tag["source"] + " Name_array").text.split()
+
+    def list_eater(l, sizes):
+        gen_wj_pair = lambda: (l.pop(0), data["WEIGHT"][l.pop(0)])[::-1]
+        return [[gen_wj_pair() for _ in range(size)] for size in sizes]
+
+    def fill_out_to_three(l):
+        # Contains side effects
+        for i, weights in enumerate(l):
+            weights = (sorted(weights) + [(0,0)] * 3)[:3]
+            total = sum(map(lambda x: x[0], weights))
+            if total:
+                weights = [(w / total, j) for w, j in weights]
+            l[i] = weights
+
+    weights = to_int_array(skin.find("v").text)
+    count =  to_int_array(skin.find("vcount").text)
+    joint_weight_list = list_eater(weights, count)
+    assert len(weights) == 0
+    fill_out_to_three(joint_weight_list) # Note: Side effects
+
+    #
+    # Parses the geometry for a skin, the <triangles> tag
+    #
+    triangles = css(skin["source"] + " triangles")
+    for input_tag in triangles.find_all("input"):
+        source = find_rec(input_tag["source"])
+        stride = int(source.parent.find("accessor")["stride"])
+        raw_floats = to_float_array(source.text)
+        data[input_tag["semantic"]] = list(zip(*[raw_floats[i::stride] for i in range(stride)]))
+
+    #
+    # Parse out the indicies
+    #
+    ia = to_int_array(triangles.find("p").text)
+    stride = 3
+    vb = []
+    for v, n, t in zip(ia[0::3], ia[1::3], ia[2::3]):
+        vert = []
+        vert.extend(data["VERTEX"][v])
+        vert.extend(data["TEXCOORD"][t])
+        vert.extend(data["NORMAL"][n])
+        vert.extend(map(lambda x: x[0], joint_weight_list[v]))
+        vert.extend(map(lambda x: x[1], joint_weight_list[v]))
+        vb.extend(vert)
+
+    fmt = "IP{}f".format(len(vb))
+    header = default_header()
+    header["type"] = TYPE_SKINNED
+    header["data_size"] = struct.calcsize(fmt)
+
+    #
+    # Return the skin
+    #
+    yield header, struct.pack(fmt, len(vb), 0, *vb), "SKIN_"
+
+    def split_into(l, size):
+        while l:
+            yield l[:size]
+            l = l[size:]
+
+    #
+    # Parse the skeleton
+    # Assumes there's only one skeleton.
+    #
+    controller_id = skin.parent["id"]
+    sel = lambda x: css("#" + controller_id + x).text.split()
+    bone_names = list(sel("-joints-array"))
+    bind_poses = split_into(list(map(float, sel("-bind_poses-array"))), 16)
+
+    # Builds the bone hirarcy
+    visual = css("library_visual_scenes")
+    bones = {bone: (i, -1)  for i, bone in enumerate(bone_names)}
+    for joint in visual.find_all("node", type='JOINT'):
+        name = joint["sid"]
+        try:
+            sid = joint.parent["sid"]
+        except KeyError:
+            continue
+        bones[name] = (bones[name][0], bones[sid][0])
+
+    output = []
+
+    # Breaks down a matrix into it's scale, rotation and translation
+    to_quat = quaternion.from_rotation_matrix
+    def decompose_matrix(m):
+        translate = (m[3], m[7], m[15])
+        scale = tuple((m[i*4+0] ** 2 + m[i*4+1] ** 2 + m[i*4+2] ** 2) ** 0.5 for i in range(3))
+        rot_mat = [
+            [m[0] / scale[0], m[1] / scale[0], m[2]  / scale[0]],
+            [m[4] / scale[1], m[5] / scale[1], m[6]  / scale[1]],
+            [m[8] / scale[2], m[9] / scale[2], m[10] / scale[2]]
+        ]
+        rotation = to_quat(rot_mat)
+        rotation = (rotation.x, rotation.y, rotation.z, rotation.w)
+        return [*scale, *rotation, *translate]
+
+
+    output = []
+    for name, bind in zip(bone_names, bind_poses):
+        output += [bones[name][1]] # Parent
+        output += [bones[name][0]] # Id
+        output += decompose_matrix(bind) # Bind pose
+
+    num_bones = len(bones)
+    fmt = "i" + "ii10f" * num_bones
+    data = struct.pack(fmt, num_bones, *output)
+    header = default_header()
+    header["type"] = TYPE_SKELETON
+    header["data_size"] = struct.calcsize(fmt)
+    yield header, data, "SKEL_"
+    return
+
+    #
+    # Parse animations
+    #
+    root_anim = skin.find("animation")
+    for bone_anim in root_anim.find("animation"):
+        root_id = bone_anim["id"]
+        ts = map(float, bone_anim.find("#" + root_id + "-input-array").text.split())
+        ts = map(lambda x: x - ts[0], ts)
+        mats = map(float, bone_anim.find("#" + root_id + "-input-array").text.split())
 
 
 
@@ -379,6 +541,7 @@ EXTENSIONS = {
     "glsl": shader_asset,
     "obj": model_asset,
     "edan": skinned_asset,
+    "dae": collada_asset,
     "wav": wav_asset,
 }
 

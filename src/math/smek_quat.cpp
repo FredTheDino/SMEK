@@ -1,5 +1,14 @@
 #include "smek_quat.h"
 #include "smek_mat4.h"
+#include "../test.h"
+
+i32 format(char *buffer, u32 size, FormatHint args, H q) {
+    return snprintf(buffer, size, "(w%0*.*f, %0*.*f, %0*.*f, %0*.*f)",
+                                  args.num_zero_pad, args.num_decimals, q.w,
+                                  args.num_zero_pad, args.num_decimals, q.x,
+                                  args.num_zero_pad, args.num_decimals, q.y,
+                                  args.num_zero_pad, args.num_decimals, q.z);
+}
 
 H H::operator- () {
     return {-x, -y, -z, w};
@@ -81,6 +90,7 @@ real length_squared(H h)
     return h.x * h.x + h.y * h.y + h.z * h.z + h.w * h.w;
 }
 
+
 real length(H h)
 {
     return Math::sqrt(length_squared(h));
@@ -98,7 +108,12 @@ H conjugate(H h)
 
 H lerp(H q1, H q2, real lerp)
 {
-    return q1 * lerp + (q2 * (1.0f - lerp));
+    q1 = normalized(q1);
+    q2 = normalized(q2);
+    if (dot(q1, q2) < 0) {
+        q1 = -q1;
+    }
+    return normalized(q1 * lerp + (q2 * (1.0f - lerp)));
 }
 
 H H::from(real roll, real pitch, real yaw)

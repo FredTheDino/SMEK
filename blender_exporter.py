@@ -80,15 +80,13 @@ def write_animation(context, filepath, obj, armature):
             # is almost never true and needs to be managed
             # somehow.
             index, name, bone, children = node
-            mat = bone.matrix
-            scale = mat.to_scale()
-            rotation = mat.to_quaternion()
-            translation = mat.to_translation()
+            mat = bone.bone.matrix_local
+            translation, rotation, scale = mat.decompose()
             if parent != -1:
                 f.write("|")
             f.write(f"{parent} {index} {name} ")
             f.write(f"{scale.x} {scale.y} {scale.z} ")
-            f.write(f"{rotation.w} {rotation.x} {rotation.y} {rotation.z} ")
+            f.write(f"{rotation.x} {rotation.y} {rotation.z} {rotation.w} ")
             f.write(f"{translation.x} {translation.y} {translation.z}")
             for child in children:
                 write_bones(child, index)
@@ -99,32 +97,38 @@ def write_animation(context, filepath, obj, armature):
 
         # Exporting of animations
         def write_animation(action, nodes):
-            def bake_transform(frame, bone):
-                # TODO(ed): This can be moved out. But meh...
-                bpy.context.scene.frame_set(frame)
-                mat = bone.matrix
-                scale = mat.to_scale()
-                rotation = mat.to_quaternion()
-                translation = mat.to_translation()
-                return f"{scale.x} {scale.y} {scale.z} "\
-                       f"{rotation.w} {rotation.x} {rotation.y} {rotation.z} "\
-                       f"{translation.x} {translation.y} {translation.z}"
+            with open(filepath + ".tmp", "w") as l:
+                def bake_transform(frame, bone):
+                    # TODO(ed): This can be moved out. But meh...
+                    bpy.context.scene.frame_set(frame)
+                    mat = bone.matrix.copy()
+                    l.write(bone.name + "\n")
+                    l.write(str(mat))
+                    l.write("\n")
+                    if bone.parent is not None and bone.parent.matrix is not None:
+                        other = bone.parent.matrix.copy()
+                        other.invert()
+                        mat = other @ mat
+                    translation, rotation, scale = mat.decompose()
+                    return f"{scale.x} {scale.y} {scale.z} "\
+                           f"{rotation.x} {rotation.y} {rotation.z} {rotation.w} "\
+                           f"{translation.x} {translation.y} {translation.z}"
 
-            sorted_bones = list(sorted(nodes.values()))
+                sorted_bones = sorted(nodes.values())
 
-            times = set()
-            for c in action.fcurves:
-                for p in c.keyframe_points:
-                    times.add(int(p.co.x))
+                times = set()
+                for c in action.fcurves:
+                    for p in c.keyframe_points:
+                        times.add(int(p.co.x))
 
-            start_frame = bpy.context.scene.frame_current
-            transforms = [(t, [bake_transform(t, bone)
-                           for _, _, bone, _ in sorted_bones])
-                           for t in times]
-            bpy.context.scene.frame_set(start_frame)
+                start_frame = bpy.context.scene.frame_current
+                transforms = [(t, [bake_transform(t, bone)
+                               for _, _, bone, _ in sorted_bones])
+                               for t in times]
+                bpy.context.scene.frame_set(start_frame)
 
-            output = ";".join([f"{t}=" + "|".join(trans) for t, trans in transforms])
-            f.write(f"anim:{action.name_full}:{output}\n")
+                output = ";".join([f"{t}=" + "|".join(trans) for t, trans in transforms])
+                f.write(f"anim:{action.name_full}:{output}\n")
 
         # TODO(ed): Find the other actions
         write_animation(armature.animation_data.action, all_bones)

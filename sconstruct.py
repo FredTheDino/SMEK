@@ -95,7 +95,7 @@ env.Append(BUILDERS={"Assets": asset_gen})
 
 def all_asset_targets(build_dir):
     asset_files = defaultdict(list)
-    global_asset_files = []
+    global_asset_files = ["asset-gen.py"]
     for f in glob("res/**/*.*", recursive=True):
         if f.count("/") == 1:
             global_asset_files.append(f)

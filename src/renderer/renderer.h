@@ -130,6 +130,7 @@ struct Skeleton {
     void destroy();
 
     Mat matrix(int i);
+    void draw();
 };
 
 struct Animation {

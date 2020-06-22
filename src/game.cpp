@@ -94,7 +94,7 @@ void draw() {
 
     const i32 grid_size = 10;
     const f32 width = 0.005;
-    const Vec4 color = GFX::color(1);
+    const Vec4 color = GFX::color(7) * 0.4;
     for (f32 x = 0; x <= grid_size; x += 0.5) {
         GFX::push_point(Vec3(x, 0, x), GFX::color(2), width * 10);
         GFX::push_line(Vec3(x, 0, grid_size), Vec3(x, 0, -grid_size), color, width);
@@ -111,20 +111,26 @@ void draw() {
 
     GAMESTATE()->entity_system.draw();
 
+#if 0
     GFX::Skin *mesh = Asset::fetch_skin("SKIN_SWINGING_CUBE");
     Mat model_matrix = Mat::translate(Math::cos(time()) * 0.2, Math::sin(time()) * 0.2, -0.5) * Mat::scale(1.0);
     shader.upload_model(model_matrix);
     shader.upload_t(time());
     mesh->draw();
 
-    AssetID skin, skel, anim;
-    skin = "SKIN_SWINGING_CUBE";
-    skel = "SKEL_SWINGING_CUBE";
-    anim = "ANIM_SWINGING_SWINGING_CUBE";
-    GFX::AnimatedMesh::init(skin, skel, anim).draw_at(time());
-
     Vec3 p(Math::cos(time()) * 0.2, Math::sin(time()) * 0.2, -0.5);
     GFX::push_point(Vec3(p.x, p.y, p.z));
+#endif
+
+    AssetID skin, skel, anim;
+    skin = "SKIN_SIMPLE";
+    // TODO(ed): Not drawing...
+    // Asset::fetch_skin(skin)->draw();
+    skel = "SKEL_SIMPLE";
+    anim = "ANIM_ARMATUREACTION_002_SIMPLE";
+    GFX::AnimatedMesh::init(skin, skel, anim).draw_at((sin(time()) * 2.0 + 2.0) * 60);
+
+    //Asset::fetch_skeleton(skel)->draw();
 
     GFX::debug_shader().use();
     GFX::main_camera()->upload(GFX::debug_shader());

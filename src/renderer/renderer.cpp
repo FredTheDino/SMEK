@@ -57,6 +57,7 @@ void Camera::upload(const DebugShader &shader) {
 }
 
 const Vec4 color_list[] = {
+#if 0
     Vec4(1.0, 0.0, 1.0, 1.0),
     Vec4(115, 63, 155, 255) / 255.0,
     Vec4(68, 73, 163, 255) / 255.0,
@@ -66,6 +67,16 @@ const Vec4 color_list[] = {
     Vec4(163, 74, 68, 255) / 255.0,
     Vec4(158, 61, 109, 255) / 255.0,
     Vec4(102, 51, 101, 255) / 255.0,
+#else
+    Vec4(0.0, 0.0, 0.0, 1.0),
+    Vec4(1.0, 0.0, 0.0, 1.0),
+    Vec4(0.0, 1.0, 0.0, 1.0),
+    Vec4(0.0, 0.0, 1.0, 1.0),
+    Vec4(1.0, 1.0, 0.0, 1.0),
+    Vec4(0.0, 1.0, 1.0, 1.0),
+    Vec4(1.0, 0.0, 1.0, 1.0),
+    Vec4(1.0, 0.0, 1.0, 1.0),
+#endif
 };
 
 Vec4 color(u32 index) {
@@ -184,7 +195,7 @@ void Skeleton::destroy() {
     num_bones = 0;
 }
 
-#if 0
+#if 1
 Mat Skeleton::matrix(int i) {
     if (i == -1) return Mat::scale(1.0);
     ASSERT(bones[i].index == i, "Invalid bone order");
@@ -209,6 +220,11 @@ Animation Animation::init(u32 *times, u32 num_frames, Transform *trans, u32 tran
     for (u32 frame = 0; frame < num_frames; frame++) {
         anim.frames[frame].t = times[frame];
         anim.frames[frame].trans = trans + (frame * trans_per_frame);
+        LOG("Frame: {}", frame);
+        Transform *ts = anim.frames[frame].trans;
+        for (u32 i = 0; i < trans_per_frame; i++) {
+            LOG("Trans: {}, {}, {}", ts[i].position, ts[i].rotation, ts[i].scale);
+        }
     }
     return anim;
 }
@@ -231,10 +247,11 @@ static Mat lerp_to_matrix(Transform a, Transform b, f32 blend) {
 #define LERP(a, b, l) ((a) + (l) * ((b) - (a)))
     // TODO(ed): Maybe break this out so you can lerp to a new transform.
     // If this code needs to be reused that would be great.
-    return Mat::translate(LERP(a.position, b.position, blend)) *
+    return
+           Mat::translate(LERP(a.position, b.position, blend)) *
            // NOTE(ed): This should be a slerp to be "accurate", but this is less work
            // and will probably not be noticed.
-           Mat::from(normalized(LERP(a.rotation, b.rotation, blend))) *
+           Mat::from(lerp(a.rotation, b.rotation, blend)) *
            Mat::scale(LERP(a.scale, b.scale, blend));
 #undef LERP
 }
@@ -249,40 +266,50 @@ void AnimatedMesh::lerp_bones_to_matrix(Transform *as, Transform *bs, Mat *out, 
         ASSERT(bone->index == i, "Invalid skeleton.");
         ASSERT(i > bone->parent || bone->parent == -1,
                "Invalid bone ordering, parent should always be before child.");
-        out[i] = to_pose * out[bone->parent];
+        if (i != 0) {
+            out[i] = out[bone->parent] * to_pose;
+        } else {
+            out[i] = to_pose;
+        }
     }
 
     // Calculate the transform to the new pose.
     for (u32 i = 0; i < num_bones; i++) {
+        // LOG("i: {}", i);
+        // LOG("P:{}", out[i]);
+        // LOG("T:{}", skel->bones[i].transform.to_matrix());
+        // LOG("INV:{}", skel->bones[i].transform.to_matrix().invert());
         out[i] = out[i] * skel->bones[i].transform.to_matrix().invert();
+        // LOG("OUT:{}", out[i]);
     }
 }
 
 void AnimatedMesh::draw_at(float time) {
-    float frame = time * seconds_to_frame;
-    frame = 0.0;
+    float frame = time * seconds_to_frame + 1.0;
+    // frame = 1;
+    // LOG("Frame: {}, {}", int(frame), time);
     Animation *anim = Asset::fetch_animation(animation);
     // TODO(ed): This could be a method.
-
-    // Stop at the end of the animation.
     f32 blend = 1.0;
     Animation::Frame *a, *b;
     for (int i = 0; i < anim->num_frames - 1; i++) {
         a = anim->frames + i;
         b = anim->frames + i + 1;
-        if (a->t <= frame && b->t <= frame) {
-            blend = frame / (b->t - a->t);
+        if (a->t <= frame && frame <= b->t) {
+            blend = (frame - a->t) / (b->t - a->t);
             break;
         }
     }
+    // LOG("T, B: {} {}", a->t, blend);
 
 
     Mat *pose_mat = new Mat[anim->trans_per_frame];
     defer { delete[] pose_mat; };
     lerp_bones_to_matrix(a->trans, b->trans, pose_mat, blend, anim->trans_per_frame);
 
+    Skeleton *skel = Asset::fetch_skeleton(skeleton);
     for (int i = 0; i < anim->trans_per_frame; i++) {
-        pose_mat[i].gfx_dump();
+        (pose_mat[i] * skel->matrix(i)).gfx_dump(color(i));
     }
 }
 
