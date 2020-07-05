@@ -220,11 +220,7 @@ Animation Animation::init(u32 *times, u32 num_frames, Transform *trans, u32 tran
     for (u32 frame = 0; frame < num_frames; frame++) {
         anim.frames[frame].t = times[frame];
         anim.frames[frame].trans = trans + (frame * trans_per_frame);
-        LOG("Frame: {}", frame);
         Transform *ts = anim.frames[frame].trans;
-        for (u32 i = 0; i < trans_per_frame; i++) {
-            LOG("Trans: {}, {}, {}", ts[i].position, ts[i].rotation, ts[i].scale);
-        }
     }
     return anim;
 }
@@ -275,19 +271,12 @@ void AnimatedMesh::lerp_bones_to_matrix(Transform *as, Transform *bs, Mat *out, 
 
     // Calculate the transform to the new pose.
     for (u32 i = 0; i < num_bones; i++) {
-        // LOG("i: {}", i);
-        // LOG("P:{}", out[i]);
-        // LOG("T:{}", skel->bones[i].transform.to_matrix());
-        // LOG("INV:{}", skel->bones[i].transform.to_matrix().invert());
         out[i] = out[i] * skel->bones[i].transform.to_matrix().invert();
-        // LOG("OUT:{}", out[i]);
     }
 }
 
 void AnimatedMesh::draw_at(float time) {
     float frame = time * seconds_to_frame + 1.0;
-    // frame = 1;
-    // LOG("Frame: {}, {}", int(frame), time);
     Animation *anim = Asset::fetch_animation(animation);
     // TODO(ed): This could be a method.
     f32 blend = 1.0;
@@ -300,8 +289,6 @@ void AnimatedMesh::draw_at(float time) {
             break;
         }
     }
-    // LOG("T, B: {} {}", a->t, blend);
-
 
     Mat *pose_mat = new Mat[anim->trans_per_frame];
     defer { delete[] pose_mat; };
