@@ -311,12 +311,23 @@ void AnimatedMesh::draw_at(float time) {
     for (int i = 0; i < anim->trans_per_frame; i++) {
         (pose_mat[i] * skel->matrix(i)).gfx_dump(color(i));
     }
+
+    master_shader().use();
+    master_shader().upload_bones(anim->trans_per_frame, pose_mat);
+    main_camera()->upload(master_shader());
+    Mat m = Mat::scale(1);
+    master_shader().upload_model(m);
+    Asset::fetch_skin(skin)->draw();
 }
 
 void Shader::use() { glUseProgram(program_id); }
 
 #define FETCH_SHADER_PROP(name)\
     shader.loc_ ##name = glGetUniformLocation(shader.program_id, #name)
+
+#define FETCH_SHADER_PROP_FOR_LIST(name)\
+    shader.loc_ ##name = glGetUniformLocation(shader.program_id, #name);\
+    shader.loc_num_ ##name = glGetUniformLocation(shader.program_id, "num_" #name)
 
 MasterShader MasterShader::init() {
     MasterShader shader;
@@ -327,6 +338,8 @@ MasterShader MasterShader::init() {
     FETCH_SHADER_PROP(view);
     FETCH_SHADER_PROP(model);
     FETCH_SHADER_PROP(tex);
+
+    FETCH_SHADER_PROP_FOR_LIST(bones);
 
     return shader;
 }
@@ -340,11 +353,19 @@ MasterShader MasterShader::init() {
 #define MAT_SHADER_PROP(classname, name)\
     void classname::upload_ ##name(Mat &m) const { glUniformMatrix4fv(loc_ ##name, 1, true, m.data()); }
 
+#define MATS_SHADER_PROP(classname, name)\
+    void classname::upload_ ##name(u32 num, Mat *m) const {\
+        glUniform1i(loc_num_ ##name, num);\
+        glUniformMatrix4fv(loc_ ##name, num, true, m->data());\
+    }
+
 F32_SHADER_PROP(MasterShader, t);
 MAT_SHADER_PROP(MasterShader, proj);
 MAT_SHADER_PROP(MasterShader, view);
 MAT_SHADER_PROP(MasterShader, model);
 U32_SHADER_PROP(MasterShader, tex);
+
+MATS_SHADER_PROP(MasterShader, bones);
 
 MasterShader master_shader() {
     if (Asset::needs_reload("MASTER_SHADER"))
@@ -611,12 +632,10 @@ void push_debug_triangle(Vec3 p1, Vec4 c1, Vec3 p2, Vec4 c2, Vec3 p3, Vec4 c3) {
 void draw_primitivs() {
     main_camera()->upload(debug_shader());
     std::vector<DebugPrimitive> *primitives = &GAMESTATE()->renderer.primitives;
-    glDisable(GL_DEPTH_TEST);
     for (DebugPrimitive &p : *primitives) {
         p.draw();
         p.clear();
     }
-    glEnable(GL_DEPTH_TEST);
     GAMESTATE()->renderer.first_empty = 0;
 }
 

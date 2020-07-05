@@ -191,12 +191,19 @@ struct Shader {
     u32 loc_ ##name;\
     void upload_ ##name (Mat &) const;
 
+#define MATS_SHADER_PROP(name)\
+    u32 loc_num_ ##name;\
+    u32 loc_ ##name;\
+    void upload_ ##name (u32, Mat *) const;
+
 struct MasterShader: public Shader {
     F32_SHADER_PROP(t);
     MAT_SHADER_PROP(proj);
     MAT_SHADER_PROP(view);
     MAT_SHADER_PROP(model);
     U32_SHADER_PROP(tex);
+
+    MATS_SHADER_PROP(bones);
 
     static MasterShader init();
 };
@@ -213,6 +220,7 @@ struct DebugShader: public Shader {
 #undef F32_SHADER_PROP
 #undef U32_SHADER_PROP
 #undef MAT_SHADER_PROP
+#undef MATS_SHADER_PROP
 
 struct Texture {
     u32 texture_id;
