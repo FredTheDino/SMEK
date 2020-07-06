@@ -63,75 +63,73 @@ def write_animation(context, filepath, obj, armature):
         mesh.free()
 
         bones = armature.pose.bones
-        all_bones = {x[0]: [i, x[0], x[1], []] for i, x in enumerate(bones.items())}
+        all_bones = {x[0]: [x[0], x[1], []] for x in bones.items()}
         root = ""
         for name, bone in list(all_bones.items()):
-            parent = bone[2].parent
+            parent = bone[1].parent
             if parent:
-                all_bones[parent.name][3].append(bone)
+                all_bones[parent.name][2].append(bone)
             else:
                 root = name
 
         # Exports bone structure.
-        def write_bones(node, parent=-1):
-            # TODO(ed):
-            # This assumes the current frame of animation
-            # we are on is the root pose of the model. This
-            # is almost never true and needs to be managed
-            # somehow.
-            index, name, bone, children = node
+        index_counter = 0
+        def order_bones(node, parent=-1):
+            nonlocal index_counter
+            index = index_counter
+            index_counter += 1
+
+            name, bone, children = node
+            order = [(parent, index, name, bone)]
+            for child in children:
+                order += order_bones(child, index)
+            return order
+
+        def serialize_bone(node):
+            parent, index, name, bone = node
             mat = bone.bone.matrix_local
             translation, rotation, scale = mat.decompose()
-            if parent != -1:
-                f.write("|")
-            f.write(f"{parent} {index} {name} ")
-            f.write(f"{scale.x} {scale.y} {scale.z} ")
-            f.write(f"{rotation.x} {rotation.y} {rotation.z} {rotation.w} ")
-            f.write(f"{translation.x} {translation.y} {translation.z}")
-            for child in children:
-                write_bones(child, index)
+            return f"{parent} {index} {name.replace(' ', '_')} "\
+                   f"{scale.x} {scale.y} {scale.z} "\
+                   f"{rotation.x} {rotation.y} {rotation.z} {rotation.w} "\
+                   f"{translation.x} {translation.y} {translation.z}"
 
+        ordered_bones = order_bones(all_bones[root])
         f.write("arm:")
-        write_bones(all_bones[root])
+        f.write("|".join(map(serialize_bone, ordered_bones)))
         f.write("\n")
 
         # Exporting of animations
         def write_animation(action, nodes):
-            with open(filepath + ".tmp", "w") as l:
-                def bake_transform(frame, bone):
-                    # TODO(ed): This can be moved out. But meh...
-                    bpy.context.scene.frame_set(frame)
-                    mat = bone.matrix.copy()
-                    l.write(bone.name + "\n")
-                    l.write(str(mat))
-                    l.write("\n")
-                    if bone.parent is not None and bone.parent.matrix is not None:
-                        other = bone.parent.matrix.copy()
-                        other.invert()
-                        mat = other @ mat
-                    translation, rotation, scale = mat.decompose()
-                    return f"{scale.x} {scale.y} {scale.z} "\
-                           f"{rotation.x} {rotation.y} {rotation.z} {rotation.w} "\
-                           f"{translation.x} {translation.y} {translation.z}"
+            def bake_transform(frame, bone):
+                # TODO(ed): This can be moved out. But meh...
+                bpy.context.scene.frame_set(frame)
+                mat = bone.matrix.copy()
+                if bone.parent is not None and bone.parent.matrix is not None:
+                    other = bone.parent.matrix.copy()
+                    other.invert()
+                    mat = other @ mat
+                translation, rotation, scale = mat.decompose()
+                return f"{scale.x} {scale.y} {scale.z} "\
+                       f"{rotation.x} {rotation.y} {rotation.z} {rotation.w} "\
+                       f"{translation.x} {translation.y} {translation.z}"
 
-                sorted_bones = sorted(nodes.values())
+            times = set()
+            for c in action.fcurves:
+                for p in c.keyframe_points:
+                    times.add(int(p.co.x))
 
-                times = set()
-                for c in action.fcurves:
-                    for p in c.keyframe_points:
-                        times.add(int(p.co.x))
+            start_frame = bpy.context.scene.frame_current
+            transforms = [(t, [bake_transform(t, bone)
+                           for _, _, _, bone in nodes])
+                           for t in times]
+            bpy.context.scene.frame_set(start_frame)
 
-                start_frame = bpy.context.scene.frame_current
-                transforms = [(t, [bake_transform(t, bone)
-                               for _, _, bone, _ in sorted_bones])
-                               for t in times]
-                bpy.context.scene.frame_set(start_frame)
-
-                output = ";".join([f"{t}=" + "|".join(trans) for t, trans in transforms])
-                f.write(f"anim:{action.name_full}:{output}\n")
+            output = ";".join([f"{t}=" + "|".join(trans) for t, trans in transforms])
+            f.write(f"anim:{action.name_full}:{output}\n")
 
         # TODO(ed): Find the other actions
-        write_animation(armature.animation_data.action, all_bones)
+        write_animation(armature.animation_data.action, ordered_bones)
         # TODO(ed):
         # TL;DR: We need bezier curve support.
         #

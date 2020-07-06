@@ -80,8 +80,7 @@ const Vec4 color_list[] = {
 };
 
 Vec4 color(u32 index) {
-    ASSERT(index < LEN(color_list), "Trying to fetch color that doesn't exist");
-    return color_list[index];
+    return color_list[index % LEN(color_list)];
 }
 
 void push_point(Vec3 a, Vec4 c, f32 width) {

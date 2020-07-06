@@ -123,11 +123,11 @@ void draw() {
 #endif
 
     AssetID skin, skel, anim;
-    skin = "SKIN_SIMPLE";
+    skin = "SKIN_RIGGED_SIMPLE_CHARACTER";
     // TODO(ed): Not drawing...
     // Asset::fetch_skin(skin)->draw();
-    skel = "SKEL_SIMPLE";
-    anim = "ANIM_ARMATUREACTION_002_SIMPLE";
+    skel = "SKEL_RIGGED_SIMPLE_CHARACTER";
+    anim = "ANIM_SKINNEDMESHACTION_RIGGED_SIMPLE_CHARACTER";
     GFX::AnimatedMesh::init(skin, skel, anim).draw_at((sin(time()) * 2.0 + 2.0) * 60);
 
     //Asset::fetch_skeleton(skel)->draw();
