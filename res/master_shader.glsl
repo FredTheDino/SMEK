@@ -42,7 +42,8 @@ void main() {
     }
 
     gl_Position = proj * view * model * final_pos;
-    pass_norm = final_norm.xyz;
+    float max_light = float(num_bones);
+    pass_norm = vec3(mod(bone_indicies[0] / 3.0, 1.0),  mod(bone_indicies[0] / 7.0, 1.0), mod(bone_indicies[0] / max_light, 1.0));
     pass_uv = uv;
     
 }

@@ -113,7 +113,7 @@ H lerp(H q1, H q2, real lerp)
     if (dot(q1, q2) < 0) {
         q1 = -q1;
     }
-    return normalized(q1 * lerp + (q2 * (1.0f - lerp)));
+    return normalized(q2 * lerp + (q1 * (1.0f - lerp)));
 }
 
 H H::from(real roll, real pitch, real yaw)

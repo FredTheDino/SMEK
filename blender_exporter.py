@@ -122,7 +122,7 @@ def write_animation(context, filepath, obj, armature):
             start_frame = bpy.context.scene.frame_current
             transforms = [(t, [bake_transform(t, bone)
                            for _, _, _, bone in nodes])
-                           for t in times]
+                           for t in sorted(times)]
             bpy.context.scene.frame_set(start_frame)
 
             output = ";".join([f"{t}=" + "|".join(trans) for t, trans in transforms])

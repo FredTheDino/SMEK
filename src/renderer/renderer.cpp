@@ -147,8 +147,6 @@ Skin Skin::init(Vertex *verticies, u32 num_verticies) {
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
 
-    LOG(": {}", sizeof(Vertex));
-
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * num_verticies, verticies, GL_STATIC_DRAW);
@@ -275,7 +273,7 @@ void AnimatedMesh::lerp_bones_to_matrix(Transform *as, Transform *bs, Mat *out, 
 }
 
 void AnimatedMesh::draw_at(float time) {
-    float frame = time * seconds_to_frame + 1.0;
+    float frame = time * seconds_to_frame;
     Animation *anim = Asset::fetch_animation(animation);
     // TODO(ed): This could be a method.
     f32 blend = 1.0;

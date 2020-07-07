@@ -123,12 +123,15 @@ void draw() {
 #endif
 
     AssetID skin, skel, anim;
-    skin = "SKIN_RIGGED_SIMPLE_CHARACTER";
+    skin = "SKIN_UNTITLED";
     // TODO(ed): Not drawing...
     // Asset::fetch_skin(skin)->draw();
-    skel = "SKEL_RIGGED_SIMPLE_CHARACTER";
-    anim = "ANIM_SKINNEDMESHACTION_RIGGED_SIMPLE_CHARACTER";
-    GFX::AnimatedMesh::init(skin, skel, anim).draw_at((sin(time()) * 2.0 + 2.0) * 60);
+    skel = "SKEL_UNTITLED";
+    // anim = "ANIM_SKINNEDMESHACTION_RIGGED_SIMPLE_CHARACTER";
+    anim = "ANIM_ARMATUREACTION_001_UNTITLED";
+    static f32 t = 0;
+    ImGui::SliderFloat("Time", &t, 0.0, 16.0, "%.2f");
+    GFX::AnimatedMesh::init(skin, skel, anim).draw_at(t * 60);
 
     //Asset::fetch_skeleton(skel)->draw();
 
