@@ -107,14 +107,14 @@ struct Transform {
 };
 
 struct Bone {
-    int parent;
-    int index;
+    i32 parent;
+    i32 index;
     union {
         struct {
             Vec3 scale;
             Quat rotation;
             Vec3 position;
-        };
+        } t;
         Transform transform;
     };
 
@@ -129,23 +129,23 @@ struct Skeleton {
 
     void destroy();
 
-    Mat matrix(int i);
+    Mat matrix(i32 i);
     void draw();
 };
 
 struct Animation {
     struct Frame {
-        u32 t;
+        i32 t;
         Transform *trans;
     };
-    u32 trans_per_frame;
-    u32 num_frames;
+    i32 trans_per_frame;
+    i32 num_frames;
 
     Frame *frames;
 
-    static Animation init(u32 *times, u32 num_frames, Transform *trans, u32 trans_per_frame);
+    static Animation init(i32 *times, i32 num_frames, Transform *trans, i32 trans_per_frame);
 
-    const Frame &operator[](int i) {
+    const Frame &operator[](i32 i) {
         return frames[i];
     }
 
@@ -161,7 +161,7 @@ struct AnimatedMesh {
     // f32 time; // Add this in to let the animation be stepped through.
     f32 seconds_to_frame;
 
-    void lerp_bones_to_matrix(Transform *as, Transform *bs, Mat *out, f32 blend, u32 num_bones);
+    void lerp_bones_to_matrix(Transform *as, Transform *bs, Mat *out, f32 blend, i32 num_bones);
     void draw_at(float time);
 
     static AnimatedMesh init(AssetID skin, AssetID skeleton, AssetID animation);
@@ -284,7 +284,7 @@ struct Renderer {
 
 ///*
 // Initalize the graphics pipeline.
-bool init(GameState *gs, int width=680, int height=480);
+bool init(GameState *gs, i32 width=680, i32 height=480);
 
 ///*
 // Reloads opengl function pointers and such, which is faster

@@ -345,7 +345,7 @@ def skinned_asset(path, verbose):
             for transform in transforms.split("|"):
                 data += flatmap(float, transform.split())
         num_floats = 10 * num_bones * num_frames
-        fmt = "II" + f"{num_frames}I"+ f"{num_floats}f"
+        fmt = "ii" + f"{num_frames}i"+ f"{num_floats}f"
         data = [num_frames, num_bones] + data
         return data, TYPE_ANIMATION, fmt, "ANIM_" + name.upper() + "_"
 

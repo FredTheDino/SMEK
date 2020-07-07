@@ -106,7 +106,7 @@ static void load_skin(UsableAsset *asset, FILE *file) {
     if (asset->loaded) {
         asset->skin.destroy();
     }
-    u32 num_floats = 0;
+    i32 num_floats = 0;
     read(file, &num_floats);
     u32 size = (sizeof(float) * num_floats) / sizeof(GFX::Skin::Vertex);
     GFX::Skin::Vertex *data = new GFX::Skin::Vertex[size];
@@ -120,7 +120,7 @@ static void load_skeleton(UsableAsset *asset, FILE *file) {
         asset->skeleton.destroy();
     }
 
-    u32 num_bones = 0;
+    i32 num_bones = 0;
     read(file, &num_bones);
     GFX::Bone *bones = new GFX::Bone[num_bones];
     read(file, bones, num_bones);
@@ -133,11 +133,11 @@ static void load_animation(UsableAsset *asset, FILE *file) {
         asset->animation.destroy();
     }
 
-    u32 num_frames, trans_per_frame;
+    i32 num_frames, trans_per_frame;
     read(file, &num_frames);
     read(file, &trans_per_frame);
 
-    u32 *times = new u32[num_frames];
+    i32 *times = new i32[num_frames];
     read(file, times, num_frames);
 
     GFX::Transform *trans = new GFX::Transform[trans_per_frame*num_frames];

@@ -53,7 +53,7 @@ AddOption("--jumbo",
           help="Compiles the code using Jumbo, this make it faster for clean builds")
 
 env = Environment(ENV=os.environ)
-env.Replace(CXX="clang++")
+env.Replace(CXX="g++")
 env.Append(CXXFLAGS="-Wall")
 env.Append(CXXFLAGS="-std=c++20")
 # Annoying things.

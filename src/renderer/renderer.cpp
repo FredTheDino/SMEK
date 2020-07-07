@@ -193,7 +193,7 @@ void Skeleton::destroy() {
 }
 
 #if 1
-Mat Skeleton::matrix(int i) {
+Mat Skeleton::matrix(i32 i) {
     if (i == -1) return Mat::scale(1.0);
     ASSERT(bones[i].index == i, "Invalid bone order");
     return bones[i].transform.to_matrix();
@@ -202,19 +202,19 @@ Mat Skeleton::matrix(int i) {
 void Skeleton::draw() {
     // TODO(ed): This can be made better since the order 0...n will allways result
     // in correct updated animations.
-    for (int i = 0; i < num_bones; i++) {
+    for (i32 i = 0; i < (i32) num_bones; i++) {
         Vec4 color = i == 0 ? Vec4(0, 0, 0, 1) : Vec4(1, 1, 1, 1);
         matrix(i).gfx_dump(color);
     }
 }
 #endif
 
-Animation Animation::init(u32 *times, u32 num_frames, Transform *trans, u32 trans_per_frame) {
+Animation Animation::init(i32 *times, i32 num_frames, Transform *trans, i32 trans_per_frame) {
     defer { delete[] times; };
 
     Animation anim = {trans_per_frame, num_frames};
     anim.frames = new Frame[num_frames];
-    for (u32 frame = 0; frame < num_frames; frame++) {
+    for (i32 frame = 0; frame < num_frames; frame++) {
         anim.frames[frame].t = times[frame];
         anim.frames[frame].trans = trans + (frame * trans_per_frame);
         Transform *ts = anim.frames[frame].trans;
@@ -249,10 +249,10 @@ static Mat lerp_to_matrix(Transform a, Transform b, f32 blend) {
 #undef LERP
 }
 
-void AnimatedMesh::lerp_bones_to_matrix(Transform *as, Transform *bs, Mat *out, f32 blend, u32 num_bones) {
+void AnimatedMesh::lerp_bones_to_matrix(Transform *as, Transform *bs, Mat *out, f32 blend, i32 num_bones) {
     Skeleton *skel = Asset::fetch_skeleton(skeleton);
     // Calculate the transform to the new pose.
-    for (u32 i = 0; i < num_bones; i++) {
+    for (i32 i = 0; i < num_bones; i++) {
         Mat to_pose = lerp_to_matrix(as[i], bs[i], blend);
 
         Bone *bone = skel->bones + i;
@@ -267,7 +267,7 @@ void AnimatedMesh::lerp_bones_to_matrix(Transform *as, Transform *bs, Mat *out, 
     }
 
     // Calculate the transform to the new pose.
-    for (u32 i = 0; i < num_bones; i++) {
+    for (i32 i = 0; i < num_bones; i++) {
         out[i] = out[i] * skel->bones[i].transform.to_matrix().invert();
     }
 }
@@ -278,7 +278,7 @@ void AnimatedMesh::draw_at(float time) {
     // TODO(ed): This could be a method.
     f32 blend = 1.0;
     Animation::Frame *a, *b;
-    for (int i = 0; i < anim->num_frames - 1; i++) {
+    for (i32 i = 0; i < anim->num_frames - 1; i++) {
         a = anim->frames + i;
         b = anim->frames + i + 1;
         if (a->t <= frame && frame <= b->t) {
@@ -292,7 +292,7 @@ void AnimatedMesh::draw_at(float time) {
     lerp_bones_to_matrix(a->trans, b->trans, pose_mat, blend, anim->trans_per_frame);
 
     Skeleton *skel = Asset::fetch_skeleton(skeleton);
-    for (int i = 0; i < anim->trans_per_frame; i++) {
+    for (i32 i = 0; i < anim->trans_per_frame; i++) {
         (pose_mat[i] * skel->matrix(i)).gfx_dump(color(i));
     }
 
@@ -487,7 +487,7 @@ void Texture::destroy() {
     glDeleteTextures(1, &texture_id);
 }
 
-bool init(GameState *gs, int width, int height) {
+bool init(GameState *gs, i32 width, i32 height) {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         ERROR("Failed to initalize SDL \"{}\"", SDL_GetError());
         return false;
