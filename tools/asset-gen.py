@@ -18,8 +18,8 @@ Two asset files will be created.
 - bin/assets-test.bin, containing alphabet.txt.
 
 The assets are parsed by functions which all
-return a (header, data)-tuple. A header template
-is returned by default_header() and additional
+return a (header, data, prefix)-tuple. A header
+template is returned by default_header() and additional
 parameters cannot be added. The data consists of
 already packed bytes according to any arbitrary
 C-struct format. All data is packaged using the
