@@ -269,7 +269,7 @@ int main(int argc, char **argv) { // Game entrypoint
 
     game_lib.reload(&game_state);
 
-    std::signal(SIGUSR1, signal_handler);
+    //std::signal(SIGUSR1, signal_handler);
     u32 next_update = SDL_GetTicks() - MS_PER_FRAME;
     while (game_state.running) {
         if (load_gamelib()) {

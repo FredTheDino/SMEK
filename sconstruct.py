@@ -52,16 +52,18 @@ AddOption("--jumbo",
           action="store_true",
           help="Compiles the code using Jumbo, this make it faster for clean builds")
 
-env = Environment(ENV=os.environ)
-env.Replace(CXX="g++")
+env = Environment(ENV=os.environ, tools=["mingw"])
+env.Replace(CXX="x86_64-w64-mingw32-g++")
 env.Append(CXXFLAGS="-Wall")
 env.Append(CXXFLAGS="-std=c++20")
 env.Append(CXXFLAGS="-Wno-unused -Wno-return-type-c-linkage")
-env.Append(CXXFLAGS=shell(["sdl2-config", "--cflags"]))
+env.Append(CXXFLAGS=shell(["x86_64-w64-mingw32-sdl2-config", "--cflags"]))
 env.Append(CXXFLAGS="-Iinc")
-env.Append(LINKFLAGS=shell(["sdl2-config", "--libs"]))
-env.Append(LINKFLAGS="-ldl")
-env.Append(LINKFLAGS="-rdynamic")  # Gives backtrace information
+#env.Append(LINKFLAGS="-Llib")
+#env.Append(LINKFLAGS="-lmingw32 -lSDL2main -lSDL2 -mwindows")
+env.Append(LINKFLAGS=shell(["x86_64-w64-mingw32-sdl2-config", "--libs"]))
+#env.Append(LIBS="dl")
+#env.Append(LINKFLAGS="-rdynamic")  # Gives backtrace information
 env.Append(CPPDEFINES="IMGUI_IMPL_OPENGL_LOADER_GLAD")
 
 debug_flags = ["-ggdb", "-O0", "-DDEBUG"]
