@@ -121,8 +121,8 @@ if GetOption("jumbo"):
     jumbo_source.remove("src/test.cpp")
     jumbo_source.remove("src/platform.cpp")
     jumbo_source.remove("src/game.cpp")
-    jumbo_source.remove("src/imgui.cpp")
-    jumbo_source.remove("src/glad.cpp")
+    #jumbo_source.remove("src/imgui.cpp")
+    #jumbo_source.remove("src/glad.cpp")
 
     jumbo_env = env.Clone()
     jumbo_env.Append(CXXFLAGS=list(chain(("-include", source) for source in jumbo_source)))

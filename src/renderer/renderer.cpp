@@ -202,7 +202,7 @@ Shader Shader::compile(const char *source) {
         if (!success) {
             char info_log[512];
             glGetShaderInfoLog(shader, sizeof(info_log), NULL, info_log);
-            ERROR("Shader error: {}", info_log);
+            ERR("Shader error: {}", info_log);
         }
         return success;
     };
@@ -213,7 +213,7 @@ Shader Shader::compile(const char *source) {
         if (!success) {
             char info_log[512];
             glGetProgramInfoLog(program, sizeof(info_log), NULL, info_log);
-            ERROR("Program error: {}", info_log);
+            ERR("Program error: {}", info_log);
         }
         return success;
     };
@@ -298,7 +298,7 @@ void Texture::destroy() {
 
 bool init(GameState *gs, int width, int height) {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-        ERROR("Failed to initalize SDL \"{}\"", SDL_GetError());
+        ERR("Failed to initalize SDL \"{}\"", SDL_GetError());
         return false;
     }
 
@@ -316,14 +316,14 @@ bool init(GameState *gs, int width, int height) {
             SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
 
     if (gs->window == NULL) {
-        ERROR("Failed to create OpenGL window \"{}\"", SDL_GetError());
+        ERR("Failed to create OpenGL window \"{}\"", SDL_GetError());
         return false;
     }
 
     gs->gl_context = SDL_GL_CreateContext(gs->window);
     SDL_GL_MakeCurrent(gs->window, gs->gl_context);
     if (!gladLoadGLLoader((GLADloadproc) SDL_GL_GetProcAddress)) {
-        ERROR("Failed to load OpenGL function.");
+        ERR("Failed to load OpenGL function.");
         return false;
     }
 
@@ -344,7 +344,7 @@ bool reload(GameState *gs) {
     SDL_GL_MakeCurrent(gs->window, gs->gl_context);
 
     if (!gladLoadGLLoader((GLADloadproc) SDL_GL_GetProcAddress)) {
-        ERROR("Failed to reload OpenGL function.");
+        ERR("Failed to reload OpenGL function.");
         return false;
     }
 

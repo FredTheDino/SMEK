@@ -16,7 +16,7 @@ void handle_events() {
             HANDLE(CREATE_SOUND_ENTITY);
             HANDLE(CREATE_PLAYER);
             default:
-                ERROR("Unkown event type {}", e.type);
+                ERR("Unkown event type {}", e.type);
         }
     }
 #undef HANDLE
