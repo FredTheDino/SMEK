@@ -58,7 +58,9 @@ env.MergeFlags("-Wall -Wno-unused -std=c++20")
 env.MergeFlags(shell(["x86_64-w64-mingw32-sdl2-config", "--cflags"]))
 env.MergeFlags("-Iinc -Llib")
 env.MergeFlags(shell(["x86_64-w64-mingw32-sdl2-config", "--libs"]))
+env.Append(LINKFLAGS=["-static-libgcc", "-static-libstdc++"])
 env.Append(LIBS="dl")
+env.Append(LIBS="gcc")
 #env.Append(LINKFLAGS="-rdynamic")  # Gives backtrace information
 env.Append(CPPDEFINES="IMGUI_IMPL_OPENGL_LOADER_GLAD")
 
