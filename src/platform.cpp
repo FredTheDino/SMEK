@@ -13,8 +13,13 @@
 
 #include "platform_input.h"
 
-// This is very UNIX-y
+#ifdef WINDOWS
+#include "dlfcn-mingw.h"
+#else
 #include <dlfcn.h>
+#endif
+
+// This is very UNIX-y
 #include <unordered_map>
 #include <csignal>
 #include <cstring>
