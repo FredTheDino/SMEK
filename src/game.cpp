@@ -130,7 +130,9 @@ void draw() {
     // anim = "ANIM_SKINNEDMESHACTION_RIGGED_SIMPLE_CHARACTER";
     anim = "ANIM_ARMATUREACTION_001_UNTITLED";
     static f32 t = 0;
+#ifndef IMGUI_DISABLE
     ImGui::SliderFloat("Time", &t, 0.0, 16.0, "%.2f");
+#endif
     GFX::AnimatedMesh::init(skin, skel, anim).draw_at(t * 60);
 
     //Asset::fetch_skeleton(skel)->draw();
