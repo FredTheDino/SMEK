@@ -49,7 +49,7 @@ void signal_handler (int signal) {
             reload_lib = true;
             SDL_UnlockMutex(m_reload_lib);
         } else {
-            ERROR("Unable to lock mutex: {}", SDL_GetError());
+            ERR("Unable to lock mutex: {}", SDL_GetError());
         }
     }
 }
@@ -57,7 +57,7 @@ void signal_handler (int signal) {
 bool load_gamelib() {
     if (hot_reload_active) {
         if (SDL_LockMutex(m_reload_lib) != 0) {
-            ERROR("Unable to lock mutex: {}", SDL_GetError());
+            ERR("Unable to lock mutex: {}", SDL_GetError());
             return false;
         } else {
             if (!reload_lib) {
@@ -228,7 +228,7 @@ int main(int argc, char **argv) { // Game entrypoint
         } else if ARGUMENT("--no-reload", "-R") {
             hot_reload_active = false;
         } else {
-            ERROR("Unknown command line argument '{}'", argv[index]);
+            ERR("Unknown command line argument '{}'", argv[index]);
         }
     }
 #undef ARGUMENT
@@ -238,7 +238,7 @@ int main(int argc, char **argv) { // Game entrypoint
         m_reload_lib = SDL_CreateMutex();
         ASSERT(m_reload_lib, "Unable to create mutex");
         if (SDL_LockMutex(m_reload_lib) != 0) {
-            ERROR("Unable to lock mutex: {}", SDL_GetError());
+            ERR("Unable to lock mutex: {}", SDL_GetError());
         } else {
             reload_lib = true;
             SDL_UnlockMutex(m_reload_lib);

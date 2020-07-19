@@ -90,7 +90,7 @@ AudioID AudioStruct::play_sound(AssetID asset_id, SoundSourceSettings source_set
         EntityID entity_id = GAMESTATE()->entity_system.add(sound_entity);
         return audio_id;
     }
-    ERROR("No free sources, skipping sound");
+    ERR("No free sources, skipping sound");
     return { .gen = 0, .slot = NUM_SOURCES };
 }
 
