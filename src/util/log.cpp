@@ -1,4 +1,10 @@
 #include "log.h"
+
+#ifdef WINDOWS
+void print_stacktrace(unsigned int max_frames) {
+    ERR("Unavailable on Windows");
+}
+#else
 #include "color.h"
 #include <cstdio>
 #include <cstdlib>
@@ -69,3 +75,4 @@ void print_stacktrace(unsigned int max_frames) {
     delete[] funcname;
 }
 
+#endif
