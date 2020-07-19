@@ -57,7 +57,7 @@ void signal_handler (int signal) {
 // These macros are needed... Because...
 #define HELPER(EXPR) "" STR(EXPR) ""
 const char *game_lib_path = HELPER(SMEK_GAME_LIB);
-#undef HELPER;
+#undef HELPER
 
 bool load_gamelib() {
     if (hot_reload_active) {
