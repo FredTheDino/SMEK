@@ -14,11 +14,12 @@ jobs:
         run: |
           pacman -Syy
           pacman --noconfirm -S binutils gcc python python-pip sdl2 scons git
-          python3 -m pip install --user --upgrade pip setuptools
-          python3 -m pip install --user pillow
       - uses: actions/checkout@v2
         with:
           submodules: "recursive"
+      - name: requirements.txt
+        run: |
+          python3 -m pip install --user -r requirements.txt
       - name: Run tests
         run: |
           scons -Q tests --ci --report --jumbo
