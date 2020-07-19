@@ -1,5 +1,5 @@
 import glob
-import lark
+from lark import lark
 import re
 
 
