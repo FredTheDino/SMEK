@@ -145,7 +145,7 @@ def find_structs(paths):
 
 
 if __name__ == "__main__":
-    lexer = lark.Lark.open("struct.lark", start="structs")
+    lexer = lark.Lark.open("tools/struct.lark", start="structs")
     for name, struct in find_structs(glob.glob("src/**/*.*", recursive=True)).items():
         if struct.parents_contain("BaseEntity") or name == "BaseEntity":
             print(struct.source)
