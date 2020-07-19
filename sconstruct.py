@@ -123,8 +123,6 @@ if GetOption("jumbo"):
     jumbo_source.remove("src/test.cpp")
     jumbo_source.remove("src/platform.cpp")
     jumbo_source.remove("src/game.cpp")
-    jumbo_source.remove("src/imgui.cpp")
-    jumbo_source.remove("src/glad.cpp")
 
     jumbo_env = env.Clone()
     jumbo_env.Append(CXXFLAGS=list(chain(("-include", source) for source in jumbo_source)))
@@ -138,8 +136,6 @@ else:
     smek_source = [re.sub("^src/", smek_dir, f) for f in source]
     smek_source.remove(smek_dir + "test.cpp")
     smek_source.remove(smek_dir + "platform.cpp")
-    smek_source.remove(smek_dir + "imgui.cpp")
-    smek_source.remove(smek_dir + "glad.cpp")
     libsmek = env.SharedLibrary(smek_dir + "libSMEK", [*smek_source])
 
     platform_source = [smek_dir + "platform.cpp", smek_dir + "util/tprint.cpp"]
