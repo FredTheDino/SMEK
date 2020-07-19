@@ -62,6 +62,9 @@ void reload_game(GameState *game) {
     _global_gs = game;
     GFX::reload(game);
     Asset::reload();
+#ifndef IMGUI_DISABLE
+    ImGui::SetCurrentContext((ImGuiContext *) game->imgui_context);
+#endif
 }
 
 void update() {

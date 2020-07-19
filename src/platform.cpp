@@ -54,6 +54,11 @@ void signal_handler (int signal) {
     }
 }
 
+// These macros are needed... Because...
+#define HELPER(EXPR) "" STR(EXPR) ""
+const char *game_lib_path = HELPER(SMEK_GAME_LIB);
+#undef HELPER;
+
 bool load_gamelib() {
     if (hot_reload_active) {
         if (SDL_LockMutex(m_reload_lib) != 0) {
@@ -71,12 +76,7 @@ bool load_gamelib() {
     }
 
     GameLibrary next_library = {};
-    //
-    // TODO(ed): Check if RTLD_NODELETE lets you reference memory from old loaded DLLs. That would be
-    // cool and potentially costly...
-    const char *path = "./libSMEK.so";
-
-    void *tmp = dlopen(path, RTLD_NOW);
+    void *tmp = dlopen(game_lib_path, RTLD_NOW);
     if (!tmp) {
         return false;
     }
@@ -93,7 +93,7 @@ bool load_gamelib() {
     platform_audio_struct.lock();
     if (game_lib.handle) { dlclose(game_lib.handle); }
 
-    void *lib = dlopen(path, RTLD_NOW);
+    void *lib = dlopen(game_lib_path, RTLD_NOW);
     if (!lib) {
         UNREACHABLE("Failed to open library safely: {}", dlerror());
     }
@@ -159,7 +159,7 @@ void platform_audio_init() {
 #ifndef IMGUI_DISABLE
 static void imgui_platform_start() {
     IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
+    game_state.imgui_context = (void *) ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     // Enable Keyboard and gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;

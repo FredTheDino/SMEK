@@ -63,6 +63,7 @@ env.Append(LIBS="dl")
 env.Append(LIBS="gcc")
 #env.Append(LINKFLAGS="-rdynamic")  # Gives backtrace information
 env.Append(CPPDEFINES="IMGUI_IMPL_OPENGL_LOADER_GLAD")
+env.Append(CPPDEFINES={"SMEK_GAME_LIB": "./libSMEK.dll"})
 
 debug_flags = ["-ggdb", "-O0", "-DDEBUG"]
 release_flags = ["-O2", "-DRELEASE"]
