@@ -67,6 +67,7 @@ if GetOption("windows"):
         print("It look's like you're currently using Windows.\nTherefore, --windows isn't needed.")
         Exit(1)
     print("Targeting foreign Windows")
+    native = False
     env = Environment(ENV=os.environ, tools=["mingw"])
     env.Replace(CXX="x86_64-w64-mingw32-g++")
     env.MergeFlags(shell(["x86_64-w64-mingw32-sdl2-config", "--cflags"]))
@@ -78,6 +79,7 @@ if GetOption("windows"):
     env.Replace(SHLIBSUFFIX="dll")
 else:
     # native
+    native = True
     env = Environment(ENV=os.environ)
     env.Replace(CXX="g++")
     env.MergeFlags(shell(["sdl2-config", "--cflags"]))
@@ -149,7 +151,8 @@ def all_asset_targets(build_dir):
 tests_assets = env.Assets(tests_dir + "assets-tests.bin", glob("res/tests/*.*"))
 assets = all_asset_targets(smek_dir)
 env.Alias("assets", assets)
-AddPostAction(assets, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
+if native and not is_windows():
+    AddPostAction(assets, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
 
 source = glob("src/**/*.c*", recursive=True)
 
@@ -180,7 +183,8 @@ else:
     platform_source = [smek_dir + "platform.cpp", smek_dir + "util/tprint.cpp"]
     smek = env.Program(smek_dir + "SMEK", [*platform_source, glad, imgui])
 
-AddPostAction(libsmek, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
+if native and not is_windows():
+    AddPostAction(libsmek, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
 smek_target = env.Alias("smek", smek)
 Depends(smek_target, assets)
 Depends(smek_target, libsmek)
@@ -203,13 +207,14 @@ if GetOption("jumbo"):
 else:
     tests_source = [re.sub("^src/", tests_dir, f) for f in source]
 tests = tests_env.Program(target=tests_dir + "tests", source=tests_source)
-tests_target = env.Alias("tests", tests, "cd " + tests_dir + "; " + tests[0].abspath + " " + " ".join(tests_runtime_flags))
-Depends(tests_target, tests_assets)
-Depends(tests_target, tests)
 
-AlwaysBuild(env.Alias("run", smek_target, "cd " + smek_dir + "; " + smek[0].abspath))
-AlwaysBuild(env.Alias("debug", smek_target, "cd " + smek_dir + "; " + "gdb " + smek[0].abspath))
-AlwaysBuild(tests_target)
+if native:
+    AlwaysBuild(env.Alias("run", smek_target, "cd " + smek_dir + "; " + smek[0].abspath))
+    AlwaysBuild(env.Alias("debug", smek_target, "cd " + smek_dir + "; " + "gdb " + smek[0].abspath))
+    tests_target = env.Alias("tests", tests, "cd " + tests_dir + "; " + tests[0].abspath + " " + " ".join(tests_runtime_flags))
+    Depends(tests_target, tests_assets)
+    Depends(tests_target, tests)
+    AlwaysBuild(tests_target)
 
 docs = env.Alias("docs", "", "docs/doc-builder.py")
 AlwaysBuild(docs)
@@ -218,5 +223,5 @@ if GetOption("tags"):
     shell(["ctags", "-R", "src"])
 
 env.Clean(smek_target, glob("bin/**/*.o", recursive=True))  # always remove *.o
-env.Clean(tests_target, glob("bin/**/*.o", recursive=True))  # always remove *.o
+env.Clean(tests, glob("bin/**/*.o", recursive=True))  # always remove *.o
 env.Clean(docs, "docs/index.html")
