@@ -159,7 +159,7 @@ void platform_audio_init() {
 #ifndef IMGUI_DISABLE
 static void imgui_platform_start() {
     IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
+    game_state.imgui_context = (void *) ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     // Enable Keyboard and gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
