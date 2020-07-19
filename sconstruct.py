@@ -58,7 +58,7 @@ env.MergeFlags("-Wall -Wno-unused -std=c++20")
 env.MergeFlags(shell(["sdl2-config", "--cflags"]))
 env.MergeFlags("-Iinc -Llib")
 env.MergeFlags(shell(["sdl2-config", "--libs"]))
-env.Append(LINKFLAGS=["-static-libgcc", "-static-libstdc++"])
+env.Append(CFLAGS=["-static-libgcc", "-static-libstdc++"])
 env.Append(LIBS="dl")
 env.Append(LIBS="gcc")
 #env.Append(LINKFLAGS="-rdynamic")  # Gives backtrace information
