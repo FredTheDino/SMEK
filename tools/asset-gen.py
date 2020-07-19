@@ -310,9 +310,9 @@ def wav_asset(path, verbose):
 
 
 def skinned_asset(path, verbose):
-    """Reads a skinned mesh in the .edan format.
+    """Read a skinned mesh in the .edan format.
 
-    Spits out 2+N assets, 1 mesh, 1 skeleton and N animations.
+    Returns 2+N assets: 1 mesh, 1 skeleton and N animations.
     """
     flatmap = lambda x, y: list(map(x, y))
 
