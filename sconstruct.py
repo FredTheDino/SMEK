@@ -1,6 +1,7 @@
 import os
 import shutil
 import re
+import platform
 from glob import glob
 from subprocess import Popen, PIPE
 from collections import defaultdict
@@ -11,6 +12,9 @@ def shell(command):
     """Runs a command as if it were in the shell."""
     proc = Popen(command, stdout=PIPE)
     return proc.communicate()[0].decode()
+
+def is_windows():
+    return "MINGW64" in platform.uname().system or "MSYS_NT" in platform.uname().system
 
 AddOption("--verbose",
           dest="verbose",
@@ -52,18 +56,52 @@ AddOption("--jumbo",
           action="store_true",
           help="Compiles the code using Jumbo, this make it faster for clean builds")
 
-env = Environment(ENV=os.environ)
-env.Replace(CXX="g++")
-env.Append(CXXFLAGS="-Wall")
-env.Append(CXXFLAGS="-std=c++20")
-env.Append(CXXFLAGS="-Wno-unused -Wno-return-type-c-linkage")
-env.Append(CXXFLAGS=shell(["sdl2-config", "--cflags"]))
-env.Append(CXXFLAGS="-Iinc")
-env.Append(LINKFLAGS=shell(["sdl2-config", "--libs"]))
-env.Append(LINKFLAGS="-ldl")
-env.Append(LINKFLAGS="-rdynamic")  # Gives backtrace information
+AddOption("--windows",
+          dest="windows",
+          action="store_true",
+          help="Compile a Windows executable")
+
+if GetOption("windows"):
+    # linux -> windows
+    if is_windows():
+        print("It look's like you're currently using Windows.\nTherefore, --windows isn't needed.")
+        Exit(1)
+    print("Targeting foreign Windows")
+    env = Environment(ENV=os.environ, tools=["mingw"])
+    env.Replace(CXX="x86_64-w64-mingw32-g++")
+    env.MergeFlags(shell(["x86_64-w64-mingw32-sdl2-config", "--cflags"]))
+    env.MergeFlags(shell(["x86_64-w64-mingw32-sdl2-config", "--libs"]))
+    env.Append(LINKFLAGS=["-static-libgcc", "-static-libstdc++"])
+    env.Append(LIBS="gcc")
+    env.Append(CPPDEFINES="WINDOWS")
+    smek_game_lib = "./libSMEK.dll"
+    env.Replace(SHLIBSUFFIX="dll")
+else:
+    # native
+    env = Environment(ENV=os.environ)
+    env.Replace(CXX="g++")
+    env.MergeFlags(shell(["sdl2-config", "--cflags"]))
+    env.MergeFlags(shell(["sdl2-config", "--libs"]))
+
+    if is_windows():
+        # native windows
+        print("Targeting native Windows")
+        env.Append(CPPDEFINES="WINDOWS")
+        smek_game_lib = "./libSMEK.dll"
+        env.Replace(SHLIBSUFFIX="dll")
+    else:
+        # native linux
+        print("Targeting native Linux")
+        env.Append(LINKFLAGS="-rdynamic")  # Gives backtrace information
+        smek_game_lib = "./libSMEK.so"
+        env.Replace(SHLIBSUFFIX="so")
+
+env.MergeFlags("-Wall -Wno-unused -std=c++20")
+env.MergeFlags("-Iinc -Llib")
+env.Append(LIBS="dl")
 env.Append(CPPDEFINES="IMGUI_IMPL_OPENGL_LOADER_GLAD")
-env.Append(CPPDEFINES={ "SMEK_GAME_LIB": "./libSMEK.so")
+env.Append(CPPDEFINES={"SMEK_GAME_LIB": smek_game_lib})
+env.Replace(SHLIBPREFIX="lib")
 
 debug_flags = ["-ggdb", "-O0", "-DDEBUG"]
 release_flags = ["-O2", "-DRELEASE"]
@@ -127,7 +165,7 @@ if GetOption("jumbo"):
 
     jumbo_env = env.Clone()
     jumbo_env.Append(CXXFLAGS=list(chain(("-include", source) for source in jumbo_source)))
-    libsmek = jumbo_env.SharedLibrary(smek_dir + "libSMEK", [smek_dir + "game.cpp"])
+    libsmek = jumbo_env.SharedLibrary(smek_dir + smek_game_lib, [smek_dir + "game.cpp"])
 
     plt_env = env.Clone()
     plt_env.Append(CXXFLAGS=["-include", "src/util/tprint.cpp"])
@@ -137,7 +175,7 @@ else:
     smek_source = [re.sub("^src/", smek_dir, f) for f in source]
     smek_source.remove(smek_dir + "test.cpp")
     smek_source.remove(smek_dir + "platform.cpp")
-    libsmek = env.SharedLibrary(smek_dir + "libSMEK", [*smek_source])
+    libsmek = env.SharedLibrary(smek_dir + smek_game_lib, [*smek_source])
 
     platform_source = [smek_dir + "platform.cpp", smek_dir + "util/tprint.cpp"]
     smek = env.Program(smek_dir + "SMEK", [*platform_source, glad, imgui])
