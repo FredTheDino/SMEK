@@ -1,5 +1,5 @@
 structs: struct*
-struct: class_key NAME (":" DERIVED_CLASS*)? "{" _member* "}" ";"
+struct: class_key TYPE (":" DERIVED_CLASS*)? "{" _member* "}" NAME? ";"
 
 class_key: "class"  -> class
          | "struct" -> struct
@@ -8,6 +8,7 @@ DERIVED_CLASS: ACCESS_MODIFIER? VIRTUAL? NAME
 
 _member: field
       | method
+      | struct
       | ";"
 
 field: TYPE pointer? NAME ("[" INT? "]")? ("=" INITIALIZER_VALUE)? ";"
