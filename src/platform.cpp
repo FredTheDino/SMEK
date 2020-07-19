@@ -46,6 +46,7 @@ SDL_mutex *m_reload_lib;
 bool hot_reload_active = true;
 bool reload_lib = false;
 
+#ifndef WINDOWS
 void signal_handler (int signal) {
     if (!hot_reload_active) {
         WARN("Ignoring USR1");
@@ -58,6 +59,7 @@ void signal_handler (int signal) {
         }
     }
 }
+#endif
 
 // These macros are needed... Because...
 #define HELPER(EXPR) "" STR(EXPR) ""
@@ -274,7 +276,9 @@ int main(int argc, char **argv) { // Game entrypoint
 
     game_lib.reload(&game_state);
 
+#ifndef WINDOWS
     std::signal(SIGUSR1, signal_handler);
+#endif
     u32 next_update = SDL_GetTicks() - MS_PER_FRAME;
     while (game_state.running) {
         if (load_gamelib()) {
