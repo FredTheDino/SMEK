@@ -119,13 +119,13 @@ TEST_STMT("mat_look_at",
         )
 );
 
-Mat Mat::perspective(real fov, real aspect_ratio, real near_, real far_) {
+Mat Mat::perspective(real fov, real aspect_ratio, real near_clipping, real far_clipping) {
     real s = 1.0 / Math::tan(fov / 2);
     Mat result = {};
     result._[0][0] = s;
     result._[1][1] = s * aspect_ratio;
-    result._[2][2] = -far_ / (far_ - near_);
-    result._[2][3] = -far_ * near_ / (far_ - near_);
+    result._[2][2] = -far_clipping / (far_clipping - near_clipping);
+    result._[2][3] = -far_clipping * near_clipping / (far_clipping - near_clipping);
     result._[3][2] = -1;
     result._[3][3] =  0;
     return result;
