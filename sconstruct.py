@@ -115,12 +115,19 @@ if GetOption("verbose"):
 if GetOption("no_color"):
     env.Append(CPPDEFINES="COLOR_DISABLE")
 
+smek_dir = "bin/"
+
 if GetOption("release"):
-    smek_dir = "bin/release/"
+    smek_dir += "release"
     env.Append(CXXFLAGS=release_flags)
 else:
-    smek_dir = "bin/debug/"
+    smek_dir += "debug"
     env.Append(CXXFLAGS=debug_flags)
+
+if GetOption("windows"):
+    smek_dir += "-windows"
+
+smek_dir += "/"
 
 if GetOption("no_imgui"):
     env.Append(CPPDEFINES="IMGUI_DISABLE")
