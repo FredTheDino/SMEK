@@ -99,6 +99,51 @@ static void load_model(UsableAsset *asset, FILE *file) {
     model.data = new GFX::Mesh::Vertex[size];
     read(file, model.data, size);
     asset->mesh = GFX::Mesh::init(model.data, size);
+    delete[] model.data;
+}
+
+static void load_skin(UsableAsset *asset, FILE *file) {
+    if (asset->loaded) {
+        asset->skin.destroy();
+    }
+    i32 num_floats = 0;
+    read(file, &num_floats);
+    u32 size = (sizeof(float) * num_floats) / sizeof(GFX::Skin::Vertex);
+    GFX::Skin::Vertex *data = new GFX::Skin::Vertex[size];
+    read(file, data, size);
+    asset->skin = GFX::Skin::init(data, size);
+    delete[] data;
+}
+
+static void load_skeleton(UsableAsset *asset, FILE *file) {
+    if (asset->loaded) {
+        asset->skeleton.destroy();
+    }
+
+    i32 num_bones = 0;
+    read(file, &num_bones);
+    GFX::Bone *bones = new GFX::Bone[num_bones];
+    read(file, bones, num_bones);
+    // Takes ownership of the bones passed in.
+    asset->skeleton = GFX::Skeleton::init(bones, num_bones);
+}
+
+static void load_animation(UsableAsset *asset, FILE *file) {
+    if (asset->loaded) {
+        asset->animation.destroy();
+    }
+
+    i32 num_frames, trans_per_frame;
+    read(file, &num_frames);
+    read(file, &trans_per_frame);
+
+    i32 *times = new i32[num_frames];
+    read(file, times, num_frames);
+
+    GFX::Transform *trans = new GFX::Transform[trans_per_frame*num_frames];
+    read(file, trans, trans_per_frame*num_frames);
+    // Ownership is passed to the animation for all pointers.
+    asset->animation = GFX::Animation::init(times, num_frames, trans, trans_per_frame);
 }
 
 static void load_asset(UsableAsset *asset) {
@@ -130,6 +175,15 @@ static void load_asset(UsableAsset *asset) {
         u32 size = asset->sound.num_samples;
         asset->sound.data = new f32[size];
         read<f32>(file, asset->sound.data, size);
+    } break;
+    case AssetType::SKINNED: {
+        load_skin(asset, file);
+    } break;
+    case AssetType::SKELETON: {
+        load_skeleton(asset, file);
+    } break;
+    case AssetType::ANIMATION: {
+        load_animation(asset, file);
     } break;
     default:
         ERR("Unknown asset type {} in asset file {}",
@@ -171,6 +225,19 @@ GFX::Shader *fetch_shader(AssetID id) {
 GFX::Mesh *fetch_mesh(AssetID id) {
     return &_raw_fetch(AssetType::MESH, id)->mesh;
 }
+
+GFX::Skin *fetch_skin(AssetID id) {
+    return &_raw_fetch(AssetType::SKINNED, id)->skin;
+}
+
+GFX::Skeleton *fetch_skeleton(AssetID id) {
+    return &_raw_fetch(AssetType::SKELETON, id)->skeleton;
+}
+
+GFX::Animation *fetch_animation(AssetID id) {
+    return &_raw_fetch(AssetType::ANIMATION, id)->animation;
+}
+
 
 Sound *fetch_sound(AssetID id) {
     return &_raw_fetch(AssetType::SOUND, id)->sound;

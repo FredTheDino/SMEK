@@ -2,6 +2,7 @@
 #include "../test.h"
 #include "smek_math.h"
 #include "../util/util.h"
+#include "../renderer/renderer.h"
 
 // Helper functions
 static bool close_enough(const Mat &a, const Mat &b, real r=0.001) {
@@ -23,6 +24,16 @@ i32 format(char *buffer, u32 size, FormatHint args, Mat &m) {
         p, m._[3][0], p, m._[3][1], p, m._[3][2], p, m._[3][3]);
 }
 
+void Mat::gfx_dump(Vec4 color) {
+    Vec3 o = *this * Vec3(0, 0, 0);
+    Vec3 x = *this * Vec3(1, 0, 0);
+    Vec3 y = *this * Vec3(0, 1, 0);
+    Vec3 z = *this * Vec3(0, 0, 1);
+    GFX::push_line(o, x, color, Vec4(1, 0, 0, 1), 0.01);
+    GFX::push_line(o, y, color, Vec4(0, 1, 0, 1), 0.01);
+    GFX::push_line(o, z, color, Vec4(0, 0, 1, 1), 0.01);
+}
+
 Mat operator *(const Mat &a, const Mat &b) {
     Mat result = {};
     for (u32 row = 0; row < 4; row++) {
@@ -39,7 +50,7 @@ Vec4 operator *(const Mat &m, const Vec4 &v) {
     Vec4 result = {};
     for (u32 i = 0; i < 4; i++) {
         for (u32 k = 0; k < 4; k++) {
-            result._[i] += v._[k] * m._[k][i];
+            result._[i] += v._[k] * m._[i][k];
         }
     }
     return result;
@@ -189,6 +200,14 @@ Mat Mat::scale(real scale) {
     Mat result = {};
     for (u32 i = 0; i < 3; i++)
         result._[i][i] = scale;
+    result._[3][3] = 1.0;
+    return result;
+}
+
+Mat Mat::scale(Vec3 scale) {
+    Mat result = {};
+    for (u32 i = 0; i < 3; i++)
+        result._[i][i] = scale._[i];
     result._[3][3] = 1.0;
     return result;
 }

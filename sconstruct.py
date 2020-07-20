@@ -98,7 +98,7 @@ else:
         smek_game_lib = "./libSMEK.so"
         env.Replace(SHLIBSUFFIX="so")
 
-env.MergeFlags("-Wall -Wno-unused -std=c++20")
+env.MergeFlags("-Wall -Wno-unused -Wno-format-security -std=c++20")
 env.MergeFlags("-Iinc -Llib")
 env.Append(LIBS="dl")
 env.Append(CPPDEFINES="IMGUI_IMPL_OPENGL_LOADER_GLAD")
@@ -142,7 +142,7 @@ env.Append(BUILDERS={"Assets": asset_gen})
 
 def all_asset_targets(build_dir):
     asset_files = defaultdict(list)
-    global_asset_files = []
+    global_asset_files = ["./tools/asset-gen.py"]
     for f in glob("res/**/*.*", recursive=True):
         if f.count("/") == 1:
             global_asset_files.append(f)
