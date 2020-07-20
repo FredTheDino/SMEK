@@ -18,8 +18,8 @@ Two asset files will be created.
 - bin/assets-test.bin, containing alphabet.txt.
 
 The assets are parsed by functions which all
-return a (header, data)-tuple. A header template
-is returned by default_header() and additional
+return a (header, data, prefix)-tuple. A header
+template is returned by default_header() and additional
 parameters cannot be added. The data consists of
 already packed bytes according to any arbitrary
 C-struct format. All data is packaged using the
@@ -95,6 +95,9 @@ TYPE_STRING = 2
 TYPE_MODEL = 3
 TYPE_SHADER = 4
 TYPE_SOUND = 5
+TYPE_SKINNED = 6
+TYPE_SKELETON = 7
+TYPE_ANIMATION = 8
 
 
 def ll(x):
@@ -168,7 +171,7 @@ def sprite_asset(path, verbose):
     header["type"] = TYPE_TEXTURE
     header["data_size"] = struct.calcsize(fmt)
 
-    return header, struct.pack(fmt, w, h, c, 0, *data)
+    yield header, struct.pack(fmt, w, h, c, 0, *data), ""
 
 
 def string_asset(path, verbose):
@@ -187,7 +190,7 @@ def string_asset(path, verbose):
     header["type"] = TYPE_STRING
     header["data_size"] = struct.calcsize(fmt)
 
-    return header, struct.pack(fmt, len(data)+1, 0, str.encode(data, "ascii"))
+    yield header, struct.pack(fmt, len(data)+1, 0, str.encode(data, "ascii")), ""
 
 
 def shader_asset(path, verbose):
@@ -195,9 +198,9 @@ def shader_asset(path, verbose):
 
     Format is the same as for strings but with another type.
     """
-    header, data = string_asset(path, verbose)
+    header, data, _ = next(string_asset(path, verbose))
     header["type"] = TYPE_SHADER
-    return header, data
+    yield header, data, ""
 
 
 def model_asset(path, verbose):
@@ -252,7 +255,7 @@ def model_asset(path, verbose):
     header["type"] = TYPE_MODEL
     header["data_size"] = struct.calcsize(fmt)
 
-    return header, struct.pack(fmt, points_per_face, num_faces, 0, *data)
+    yield header, struct.pack(fmt, points_per_face, num_faces, 0, *data), ""
 
 
 def wav_asset(path, verbose):
@@ -303,7 +306,67 @@ def wav_asset(path, verbose):
         header = default_header()
         header["type"] = TYPE_SOUND
         header["data_size"] = struct.calcsize(fmt)
-        return header, struct.pack(fmt, channels, sample_rate, len(data), 0, *data)
+        yield header, struct.pack(fmt, channels, sample_rate, len(data), 0, *data), ""
+
+
+def skinned_asset(path, verbose):
+    """Read a skinned mesh in the .edan format.
+
+    Returns 2+N assets: 1 mesh, 1 skeleton and N animations.
+    """
+    flatmap = lambda x, y: list(map(x, y))
+
+    def parse_geo(line):
+        data = flatmap(float, line.split())
+        return [len(data)] + data, TYPE_SKINNED, f"I{len(data)}f", "SKIN_"
+
+    def parse_arm(line):
+        bones = []
+        num_bones = line.count("|") + 1
+        for bone in line.split("|"):
+            splits = bone.split()
+            parent, id = int(splits[0]), int(splits[1])
+            transform = flatmap(float, splits[3:])
+            bones += [parent, id, *transform]
+        return [num_bones] + bones, TYPE_SKELETON, "i" + "ii10f" * num_bones, "SKEL_"
+
+    def parse_anim(name, line):
+        num_frames = line.count(";") + 1
+        num_bones = None
+
+        data = []
+        for frame in line.split(";"):
+            data.append(int(frame.split("=")[0]))
+
+        for frame in line.split(";"):
+            transforms = frame.split("=")[1]
+            assert num_bones is None or num_bones == (transforms.count("|") + 1)
+            num_bones = transforms.count("|") + 1
+            for transform in transforms.split("|"):
+                data += flatmap(float, transform.split())
+        num_floats = 10 * num_bones * num_frames
+        fmt = "ii" + f"{num_frames}i"+ f"{num_floats}f"
+        data = [num_frames, num_bones] + data
+        return data, TYPE_ANIMATION, fmt, "ANIM_" + name.upper() + "_"
+
+
+    with open(path, "r") as f:
+        for line in f:
+            splits = line.split(":")
+            pre, splits = splits[0], splits[1:]
+
+            if pre == "geo":
+                data, t, fmt, post = parse_geo(*splits)
+            elif pre == "arm":
+                data, t, fmt, post = parse_arm(*splits)
+            elif pre == "anim":
+                data, t, fmt, post = parse_anim(*splits)
+
+            header = default_header()
+            header["type"] = t
+            header["data_size"] = struct.calcsize(fmt)
+            out = struct.pack(fmt, *(data[0:]))
+            yield header, out, post
 
 
 EXTENSIONS = {
@@ -312,6 +375,7 @@ EXTENSIONS = {
     "txt": string_asset,
     "glsl": shader_asset,
     "obj": model_asset,
+    "edan": skinned_asset,
     "wav": wav_asset,
 }
 
@@ -320,7 +384,6 @@ def pack(asset_files, out_file, verbose=False):
     print("=== PACKING INTO {} ===".format(out_file))
     seen_name_hashes = set()
 
-    num_assets = 0
     cur_asset_offset = 0
     cur_name_offset = 0
 
@@ -332,25 +395,27 @@ def pack(asset_files, out_file, verbose=False):
         if asset.count(".") != 1:
             continue
         ext = asset.split(".")[-1]
-        name = re.sub(r"[^A-Z0-9]", "_", ""
-                      .join(asset
-                            .split("/")[-1]
-                            .split(".")[:-1])
-                      .upper())
-        print(asset + " -> ", end="")
         if ext in EXTENSIONS:
-            name_hash = hash_string(name)
-            if verbose:
-                print(f"{name} ({name_hash})")
-            else:
-                print(name)
-            if name_hash in seen_name_hashes:
-                print(f"\nName hash collision! ({name})")
-                sys.exit(1)
-            seen_name_hashes.add(name_hash)
-            asset_header, asset_data = EXTENSIONS[ext](asset, verbose)
-            if asset_header and asset_data:
-                num_assets += 1
+            for asset_header, asset_data, asset_prefix in EXTENSIONS[ext](asset, verbose):
+                if not (asset_header and asset_data): continue
+                name = re.sub(r"[^A-Z0-9]", "_",
+                              asset_prefix +
+                              "".join((asset)
+                                    .split("/")[-1]
+                                    .split(".")[:-1])
+                              .upper())
+                print(asset + " -> ", end="")
+
+                name_hash = hash_string(name)
+                if verbose:
+                    print(f"{name} ({name_hash})")
+                else:
+                    print(name)
+                if name_hash in seen_name_hashes:
+                    print(f"\nName hash collision! ({name})")
+                    sys.exit(1)
+                seen_name_hashes.add(name_hash)
+
                 asset_header["name_hash"] = name_hash
                 asset_header["data_hash"] = hash_bytes(asset_data)
                 asset_header["name_size"] = len(name)+1
@@ -366,14 +431,14 @@ def pack(asset_files, out_file, verbose=False):
 
     names = [struct.pack("{}s".format(len(name)+1), str.encode(name, "ascii") + b'\0') for name in names]
 
-    name_offset = HEADER_OFFSET + HEADER_SIZE * num_assets
+    name_offset = HEADER_OFFSET + HEADER_SIZE * len(headers)
     data_offset = name_offset + sum([len(name) for name in names])
 
     if verbose:
         print("=== PACKING THE FOLLOWING ASSETS ===")
         print("\n".join(names))
     with open(out_file, "wb") as f:
-        f.write(struct.pack(FILE_HEADER_FMT, num_assets, HEADER_OFFSET, name_offset, data_offset))
+        f.write(struct.pack(FILE_HEADER_FMT, len(headers), HEADER_OFFSET, name_offset, data_offset))
         for h in sorted(headers, key=lambda x: x["name_hash"]):
             f.write(struct.pack(ASSET_HEADER_FMT, *h.values()))
             if verbose:

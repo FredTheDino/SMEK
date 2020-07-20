@@ -84,6 +84,7 @@ void update() {
     GAMESTATE()->entity_system.update();
 }
 
+
 void draw() {
     glClearColor(0.2, 0.1, 0.3, 1); // We don't need to do this...
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -93,7 +94,7 @@ void draw() {
 
     const i32 grid_size = 10;
     const f32 width = 0.005;
-    const Vec4 color = GFX::color(1);
+    const Vec4 color = GFX::color(7) * 0.4;
     for (f32 x = 0; x <= grid_size; x += 0.5) {
         GFX::push_point(Vec3(x, 0, x), GFX::color(2), width * 10);
         GFX::push_line(Vec3(x, 0, grid_size), Vec3(x, 0, -grid_size), color, width);
@@ -111,19 +112,30 @@ void draw() {
     GAMESTATE()->entity_system.draw();
 
 #if 0
-    GFX::Mesh mesh = *Asset::fetch_mesh("MONKEY");
-    Mat model_matrix = Mat::translate(Math::cos(time()) * 0.2, Math::sin(time()) * 0.2, -0.5) * Mat::scale(0.1);
+    GFX::Skin *mesh = Asset::fetch_skin("SKIN_SWINGING_CUBE");
+    Mat model_matrix = Mat::translate(Math::cos(time()) * 0.2, Math::sin(time()) * 0.2, -0.5) * Mat::scale(1.0);
     shader.upload_model(model_matrix);
-    mesh.draw();
+    shader.upload_t(time());
+    mesh->draw();
 
-    model_matrix = Mat::translate(-Math::cos(time()) * 0.2, -Math::sin(time()) * 0.2, -0.5) * Mat::scale(0.1);
-    shader.upload_model(model_matrix);
-    mesh.draw();
-
-    model_matrix = Mat::translate(0, 0, -0.6) * Mat::scale(0.1);
-    shader.upload_model(model_matrix);
-    mesh.draw();
+    Vec3 p(Math::cos(time()) * 0.2, Math::sin(time()) * 0.2, -0.5);
+    GFX::push_point(Vec3(p.x, p.y, p.z));
 #endif
+
+    AssetID skin, skel, anim;
+    skin = "SKIN_UNTITLED";
+    // TODO(ed): Not drawing...
+    // Asset::fetch_skin(skin)->draw();
+    skel = "SKEL_UNTITLED";
+    // anim = "ANIM_SKINNEDMESHACTION_RIGGED_SIMPLE_CHARACTER";
+    anim = "ANIM_ARMATUREACTION_001_UNTITLED";
+    static f32 t = 0;
+#ifndef IMGUI_DISABLE
+    ImGui::SliderFloat("Time", &t, 0.0, 16.0, "%.2f");
+#endif
+    GFX::AnimatedMesh::init(skin, skel, anim).draw_at(t * 60);
+
+    //Asset::fetch_skeleton(skel)->draw();
 
     GFX::debug_shader().use();
     GFX::main_camera()->upload(GFX::debug_shader());

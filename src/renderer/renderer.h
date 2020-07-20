@@ -78,6 +78,95 @@ struct Mesh {
     void draw();
 };
 
+struct Skin {
+    struct Vertex {
+        Vec3 position;
+        Vec2 texture;
+        Vec3 normal;
+        Vec2 weight1;
+        Vec2 weight2;
+        Vec2 weight3;
+    };
+
+    u32 vao, vbo;
+    u32 draw_length;
+
+    static Skin init(Vertex *vericies, u32 num_verticies);
+
+    void destroy();
+
+    void draw();
+};
+
+struct Transform {
+    Vec3 scale;
+    Quat rotation;
+    Vec3 position;
+
+    Mat to_matrix();
+};
+
+struct Bone {
+    i32 parent;
+    i32 index;
+    union {
+        struct {
+            Vec3 scale;
+            Quat rotation;
+            Vec3 position;
+        } t;
+        Transform transform;
+    };
+
+    Bone() {}
+};
+
+struct Skeleton {
+    u32 num_bones;
+    Bone *bones;
+
+    static Skeleton init(Bone *bones, u32 num_bones);
+
+    void destroy();
+
+    Mat matrix(i32 i);
+    void draw();
+};
+
+struct Animation {
+    struct Frame {
+        i32 t;
+        Transform *trans;
+    };
+    i32 trans_per_frame;
+    i32 num_frames;
+
+    Frame *frames;
+
+    static Animation init(i32 *times, i32 num_frames, Transform *trans, i32 trans_per_frame);
+
+    const Frame &operator[](i32 i) {
+        return frames[i];
+    }
+
+    void destroy();
+};
+
+struct AnimatedMesh {
+    static constexpr float STANDARD_FRAME_PER_SECOND = 1.0 / 60.0;
+    AssetID skin;
+    AssetID skeleton;
+    AssetID animation;
+
+    // f32 time; // Add this in to let the animation be stepped through.
+    f32 seconds_to_frame;
+
+    void lerp_bones_to_matrix(Transform *as, Transform *bs, Mat *out, f32 blend, i32 num_bones);
+    void draw_at(float time);
+
+    static AnimatedMesh init(AssetID skin, AssetID skeleton, AssetID animation);
+};
+
 struct Shader {
     i32 program_id;
 
@@ -102,12 +191,19 @@ struct Shader {
     u32 loc_ ##name;\
     void upload_ ##name (Mat &) const;
 
+#define MATS_SHADER_PROP(name)\
+    u32 loc_num_ ##name;\
+    u32 loc_ ##name;\
+    void upload_ ##name (u32, Mat *) const;
+
 struct MasterShader: public Shader {
     F32_SHADER_PROP(t);
     MAT_SHADER_PROP(proj);
     MAT_SHADER_PROP(view);
     MAT_SHADER_PROP(model);
     U32_SHADER_PROP(tex);
+
+    MATS_SHADER_PROP(bones);
 
     static MasterShader init();
 };
@@ -124,6 +220,7 @@ struct DebugShader: public Shader {
 #undef F32_SHADER_PROP
 #undef U32_SHADER_PROP
 #undef MAT_SHADER_PROP
+#undef MATS_SHADER_PROP
 
 struct Texture {
     u32 texture_id;
@@ -187,7 +284,7 @@ struct Renderer {
 
 ///*
 // Initalize the graphics pipeline.
-bool init(GameState *gs, int width=680, int height=480);
+bool init(GameState *gs, i32 width=680, i32 height=480);
 
 ///*
 // Reloads opengl function pointers and such, which is faster

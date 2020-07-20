@@ -41,6 +41,7 @@ struct Mat {
     real *data() { return &_[0][0]; }
 
     static Mat scale(real scale);
+    static Mat scale(Vec3 scale);
     static Mat translate(real dx, real dy, real dz);
     static Mat translate(Vec3 delta);
     static Mat rotate_x(real d);
@@ -52,6 +53,8 @@ struct Mat {
     static Mat perspective(real fov, real aspect_ratio, real near, real far);
 
     static Mat from(H h);
+
+    void gfx_dump(Vec4 color=Vec4(1.0, 1.0, 1.0, 1.0));
 
     Mat invert();
 };

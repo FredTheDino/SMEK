@@ -7,24 +7,6 @@
 #include "../math/smek_vec.h"
 #include "../renderer/renderer.h"
 
-struct AssetID {
-    AssetID(const char *);
-    AssetID(u64 id): id(id) {}
-    AssetID(): id(NONE()) {}
-
-    static AssetID NONE() { return 0xFFFFFFFF; }
-
-    u64 id;
-
-    bool operator ==(AssetID &other) const {
-        return id == other;
-    }
-
-    operator u64() const {
-        return id;
-    }
-};
-
 namespace std {
     template<> struct hash<AssetID> {
         std::size_t operator()(const AssetID &id) const noexcept {
@@ -45,6 +27,9 @@ typedef enum {
     MESH = 3,
     SHADER = 4,
     SOUND = 5,
+    SKINNED = 6,
+    SKELETON = 7,
+    ANIMATION = 8,
 
     NUM_TYPES,
 } AssetType;
@@ -104,6 +89,9 @@ struct UsableAsset {
         GFX::Texture texture;
         GFX::Shader shader;
         GFX::Mesh mesh;
+        GFX::Skin skin;
+        GFX::Skeleton skeleton;
+        GFX::Animation animation;
         StringAsset string;
         Sound sound;
     };
@@ -163,6 +151,12 @@ GFX::Shader *fetch_shader(AssetID id);
 ///*
 // Fetch a 3D-model.
 GFX::Mesh *fetch_mesh(AssetID id);
+
+GFX::Skin *fetch_skin(AssetID id);
+
+GFX::Skeleton *fetch_skeleton(AssetID id);
+
+GFX::Animation *fetch_animation(AssetID id);
 
 Sound *fetch_sound(AssetID id);
 

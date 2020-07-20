@@ -56,7 +56,8 @@ env = Environment(ENV=os.environ)
 env.Replace(CXX="g++")
 env.Append(CXXFLAGS="-Wall")
 env.Append(CXXFLAGS="-std=c++20")
-env.Append(CXXFLAGS="-Wno-unused -Wno-return-type-c-linkage")
+# Annoying things.
+env.Append(CXXFLAGS="-Wno-unused -Wno-return-type-c-linkage -Wno-format-security")
 env.Append(CXXFLAGS=shell(["sdl2-config", "--cflags"]))
 env.Append(CXXFLAGS="-Iinc")
 env.Append(LINKFLAGS=shell(["sdl2-config", "--libs"]))
@@ -94,7 +95,7 @@ env.Append(BUILDERS={"Assets": asset_gen})
 
 def all_asset_targets(build_dir):
     asset_files = defaultdict(list)
-    global_asset_files = []
+    global_asset_files = ["./tools/asset-gen.py"]
     for f in glob("res/**/*.*", recursive=True):
         if f.count("/") == 1:
             global_asset_files.append(f)
