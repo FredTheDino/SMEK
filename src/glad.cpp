@@ -76,7 +76,11 @@ void close_gl(void) {
     }
 }
 #else
+#ifdef WINDOWS
+#include "dlfcn-mingw.h"
+#else
 #include <dlfcn.h>
+#endif
 static void* libGL;
 
 #if !defined(__APPLE__) && !defined(__HAIKU__)

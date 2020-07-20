@@ -13,8 +13,13 @@
 
 #include "platform_input.h"
 
-// This is very UNIX-y
+#ifdef WINDOWS
+#include "dlfcn-mingw.h"
+#else
 #include <dlfcn.h>
+#endif
+
+// This is very UNIX-y
 #include <unordered_map>
 #include <csignal>
 #include <cstring>
@@ -41,6 +46,7 @@ SDL_mutex *m_reload_lib;
 bool hot_reload_active = true;
 bool reload_lib = false;
 
+#ifndef WINDOWS
 void signal_handler (int signal) {
     if (!hot_reload_active) {
         WARN("Ignoring USR1");
@@ -49,15 +55,21 @@ void signal_handler (int signal) {
             reload_lib = true;
             SDL_UnlockMutex(m_reload_lib);
         } else {
-            ERROR("Unable to lock mutex: {}", SDL_GetError());
+            ERR("Unable to lock mutex: {}", SDL_GetError());
         }
     }
 }
+#endif
+
+// These macros are needed... Because...
+#define HELPER(EXPR) "" STR(EXPR) ""
+const char *game_lib_path = HELPER(SMEK_GAME_LIB);
+#undef HELPER
 
 bool load_gamelib() {
     if (hot_reload_active) {
         if (SDL_LockMutex(m_reload_lib) != 0) {
-            ERROR("Unable to lock mutex: {}", SDL_GetError());
+            ERR("Unable to lock mutex: {}", SDL_GetError());
             return false;
         } else {
             if (!reload_lib) {
@@ -71,12 +83,7 @@ bool load_gamelib() {
     }
 
     GameLibrary next_library = {};
-    //
-    // TODO(ed): Check if RTLD_NODELETE lets you reference memory from old loaded DLLs. That would be
-    // cool and potentially costly...
-    const char *path = "./libSMEK.so";
-
-    void *tmp = dlopen(path, RTLD_NOW);
+    void *tmp = dlopen(game_lib_path, RTLD_NOW);
     if (!tmp) {
         return false;
     }
@@ -93,7 +100,7 @@ bool load_gamelib() {
     platform_audio_struct.lock();
     if (game_lib.handle) { dlclose(game_lib.handle); }
 
-    void *lib = dlopen(path, RTLD_NOW);
+    void *lib = dlopen(game_lib_path, RTLD_NOW);
     if (!lib) {
         UNREACHABLE("Failed to open library safely: {}", dlerror());
     }
@@ -159,7 +166,7 @@ void platform_audio_init() {
 #ifndef IMGUI_DISABLE
 static void imgui_platform_start() {
     IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
+    game_state.imgui_context = (void *) ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     // Enable Keyboard and gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -228,7 +235,7 @@ int main(int argc, char **argv) { // Game entrypoint
         } else if ARGUMENT("--no-reload", "-R") {
             hot_reload_active = false;
         } else {
-            ERROR("Unknown command line argument '{}'", argv[index]);
+            ERR("Unknown command line argument '{}'", argv[index]);
         }
     }
 #undef ARGUMENT
@@ -238,7 +245,7 @@ int main(int argc, char **argv) { // Game entrypoint
         m_reload_lib = SDL_CreateMutex();
         ASSERT(m_reload_lib, "Unable to create mutex");
         if (SDL_LockMutex(m_reload_lib) != 0) {
-            ERROR("Unable to lock mutex: {}", SDL_GetError());
+            ERR("Unable to lock mutex: {}", SDL_GetError());
         } else {
             reload_lib = true;
             SDL_UnlockMutex(m_reload_lib);
@@ -269,7 +276,9 @@ int main(int argc, char **argv) { // Game entrypoint
 
     game_lib.reload(&game_state);
 
+#ifndef WINDOWS
     std::signal(SIGUSR1, signal_handler);
+#endif
     u32 next_update = SDL_GetTicks() - MS_PER_FRAME;
     while (game_state.running) {
         if (load_gamelib()) {

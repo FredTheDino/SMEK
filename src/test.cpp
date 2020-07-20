@@ -54,7 +54,7 @@ int main(int argc, char **argv) { // Test entry point
             write_report = true;
             report_path = argv[++index];
         } else {
-            ERROR("Unknown command line argument '{}'", argv[index]);
+            ERR("Unknown command line argument '{}'", argv[index]);
         }
     }
 #undef ARGUMENT

@@ -77,7 +77,7 @@ static void load_shader(UsableAsset *asset, FILE *file) {
         }
         asset->shader = new_shader;
     } else {
-        ERROR("Failed to load shader due to errors.");
+        ERR("Failed to load shader due to errors.");
     }
 }
 
@@ -186,7 +186,7 @@ static void load_asset(UsableAsset *asset) {
         load_animation(asset, file);
     } break;
     default:
-        ERROR("Unknown asset type {} in asset file {}",
+        ERR("Unknown asset type {} in asset file {}",
               asset->header->type, GAMESTATE()->asset_system.asset_path);
         break;
     }

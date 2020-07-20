@@ -1,6 +1,7 @@
 import os
 import shutil
 import re
+import platform
 from glob import glob
 from subprocess import Popen, PIPE
 from collections import defaultdict
@@ -11,6 +12,9 @@ def shell(command):
     """Runs a command as if it were in the shell."""
     proc = Popen(command, stdout=PIPE)
     return proc.communicate()[0].decode()
+
+def is_windows():
+    return "MINGW64" in platform.uname().system or "MSYS_NT" in platform.uname().system
 
 AddOption("--verbose",
           dest="verbose",
@@ -52,18 +56,54 @@ AddOption("--jumbo",
           action="store_true",
           help="Compiles the code using Jumbo, this make it faster for clean builds")
 
-env = Environment(ENV=os.environ)
-env.Replace(CXX="g++")
-env.Append(CXXFLAGS="-Wall")
-env.Append(CXXFLAGS="-std=c++20")
-# Annoying things.
-env.Append(CXXFLAGS="-Wno-unused -Wno-return-type-c-linkage -Wno-format-security")
-env.Append(CXXFLAGS=shell(["sdl2-config", "--cflags"]))
-env.Append(CXXFLAGS="-Iinc")
-env.Append(LINKFLAGS=shell(["sdl2-config", "--libs"]))
-env.Append(LINKFLAGS="-ldl")
-env.Append(LINKFLAGS="-rdynamic")  # Gives backtrace information
+AddOption("--windows",
+          dest="windows",
+          action="store_true",
+          help="Compile a Windows executable")
+
+if GetOption("windows"):
+    # linux -> windows
+    if is_windows():
+        print("It look's like you're currently using Windows.\nTherefore, --windows isn't needed.")
+        Exit(1)
+    print("Targeting foreign Windows")
+    native = False
+    env = Environment(ENV=os.environ, tools=["mingw"])
+    env.Replace(CXX="x86_64-w64-mingw32-g++")
+    env.MergeFlags(shell(["x86_64-w64-mingw32-sdl2-config", "--cflags"]))
+    env.MergeFlags(shell(["x86_64-w64-mingw32-sdl2-config", "--libs"]))
+    env.Append(LINKFLAGS=["-static-libgcc", "-static-libstdc++"])
+    env.Append(LIBS="gcc")
+    env.Append(CPPDEFINES="WINDOWS")
+    smek_game_lib = "./libSMEK.dll"
+    env.Replace(SHLIBSUFFIX="dll")
+else:
+    # native
+    native = True
+    env = Environment(ENV=os.environ)
+    env.Replace(CXX="g++")
+    env.MergeFlags(shell(["sdl2-config", "--cflags"]))
+    env.MergeFlags(shell(["sdl2-config", "--libs"]))
+
+    if is_windows():
+        # native windows
+        print("Targeting native Windows")
+        env.Append(CPPDEFINES="WINDOWS")
+        smek_game_lib = "./libSMEK.dll"
+        env.Replace(SHLIBSUFFIX="dll")
+    else:
+        # native linux
+        print("Targeting native Linux")
+        env.Append(LINKFLAGS="-rdynamic")  # Gives backtrace information
+        smek_game_lib = "./libSMEK.so"
+        env.Replace(SHLIBSUFFIX="so")
+
+env.MergeFlags("-Wall -Wno-unused -Wno-format-security -std=c++20")
+env.MergeFlags("-Iinc -Llib")
+env.Append(LIBS="dl")
 env.Append(CPPDEFINES="IMGUI_IMPL_OPENGL_LOADER_GLAD")
+env.Append(CPPDEFINES={"SMEK_GAME_LIB": smek_game_lib})
+env.Replace(SHLIBPREFIX="lib")
 
 debug_flags = ["-ggdb", "-O0", "-DDEBUG"]
 release_flags = ["-O2", "-DRELEASE"]
@@ -75,12 +115,19 @@ if GetOption("verbose"):
 if GetOption("no_color"):
     env.Append(CPPDEFINES="COLOR_DISABLE")
 
+smek_dir = "bin/"
+
 if GetOption("release"):
-    smek_dir = "bin/release/"
+    smek_dir += "release"
     env.Append(CXXFLAGS=release_flags)
 else:
-    smek_dir = "bin/debug/"
+    smek_dir += "debug"
     env.Append(CXXFLAGS=debug_flags)
+
+if GetOption("windows"):
+    smek_dir += "-windows"
+
+smek_dir += "/"
 
 if GetOption("no_imgui"):
     env.Append(CPPDEFINES="IMGUI_DISABLE")
@@ -111,7 +158,8 @@ def all_asset_targets(build_dir):
 tests_assets = env.Assets(tests_dir + "assets-tests.bin", glob("res/tests/*.*"))
 assets = all_asset_targets(smek_dir)
 env.Alias("assets", assets)
-AddPostAction(assets, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
+if native and not is_windows():
+    AddPostAction(assets, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
 
 source = glob("src/**/*.c*", recursive=True)
 
@@ -124,12 +172,10 @@ if GetOption("jumbo"):
     jumbo_source.remove("src/test.cpp")
     jumbo_source.remove("src/platform.cpp")
     jumbo_source.remove("src/game.cpp")
-    jumbo_source.remove("src/imgui.cpp")
-    jumbo_source.remove("src/glad.cpp")
 
     jumbo_env = env.Clone()
     jumbo_env.Append(CXXFLAGS=list(chain(("-include", source) for source in jumbo_source)))
-    libsmek = jumbo_env.SharedLibrary(smek_dir + "libSMEK", [smek_dir + "game.cpp"])
+    libsmek = jumbo_env.SharedLibrary(smek_dir + smek_game_lib, [smek_dir + "game.cpp"])
 
     plt_env = env.Clone()
     plt_env.Append(CXXFLAGS=["-include", "src/util/tprint.cpp"])
@@ -139,14 +185,13 @@ else:
     smek_source = [re.sub("^src/", smek_dir, f) for f in source]
     smek_source.remove(smek_dir + "test.cpp")
     smek_source.remove(smek_dir + "platform.cpp")
-    smek_source.remove(smek_dir + "imgui.cpp")
-    smek_source.remove(smek_dir + "glad.cpp")
-    libsmek = env.SharedLibrary(smek_dir + "libSMEK", [*smek_source])
+    libsmek = env.SharedLibrary(smek_dir + smek_game_lib, [*smek_source])
 
     platform_source = [smek_dir + "platform.cpp", smek_dir + "util/tprint.cpp"]
     smek = env.Program(smek_dir + "SMEK", [*platform_source, glad, imgui])
 
-AddPostAction(libsmek, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
+if native and not is_windows():
+    AddPostAction(libsmek, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
 smek_target = env.Alias("smek", smek)
 Depends(smek_target, assets)
 Depends(smek_target, libsmek)
@@ -169,13 +214,25 @@ if GetOption("jumbo"):
 else:
     tests_source = [re.sub("^src/", tests_dir, f) for f in source]
 tests = tests_env.Program(target=tests_dir + "tests", source=tests_source)
-tests_target = env.Alias("tests", tests, "cd " + tests_dir + "; " + tests[0].abspath + " " + " ".join(tests_runtime_flags))
-Depends(tests_target, tests_assets)
-Depends(tests_target, tests)
 
-AlwaysBuild(env.Alias("run", smek_target, "cd " + smek_dir + "; " + smek[0].abspath))
-AlwaysBuild(env.Alias("debug", smek_target, "cd " + smek_dir + "; " + "gdb " + smek[0].abspath))
-AlwaysBuild(tests_target)
+zip_name = "smek"
+if GetOption("windows") or is_windows():
+    files = "bin/debug-windows/libSMEK.dll bin/debug-windows/SMEK.exe bin/debug-windows/assets.bin lib/dll/*"
+    zip_name += "-windows"
+else:
+    files = "bin/debug/libSMEK.so bin/debug/SMEK bin/debug/assets.bin"
+    zip_name += "-linux"
+package_target = env.Alias("package", "", f"rm -f {zip_name}.zip; zip -j {zip_name} {files}")
+Depends(package_target, smek_target)
+AlwaysBuild(package_target)
+
+if native:
+    AlwaysBuild(env.Alias("run", smek_target, "cd " + smek_dir + "; " + smek[0].abspath))
+    AlwaysBuild(env.Alias("debug", smek_target, "cd " + smek_dir + "; " + "gdb " + smek[0].abspath))
+    tests_target = env.Alias("tests", tests, "cd " + tests_dir + "; " + tests[0].abspath + " " + " ".join(tests_runtime_flags))
+    Depends(tests_target, tests_assets)
+    Depends(tests_target, tests)
+    AlwaysBuild(tests_target)
 
 docs = env.Alias("docs", "", "docs/doc-builder.py")
 AlwaysBuild(docs)
@@ -184,5 +241,5 @@ if GetOption("tags"):
     shell(["ctags", "-R", "src"])
 
 env.Clean(smek_target, glob("bin/**/*.o", recursive=True))  # always remove *.o
-env.Clean(tests_target, glob("bin/**/*.o", recursive=True))  # always remove *.o
+env.Clean(tests, glob("bin/**/*.o", recursive=True))  # always remove *.o
 env.Clean(docs, "docs/index.html")
