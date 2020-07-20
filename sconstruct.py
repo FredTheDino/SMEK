@@ -215,6 +215,17 @@ else:
     tests_source = [re.sub("^src/", tests_dir, f) for f in source]
 tests = tests_env.Program(target=tests_dir + "tests", source=tests_source)
 
+zip_name = "smek"
+if GetOption("windows") or is_windows():
+    files = "bin/debug-windows/libSMEK.dll bin/debug-windows/SMEK.exe bin/debug-windows/assets.bin lib/dll/*"
+    zip_name += "-windows"
+else:
+    files = "bin/debug/libSMEK.so bin/debug/SMEK bin/debug/assets.bin"
+    zip_name += "-linux"
+package_target = env.Alias("package", "", f"rm -f {zip_name}.zip; zip -j {zip_name} {files}")
+Depends(package_target, smek_target)
+AlwaysBuild(package_target)
+
 if native:
     AlwaysBuild(env.Alias("run", smek_target, "cd " + smek_dir + "; " + smek[0].abspath))
     AlwaysBuild(env.Alias("debug", smek_target, "cd " + smek_dir + "; " + "gdb " + smek[0].abspath))
