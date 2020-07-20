@@ -431,14 +431,14 @@ def pack(asset_files, out_file, verbose=False):
 
     names = [struct.pack("{}s".format(len(name)+1), str.encode(name, "ascii") + b'\0') for name in names]
 
+    name_offset = HEADER_OFFSET + HEADER_SIZE * len(headers)
     data_offset = name_offset + sum([len(name) for name in names])
-    data_offset = HEADER_OFFSET + HEADER_SIZE * len(headers)
 
     if verbose:
         print("=== PACKING THE FOLLOWING ASSETS ===")
         print("\n".join(names))
     with open(out_file, "wb") as f:
-        f.write(struct.pack(FILE_HEADER_FMT, len(headers), HEADER_OFFSET, data_offset))
+        f.write(struct.pack(FILE_HEADER_FMT, len(headers), HEADER_OFFSET, name_offset, data_offset))
         for h in sorted(headers, key=lambda x: x["name_hash"]):
             f.write(struct.pack(ASSET_HEADER_FMT, *h.values()))
             if verbose:
