@@ -5,10 +5,16 @@
 #include "../math/smek_quat.h"
 #include "../audio.h"
 
+#include "entity_types.h"
+
 ///# Entity system
 //
 
 using EntityID = u64;
+
+struct EntityMetadata {
+    EntityType type;
+};
 
 struct BaseEntity {
     bool remove = false;
@@ -23,6 +29,8 @@ struct BaseEntity {
     virtual void update() {};
     virtual void draw() {};
     virtual void on_remove() {};
+
+    EntityMetadata metadata;
 };
 
 struct SoundEntity: public BaseEntity {

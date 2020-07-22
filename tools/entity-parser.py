@@ -1,6 +1,7 @@
 import glob
 from lark import lark
 import re
+from string import Template
 
 
 class Struct():
@@ -146,7 +147,48 @@ def find_structs(paths):
 
 if __name__ == "__main__":
     lexer = lark.Lark.open("tools/struct.lark", start="structs")
+    types = ["BaseEntity", ]
     for name, struct in find_structs(glob.glob("src/**/*.*", recursive=True)).items():
         if struct.parents_contain("BaseEntity") or name == "BaseEntity":
-            print(struct.source)
-            print(lexer.parse(struct.source).pretty())
+            #print(struct.source)
+            tree = lexer.parse(struct.source)
+            #print(tree.pretty())
+            struct_types = list(tree.find_data("struct_type"))
+            if len(struct_types) == 0:
+                #print("No typename found, 1 required")
+                continue
+            if len(struct_types) > 1:
+                #print(f"{len(struct_types)} typenames found (structs in structs?), 1 required\nstructs are {struct_types}")
+                continue
+            #print(struct_types[0].children[0])
+            types.append(struct_types[0].children[0])
+            #print()
+    assert "BaseEntity" in types, "Couldn't find BaseEntity"
+    #print("Found types:")
+    #print(types)
+
+    with open("tools/entity_types_type_of.h", "r") as template_file:
+        template_type_of_h = Template(template_file.read())
+
+    template_kwords_h = {
+            "types": "\n".join([f"    {t.upper()}," for t in types]),
+            "type_ofs": "\n".join([template_type_of_h.substitute(entity_type=t) for t in types]),
+    }
+
+    with open("tools/entity_types.h", "r") as template_file:
+        template = Template(template_file.read())
+        with open("src/entity/entity_types.h", "w") as out_file:
+            out_file.write(template.substitute(template_kwords_h))
+
+    with open("tools/entity_types_type_of.cpp", "r") as template_file:
+        template_type_of_cpp = Template(template_file.read())
+
+    template_kwords_cpp = {
+            "type_ofs": "\n".join([template_type_of_cpp.substitute(entity_type=t, entity_type_enum=t.upper()) for t in types]),
+            "type_formats": "\n".join([f"{' '*8}case EntityType::{t.upper()}: return snprintf(buffer, size, \"{t}\");" for t in types]),
+    }
+
+    with open("tools/entity_types.cpp", "r") as template_file:
+        template = Template(template_file.read())
+        with open("src/entity/entity_types.cpp", "w") as out_file:
+            out_file.write(template.substitute(template_kwords_cpp))

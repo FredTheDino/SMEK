@@ -1,8 +1,10 @@
 structs: struct*
-struct: class_key TYPE (":" DERIVED_CLASS*)? "{" _member* "}" NAME? ";"
+struct: struct_key struct_type (":" DERIVED_CLASS*)? "{" _member* "}" NAME? ";"
 
-class_key: "class"  -> class
-         | "struct" -> struct
+struct_key: "class"  -> key_class
+          | "struct" -> key_struct
+
+struct_type: TYPE
 
 DERIVED_CLASS: ACCESS_MODIFIER? VIRTUAL? NAME
 
