@@ -9,6 +9,8 @@ docs/index.html
 
 # Misc
 tags
+compile_commands.json
+.clangd
 __pycache__/
 
 # Local vim settings
