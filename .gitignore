@@ -1,6 +1,7 @@
 # build output
 bin
 SMEK
+src/entity/entity_types.h
 
 docs/index.html
 
