@@ -29,23 +29,28 @@ void main() {
     bone_weights[1] = weight2.y;
     bone_weights[2] = weight3.y;
 
-    vec4 final_norm = vec4(0.0);
-    vec4 final_pos = vec4(0.0);
-    for (int i = 0; i < 3; i++) {
-        mat4 bone_trans = bones[bone_indicies[i]];
+    vec4 final_norm;
+    vec4 final_pos;
+    if (num_bones != 0) {
+        final_norm = vec4(0.0);
+        final_pos = vec4(0.0);
+        for (int i = 0; i < 3; i++) {
+            mat4 bone_trans = bones[bone_indicies[i]];
 
-        vec4 p = bone_trans * vec4(pos, 1.0);
-        final_pos += p * bone_weights[i];
+            vec4 p = bone_trans * vec4(pos, 1.0);
+            final_pos += p * bone_weights[i];
 
-        vec4 n = bone_trans * vec4(norm, 0.0);
-        final_norm += n * bone_weights[i];
+            vec4 n = bone_trans * vec4(norm, 0.0);
+            final_norm += n * bone_weights[i];
+        }
+    } else {
+        final_pos = vec4(pos, 1.0);
+        final_norm = vec4(norm, 0.0);
     }
 
     gl_Position = proj * view * model * final_pos;
-    float max_light = float(num_bones);
-    pass_norm = vec3(mod(bone_indicies[0] / 3.0, 1.0),  mod(bone_indicies[0] / 7.0, 1.0), mod(bone_indicies[0] / max_light, 1.0));
+    pass_norm = (model * final_norm).xyz;
     pass_uv = uv;
-    
 }
 
 #else
