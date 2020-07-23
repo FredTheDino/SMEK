@@ -36,6 +36,7 @@ void init_game(GameState *gamestate, int width, int height) {
 
     GFX::init(GAMESTATE(), width, height);
 
+    GFX::lighting()->sun_direction = Vec3(0.0, 1.0, 0.0);
     *GFX::debug_camera() = GFX::Camera::init();
     GFX::debug_camera()->position = Vec3(0.0, 0.2, 0.0);
 
@@ -144,6 +145,12 @@ void draw() {
     static bool use_debug_camera = false;
     ImGui::Checkbox("Debug camera", &use_debug_camera);
     GFX::set_camera_mode(use_debug_camera);
+
+    GFX::Lighting *lighting = GFX::lighting();
+    ImGui::InputFloat3("Sun Color", lighting->sun_color._, 3);
+    ImGui::InputFloat3("Sun Direction", lighting->sun_direction._, 3);
+    lighting->sun_direction = normalized(lighting->sun_direction);
+    ImGui::InputFloat3("Ambient Color", lighting->ambient_color._, 3);
 #endif
     GFX::AnimatedMesh::init(skin, skel, anim).draw_at(t * 60);
 

@@ -9,6 +9,10 @@ uniform sampler2D tex;
 uniform int num_bones;
 uniform mat4 bones[MAX_JOINTS];
 
+uniform vec3 sun_dir;
+uniform vec3 sun_color;
+uniform vec3 ambient_color;
+
 #ifdef VERT
 layout(location=0) in vec3 pos;
 layout(location=1) in vec2 uv;
@@ -40,16 +44,23 @@ void main() {
             vec4 p = bone_trans * vec4(pos, 1.0);
             final_pos += p * bone_weights[i];
 
-            vec4 n = bone_trans * vec4(norm, 0.0);
+            vec4 n = normalize(bone_trans * vec4(norm, 0.0));
             final_norm += n * bone_weights[i];
         }
+        mat4 blender_correction = mat4( 1,  0,  0,  0
+                                      , 0,  0,  1,  0
+                                      , 0,  1,  0,  0
+                                      , 0,  0,  0,  1);
+
+        final_pos = blender_correction * final_pos;
+        final_norm = blender_correction * final_norm;
     } else {
         final_pos = vec4(pos, 1.0);
         final_norm = vec4(norm, 0.0);
     }
 
     gl_Position = proj * view * model * final_pos;
-    pass_norm = (model * final_norm).xyz;
+    pass_norm = normalize((model * final_norm).xyz);
     pass_uv = uv;
 }
 
@@ -60,8 +71,9 @@ out vec4 color;
 in vec2 pass_uv;
 in vec3 pass_norm;
 void main() {
-    color = texture(tex, pass_uv) * max(0, dot(normalize(vec3(1, 1, 0)), pass_norm));
-    color = vec4(pass_norm, 1.0);
+    float sun_lightness = max(0, dot(sun_dir, pass_norm));
+    vec4 albedo = texture(tex, pass_uv);
+    color = albedo * sun_lightness * (sun_lightness * vec4(sun_color, 1.0) + vec4(ambient_color, 1.0));
 }
 
 #endif

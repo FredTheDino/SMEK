@@ -132,8 +132,14 @@ Mesh Mesh::init(Vertex *verticies, u32 num_verticies) {
 
 void Mesh::draw() {
     MasterShader shader = master_shader();
+
     current_camera()->upload(shader);
     shader.upload_bones(0, nullptr);
+
+    shader.upload_sun_dir(lighting()->sun_direction);
+    shader.upload_sun_color(lighting()->sun_color);
+    shader.upload_ambient_color(lighting()->ambient_color);
+
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, draw_length);
     glBindVertexArray(0);
@@ -300,6 +306,11 @@ void AnimatedMesh::draw_at(float time) {
     }
 
     master_shader().use();
+
+    master_shader().upload_sun_dir(lighting()->sun_direction);
+    master_shader().upload_sun_color(lighting()->sun_color);
+    master_shader().upload_ambient_color(lighting()->ambient_color);
+
     master_shader().upload_bones(anim->trans_per_frame, pose_mat);
     current_camera()->upload(master_shader());
     Mat m = Mat::scale(1);
@@ -321,6 +332,9 @@ MasterShader MasterShader::init() {
     shader.program_id = Asset::fetch_shader("MASTER_SHADER")->program_id;
 
     FETCH_SHADER_PROP(t);
+    FETCH_SHADER_PROP(sun_color);
+    FETCH_SHADER_PROP(sun_dir);
+    FETCH_SHADER_PROP(ambient_color);
     FETCH_SHADER_PROP(proj);
     FETCH_SHADER_PROP(view);
     FETCH_SHADER_PROP(model);
@@ -337,6 +351,15 @@ MasterShader MasterShader::init() {
 #define U32_SHADER_PROP(classname, name)\
     void classname::upload_ ##name(u32 f) const { glUniform1i(loc_ ##name, f); }
 
+#define U32_SHADER_PROP(classname, name)\
+    void classname::upload_ ##name(u32 f) const { glUniform1i(loc_ ##name, f); }
+
+#define V3_SHADER_PROP(classname, name)\
+    void classname::upload_ ##name(Vec3 f) const { glUniform3f(loc_ ##name, f.x, f.y, f.z); }
+
+#define V4_SHADER_PROP(classname, name)\
+    void classname::upload_ ##name(Vec4 f) const { glUniform4f(loc_ ##name, f.x, f.y, f.z, f.w); }
+
 #define MAT_SHADER_PROP(classname, name)\
     void classname::upload_ ##name(Mat &m) const { glUniformMatrix4fv(loc_ ##name, 1, true, m.data()); }
 
@@ -347,10 +370,15 @@ MasterShader MasterShader::init() {
     }
 
 F32_SHADER_PROP(MasterShader, t);
+U32_SHADER_PROP(MasterShader, tex);
+
 MAT_SHADER_PROP(MasterShader, proj);
 MAT_SHADER_PROP(MasterShader, view);
 MAT_SHADER_PROP(MasterShader, model);
-U32_SHADER_PROP(MasterShader, tex);
+
+V3_SHADER_PROP(MasterShader, sun_dir);
+V3_SHADER_PROP(MasterShader, sun_color);
+V3_SHADER_PROP(MasterShader, ambient_color);
 
 MATS_SHADER_PROP(MasterShader, bones);
 
@@ -547,6 +575,10 @@ bool init(GameState *gs, i32 width, i32 height) {
 
 void set_camera_mode(bool debug_mode) {
     GAMESTATE()->renderer.use_debug_cam = debug_mode;
+}
+
+Lighting *lighting() {
+    return &GAMESTATE()->renderer.lighting;
 }
 
 bool reload(GameState *gs) {
