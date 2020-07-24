@@ -84,7 +84,22 @@ Vec4 color(u32 index) {
 }
 
 void push_point(Vec3 a, Vec4 c, f32 width) {
-    push_line(a - Vec3(width, width, width) * 0.5, a + Vec3(width, width, width) * 0.5, c, c, width);
+    Vec3 z = normalized(current_camera()->position - a);
+    Vec3 x = Vec3(0.0, 1.0, 0.0);
+    Vec3 y = cross(x, z);
+    if (length_squared(y) == 0) {
+        x = Vec3(1.0, 0.0, 0.0);
+        y = cross(x, z);
+    }
+    x = cross(z, y);
+
+    Vec3 p1, p2, p3, p4;
+    p1 = a + x * width + y * width;
+    p2 = a - x * width + y * width;
+    p3 = a - x * width - y * width;
+    p4 = a + x * width - y * width;
+    push_debug_triangle(p1, c, p2, c, p3, c);
+    push_debug_triangle(p1, c, p3, c, p4, c);
 }
 
 void push_line(Vec3 a, Vec3 b, Vec4 color, f32 width) {
@@ -92,7 +107,11 @@ void push_line(Vec3 a, Vec3 b, Vec4 color, f32 width) {
 }
 
 void push_line(Vec3 a, Vec3 b, Vec4 a_color, Vec4 b_color, f32 width) {
-    Vec3 sideways = normalized(cross(a - b, Vec3(0.0, 1.0))) * width;
+    Vec3 z = current_camera()->position - a;
+    Vec3 x = a - b;
+    Vec3 y = normalized(cross(x, z));
+    Vec3 sideways = y * width;
+
     Vec3 p1, p2, p3, p4;
     p1 = a + sideways;
     p2 = a - sideways;
@@ -647,8 +666,10 @@ void DebugPrimitive::draw() {
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 4, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, color));
 
-    glPointSize(10.0);
     glDrawArrays(GL_TRIANGLES, 0, size);
+
+    // glPointSize(10.0);
+    // glDrawArrays(GL_POINTS, 0, size);
     glBindVertexArray(0);
 }
 
