@@ -9,6 +9,42 @@ EntitySystem *entity_system() {
     return &GAMESTATE()->entity_system;
 }
 
+void Light::update() {
+    if (length_squared(color) != 0.0) {
+        if (light_id == NONE) {
+            // Try to aquire a light ID
+            for (u32 i = 0; i < GFX::MAX_LIGHTS; i++) {
+                if (length_squared(GFX::lighting()->light_colors[i]) != 0)
+                    continue;
+                light_id = i;
+                break;
+            }
+        }
+        if (light_id == NONE) return;
+        GFX::lighting()->light_colors[light_id] = color;
+        GFX::lighting()->light_positions[light_id] = position;
+    } else {
+        if (light_id != NONE) on_remove();
+    }
+}
+
+void Light::draw() {
+    if (light_id == NONE) {
+        GFX::push_point(position + Vec3(0.01, 0.0, 0.0), Vec4(1.0, 0.0, 0.0, 1.0), 0.07);
+        GFX::push_point(position, Vec4(color.x, color.y, color.z, 0.2), 0.05);
+    } else {
+        GFX::push_point(position, Vec4(color.x, color.y, color.z, 1.0), 0.1);
+    }
+}
+
+void Light::on_remove() {
+    // Black means the color isn't used.
+    if (light_id != NONE) {
+        GFX::lighting()->light_colors[light_id] = Vec3();
+        light_id = NONE;
+    }
+}
+
 void Player::update() {
     const f32 floor = 0.2;
 
@@ -42,20 +78,6 @@ void Player::update() {
 
     GFX::gameplay_camera()->position = position + Vec3(0.0, 0.3, 0.0);
     GFX::gameplay_camera()->rotation = rotation;
-
-    {
-        Vec3 light_pos = position + Vec3(0.5, 1.0 + sin(time()), 0.0);
-        Vec3 light_color = Vec3(sin(time()) * 0.5 + 0.5, cos(time()) * 0.5 + 0.5, 0.2);
-        GFX::push_point(light_pos, Vec4(light_color.x, light_color.y, light_color.z, 1.0), 0.1);
-        GFX::lighting()->push_light(light_pos, light_color);
-    }
-
-    {
-        Vec3 light_pos = position + Vec3(1.0 + cos(time()), 1.0, sin(time()));
-        Vec3 light_color = Vec3(0.5, 0.5, 0.9);
-        GFX::push_point(light_pos, Vec4(light_color.x, light_color.y, light_color.z, 1.0), 0.1);
-        GFX::lighting()->push_light(light_pos, light_color);
-    }
 }
 
 void Player::draw() {

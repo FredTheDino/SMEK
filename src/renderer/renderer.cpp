@@ -367,7 +367,6 @@ MasterShader MasterShader::init() {
 
     FETCH_SHADER_PROP_FOR_LIST(bones);
 
-    shader.loc_num_lights = glGetUniformLocation(shader.program_id, "num_lights");
     shader.loc_pos_lights = glGetUniformLocation(shader.program_id, "light_positions");
     shader.loc_col_lights = glGetUniformLocation(shader.program_id, "light_colors");
 
@@ -412,18 +411,9 @@ V3_SHADER_PROP(MasterShader, ambient_color);
 
 MATS_SHADER_PROP(MasterShader, bones);
 
-bool Lighting::push_light(Vec3 position, Vec3 color) {
-    if (num_lights == MAX_LIGHTS) return false;
-    light_positions[num_lights] = position;
-    light_colors[num_lights] = color;
-    num_lights++;
-    return true;
-}
-
-void MasterShader::upload_lights(u32 num, Vec3 *positions, Vec3 *colors) const {
-    glUniform1i(loc_num_lights, num);
-    glUniform3fv(loc_col_lights, num, colors->_);
-    glUniform3fv(loc_pos_lights, num, positions->_);
+void MasterShader::upload_lights(Vec3 *positions, Vec3 *colors) const {
+    glUniform3fv(loc_col_lights, MAX_LIGHTS, colors->_);
+    glUniform3fv(loc_pos_lights, MAX_LIGHTS, positions->_);
 }
 
 MasterShader master_shader() {

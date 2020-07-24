@@ -15,6 +15,7 @@ void handle_events() {
         switch (e.type) {
             HANDLE(CREATE_SOUND_ENTITY);
             HANDLE(CREATE_PLAYER);
+            HANDLE(CREATE_LIGHT);
             default:
                 ERR("Unkown event type {}", e.type);
         }
@@ -25,6 +26,11 @@ void handle_events() {
 void EventCreatePlayer::callback() {
     Player player;
     GAMESTATE()->entity_system.add(player);
+}
+
+void EventCreateLight::callback() {
+    Light l;
+    GAMESTATE()->entity_system.add(l);
 }
 
 }  // namespace EventSystem

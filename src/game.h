@@ -34,6 +34,8 @@ struct GameState {
     f32 player_movement_speed = 4.0;
     f32 player_mouse_sensitivity = 1.0;
 
+    EntityID lights[2];
+
     bool running;
 
 #ifndef IMGUI_DISABLE
