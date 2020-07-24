@@ -316,11 +316,16 @@ struct Lighting {
     Vec3 sun_direction;
     Vec3 sun_color;
 
+    Vec3 ambient_color;
+
     u32 num_lights;
     Vec3 light_positions[MAX_LIGHTS];
     Vec3 light_colors[MAX_LIGHTS];
 
-    Vec3 ambient_color;
+    ///*
+    // Pushes the light to the renderer, will be
+    // used if it isn't discarded due to lack of space.
+    bool push_light(Vec3 position, Vec3 color);
 };
 
 struct Renderer {

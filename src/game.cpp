@@ -95,11 +95,41 @@ void update() {
 
 
 void draw() {
+
+    static f32 t = 0;
+#ifndef IMGUI_DISABLE
+    ImGui::SliderFloat("Time", &t, 0.0, 16.0, "%.2f");
+
+    static bool use_debug_camera = GFX::current_camera() == GFX::debug_camera();
+    ImGui::Checkbox("Debug camera", &use_debug_camera);
+    GFX::set_camera_mode(use_debug_camera);
+
+    GFX::Lighting *lighting = GFX::lighting();
+    ImGui::InputFloat3("Sun Color", lighting->sun_color._, 3);
+    ImGui::InputFloat3("Sun Direction", lighting->sun_direction._, 3);
+    lighting->sun_direction = normalized(lighting->sun_direction);
+    ImGui::InputFloat3("Ambient Color", lighting->ambient_color._, 3);
+#endif
+
     glClearColor(0.2, 0.1, 0.3, 1); // We don't need to do this...
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     GFX::MasterShader shader = GFX::master_shader();
+    shader.use();
     shader.upload_t(time());
+
+    GFX::current_camera()->upload(shader);
+    shader.upload_bones(0, nullptr);
+
+    shader.upload_sun_dir(GFX::lighting()->sun_direction);
+    shader.upload_sun_color(GFX::lighting()->sun_color);
+    shader.upload_ambient_color(GFX::lighting()->ambient_color);
+
+    shader.upload_lights(2, // GFX::lighting()->num_lights,
+                         GFX::lighting()->light_positions,
+                         GFX::lighting()->light_colors);
+    // Pops all lights
+    GFX::lighting()->num_lights = 0;
 
     const i32 grid_size = 10;
     const f32 width = 0.005;
@@ -111,9 +141,6 @@ void draw() {
         GFX::push_line(Vec3(grid_size, 0, x), Vec3(-grid_size, 0, x), color, width);
         GFX::push_line(Vec3(grid_size, 0, -x), Vec3(-grid_size, 0, -x), color, width);
     }
-
-    shader.use();
-    GFX::current_camera()->upload(shader);
 
     Asset::fetch_image("RGBA")->bind(0);
     shader.upload_tex(0);
@@ -138,20 +165,6 @@ void draw() {
     skel = "SKEL_UNTITLED";
     // anim = "ANIM_SKINNEDMESHACTION_RIGGED_SIMPLE_CHARACTER";
     anim = "ANIM_ARMATUREACTION_001_UNTITLED";
-    static f32 t = 0;
-#ifndef IMGUI_DISABLE
-    ImGui::SliderFloat("Time", &t, 0.0, 16.0, "%.2f");
-
-    static bool use_debug_camera = GFX::current_camera() == GFX::debug_camera();
-    ImGui::Checkbox("Debug camera", &use_debug_camera);
-    GFX::set_camera_mode(use_debug_camera);
-
-    GFX::Lighting *lighting = GFX::lighting();
-    ImGui::InputFloat3("Sun Color", lighting->sun_color._, 3);
-    ImGui::InputFloat3("Sun Direction", lighting->sun_direction._, 3);
-    lighting->sun_direction = normalized(lighting->sun_direction);
-    ImGui::InputFloat3("Ambient Color", lighting->ambient_color._, 3);
-#endif
     GFX::AnimatedMesh::init(skin, skel, anim).draw_at(t * 60);
 
     //Asset::fetch_skeleton(skel)->draw();
