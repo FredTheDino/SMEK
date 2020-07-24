@@ -12,6 +12,9 @@
 
 using EntityID = u64;
 
+// TODO(ed): Rename this to
+// "EntityInterface", BaseEntity makes you
+// think it has fields.
 struct BaseEntity {
     bool remove = false;
 
@@ -38,6 +41,21 @@ struct Entity: public BaseEntity {
     Vec3 position;
     Vec3 scale;
     Quat rotation;
+};
+
+// NOTE(ed): It might be more practical if
+// "Light" is an "Entity"
+struct Light: public BaseEntity {
+    static const int NONE = -1;
+
+    i32 light_id = NONE;
+
+    Vec3 position;
+    Vec3 color;
+
+    void update() override;
+    void draw() override;
+    void on_remove() override;
 };
 
 struct Player: public Entity {

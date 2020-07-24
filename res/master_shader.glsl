@@ -10,7 +10,6 @@ uniform sampler2D tex;
 uniform int num_bones;
 uniform mat4 bones[MAX_JOINTS];
 
-uniform int num_lights;
 uniform vec3 light_positions[MAX_LIGHTS];
 uniform vec3 light_colors[MAX_LIGHTS];
 
@@ -77,7 +76,7 @@ void main() {
     albedo = vec4(1.0, 1.0, 1.0, 1.0);
     vec4 light_color = sun_lightness * (sun_lightness * vec4(sun_color, 1.0) + vec4(ambient_color, 1.0));
 
-    for (int i = 0; i < num_lights; i++) {
+    for (int i = 0; i < MAX_LIGHTS; i++) {
         vec3 p = light_positions[i];
         vec3 c = light_colors[i];
         vec3 delta_p = p - pass_pos;

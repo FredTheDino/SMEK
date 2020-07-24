@@ -60,6 +60,10 @@ void init_game(GameState *gamestate, int width, int height) {
         .type = EventSystem::EventType::CREATE_PLAYER,
     };
     GAMESTATE()->event_queue.push(e);
+
+    Light l = Light();
+    GAMESTATE()->lights[0] = GAMESTATE()->entity_system.add(l);
+    GAMESTATE()->lights[1] = GAMESTATE()->entity_system.add(l);
 }
 
 void reload_game(GameState *game) {
@@ -109,6 +113,14 @@ void draw() {
     ImGui::InputFloat3("Sun Direction", lighting->sun_direction._, 3);
     lighting->sun_direction = normalized(lighting->sun_direction);
     ImGui::InputFloat3("Ambient Color", lighting->ambient_color._, 3);
+
+    if (ImGui::Button("Add Light")) {
+        static int i = 0;
+        Light l;
+        l.position.x = i++;
+        l.color = Vec3(1.0, 1.0, 0.0);
+        GAMESTATE()->entity_system.add(l);
+    }
 #endif
 
     glClearColor(0.2, 0.1, 0.3, 1); // We don't need to do this...
@@ -125,11 +137,21 @@ void draw() {
     shader.upload_sun_color(GFX::lighting()->sun_color);
     shader.upload_ambient_color(GFX::lighting()->ambient_color);
 
-    shader.upload_lights(2, // GFX::lighting()->num_lights,
-                         GFX::lighting()->light_positions,
+    Vec3 position = Vec3(3, 0.5, 3);
+    {
+        Light *l = GAMESTATE()->entity_system.fetch<Light>(GAMESTATE()->lights[0]);
+        l->position = position + Vec3(0.5, 1.0 + sin(time()), 0.0);
+        l->color = Vec3(sin(time()) * 0.5 + 0.5, cos(time()) * 0.5 + 0.5, 0.2);
+    }
+
+    {
+        Light *l = GAMESTATE()->entity_system.fetch<Light>(GAMESTATE()->lights[1]);
+        l->position = position + Vec3(1.0 + cos(time()), 1.0, sin(time()));
+        l->color = Vec3(0.5, 0.5, 0.9);
+    }
+
+    shader.upload_lights(GFX::lighting()->light_positions,
                          GFX::lighting()->light_colors);
-    // Pops all lights
-    GFX::lighting()->num_lights = 0;
 
     const i32 grid_size = 10;
     const f32 width = 0.005;
@@ -165,7 +187,7 @@ void draw() {
     skel = "SKEL_UNTITLED";
     // anim = "ANIM_SKINNEDMESHACTION_RIGGED_SIMPLE_CHARACTER";
     anim = "ANIM_ARMATUREACTION_001_UNTITLED";
-    GFX::AnimatedMesh::init(skin, skel, anim).draw_at(t * 60);
+    // GFX::AnimatedMesh::init(skin, skel, anim).draw_at(t * 60);
 
     //Asset::fetch_skeleton(skel)->draw();
 
