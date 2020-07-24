@@ -204,6 +204,8 @@ struct Shader {
     u32 loc_ ##name;\
     void upload_ ##name (u32, Mat *) const;
 
+#define LIGHTS_SHADER_PROP(name)\
+
 struct MasterShader: public Shader {
     F32_SHADER_PROP(t);
     U32_SHADER_PROP(tex);
@@ -215,6 +217,12 @@ struct MasterShader: public Shader {
     V3_SHADER_PROP(sun_dir);
     V3_SHADER_PROP(sun_color);
     V3_SHADER_PROP(ambient_color);
+
+    // Light prop, since we should only have one.
+    u32 loc_num_lights;
+    u32 loc_pos_lights;
+    u32 loc_col_lights;
+    void upload_lights(u32, Vec3 *, Vec3 *) const;
 
     MATS_SHADER_PROP(bones);
 
@@ -236,6 +244,7 @@ struct DebugShader: public Shader {
 #undef V4_SHADER_PROP
 #undef MAT_SHADER_PROP
 #undef MATS_SHADER_PROP
+#undef LIGHTS_SHADER_PROP
 
 struct Texture {
     u32 texture_id;
@@ -292,9 +301,16 @@ struct DebugPrimitive {
     Vertex *buffer;
 };
 
+// NOTE(ed): Should match "MAX_LIGHTS" in master_shader.glsl
+const u32 MAX_LIGHTS = 10;
+
 struct Lighting {
     Vec3 sun_direction;
     Vec3 sun_color;
+
+    u32 num_lights;
+    Vec3 light_positions[MAX_LIGHTS];
+    Vec3 light_colors[MAX_LIGHTS];
 
     Vec3 ambient_color;
 };

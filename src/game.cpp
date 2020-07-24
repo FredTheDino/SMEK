@@ -142,7 +142,7 @@ void draw() {
 #ifndef IMGUI_DISABLE
     ImGui::SliderFloat("Time", &t, 0.0, 16.0, "%.2f");
 
-    static bool use_debug_camera = false;
+    static bool use_debug_camera = GFX::current_camera() == GFX::debug_camera();
     ImGui::Checkbox("Debug camera", &use_debug_camera);
     GFX::set_camera_mode(use_debug_camera);
 

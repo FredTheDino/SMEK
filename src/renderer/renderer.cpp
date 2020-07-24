@@ -328,6 +328,7 @@ void Shader::use() { glUseProgram(program_id); }
     shader.loc_num_ ##name = glGetUniformLocation(shader.program_id, "num_" #name)
 
 MasterShader MasterShader::init() {
+
     MasterShader shader;
     shader.program_id = Asset::fetch_shader("MASTER_SHADER")->program_id;
 
@@ -341,6 +342,11 @@ MasterShader MasterShader::init() {
     FETCH_SHADER_PROP(tex);
 
     FETCH_SHADER_PROP_FOR_LIST(bones);
+
+    shader.loc_num_lights = glGetUniformLocation(shader.program_id, "num_lights");
+    shader.loc_pos_lights = glGetUniformLocation(shader.program_id, "light_positions");
+    shader.loc_col_lights = glGetUniformLocation(shader.program_id, "light_colors");
+
 
     return shader;
 }
@@ -381,6 +387,12 @@ V3_SHADER_PROP(MasterShader, sun_color);
 V3_SHADER_PROP(MasterShader, ambient_color);
 
 MATS_SHADER_PROP(MasterShader, bones);
+
+void MasterShader::upload_lights(u32 num, Vec3 *positions, Vec3 *colors) const {
+    glUniform1i(loc_num_lights, num);
+    glUniform3fv(loc_col_lights, num, colors->_);
+    glUniform3fv(loc_pos_lights, num, positions->_);
+}
 
 MasterShader master_shader() {
     if (Asset::needs_reload("MASTER_SHADER"))
