@@ -28,6 +28,7 @@ layout(location=5) in vec2 weight3;
 
 out vec2 pass_uv;
 out vec3 pass_norm;
+out vec3 pass_pos;
 void main() {
     ivec3 bone_indicies;
     bone_indicies[0] = int(weight1.x);
@@ -59,6 +60,7 @@ void main() {
 
     gl_Position = proj * view * model * final_pos;
     pass_norm = normalize((model * final_norm).xyz);
+    pass_pos = (model * final_pos).xyz;
     pass_uv = uv;
 }
 
@@ -68,10 +70,23 @@ out vec4 color;
 
 in vec2 pass_uv;
 in vec3 pass_norm;
+in vec3 pass_pos;
 void main() {
     float sun_lightness = max(0, dot(sun_dir, pass_norm));
     vec4 albedo = texture(tex, pass_uv);
-    color = albedo * sun_lightness * (sun_lightness * vec4(sun_color, 1.0) + vec4(ambient_color, 1.0));
+    albedo = vec4(1.0, 1.0, 1.0, 1.0);
+    vec4 light_color = sun_lightness * (sun_lightness * vec4(sun_color, 1.0) + vec4(ambient_color, 1.0));
+
+    for (int i = 0; i < num_lights; i++) {
+        vec3 p = light_positions[i];
+        vec3 c = light_colors[i];
+        vec3 delta_p = p - pass_pos;
+        vec3 light_dir = normalize(delta_p);
+        float effect = max(0, dot(light_dir, pass_norm)) / pow(length(delta_p), 3);
+        light_color += vec4(c, 1.0) * effect;
+    }
+
+    color = albedo * light_color / 3.0;
 }
 
 #endif

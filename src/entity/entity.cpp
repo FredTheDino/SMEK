@@ -35,10 +35,27 @@ void Player::update() {
     if (Input::pressed(Ac::Shoot)) {
         LOG("Pew!");
     }
-    position += velocity * delta();
+
+    if (GFX::current_camera() != GFX::debug_camera()) {
+        position += velocity * delta();
+    }
 
     GFX::gameplay_camera()->position = position + Vec3(0.0, 0.3, 0.0);
     GFX::gameplay_camera()->rotation = rotation;
+
+    {
+        Vec3 light_pos = position + Vec3(0.5, 1.0 + sin(time()), 0.0);
+        Vec3 light_color = Vec3(sin(time()) * 0.5 + 0.5, cos(time()) * 0.5 + 0.5, 0.2);
+        GFX::push_point(light_pos, Vec4(light_color.x, light_color.y, light_color.z, 1.0), 0.1);
+        GFX::lighting()->push_light(light_pos, light_color);
+    }
+
+    {
+        Vec3 light_pos = position + Vec3(1.0 + cos(time()), 1.0, sin(time()));
+        Vec3 light_color = Vec3(0.5, 0.5, 0.9);
+        GFX::push_point(light_pos, Vec4(light_color.x, light_color.y, light_color.z, 1.0), 0.1);
+        GFX::lighting()->push_light(light_pos, light_color);
+    }
 }
 
 void Player::draw() {
@@ -52,9 +69,17 @@ void Player::draw() {
 
     GFX::MasterShader shader = GFX::master_shader();
     GFX::Mesh mesh = *Asset::fetch_mesh("MONKEY");
-    Mat model_matrix = Mat::translate(position) * Mat::scale(0.1);
+    Mat model_matrix = Mat::translate(position) * Mat::scale(0.2);
     shader.upload_model(model_matrix);
     mesh.draw();
+
+    for (f32 x = -5; x <= 5; x += 1) {
+        for (f32 z = -5; z <= 5; z += 1) {
+            Mat m = Mat::translate(Vec3(x, 0.5, z)) * model_matrix;
+            shader.upload_model(m);
+            mesh.draw();
+        }
+    }
 }
 
 void SoundEntity::update() {
@@ -107,10 +132,8 @@ void EntitySystem::remove(EntityID id) {
 }
 
 void EntitySystem::update() {
-    if (GFX::current_camera() != GFX::debug_camera()) {
-        for (auto [_, e]: entities) {
-            e->update();
-        }
+    for (auto [_, e]: entities) {
+        e->update();
     }
     for (auto i = entities.begin(), last = entities.end(); i != last; ) {
         BaseEntity *e = i->second;

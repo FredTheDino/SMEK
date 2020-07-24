@@ -131,15 +131,6 @@ Mesh Mesh::init(Vertex *verticies, u32 num_verticies) {
 }
 
 void Mesh::draw() {
-    MasterShader shader = master_shader();
-
-    current_camera()->upload(shader);
-    shader.upload_bones(0, nullptr);
-
-    shader.upload_sun_dir(lighting()->sun_direction);
-    shader.upload_sun_color(lighting()->sun_color);
-    shader.upload_ambient_color(lighting()->ambient_color);
-
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, draw_length);
     glBindVertexArray(0);
@@ -387,6 +378,14 @@ V3_SHADER_PROP(MasterShader, sun_color);
 V3_SHADER_PROP(MasterShader, ambient_color);
 
 MATS_SHADER_PROP(MasterShader, bones);
+
+bool Lighting::push_light(Vec3 position, Vec3 color) {
+    if (num_lights == MAX_LIGHTS) return false;
+    light_positions[num_lights] = position;
+    light_colors[num_lights] = color;
+    num_lights++;
+    return true;
+}
 
 void MasterShader::upload_lights(u32 num, Vec3 *positions, Vec3 *colors) const {
     glUniform1i(loc_num_lights, num);
