@@ -1,4 +1,5 @@
 const int MAX_JOINTS = 50;
+const int MAX_LIGHTS = 10;
 
 uniform float t;
 uniform mat4 proj;
@@ -8,6 +9,10 @@ uniform sampler2D tex;
 
 uniform int num_bones;
 uniform mat4 bones[MAX_JOINTS];
+
+uniform int num_lights;
+uniform vec3 light_positions[MAX_LIGHTS];
+uniform vec3 light_colors[MAX_LIGHTS];
 
 uniform vec3 sun_dir;
 uniform vec3 sun_color;
@@ -47,13 +52,6 @@ void main() {
             vec4 n = normalize(bone_trans * vec4(norm, 0.0));
             final_norm += n * bone_weights[i];
         }
-        mat4 blender_correction = mat4( 1,  0,  0,  0
-                                      , 0,  0,  1,  0
-                                      , 0,  1,  0,  0
-                                      , 0,  0,  0,  1);
-
-        final_pos = blender_correction * final_pos;
-        final_norm = blender_correction * final_norm;
     } else {
         final_pos = vec4(pos, 1.0);
         final_norm = vec4(norm, 0.0);
