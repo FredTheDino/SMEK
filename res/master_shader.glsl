@@ -81,7 +81,7 @@ void main() {
         vec3 c = light_colors[i];
         vec3 delta_p = p - pass_pos;
         vec3 light_dir = normalize(delta_p);
-        float effect = max(0, dot(light_dir, pass_norm)) / pow(length(delta_p), 3);
+        float effect = max(0, dot(light_dir, pass_norm)) / pow(max(length(delta_p), 0.5), 3);
         light_color += vec4(c, 1.0) * effect;
     }
 
