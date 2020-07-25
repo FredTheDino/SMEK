@@ -87,7 +87,9 @@ EntityID EntitySystem::add(E entity) {
     ASSERT(!valid(id), "Adding multiple entity ids for one id");
     E *e = new E();
     *e = entity;
-    entities[id] = (Entity *) e;
+    e->metadata.type = type_of(e);
+    LOG("Added entity of type {}", e->metadata.type);
+    entities[id] = (BaseEntity *) e;
     return id;
 }
 
