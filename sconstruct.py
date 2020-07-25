@@ -161,6 +161,12 @@ env.Alias("assets", assets)
 if native and not is_windows():
     AddPostAction(assets, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
 
+env.NoClean(env.Command("src/entity/entity_types.cpp", "tools/entity_types.cpp", "./tools/entity-parser.py"))
+env.NoClean(env.Command("src/entity/entity_types.h", "tools/entity_types.h", "./tools/entity-parser.py"))
+
+Depends("tools/entity_types.cpp", "tools/entity_types_type_of.cpp")
+Depends("tools/entity_types.h", "tools/entity_types_type_of.h")
+
 source = glob("src/**/*.c*", recursive=True)
 
 

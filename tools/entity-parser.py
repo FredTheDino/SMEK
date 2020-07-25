@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import glob
 from lark import lark
 import re
