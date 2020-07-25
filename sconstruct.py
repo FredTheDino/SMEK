@@ -178,7 +178,7 @@ env.Alias("assets", assets)
 if native and not is_windows():
     AddPostAction(assets, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
 
-Execute("./tools/entity-parser.py")  # creates `src/entity/entity_types.{cpp,h}` so has to be run before the glob
+Execute("./tools/typesystem-gen.py")  # creates `src/entity/entity_types.{cpp,h}` so has to be run before the glob
 
 source = glob("src/**/*.c*", recursive=True)
 

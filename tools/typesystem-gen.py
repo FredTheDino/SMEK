@@ -149,25 +149,20 @@ def find_structs(paths):
 
 if __name__ == "__main__":
     lexer = lark.Lark.open("tools/struct.lark", start="structs")
-    types = ["BaseEntity", ]
+    types = []
+    base_entity = "BaseEntity"
     for name, struct in sorted(find_structs(glob.glob("src/**/*.*", recursive=True)).items()):
-        if struct.parents_contain("BaseEntity") or name == "BaseEntity":
-            #print(struct.source)
+        if struct.parents_contain(base_entity) or name == base_entity:
             tree = lexer.parse(struct.source)
-            #print(tree.pretty())
             struct_types = list(tree.find_data("struct_type"))
             if len(struct_types) == 0:
-                #print("No typename found, 1 required")
+                print("No typename found, 1 required")
                 continue
             if len(struct_types) > 1:
-                #print(f"{len(struct_types)} typenames found (structs in structs?), 1 required\nstructs are {struct_types}")
+                print(f"{len(struct_types)} typenames found (structs in structs?), 1 required\nstructs are {struct_types}")
                 continue
-            #print(struct_types[0].children[0])
             types.append(struct_types[0].children[0])
-            #print()
-    assert "BaseEntity" in types, "Couldn't find BaseEntity"
-    #print("Found types:")
-    #print(types)
+    assert base_entity in types, "Couldn't find BaseEntity"
 
     with open("tools/entity_types_type_of.h", "r") as template_file:
         template_type_of_h = Template(template_file.read())
