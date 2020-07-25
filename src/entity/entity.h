@@ -15,12 +15,6 @@ using EntityID = u64;
 struct BaseEntity {
     bool remove = false;
 
-    //FIXME(gu): Remove, only used for testing
-    struct A {
-        int b = 3;
-    } a;
-    int c = 4;
-
     virtual ~BaseEntity() {};
     virtual void update() {};
     virtual void draw() {};
