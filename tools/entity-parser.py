@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import glob
 from lark import lark
 import re
@@ -148,7 +150,7 @@ def find_structs(paths):
 if __name__ == "__main__":
     lexer = lark.Lark.open("tools/struct.lark", start="structs")
     types = ["BaseEntity", ]
-    for name, struct in find_structs(glob.glob("src/**/*.*", recursive=True)).items():
+    for name, struct in sorted(find_structs(glob.glob("src/**/*.*", recursive=True)).items()):
         if struct.parents_contain("BaseEntity") or name == "BaseEntity":
             #print(struct.source)
             tree = lexer.parse(struct.source)

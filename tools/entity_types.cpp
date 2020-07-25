@@ -10,10 +10,9 @@
 i32 format(char *buffer, u32 size, FormatHint args, EntityType type) {
     switch (type) {
 $type_formats
-        case EntityType::NUM_ENTITY_TYPES: break;
+        default: UNREACHABLE("Unknown entity type");
     }
-    UNREACHABLE("Unknown entity type");
-    return -1;
+    return 0;
 }
 
 /*
