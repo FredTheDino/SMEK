@@ -12,10 +12,6 @@
 
 using EntityID = u64;
 
-struct EntityMetadata {
-    EntityType type;
-};
-
 struct BaseEntity {
     bool remove = false;
 
@@ -30,7 +26,7 @@ struct BaseEntity {
     virtual void draw() {};
     virtual void on_remove() {};
 
-    EntityMetadata metadata;
+    EntityType type;
 };
 
 struct SoundEntity: public BaseEntity {
@@ -87,8 +83,8 @@ EntityID EntitySystem::add(E entity) {
     ASSERT(!valid(id), "Adding multiple entity ids for one id");
     E *e = new E();
     *e = entity;
-    e->metadata.type = type_of(e);
-    LOG("Added entity of type {}", e->metadata.type);
+    e->type = type_of(e);
+    LOG("Added entity of type {}", e->type);
     entities[id] = (BaseEntity *) e;
     return id;
 }
