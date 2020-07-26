@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 import glob
-from lark import lark
+from lark import lark, Visitor
+from itertools import chain
 import re
 from string import Template
 
@@ -29,6 +30,15 @@ class Struct():
             return True
         else:
             return self.parent.parents_contain(name)
+
+    def get_parents(self, name):
+        """Returns a list with all the parents, from first to last"""
+        if self.parent is None:
+            return []
+        elif name == self.parent.name:
+            return [self.parent.name]
+        else:
+            return [self.parent.name] + self.parent.get_parents(name)
 
     def __str__(self):
         if self.parent is None:
@@ -133,6 +143,7 @@ def find_structs(paths):
                     name, parent = match[2], match[4]
                 else:
                     name, parent = match[2], match[5]
+                if name == "TestEnt": continue
                 structs[name] = Struct(name, parent)
                 structs[name].source = find_struct_source(source, match.start())
                 last_struct_end = match.start() + len(structs[name].source)
@@ -146,14 +157,28 @@ def find_structs(paths):
             struct.parent = None
     return structs
 
+class MetaDataExtractor(Visitor):
+
+    def __init__(self):
+        self.fields = []
+
+    def field(self, field):
+        field = tuple(map(str, field.children[:2]))
+        self.fields.append(field)
+
+def to_enum(name):
+    return name.upper()
 
 if __name__ == "__main__":
     lexer = lark.Lark.open("tools/struct.lark", start="structs")
     types = []
+    fields_for_entity = {}
     base_entity = "BaseEntity"
     #TODO(gu) parse entire files instead of one at a time
-    for name, struct in sorted(find_structs(glob.glob("src/**/*.*", recursive=True)).items()):
+    all_structs = find_structs(glob.glob("src/**/*.*", recursive=True))
+    for name, struct in sorted(all_structs.items()):
         if struct.parents_contain(base_entity) or name == base_entity:
+            # Parse out the types and structs
             tree = lexer.parse(struct.source)
             struct_types = list(tree.find_data("struct_type"))
             if len(struct_types) == 0:
@@ -164,13 +189,44 @@ if __name__ == "__main__":
                 print(f"{len(struct_types)} typenames found (structs in structs?), 1 required\nstructs are {struct_types}")
                 continue
             types.append(struct_types[0].children[0])
+
+            # Parse out the field meta information
+            meta_data = MetaDataExtractor()
+            meta_data.visit(tree)
+            fields_for_entity[name] = meta_data.fields;
+
+    # Combines all fields based on inheritance.
+    def gen_fields_data(name, fields):
+        def gen():
+            out = []
+            for typename, fieldname in fields:
+                out.append(f"{{ typeid({typename}), \"{fieldname}\", sizeof({typename}), (int)offsetof({name}, {fieldname}) }}")
+            return ",\n    ".join(out)
+        return f"Field gen_{name}[] = {{\n    {gen()}\n}};"
+
+    def gen_fields_switch(names):
+        def gen():
+            out = []
+            for name in names:
+                out.append(f"case EntityType::{to_enum(name)}: return {{ LEN(gen_{name}), gen_{name} }};")
+            return "\n        ".join(out)
+        return gen()
+
+    fields_data = []
+    for name in fields_for_entity:
+        all_entities = [name] + all_structs[name].get_parents(base_entity)
+        all_fields = list(chain(*[fields_for_entity[x] for x in all_entities]))
+        fields_data.append(gen_fields_data(name, all_fields))
+
+    fields_switch = gen_fields_switch(fields_for_entity.keys())
+
     assert base_entity in types, "Couldn't find BaseEntity"
 
     with open("tools/entity_types_type_of.h", "r") as template_file:
         template_type_of_h = Template(template_file.read())
 
     template_kwords_h = {
-            "types": "\n".join([f"    {t.upper()}," for t in types]),
+            "types": "\n".join([f"    {to_enum(t)}," for t in types]),
             "type_ofs": "\n".join([template_type_of_h.substitute(entity_type=t) for t in types]),
     }
 
@@ -183,8 +239,10 @@ if __name__ == "__main__":
         template_type_of_cpp = Template(template_file.read())
 
     template_kwords_cpp = {
-            "type_ofs": "\n".join([template_type_of_cpp.substitute(entity_type=t, entity_type_enum=t.upper()) for t in types]),
-            "type_formats": "\n".join([f"{' '*8}case EntityType::{t.upper()}: return snprintf(buffer, size, \"{t}\");" for t in types]),
+            "type_ofs": "\n".join([template_type_of_cpp.substitute(entity_type=t, entity_type_enum=to_enum(t)) for t in types]),
+            "type_formats": "\n".join([f"{' '*8}case EntityType::{to_enum(t)}: return snprintf(buffer, size, \"{t}\");" for t in types]),
+            "fields_data": "\n".join(fields_data),
+            "fields_switch": fields_switch,
     }
 
     with open("tools/entity_types.cpp", "r") as template_file:
