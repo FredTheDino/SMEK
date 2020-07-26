@@ -10,6 +10,7 @@ namespace EventSystem {
 enum EventType {
     CREATE_SOUND_ENTITY,
     CREATE_PLAYER,
+    CREATE_LIGHT,
 
     NUM_TYPES,
 };
@@ -25,11 +26,16 @@ struct EventCreatePlayer {
     void callback();
 };
 
+struct EventCreateLight {
+    void callback();
+};
+
 struct Event {
     EventType type;
     union {
         EventCreateSoundEntity CREATE_SOUND_ENTITY;
         EventCreatePlayer CREATE_PLAYER;
+        EventCreateLight CREATE_LIGHT;
     };
 };
 

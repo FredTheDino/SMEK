@@ -187,6 +187,14 @@ struct Shader {
     u32 loc_ ##name;\
     void upload_ ##name (u32) const;
 
+#define V3_SHADER_PROP(name)\
+    u32 loc_ ##name;\
+    void upload_ ##name (Vec3) const;
+
+#define V4_SHADER_PROP(name)\
+    u32 loc_ ##name;\
+    void upload_ ##name (Vec4) const;
+
 #define MAT_SHADER_PROP(name)\
     u32 loc_ ##name;\
     void upload_ ##name (Mat &) const;
@@ -198,10 +206,20 @@ struct Shader {
 
 struct MasterShader: public Shader {
     F32_SHADER_PROP(t);
+    U32_SHADER_PROP(tex);
+
     MAT_SHADER_PROP(proj);
     MAT_SHADER_PROP(view);
     MAT_SHADER_PROP(model);
-    U32_SHADER_PROP(tex);
+
+    V3_SHADER_PROP(sun_dir);
+    V3_SHADER_PROP(sun_color);
+    V3_SHADER_PROP(ambient_color);
+
+    // Light prop, since we should only have one.
+    u32 loc_pos_lights;
+    u32 loc_col_lights;
+    void upload_lights(Vec3 *, Vec3 *) const;
 
     MATS_SHADER_PROP(bones);
 
@@ -219,6 +237,8 @@ struct DebugShader: public Shader {
 
 #undef F32_SHADER_PROP
 #undef U32_SHADER_PROP
+#undef V3_SHADER_PROP
+#undef V4_SHADER_PROP
 #undef MAT_SHADER_PROP
 #undef MATS_SHADER_PROP
 
@@ -277,9 +297,25 @@ struct DebugPrimitive {
     Vertex *buffer;
 };
 
+// NOTE(ed): Should match "MAX_LIGHTS" in master_shader.glsl
+const u32 MAX_LIGHTS = 10;
+
+struct Lighting {
+    Vec3 sun_direction;
+    Vec3 sun_color;
+
+    Vec3 ambient_color;
+
+    Vec3 light_positions[MAX_LIGHTS];
+    // Has to be initalized to zero to mark as not being used.
+    Vec3 light_colors[MAX_LIGHTS] = {};
+};
+
 struct Renderer {
     u32 width;
     u32 height;
+
+    Lighting lighting;
 
     bool use_debug_cam;
     Camera debug_camera;
@@ -295,6 +331,10 @@ struct Renderer {
 ///*
 // Initalize the graphics pipeline.
 bool init(GameState *gs, i32 width=680, i32 height=480);
+
+///*
+// Returns the lighting struct.
+Lighting *lighting();
 
 ///*
 // Sets the camera to be used when rendering. There's a "debug"

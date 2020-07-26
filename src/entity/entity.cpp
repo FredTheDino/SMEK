@@ -9,6 +9,42 @@ EntitySystem *entity_system() {
     return &GAMESTATE()->entity_system;
 }
 
+void Light::update() {
+    if (length_squared(color) != 0.0) {
+        if (light_id == NONE) {
+            // Try to aquire a light ID
+            for (u32 i = 0; i < GFX::MAX_LIGHTS; i++) {
+                if (length_squared(GFX::lighting()->light_colors[i]) != 0)
+                    continue;
+                light_id = i;
+                break;
+            }
+        }
+        if (light_id == NONE) return;
+        GFX::lighting()->light_colors[light_id] = color;
+        GFX::lighting()->light_positions[light_id] = position;
+    } else {
+        if (light_id != NONE) on_remove();
+    }
+}
+
+void Light::draw() {
+    if (light_id == NONE) {
+        GFX::push_point(position + Vec3(0.01, 0.0, 0.0), Vec4(1.0, 0.0, 0.0, 1.0), 0.07);
+        GFX::push_point(position, Vec4(color.x, color.y, color.z, 0.2), 0.05);
+    } else {
+        GFX::push_point(position, Vec4(color.x, color.y, color.z, 1.0), 0.1);
+    }
+}
+
+void Light::on_remove() {
+    // Black means the color isn't used.
+    if (light_id != NONE) {
+        GFX::lighting()->light_colors[light_id] = Vec3();
+        light_id = NONE;
+    }
+}
+
 void Player::update() {
     const f32 floor = 0.2;
 
@@ -35,7 +71,10 @@ void Player::update() {
     if (Input::pressed(Ac::Shoot)) {
         LOG("Pew!");
     }
-    position += velocity * delta();
+
+    if (GFX::current_camera() != GFX::debug_camera()) {
+        position += velocity * delta();
+    }
 
     GFX::gameplay_camera()->position = position + Vec3(0.0, 0.3, 0.0);
     GFX::gameplay_camera()->rotation = rotation;
@@ -52,9 +91,17 @@ void Player::draw() {
 
     GFX::MasterShader shader = GFX::master_shader();
     GFX::Mesh mesh = *Asset::fetch_mesh("MONKEY");
-    Mat model_matrix = Mat::translate(position) * Mat::scale(0.1);
+    Mat model_matrix = Mat::translate(position) * Mat::scale(0.2);
     shader.upload_model(model_matrix);
     mesh.draw();
+
+    for (f32 x = -5; x <= 5; x += 1) {
+        for (f32 z = -5; z <= 5; z += 1) {
+            Mat m = Mat::translate(Vec3(x, 0.5, z)) * model_matrix;
+            shader.upload_model(m);
+            mesh.draw();
+        }
+    }
 }
 
 void SoundEntity::update() {
@@ -107,10 +154,8 @@ void EntitySystem::remove(EntityID id) {
 }
 
 void EntitySystem::update() {
-    if (GFX::current_camera() != GFX::debug_camera()) {
-        for (auto [_, e]: entities) {
-            e->update();
-        }
+    for (auto [_, e]: entities) {
+        e->update();
     }
     for (auto i = entities.begin(), last = entities.end(); i != last; ) {
         BaseEntity *e = i->second;

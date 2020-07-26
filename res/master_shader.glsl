@@ -1,4 +1,5 @@
 const int MAX_JOINTS = 50;
+const int MAX_LIGHTS = 10;
 
 uniform float t;
 uniform mat4 proj;
@@ -8,6 +9,13 @@ uniform sampler2D tex;
 
 uniform int num_bones;
 uniform mat4 bones[MAX_JOINTS];
+
+uniform vec3 light_positions[MAX_LIGHTS];
+uniform vec3 light_colors[MAX_LIGHTS];
+
+uniform vec3 sun_dir;
+uniform vec3 sun_color;
+uniform vec3 ambient_color;
 
 #ifdef VERT
 layout(location=0) in vec3 pos;
@@ -19,6 +27,7 @@ layout(location=5) in vec2 weight3;
 
 out vec2 pass_uv;
 out vec3 pass_norm;
+out vec3 pass_pos;
 void main() {
     ivec3 bone_indicies;
     bone_indicies[0] = int(weight1.x);
@@ -40,7 +49,7 @@ void main() {
             vec4 p = bone_trans * vec4(pos, 1.0);
             final_pos += p * bone_weights[i];
 
-            vec4 n = bone_trans * vec4(norm, 0.0);
+            vec4 n = normalize(bone_trans * vec4(norm, 0.0));
             final_norm += n * bone_weights[i];
         }
     } else {
@@ -49,7 +58,8 @@ void main() {
     }
 
     gl_Position = proj * view * model * final_pos;
-    pass_norm = (model * final_norm).xyz;
+    pass_norm = normalize((model * final_norm).xyz);
+    pass_pos = (model * final_pos).xyz;
     pass_uv = uv;
 }
 
@@ -59,9 +69,23 @@ out vec4 color;
 
 in vec2 pass_uv;
 in vec3 pass_norm;
+in vec3 pass_pos;
 void main() {
-    color = texture(tex, pass_uv) * max(0, dot(normalize(vec3(1, 1, 0)), pass_norm));
-    color = vec4(pass_norm, 1.0);
+    float sun_lightness = max(0, dot(sun_dir, pass_norm));
+    vec4 albedo = texture(tex, pass_uv);
+    albedo = vec4(1.0, 1.0, 1.0, 1.0);
+    vec4 light_color = sun_lightness * (sun_lightness * vec4(sun_color, 1.0) + vec4(ambient_color, 1.0));
+
+    for (int i = 0; i < MAX_LIGHTS; i++) {
+        vec3 p = light_positions[i];
+        vec3 c = light_colors[i];
+        vec3 delta_p = p - pass_pos;
+        vec3 light_dir = normalize(delta_p);
+        float effect = max(0, dot(light_dir, pass_norm)) / pow(max(length(delta_p), 0.5), 3);
+        light_color += vec4(c, 1.0) * effect;
+    }
+
+    color = albedo * light_color / 3.0;
 }
 
 #endif

@@ -84,7 +84,22 @@ Vec4 color(u32 index) {
 }
 
 void push_point(Vec3 a, Vec4 c, f32 width) {
-    push_line(a - Vec3(width, width, width) * 0.5, a + Vec3(width, width, width) * 0.5, c, c, width);
+    Vec3 z = normalized(current_camera()->position - a);
+    Vec3 x = Vec3(0.0, 1.0, 0.0);
+    Vec3 y = cross(x, z);
+    if (length_squared(y) == 0) {
+        x = Vec3(1.0, 0.0, 0.0);
+        y = cross(x, z);
+    }
+    x = cross(z, y);
+
+    Vec3 p1, p2, p3, p4;
+    p1 = a + x * width + y * width;
+    p2 = a - x * width + y * width;
+    p3 = a - x * width - y * width;
+    p4 = a + x * width - y * width;
+    push_debug_triangle(p1, c, p2, c, p3, c);
+    push_debug_triangle(p1, c, p3, c, p4, c);
 }
 
 void push_line(Vec3 a, Vec3 b, Vec4 color, f32 width) {
@@ -92,7 +107,11 @@ void push_line(Vec3 a, Vec3 b, Vec4 color, f32 width) {
 }
 
 void push_line(Vec3 a, Vec3 b, Vec4 a_color, Vec4 b_color, f32 width) {
-    Vec3 sideways = normalized(cross(a - b, Vec3(0.0, 1.0))) * width;
+    Vec3 z = current_camera()->position - a;
+    Vec3 x = a - b;
+    Vec3 y = normalized(cross(x, z));
+    Vec3 sideways = y * width;
+
     Vec3 p1, p2, p3, p4;
     p1 = a + sideways;
     p2 = a - sideways;
@@ -131,9 +150,6 @@ Mesh Mesh::init(Vertex *verticies, u32 num_verticies) {
 }
 
 void Mesh::draw() {
-    MasterShader shader = master_shader();
-    current_camera()->upload(shader);
-    shader.upload_bones(0, nullptr);
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, draw_length);
     glBindVertexArray(0);
@@ -300,6 +316,11 @@ void AnimatedMesh::draw_at(float time) {
     }
 
     master_shader().use();
+
+    master_shader().upload_sun_dir(lighting()->sun_direction);
+    master_shader().upload_sun_color(lighting()->sun_color);
+    master_shader().upload_ambient_color(lighting()->ambient_color);
+
     master_shader().upload_bones(anim->trans_per_frame, pose_mat);
     current_camera()->upload(master_shader());
     Mat m = Mat::scale(1);
@@ -317,16 +338,24 @@ void Shader::use() { glUseProgram(program_id); }
     shader.loc_num_ ##name = glGetUniformLocation(shader.program_id, "num_" #name)
 
 MasterShader MasterShader::init() {
+
     MasterShader shader;
     shader.program_id = Asset::fetch_shader("MASTER_SHADER")->program_id;
 
     FETCH_SHADER_PROP(t);
+    FETCH_SHADER_PROP(sun_color);
+    FETCH_SHADER_PROP(sun_dir);
+    FETCH_SHADER_PROP(ambient_color);
     FETCH_SHADER_PROP(proj);
     FETCH_SHADER_PROP(view);
     FETCH_SHADER_PROP(model);
     FETCH_SHADER_PROP(tex);
 
     FETCH_SHADER_PROP_FOR_LIST(bones);
+
+    shader.loc_pos_lights = glGetUniformLocation(shader.program_id, "light_positions");
+    shader.loc_col_lights = glGetUniformLocation(shader.program_id, "light_colors");
+
 
     return shader;
 }
@@ -336,6 +365,15 @@ MasterShader MasterShader::init() {
 
 #define U32_SHADER_PROP(classname, name)\
     void classname::upload_ ##name(u32 f) const { glUniform1i(loc_ ##name, f); }
+
+#define U32_SHADER_PROP(classname, name)\
+    void classname::upload_ ##name(u32 f) const { glUniform1i(loc_ ##name, f); }
+
+#define V3_SHADER_PROP(classname, name)\
+    void classname::upload_ ##name(Vec3 f) const { glUniform3f(loc_ ##name, f.x, f.y, f.z); }
+
+#define V4_SHADER_PROP(classname, name)\
+    void classname::upload_ ##name(Vec4 f) const { glUniform4f(loc_ ##name, f.x, f.y, f.z, f.w); }
 
 #define MAT_SHADER_PROP(classname, name)\
     void classname::upload_ ##name(Mat &m) const { glUniformMatrix4fv(loc_ ##name, 1, true, m.data()); }
@@ -347,12 +385,22 @@ MasterShader MasterShader::init() {
     }
 
 F32_SHADER_PROP(MasterShader, t);
+U32_SHADER_PROP(MasterShader, tex);
+
 MAT_SHADER_PROP(MasterShader, proj);
 MAT_SHADER_PROP(MasterShader, view);
 MAT_SHADER_PROP(MasterShader, model);
-U32_SHADER_PROP(MasterShader, tex);
+
+V3_SHADER_PROP(MasterShader, sun_dir);
+V3_SHADER_PROP(MasterShader, sun_color);
+V3_SHADER_PROP(MasterShader, ambient_color);
 
 MATS_SHADER_PROP(MasterShader, bones);
+
+void MasterShader::upload_lights(Vec3 *positions, Vec3 *colors) const {
+    glUniform3fv(loc_col_lights, MAX_LIGHTS, colors->_);
+    glUniform3fv(loc_pos_lights, MAX_LIGHTS, positions->_);
+}
 
 MasterShader master_shader() {
     if (Asset::needs_reload("MASTER_SHADER"))
@@ -549,6 +597,10 @@ void set_camera_mode(bool debug_mode) {
     GAMESTATE()->renderer.use_debug_cam = debug_mode;
 }
 
+Lighting *lighting() {
+    return &GAMESTATE()->renderer.lighting;
+}
+
 bool reload(GameState *gs) {
     SDL_GL_MakeCurrent(gs->window, gs->gl_context);
 
@@ -614,8 +666,10 @@ void DebugPrimitive::draw() {
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 4, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, color));
 
-    glPointSize(10.0);
     glDrawArrays(GL_TRIANGLES, 0, size);
+
+    // glPointSize(10.0);
+    // glDrawArrays(GL_POINTS, 0, size);
     glBindVertexArray(0);
 }
 

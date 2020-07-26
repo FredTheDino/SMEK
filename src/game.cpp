@@ -36,6 +36,7 @@ void init_game(GameState *gamestate, int width, int height) {
 
     GFX::init(GAMESTATE(), width, height);
 
+    GFX::lighting()->sun_direction = Vec3(0.0, 1.0, 0.0);
     *GFX::debug_camera() = GFX::Camera::init();
     GFX::debug_camera()->position = Vec3(0.0, 0.2, 0.0);
 
@@ -59,6 +60,10 @@ void init_game(GameState *gamestate, int width, int height) {
         .type = EventSystem::EventType::CREATE_PLAYER,
     };
     GAMESTATE()->event_queue.push(e);
+
+    Light l = Light();
+    GAMESTATE()->lights[0] = GAMESTATE()->entity_system.add(l);
+    GAMESTATE()->lights[1] = GAMESTATE()->entity_system.add(l);
 }
 
 void reload_game(GameState *game) {
@@ -94,11 +99,59 @@ void update() {
 
 
 void draw() {
+
+    static f32 t = 0;
+#ifndef IMGUI_DISABLE
+    ImGui::SliderFloat("Time", &t, 0.0, 16.0, "%.2f");
+
+    static bool use_debug_camera = GFX::current_camera() == GFX::debug_camera();
+    ImGui::Checkbox("Debug camera", &use_debug_camera);
+    GFX::set_camera_mode(use_debug_camera);
+
+    GFX::Lighting *lighting = GFX::lighting();
+    ImGui::InputFloat3("Sun Color", lighting->sun_color._, 3);
+    ImGui::InputFloat3("Sun Direction", lighting->sun_direction._, 3);
+    lighting->sun_direction = normalized(lighting->sun_direction);
+    ImGui::InputFloat3("Ambient Color", lighting->ambient_color._, 3);
+
+    if (ImGui::Button("Add Light")) {
+        static int i = 0;
+        Light l;
+        l.position.x = i++;
+        l.color = Vec3(1.0, 1.0, 0.0);
+        GAMESTATE()->entity_system.add(l);
+    }
+#endif
+
     glClearColor(0.2, 0.1, 0.3, 1); // We don't need to do this...
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     GFX::MasterShader shader = GFX::master_shader();
+    shader.use();
     shader.upload_t(time());
+
+    GFX::current_camera()->upload(shader);
+    shader.upload_bones(0, nullptr);
+
+    shader.upload_sun_dir(GFX::lighting()->sun_direction);
+    shader.upload_sun_color(GFX::lighting()->sun_color);
+    shader.upload_ambient_color(GFX::lighting()->ambient_color);
+
+    Vec3 position = Vec3(3, 0.5, 3);
+    {
+        Light *l = GAMESTATE()->entity_system.fetch<Light>(GAMESTATE()->lights[0]);
+        l->position = position + Vec3(0.5, 1.0 + sin(time()), 0.0);
+        l->color = Vec3(sin(time()) * 0.5 + 0.5, cos(time()) * 0.5 + 0.5, 0.2);
+    }
+
+    {
+        Light *l = GAMESTATE()->entity_system.fetch<Light>(GAMESTATE()->lights[1]);
+        l->position = position + Vec3(1.0 + cos(time()), 1.0, sin(time()));
+        l->color = Vec3(0.5, 0.5, 0.9);
+    }
+
+    shader.upload_lights(GFX::lighting()->light_positions,
+                         GFX::lighting()->light_colors);
 
     const i32 grid_size = 10;
     const f32 width = 0.005;
@@ -110,9 +163,6 @@ void draw() {
         GFX::push_line(Vec3(grid_size, 0, x), Vec3(-grid_size, 0, x), color, width);
         GFX::push_line(Vec3(grid_size, 0, -x), Vec3(-grid_size, 0, -x), color, width);
     }
-
-    shader.use();
-    GFX::current_camera()->upload(shader);
 
     Asset::fetch_image("RGBA")->bind(0);
     shader.upload_tex(0);
@@ -137,15 +187,7 @@ void draw() {
     skel = "SKEL_UNTITLED";
     // anim = "ANIM_SKINNEDMESHACTION_RIGGED_SIMPLE_CHARACTER";
     anim = "ANIM_ARMATUREACTION_001_UNTITLED";
-    static f32 t = 0;
-#ifndef IMGUI_DISABLE
-    ImGui::SliderFloat("Time", &t, 0.0, 16.0, "%.2f");
-
-    static bool use_debug_camera = false;
-    ImGui::Checkbox("Debug camera", &use_debug_camera);
-    GFX::set_camera_mode(use_debug_camera);
-#endif
-    GFX::AnimatedMesh::init(skin, skel, anim).draw_at(t * 60);
+    // GFX::AnimatedMesh::init(skin, skel, anim).draw_at(t * 60);
 
     //Asset::fetch_skeleton(skel)->draw();
 
