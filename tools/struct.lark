@@ -1,0 +1,42 @@
+structs: struct*
+struct: struct_key struct_type (":" DERIVED_CLASS*)? "{" _member* "}" NAME? ";"
+
+struct_key: "class"  -> key_class
+          | "struct" -> key_struct
+
+struct_type: TYPE
+
+DERIVED_CLASS: ACCESS_MODIFIER? VIRTUAL? NAME
+
+_member: field
+      | method
+      | struct
+      | ";"
+
+field: TYPE pointer? NAME ("[" INT? "]")? ("=" INITIALIZER_VALUE)? ";"
+
+method: VIRTUAL? (TYPE | destructor)? NAME "(" PARAMETERS? ")" OVERRIDE? "{" METHOD_BODY? "}" ";"?
+      | VIRTUAL? (TYPE | destructor)? NAME "(" PARAMETERS? ")" OVERRIDE? ";"
+      | VIRTUAL  (TYPE | destructor)? NAME "(" PARAMETERS? ")" "=" "0" ";"
+
+PARAMETERS: PARAMETER ("," PARAMETER)*
+PARAMETER: TYPE NAME?
+
+METHOD_BODY: /[^}]*}/
+
+NAME: ALPHANUMWORD
+pointer: "*"                             -> pointer
+destructor: "~"                          -> destructor
+TYPE: (ALPHANUMWORD "::")* ALPHANUMWORD
+INITIALIZER_VALUE: /[^;]+/
+VIRTUAL: "virtual"
+OVERRIDE: "override"
+ACCESS_MODIFIER: "public"
+               | "protected"
+               | "private"
+
+ALPHANUMWORD: /[A-Za-z0-9_]+/
+
+%import common.WS
+%import common.INT
+%ignore WS

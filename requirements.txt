@@ -1,1 +1,2 @@
+lark-parser==0.9.0
 Pillow==7.1.2
