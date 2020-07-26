@@ -4,6 +4,7 @@
  */
 
 #pragma once
+#include <typeinfo>
 
 #include "../util/util.h"
 
@@ -12,12 +13,27 @@ enum class EntityType {
     ENTITY,
     PLAYER,
     SOUNDENTITY,
-    TESTENT,
 
     NUM_ENTITY_TYPES,
 };
 
 i32 format(char *, u32, FormatHint, EntityType);
+
+struct Field {
+    const std::type_info &typeinfo;
+    const char *name;
+    int size;
+    int offset;
+};
+
+struct FieldList {
+    int num_fields;
+    Field *list;
+};
+
+///*
+// Returns a list of fields on the specified struct type.
+FieldList get_fields_for(EntityType type);
 
 /*
  * Included from `tools/entity_types_type_of.h`
@@ -34,9 +50,6 @@ EntityType type_of(Player *);
 
 struct SoundEntity;
 EntityType type_of(SoundEntity *);
-
-struct TestEnt;
-EntityType type_of(TestEnt *);
 
 
 /*
