@@ -14,11 +14,11 @@ void main() {
 
 #else
 
-out vec4 color;
+layout(location=0) out vec3 color;
 
 in vec4 pass_color;
 void main() {
-    color = pass_color;
+    color = pass_color.rgb;
 }
 
 #endif

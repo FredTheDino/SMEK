@@ -236,6 +236,14 @@ struct Texture {
     static Texture upload(u32 width, u32 height, u32 components, u8 *data, Sampling sampling);
 };
 
+struct RenderTexture {
+    u32 fbo;
+    u32 color;
+    u32 depth;
+
+    static RenderTexture create(int width, int height, bool use_depth, bool use_color);
+};
+
 ///*
 // Fetches the master shader.
 MasterShader master_shader();

@@ -56,6 +56,39 @@ void Camera::upload(const DebugShader &shader) {
     shader.upload_view(view);
 }
 
+RenderTexture RenderTexture::create(int width, int height, bool use_depth, bool use_color) {
+    RenderTexture t = {};
+    glGenFramebuffers(1, &t.fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, t.fbo);
+
+    if (use_color) {
+        glGenTextures(1, &t.color);
+        glBindTexture(GL_TEXTURE_2D, t.color);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, t.color, 0);
+
+        GLenum draw_buffers[] = {GL_COLOR_ATTACHMENT0};
+        glDrawBuffers(LEN(draw_buffers), draw_buffers);
+    }
+
+    if (use_depth) {
+        glGenRenderbuffers(1, &t.depth);
+        glBindRenderbuffer(GL_RENDERBUFFER, t.depth);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, t.depth);
+    }
+
+    // TODO(ed): Rendere to the thing... Actually
+    ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE, "Failed to create FBO");
+    return t;
+}
+
 const Vec4 color_list[] = {
 #if 0
     Vec4(1.0, 0.0, 1.0, 1.0),

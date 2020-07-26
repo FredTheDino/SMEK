@@ -55,13 +55,13 @@ void main() {
 
 #else
 
-out vec4 color;
+layout(location=0) out vec3 color;
 
 in vec2 pass_uv;
 in vec3 pass_norm;
 void main() {
     color = texture(tex, pass_uv) * max(0, dot(normalize(vec3(1, 1, 0)), pass_norm));
-    color = vec4(pass_norm, 1.0);
+    color = vec3(pass_norm)
 }
 
 #endif
