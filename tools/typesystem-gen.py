@@ -151,6 +151,7 @@ if __name__ == "__main__":
     lexer = lark.Lark.open("tools/struct.lark", start="structs")
     types = []
     base_entity = "BaseEntity"
+    #TODO(gu) parse entire files instead of one at a time
     for name, struct in sorted(find_structs(glob.glob("src/**/*.*", recursive=True)).items()):
         if struct.parents_contain(base_entity) or name == base_entity:
             tree = lexer.parse(struct.source)
@@ -159,6 +160,7 @@ if __name__ == "__main__":
                 print("No typename found, 1 required")
                 continue
             if len(struct_types) > 1:
+                #TODO(gu) parse structs in structs correctly
                 print(f"{len(struct_types)} typenames found (structs in structs?), 1 required\nstructs are {struct_types}")
                 continue
             types.append(struct_types[0].children[0])
