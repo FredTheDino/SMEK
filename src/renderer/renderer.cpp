@@ -131,6 +131,9 @@ Mesh Mesh::init(Vertex *verticies, u32 num_verticies) {
 }
 
 void Mesh::draw() {
+    MasterShader shader = master_shader();
+    current_camera()->upload(shader);
+    shader.upload_bones(0, nullptr);
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, draw_length);
     glBindVertexArray(0);
@@ -298,7 +301,7 @@ void AnimatedMesh::draw_at(float time) {
 
     master_shader().use();
     master_shader().upload_bones(anim->trans_per_frame, pose_mat);
-    main_camera()->upload(master_shader());
+    current_camera()->upload(master_shader());
     Mat m = Mat::scale(1);
     master_shader().upload_model(m);
     Asset::fetch_skin(skin)->draw();
@@ -363,8 +366,19 @@ DebugShader debug_shader() {
     return GAMESTATE()->renderer.debug_shader;
 }
 
-Camera *main_camera() {
-    return &GAMESTATE()->renderer.main_camera;
+Camera *current_camera() {
+    if (GAMESTATE()->renderer.use_debug_cam)
+        return &GAMESTATE()->renderer.debug_camera;
+    else
+        return &GAMESTATE()->renderer.gameplay_camera;
+}
+
+Camera *debug_camera() {
+    return &GAMESTATE()->renderer.debug_camera;
+}
+
+Camera *gameplay_camera() {
+    return &GAMESTATE()->renderer.gameplay_camera;
 }
 
 DebugShader DebugShader::init() {
@@ -531,6 +545,10 @@ bool init(GameState *gs, i32 width, i32 height) {
     return true;
 }
 
+void set_camera_mode(bool debug_mode) {
+    GAMESTATE()->renderer.use_debug_cam = debug_mode;
+}
+
 bool reload(GameState *gs) {
     SDL_GL_MakeCurrent(gs->window, gs->gl_context);
 
@@ -614,7 +632,7 @@ void push_debug_triangle(Vec3 p1, Vec4 c1, Vec3 p2, Vec4 c2, Vec3 p3, Vec4 c3) {
 }
 
 void draw_primitivs() {
-    main_camera()->upload(debug_shader());
+    current_camera()->upload(debug_shader());
     std::vector<DebugPrimitive> *primitives = &GAMESTATE()->renderer.primitives;
     for (DebugPrimitive &p : *primitives) {
         p.draw();
@@ -624,4 +642,3 @@ void draw_primitivs() {
 }
 
 } // namespace GFX
-

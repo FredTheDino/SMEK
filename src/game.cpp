@@ -36,8 +36,11 @@ void init_game(GameState *gamestate, int width, int height) {
 
     GFX::init(GAMESTATE(), width, height);
 
-    *GFX::main_camera() = GFX::Camera::init();
-    GFX::main_camera()->position = Vec3(0.0, 0.2, 0.0);
+    *GFX::debug_camera() = GFX::Camera::init();
+    GFX::debug_camera()->position = Vec3(0.0, 0.2, 0.0);
+
+    *GFX::gameplay_camera() = GFX::Camera::init();
+    GFX::gameplay_camera()->position = Vec3(0.0, 0.2, 0.0);
 
     GAMESTATE()->running = true;
 
@@ -75,16 +78,18 @@ void update() {
     EventSystem::handle_events();
 
     // Debug camera movement, overwritten by player currently.
-    {
+    if (GFX::current_camera() == GFX::debug_camera()) {
         Vec3 move = {Input::value(Ac::MoveX), 0, Input::value(Ac::MoveZ)};
         Vec2 turn = Input::mouse_move();
         move = move * delta();
         turn = turn * delta();
-        GFX::main_camera()->turn(turn.y, turn.x);
-        GFX::main_camera()->move_relative(move);
-        GFX::main_camera()->move(Vec3(0, Input::value(Ac::MoveY) * delta(), 0));
+        GFX::debug_camera()->turn(turn.y, turn.x);
+        GFX::debug_camera()->move_relative(move);
+        GFX::debug_camera()->move(
+            Vec3(0, Input::value(Ac::MoveY) * delta(), 0));
     }
     GAMESTATE()->entity_system.update();
+
 }
 
 
@@ -107,7 +112,7 @@ void draw() {
     }
 
     shader.use();
-    GFX::main_camera()->upload(shader);
+    GFX::current_camera()->upload(shader);
 
     Asset::fetch_image("RGBA")->bind(0);
     shader.upload_tex(0);
@@ -135,13 +140,17 @@ void draw() {
     static f32 t = 0;
 #ifndef IMGUI_DISABLE
     ImGui::SliderFloat("Time", &t, 0.0, 16.0, "%.2f");
+
+    static bool use_debug_camera = false;
+    ImGui::Checkbox("Debug camera", &use_debug_camera);
+    GFX::set_camera_mode(use_debug_camera);
 #endif
     GFX::AnimatedMesh::init(skin, skel, anim).draw_at(t * 60);
 
     //Asset::fetch_skeleton(skel)->draw();
 
     GFX::debug_shader().use();
-    GFX::main_camera()->upload(GFX::debug_shader());
+    GFX::current_camera()->upload(GFX::debug_shader());
     GFX::draw_primitivs();
 }
 

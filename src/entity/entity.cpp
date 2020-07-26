@@ -37,8 +37,8 @@ void Player::update() {
     }
     position += velocity * delta();
 
-    GFX::main_camera()->position = position + Vec3(0.0, 0.3, 0.0);
-    GFX::main_camera()->rotation = rotation;
+    GFX::gameplay_camera()->position = position + Vec3(0.0, 0.3, 0.0);
+    GFX::gameplay_camera()->rotation = rotation;
 }
 
 void Player::draw() {
@@ -107,8 +107,10 @@ void EntitySystem::remove(EntityID id) {
 }
 
 void EntitySystem::update() {
-    for (auto [_, e]: entities) {
-        e->update();
+    if (GFX::current_camera() != GFX::debug_camera()) {
+        for (auto [_, e]: entities) {
+            e->update();
+        }
     }
     for (auto i = entities.begin(), last = entities.end(); i != last; ) {
         BaseEntity *e = i->second;

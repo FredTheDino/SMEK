@@ -246,7 +246,15 @@ DebugShader debug_shader();
 
 ///*
 // Fetches the master shader.
-Camera *main_camera();
+Camera *current_camera();
+
+///*
+// Fetches the debug camera
+Camera *debug_camera();
+
+///*
+// Fetches the player camera
+Camera *gameplay_camera();
 
 struct DebugPrimitive {
     struct Vertex {
@@ -273,7 +281,9 @@ struct Renderer {
     u32 width;
     u32 height;
 
-    Camera main_camera;
+    bool use_debug_cam;
+    Camera debug_camera;
+    Camera gameplay_camera;
 
     MasterShader master_shader;
     DebugShader debug_shader;
@@ -285,6 +295,12 @@ struct Renderer {
 ///*
 // Initalize the graphics pipeline.
 bool init(GameState *gs, i32 width=680, i32 height=480);
+
+///*
+// Sets the camera to be used when rendering. There's a "debug"
+// camera and a "gameplay" camera. Passing true uses the "debug"
+// camera.
+void set_camera_mode(bool debug_mode=false);
 
 ///*
 // Reloads opengl function pointers and such, which is faster
