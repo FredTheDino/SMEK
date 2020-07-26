@@ -545,8 +545,8 @@ bool init(GameState *gs, i32 width, i32 height) {
     return true;
 }
 
-void set_camera_mode(bool mode) {
-    GAMESTATE()->renderer.use_debug_cam = mode;
+void set_camera_mode(bool debug_mode) {
+    GAMESTATE()->renderer.use_debug_cam = debug_mode;
 }
 
 bool reload(GameState *gs) {
@@ -632,11 +632,11 @@ void push_debug_triangle(Vec3 p1, Vec4 c1, Vec3 p2, Vec4 c2, Vec3 p3, Vec4 c3) {
 }
 
 void draw_primitivs() {
-  current_camera()->upload(debug_shader());
-  std::vector<DebugPrimitive> *primitives = &GAMESTATE()->renderer.primitives;
-  for (DebugPrimitive &p : *primitives) {
-    p.draw();
-    p.clear();
+    current_camera()->upload(debug_shader());
+    std::vector<DebugPrimitive> *primitives = &GAMESTATE()->renderer.primitives;
+    for (DebugPrimitive &p : *primitives) {
+        p.draw();
+        p.clear();
     }
     GAMESTATE()->renderer.first_empty = 0;
 }
