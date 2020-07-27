@@ -11,6 +11,7 @@
 enum class EntityType {
     BASEENTITY,
     ENTITY,
+    LIGHT,
     PLAYER,
     SOUNDENTITY,
 
@@ -44,6 +45,9 @@ EntityType type_of(BaseEntity *);
 
 struct Entity;
 EntityType type_of(Entity *);
+
+struct Light;
+EntityType type_of(Light *);
 
 struct Player;
 EntityType type_of(Player *);
