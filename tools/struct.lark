@@ -10,9 +10,13 @@ DERIVED_CLASS: ACCESS_MODIFIER? VIRTUAL? NAME
 
 _member: field
       | method
+      | static
       | struct
       | ";"
 
+static: STATIC CONST? ignored_field
+
+ignored_field: TYPE pointer? NAME ("[" INT? "]")? ("=" INITIALIZER_VALUE)? ";"
 field: TYPE pointer? NAME ("[" INT? "]")? ("=" INITIALIZER_VALUE)? ";"
 
 method: VIRTUAL? (TYPE | destructor)? NAME "(" PARAMETERS? ")" OVERRIDE? "{" METHOD_BODY? "}" ";"?
@@ -29,7 +33,9 @@ pointer: "*"                             -> pointer
 destructor: "~"                          -> destructor
 TYPE: (ALPHANUMWORD "::")* ALPHANUMWORD
 INITIALIZER_VALUE: /[^;]+/
+CONST: "const"
 VIRTUAL: "virtual"
+STATIC:"static" 
 OVERRIDE: "override"
 ACCESS_MODIFIER: "public"
                | "protected"
