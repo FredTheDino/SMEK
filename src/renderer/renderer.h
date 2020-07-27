@@ -257,9 +257,14 @@ struct Texture {
 };
 
 struct RenderTexture {
+    i32 width, height;
     u32 fbo;
     u32 color;
+    u32 depth_output;
     u32 depth;
+
+    void use();
+    void destroy();
 
     static RenderTexture create(int width, int height, bool use_depth, bool use_color);
 };

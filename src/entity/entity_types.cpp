@@ -11,6 +11,7 @@ i32 format(char *buffer, u32 size, FormatHint args, EntityType type) {
     switch (type) {
         case EntityType::BASEENTITY: return snprintf(buffer, size, "BaseEntity");
         case EntityType::ENTITY: return snprintf(buffer, size, "Entity");
+        case EntityType::LIGHT: return snprintf(buffer, size, "Light");
         case EntityType::PLAYER: return snprintf(buffer, size, "Player");
         case EntityType::SOUNDENTITY: return snprintf(buffer, size, "SoundEntity");
         default: UNREACHABLE("Unknown entity type");
@@ -28,6 +29,13 @@ Field gen_Entity[] = {
     { typeid(Quat), "rotation", sizeof(Quat), (int)offsetof(Entity, rotation) },
     { typeid(bool), "remove", sizeof(bool), (int)offsetof(Entity, remove) },
     { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(Entity, type) }
+};
+Field gen_Light[] = {
+    { typeid(i32), "light_id", sizeof(i32), (int)offsetof(Light, light_id) },
+    { typeid(Vec3), "position", sizeof(Vec3), (int)offsetof(Light, position) },
+    { typeid(Vec3), "color", sizeof(Vec3), (int)offsetof(Light, color) },
+    { typeid(bool), "remove", sizeof(bool), (int)offsetof(Light, remove) },
+    { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(Light, type) }
 };
 Field gen_Player[] = {
     { typeid(Vec3), "velocity", sizeof(Vec3), (int)offsetof(Player, velocity) },
@@ -49,6 +57,7 @@ FieldList get_fields_for(EntityType type) {
     switch (type) {
         case EntityType::BASEENTITY: return { LEN(gen_BaseEntity), gen_BaseEntity };
         case EntityType::ENTITY: return { LEN(gen_Entity), gen_Entity };
+        case EntityType::LIGHT: return { LEN(gen_Light), gen_Light };
         case EntityType::PLAYER: return { LEN(gen_Player), gen_Player };
         case EntityType::SOUNDENTITY: return { LEN(gen_SoundEntity), gen_SoundEntity };
         default:
@@ -67,6 +76,10 @@ EntityType type_of(BaseEntity *e) {
 
 EntityType type_of(Entity *e) {
     return EntityType::ENTITY;
+}
+
+EntityType type_of(Light *e) {
+    return EntityType::LIGHT;
 }
 
 EntityType type_of(Player *e) {

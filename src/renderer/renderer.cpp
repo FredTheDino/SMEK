@@ -58,6 +58,8 @@ void Camera::upload(const DebugShader &shader) {
 
 RenderTexture RenderTexture::create(int width, int height, bool use_depth, bool use_color) {
     RenderTexture t = {};
+    t.width = height;
+    t.height = height;
     glGenFramebuffers(1, &t.fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, t.fbo);
 
@@ -71,9 +73,18 @@ RenderTexture RenderTexture::create(int width, int height, bool use_depth, bool 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, t.color, 0);
+    }
 
-        GLenum draw_buffers[] = {GL_COLOR_ATTACHMENT0};
-        glDrawBuffers(LEN(draw_buffers), draw_buffers);
+    {
+        glGenTextures(1, &t.depth_output);
+        glBindTexture(GL_TEXTURE_2D, t.depth_output);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, 0);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, t.depth_output, 0);
     }
 
     if (use_depth) {
@@ -84,9 +95,27 @@ RenderTexture RenderTexture::create(int width, int height, bool use_depth, bool 
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, t.depth);
     }
 
-    // TODO(ed): Rendere to the thing... Actually
-    ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE, "Failed to create FBO");
+    // Assumes both depth and color
+    GLenum draw_buffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+    glDrawBuffers(LEN(draw_buffers), draw_buffers);
+
+    ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Failed to create FBO");
     return t;
+}
+
+void RenderTexture::destroy() {
+    ASSERT(width, "Trying to destroy uninitalized RenderTexture");
+    width = 0;
+    glDeleteFramebuffers(1, &fbo);
+    if (color)
+        glDeleteTextures(1, &color);
+    if (depth)
+        glDeleteTextures(1, &depth);
+}
+
+void RenderTexture::use() {
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glViewport(0, 0, width, height);
 }
 
 const Vec4 color_list[] = {

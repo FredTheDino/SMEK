@@ -66,6 +66,7 @@ void main() {
 #else
 
 layout(location=0) out vec3 color;
+layout(location=1) out float depth;
 
 in vec2 pass_uv;
 in vec3 pass_norm;
@@ -85,7 +86,8 @@ void main() {
         light_color += vec4(c, 1.0) * effect;
     }
 
-    color = albedo * light_color / 3.0;
+    depth = pow(1.0 - gl_FragCoord.z, 0.25);
+    color = (albedo * light_color / 3.0).rgb;
 }
 
 #endif

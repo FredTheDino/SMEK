@@ -104,7 +104,7 @@ else:
         smek_game_lib = "./libSMEK.so"
         env.Replace(SHLIBSUFFIX="so")
 
-env.MergeFlags("-Wall -Wno-unused -Wno-format-security -std=c++20")
+env.MergeFlags("-Wall -Wno-unused -Wno-invalid-offsetof -Wno-format-security -std=c++20")
 env.MergeFlags("-Iinc -Llib")
 env.Append(LIBS="dl")
 env.Append(CPPDEFINES="IMGUI_IMPL_OPENGL_LOADER_GLAD")
