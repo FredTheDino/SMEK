@@ -211,6 +211,8 @@ void draw() {
         ImGui::Image((void *) target.depth_output, ImVec2(target.width, target.height), ImVec2(0, 1), ImVec2(1, 0));
     }
     ImGui::End();
+
+    GFX::resolve_to_screen(target);
 }
 
 GameState update_game(GameState *game, GSUM mode) { // Game entry point

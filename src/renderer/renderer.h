@@ -226,6 +226,13 @@ struct MasterShader: public Shader {
     static MasterShader init();
 };
 
+struct PostProcessShader: public Shader {
+    F32_SHADER_PROP(t);
+    U32_SHADER_PROP(tex);
+
+    static PostProcessShader init();
+};
+
 struct DebugShader: public Shader {
     MAT_SHADER_PROP(proj);
     MAT_SHADER_PROP(view);
@@ -257,6 +264,8 @@ struct Texture {
 };
 
 struct RenderTexture {
+    Mesh quad;
+
     i32 width, height;
     u32 fbo;
     u32 color;
@@ -274,7 +283,11 @@ struct RenderTexture {
 MasterShader master_shader();
 
 ///*
-// Fetches the master shader.
+// Fetches the debug shader.
+PostProcessShader post_process_shader();
+
+///*
+// Fetches the debug shader.
 DebugShader debug_shader();
 
 ///*
@@ -335,6 +348,7 @@ struct Renderer {
     Camera gameplay_camera;
 
     MasterShader master_shader;
+    PostProcessShader post_process_shader;
     DebugShader debug_shader;
 
     u32 first_empty;
@@ -383,7 +397,14 @@ void push_line(Vec3 a, Vec3 b, Vec4 a_color, Vec4 b_color, f32 width=0.1);
 // the debug render call.
 void push_debug_triangle(Vec3 p1, Vec4 c1, Vec3 p2, Vec4 c2, Vec3 p3, Vec4 c3);
 
+///*
+// Renders the debug primitivs to the screen.
 void draw_primitivs();
+
+///*
+// Applies the post processing shader and renders
+// the texture to the screen.
+void resolve_to_screen(RenderTexture texture);
 
 template<> void Camera::upload<MasterShader>(const MasterShader &shader);
 template<> void Camera::upload<DebugShader>(const DebugShader &shader);

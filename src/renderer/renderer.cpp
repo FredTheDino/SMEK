@@ -99,6 +99,15 @@ RenderTexture RenderTexture::create(int width, int height, bool use_depth, bool 
     GLenum draw_buffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
     glDrawBuffers(LEN(draw_buffers), draw_buffers);
 
+    Mesh::Vertex a, b, c, d;
+    a = { { -1., -1., 0. }, {0., 0.}, {} };
+    b = { {  1., -1., 0. }, {1., 0.}, {} };
+    c = { {  1.,  1., 0. }, {1., 1.}, {} };
+    d = { { -1.,  1., 0. }, {0., 1.}, {} };
+
+    Mesh::Vertex verticies[] = { a, b, c, a, c, d };
+    t.quad = Mesh::init(verticies, LEN(verticies));
+
     ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Failed to create FBO");
     return t;
 }
@@ -464,6 +473,13 @@ void MasterShader::upload_lights(Vec3 *positions, Vec3 *colors) const {
     glUniform3fv(loc_pos_lights, MAX_LIGHTS, positions->_);
 }
 
+PostProcessShader post_process_shader() {
+    if (Asset::needs_reload("POSTPROCESS_SHADER"))
+        GAMESTATE()->renderer.post_process_shader = PostProcessShader::init();
+    return GAMESTATE()->renderer.post_process_shader;
+}
+
+
 MasterShader master_shader() {
     if (Asset::needs_reload("MASTER_SHADER"))
         GAMESTATE()->renderer.master_shader = MasterShader::init();
@@ -505,6 +521,19 @@ DebugShader DebugShader::init() {
 MAT_SHADER_PROP(DebugShader, proj);
 MAT_SHADER_PROP(DebugShader, view);
 MAT_SHADER_PROP(DebugShader, model);
+
+PostProcessShader PostProcessShader::init() {
+    PostProcessShader shader;
+    shader.program_id = Asset::fetch_shader("POSTPROCESS_SHADER")->program_id;
+
+    FETCH_SHADER_PROP(t);
+    FETCH_SHADER_PROP(tex);
+
+    return shader;
+}
+
+F32_SHADER_PROP(PostProcessShader, t);
+U32_SHADER_PROP(PostProcessShader, tex);
 
 void Shader::destroy() {
     glDeleteProgram(program_id);
@@ -755,6 +784,24 @@ void draw_primitivs() {
         p.clear();
     }
     GAMESTATE()->renderer.first_empty = 0;
+}
+
+void resolve_to_screen(RenderTexture texture) {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, GAMESTATE()->renderer.width, GAMESTATE()->renderer.height);
+
+    glClearColor(0.1, 0.1, 0.1, 1); // We don't need to do this...
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    post_process_shader().use();
+    post_process_shader().upload_t(time());
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture.color);
+    post_process_shader().upload_tex(0);
+
+    glDisable(GL_DEPTH_TEST);
+    texture.quad.draw();
+    glEnable(GL_DEPTH_TEST);
 }
 
 } // namespace GFX
