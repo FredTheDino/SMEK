@@ -163,8 +163,10 @@ class MetaDataExtractor(Visitor):
         self.fields = []
 
     def field(self, field):
-        field = tuple(map(str, field.children[:2]))
-        self.fields.append(field)
+        children = { child.type: child for child in field.children }
+        if "STATIC" not in children:
+            field = tuple(map(str, [children["TYPE"], children["NAME"]]))
+            self.fields.append(field)
 
 def to_enum(name):
     return name.upper()
