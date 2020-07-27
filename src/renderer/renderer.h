@@ -176,7 +176,7 @@ struct Shader {
 
     bool is_valid() { return program_id != -1; }
 
-    static Shader compile(const char *source);
+    static Shader compile(const char *asset, const char *source);
 };
 
 #define F32_SHADER_PROP(name)\

@@ -510,25 +510,25 @@ void Shader::destroy() {
     glDeleteProgram(program_id);
 }
 
-Shader Shader::compile(const char *source) {
-    auto shader_error_check = [](u32 shader) -> bool {
+Shader Shader::compile(const char *asset, const char *source) {
+    auto shader_error_check = [asset](u32 shader) -> bool {
         i32 success;
         glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
         if (!success) {
             char info_log[512];
             glGetShaderInfoLog(shader, sizeof(info_log), NULL, info_log);
-            ERR("Shader error: {}", info_log);
+            ERR("Shader error: ({}) {}", asset, info_log);
         }
         return success;
     };
 
-    auto program_error_check = [](u32 program) -> bool {
+    auto program_error_check = [asset](u32 program) -> bool {
         i32 success;
         glGetProgramiv(program, GL_LINK_STATUS, &success);
         if (!success) {
             char info_log[512];
             glGetProgramInfoLog(program, sizeof(info_log), NULL, info_log);
-            ERR("Program error: {}", info_log);
+            ERR("Program error: ({}) {}", asset, info_log);
         }
         return success;
     };
