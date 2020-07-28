@@ -1,5 +1,6 @@
 #include "../game.h"
 #include "../util/util.h"
+#include "imgui/imgui.h"
 #include "opengl.h"
 #include "renderer.h"
 
@@ -99,14 +100,11 @@ RenderTexture RenderTexture::create(int width, int height, bool use_depth, bool 
     GLenum draw_buffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
     glDrawBuffers(LEN(draw_buffers), draw_buffers);
 
-    Mesh::Vertex a, b, c, d;
-    a = { { -1., -1., 0. }, {0., 0.}, {} };
-    b = { {  1., -1., 0. }, {1., 0.}, {} };
-    c = { {  1.,  1., 0. }, {1., 1.}, {} };
-    d = { { -1.,  1., 0. }, {0., 1.}, {} };
+    static bool run_once = false;
+    if (!run_once) {
+        run_once = true;
 
-    Mesh::Vertex verticies[] = { a, b, c, a, c, d };
-    t.quad = Mesh::init(verticies, LEN(verticies));
+    }
 
     ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Failed to create FBO");
     return t;
@@ -198,7 +196,7 @@ void Mesh::destroy() {
 }
 
 Mesh Mesh::init(Vertex *verticies, u32 num_verticies) {
-    u32 vao, vbo;
+    u32 vao = 0, vbo = 0;
 
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
@@ -670,6 +668,15 @@ bool init(GameState *gs, i32 width, i32 height) {
         return false;
     }
 
+    Mesh::Vertex a, b, c, d;
+    a = { { -1., -1., 0. }, {0., 0.}, {} };
+    b = { {  1., -1., 0. }, {1., 0.}, {} };
+    c = { {  1.,  1., 0. }, {1., 1.}, {} };
+    d = { { -1.,  1., 0. }, {0., 1.}, {} };
+
+    Mesh::Vertex verticies[] = { a, b, c, a, c, d };
+    gs->renderer.quad = Mesh::init(verticies, LEN(verticies));
+
     glEnable(GL_DEPTH_TEST);
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -790,7 +797,7 @@ void resolve_to_screen(RenderTexture texture) {
     glViewport(0, 0, GAMESTATE()->renderer.width, GAMESTATE()->renderer.height);
 
     glClearColor(0.1, 0.1, 0.1, 1); // We don't need to do this...
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     post_process_shader().use();
     post_process_shader().upload_t(time());
@@ -798,9 +805,7 @@ void resolve_to_screen(RenderTexture texture) {
     glBindTexture(GL_TEXTURE_2D, texture.color);
     post_process_shader().upload_tex(0);
 
-    glDisable(GL_DEPTH_TEST);
-    texture.quad.draw();
-    glEnable(GL_DEPTH_TEST);
+    GAMESTATE()->renderer.quad.draw();
 }
 
 } // namespace GFX

@@ -68,6 +68,7 @@ struct Mesh {
         Vec3 normal;
     };
 
+
     u32 vao, vbo;
     u32 draw_length;
 
@@ -264,8 +265,6 @@ struct Texture {
 };
 
 struct RenderTexture {
-    Mesh quad;
-
     i32 width, height;
     u32 fbo;
     u32 color;
@@ -341,6 +340,7 @@ struct Renderer {
     u32 width;
     u32 height;
 
+    Mesh quad;
     Lighting lighting;
 
     bool use_debug_cam;
