@@ -107,31 +107,31 @@ void EventCreateEntity::callback() {
     switch (type) {
         case EntityType::BASEENTITY: {
             BaseEntity entity;
-            std::memcpy(&entity, BASEENTITY, sizeof(BaseEntity));
+            std::memcpy(((void *) &entity) + sizeof(void *), BASEENTITY, sizeof(BaseEntity) - sizeof(void *));
             GAMESTATE()->entity_system.add(entity);
             break;
         }
         case EntityType::ENTITY: {
             Entity entity;
-            std::memcpy(&entity, ENTITY, sizeof(Entity));
+            std::memcpy(((void *) &entity) + sizeof(void *), ENTITY, sizeof(Entity) - sizeof(void *));
             GAMESTATE()->entity_system.add(entity);
             break;
         }
         case EntityType::LIGHT: {
             Light entity;
-            std::memcpy(&entity, LIGHT, sizeof(Light));
+            std::memcpy(((void *) &entity) + sizeof(void *), LIGHT, sizeof(Light) - sizeof(void *));
             GAMESTATE()->entity_system.add(entity);
             break;
         }
         case EntityType::PLAYER: {
             Player entity;
-            std::memcpy(&entity, PLAYER, sizeof(Player));
+            std::memcpy(((void *) &entity) + sizeof(void *), PLAYER, sizeof(Player) - sizeof(void *));
             GAMESTATE()->entity_system.add(entity);
             break;
         }
         case EntityType::SOUNDENTITY: {
             SoundEntity entity;
-            std::memcpy(&entity, SOUNDENTITY, sizeof(SoundEntity));
+            std::memcpy(((void *) &entity) + sizeof(void *), SOUNDENTITY, sizeof(SoundEntity) - sizeof(void *));
             GAMESTATE()->entity_system.add(entity);
             break;
         }
@@ -155,7 +155,7 @@ EventSystem::Event entity_event(BaseEntity entity) {
         .type = EventSystem::EventType::CREATE_ENTITY,
         .CREATE_ENTITY = { .type = EntityType::BASEENTITY }
     };
-    std::memcpy(event.CREATE_ENTITY.BASEENTITY, &entity, sizeof(BaseEntity));
+    std::memcpy(event.CREATE_ENTITY.BASEENTITY, ((void *) &entity) + sizeof(void *), sizeof(BaseEntity) - sizeof(void *));
     return event;
 }
 
@@ -164,7 +164,7 @@ EventSystem::Event entity_event(Entity entity) {
         .type = EventSystem::EventType::CREATE_ENTITY,
         .CREATE_ENTITY = { .type = EntityType::ENTITY }
     };
-    std::memcpy(event.CREATE_ENTITY.ENTITY, &entity, sizeof(Entity));
+    std::memcpy(event.CREATE_ENTITY.ENTITY, ((void *) &entity) + sizeof(void *), sizeof(Entity) - sizeof(void *));
     return event;
 }
 
@@ -173,7 +173,7 @@ EventSystem::Event entity_event(Light entity) {
         .type = EventSystem::EventType::CREATE_ENTITY,
         .CREATE_ENTITY = { .type = EntityType::LIGHT }
     };
-    std::memcpy(event.CREATE_ENTITY.LIGHT, &entity, sizeof(Light));
+    std::memcpy(event.CREATE_ENTITY.LIGHT, ((void *) &entity) + sizeof(void *), sizeof(Light) - sizeof(void *));
     return event;
 }
 
@@ -182,7 +182,7 @@ EventSystem::Event entity_event(Player entity) {
         .type = EventSystem::EventType::CREATE_ENTITY,
         .CREATE_ENTITY = { .type = EntityType::PLAYER }
     };
-    std::memcpy(event.CREATE_ENTITY.PLAYER, &entity, sizeof(Player));
+    std::memcpy(event.CREATE_ENTITY.PLAYER, ((void *) &entity) + sizeof(void *), sizeof(Player) - sizeof(void *));
     return event;
 }
 
@@ -191,7 +191,7 @@ EventSystem::Event entity_event(SoundEntity entity) {
         .type = EventSystem::EventType::CREATE_ENTITY,
         .CREATE_ENTITY = { .type = EntityType::SOUNDENTITY }
     };
-    std::memcpy(event.CREATE_ENTITY.SOUNDENTITY, &entity, sizeof(SoundEntity));
+    std::memcpy(event.CREATE_ENTITY.SOUNDENTITY, ((void *) &entity) + sizeof(void *), sizeof(SoundEntity) - sizeof(void *));
     return event;
 }
 

@@ -68,11 +68,11 @@ EntityType type_of(SoundEntity *);
 struct EventCreateEntity {
     EntityType type;
     union {
-        u8 BASEENTITY[sizeof(BaseEntity)];
-        u8 ENTITY[sizeof(Entity)];
-        u8 LIGHT[sizeof(Light)];
-        u8 PLAYER[sizeof(Player)];
-        u8 SOUNDENTITY[sizeof(SoundEntity)];
+        u8 BASEENTITY[sizeof(BaseEntity) - sizeof(void *)];
+        u8 ENTITY[sizeof(Entity) - sizeof(void *)];
+        u8 LIGHT[sizeof(Light) - sizeof(void *)];
+        u8 PLAYER[sizeof(Player) - sizeof(void *)];
+        u8 SOUNDENTITY[sizeof(SoundEntity) - sizeof(void *)];
     };
 
     void callback();

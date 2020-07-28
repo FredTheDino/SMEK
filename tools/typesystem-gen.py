@@ -239,7 +239,7 @@ if __name__ == "__main__":
     template_kwords_h = {
             "types": "\n".join([f"    {to_enum(t)}," for t in entity_structs.keys()]),
             "type_ofs": "\n".join([template_type_of_h.substitute(entity_type=t) for t in entity_structs.keys()]),
-            "event_entity_bytes_union": "\n".join([f"{' '*8}u8 {to_enum(t)}[sizeof({t})];" for t in entity_structs.keys()]),
+            "event_entity_bytes_union": "\n".join([f"{' '*8}u8 {to_enum(t)}[sizeof({t}) - sizeof(void *)];" for t in entity_structs.keys()]),
             "entity_events_prototypes": "\n".join([f"EventSystem::Event entity_event({name});" for name in entity_structs.keys()]),
     }
 
