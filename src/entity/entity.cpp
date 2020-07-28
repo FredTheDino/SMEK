@@ -138,6 +138,10 @@ void SoundEntity::draw() {
 #endif
 }
 
+void SoundEntity::on_create() {
+    audio_id = GAMESTATE()->audio_struct->play_sound(asset_id, { .gain = sound_source_settings.gain, .repeat = sound_source_settings.repeat });
+}
+
 void SoundEntity::on_remove() {
     GAMESTATE()->audio_struct->stop_sound(audio_id);
 }

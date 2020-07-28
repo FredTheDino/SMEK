@@ -35,6 +35,7 @@ struct SoundEntity: public BaseEntity {
 
     void update() override;
     void draw() override;
+    void on_create() override;
     void on_remove() override;
 };
 
