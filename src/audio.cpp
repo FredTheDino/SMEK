@@ -2,7 +2,6 @@
 
 #include "util/log.h"
 #include "math/smek_math.h"
-#include "entity/entity.h"
 #include "event.h"
 #include "game.h"
 
@@ -83,11 +82,6 @@ AudioID AudioStruct::play_sound(AssetID asset_id, SoundSourceSettings source_set
             .repeat = source_settings.repeat,
             .gen = source->gen,
         };
-        SoundEntity sound_entity = {};
-        sound_entity.asset_id = asset_id;
-        sound_entity.sound_source_settings = source_settings;
-        sound_entity.audio_id = audio_id;
-        EntityID entity_id = GAMESTATE()->entity_system.add(sound_entity);
         return audio_id;
     }
     ERR("No free sources, skipping sound");
@@ -146,10 +140,6 @@ SoundSource *AudioStruct::fetch_source(AudioID id) {
 }
 
 } // namespace Audio
-
-void EventSystem::EventCreateSoundEntity::callback() {
-    GAMESTATE()->audio_struct->play_sound(asset_id, { .gain = source_settings.gain, .repeat = source_settings.repeat });
-}
 
 void audio_callback(Audio::AudioStruct *audio_struct, f32 *stream, int len) {
     Audio::audio_callback(audio_struct, stream, len);
