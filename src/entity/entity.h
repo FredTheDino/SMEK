@@ -21,6 +21,7 @@ struct BaseEntity {
     virtual ~BaseEntity() {};
     virtual void update() {};
     virtual void draw() {};
+    virtual void on_create() {};
     virtual void on_remove() {};
 
     EntityType type;
@@ -97,6 +98,7 @@ EntityID EntitySystem::add(E entity) {
     *e = entity;
     e->type = type_of(e);
     entities[id] = (BaseEntity *) e;
+    e->on_create();
     return id;
 }
 
