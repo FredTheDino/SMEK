@@ -6,6 +6,7 @@
 #pragma once
 #include <typeinfo>
 
+#include "entity.h"
 #include "../util/util.h"
 
 enum class EntityType {
@@ -41,3 +42,12 @@ $type_ofs
 /*
  * End of `tools/entity_types_type_of.h`
  */
+
+struct EventCreateEntity {
+    EntityType type;
+    union {
+$event_entity_bytes_union
+    };
+
+    void callback();
+};

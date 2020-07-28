@@ -6,6 +6,7 @@
 #pragma once
 #include <typeinfo>
 
+#include "entity.h"
 #include "../util/util.h"
 
 enum class EntityType {
@@ -59,3 +60,16 @@ EntityType type_of(SoundEntity *);
 /*
  * End of `tools/entity_types_type_of.h`
  */
+
+struct EventCreateEntity {
+    EntityType type;
+    union {
+        u8 BASEENTITY[sizeof(BaseEntity)];
+        u8 ENTITY[sizeof(Entity)];
+        u8 LIGHT[sizeof(Light)];
+        u8 PLAYER[sizeof(Player)];
+        u8 SOUNDENTITY[sizeof(SoundEntity)];
+    };
+
+    void callback();
+};

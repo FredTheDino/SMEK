@@ -5,12 +5,12 @@
 #include "../math/smek_quat.h"
 #include "../audio.h"
 
-#include "entity_types.h"
-
 ///# Entity system
 //
 
 using EntityID = u64;
+
+enum class EntityType;
 
 // TODO(ed): Rename this to
 // "EntityInterface", BaseEntity makes you
