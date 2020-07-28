@@ -5,6 +5,7 @@ from lark import lark, Visitor
 from itertools import chain
 import re
 from string import Template
+import copy
 
 
 class Struct():
@@ -13,14 +14,16 @@ class Struct():
     Can be used in a tree since it knows about its base.
 
     Members:
-      - name   : str
-      - parent : Struct
-      - source : str
+      - name        : str
+      - parent      : Struct
+      - source      : str
+      - fields      : [{"TYPE": <type>, ...}, ...]
     """
     def __init__(self, name, parent=None):
         self.name = name
         self.parent = parent
         self.source = ""
+        self.fields = []
 
     def parents_contain(self, name):
         """Return whether this struct/class inherits from `name`."""
@@ -158,51 +161,58 @@ def find_structs(paths):
     return structs
 
 class MetaDataExtractor(Visitor):
-
     def __init__(self):
         self.fields = []
 
     def field(self, field):
-        children = { child.type: child for child in field.children }
-        if "STATIC" not in children:
-            field = tuple(map(str, [children["TYPE"], children["NAME"]]))
-            self.fields.append(field)
+        if "static" not in field.children:
+            d = {}
+            for token in field.children:
+                d[token.type] = token.value.strip()
+            self.fields.append(d)
 
 def to_enum(name):
     return name.upper()
 
 if __name__ == "__main__":
     lexer = lark.Lark.open("tools/struct.lark", start="structs")
-    types = []
-    fields_for_entity = {}
     base_entity = "BaseEntity"
     #TODO(gu) parse entire files instead of one at a time
     all_structs = find_structs(glob.glob("src/**/*.*", recursive=True))
-    for name, struct in sorted(all_structs.items()):
-        if struct.parents_contain(base_entity) or name == base_entity:
-            # Parse out the types and structs
-            tree = lexer.parse(struct.source)
-            struct_types = list(tree.find_data("struct_type"))
-            if len(struct_types) == 0:
-                print("No typename found, 1 required")
-                continue
-            if len(struct_types) > 1:
-                #TODO(gu) parse structs in structs correctly
-                print(f"{len(struct_types)} typenames found (structs in structs?), 1 required\nstructs are {struct_types}")
-                continue
-            types.append(struct_types[0].children[0])
+    entity_structs = { name: struct for name, struct in sorted(all_structs.items()) if struct.parents_contain(base_entity) or name == base_entity }
+    for name, struct in entity_structs.items():
+        # Parse out the structs
+        tree = lexer.parse(struct.source)
+        struct_types = list(tree.find_data("struct_type"))
+        if len(struct_types) == 0:
+            print("No typename found, 1 required")
+            continue
+        if len(struct_types) > 1:
+            #TODO(gu) parse structs in structs correctly
+            print(f"{len(struct_types)} typenames found (structs in structs?), 1 required\nstructs are {struct_types}")
+            continue
 
-            # Parse out the field meta information
-            meta_data = MetaDataExtractor()
-            meta_data.visit(tree)
-            fields_for_entity[name] = meta_data.fields;
+        # Parse out the field meta information
+        meta_data = MetaDataExtractor()
+        meta_data.visit(tree)
+        struct.fields = meta_data.fields
 
-    # Combines all fields based on inheritance.
+    assert base_entity in entity_structs.keys(), "Couldn't find BaseEntity"
+
+    # Add inherited fields to entities
+    frozen_entity_structs = copy.deepcopy(entity_structs)  # If we don't deepcopy and freeze some types might be added twice
+    for name, struct in frozen_entity_structs.items():
+        parent = struct.parent
+        struct = entity_structs[name]
+        while parent:
+            struct.fields = parent.fields + struct.fields
+            parent = parent.parent
+
     def gen_fields_data(name, fields):
         def gen():
             out = []
-            for typename, fieldname in fields:
-                out.append(f"{{ typeid({typename}), \"{fieldname}\", sizeof({typename}), (int)offsetof({name}, {fieldname}) }}")
+            for field in fields:
+                out.append(f"{{ typeid({field['TYPE']}), \"{field['NAME']}\", sizeof({field['TYPE']}), (int)offsetof({name}, {field['NAME']}) }}")
             return ",\n    ".join(out)
         return f"Field gen_{name}[] = {{\n    {gen()}\n}};"
 
@@ -214,22 +224,21 @@ if __name__ == "__main__":
             return "\n        ".join(out)
         return gen()
 
-    fields_data = []
-    for name in fields_for_entity:
-        all_entities = [name] + all_structs[name].get_parents(base_entity)
-        all_fields = list(chain(*[fields_for_entity[x] for x in all_entities]))
-        fields_data.append(gen_fields_data(name, all_fields))
-
-    fields_switch = gen_fields_switch(fields_for_entity.keys())
-
-    assert base_entity in types, "Couldn't find BaseEntity"
+    fields_data = [gen_fields_data(name, struct.fields) for name, struct in entity_structs.items()]
+    fields_switch = gen_fields_switch(entity_structs.keys())
 
     with open("tools/entity_types_type_of.h", "r") as template_file:
         template_type_of_h = Template(template_file.read())
 
+    type_fields = { name: "\n".join([f"    {field['TYPE']} {field['NAME']}"
+                                     + (f" = {field['INITIALIZER_VALUE']}" if 'INITIALIZER_VALUE' in field else "")
+                                     + ";"
+                                     for field in struct.fields])
+                    for name, struct in entity_structs.items() }
+
     template_kwords_h = {
-            "types": "\n".join([f"    {to_enum(t)}," for t in types]),
-            "type_ofs": "\n".join([template_type_of_h.substitute(entity_type=t) for t in types]),
+            "types": "\n".join([f"    {to_enum(t)}," for t in entity_structs.keys()]),
+            "type_ofs": "\n".join([template_type_of_h.substitute(entity_type=t) for t in entity_structs.keys()]),
     }
 
     with open("tools/entity_types.h", "r") as template_file:
@@ -241,8 +250,8 @@ if __name__ == "__main__":
         template_type_of_cpp = Template(template_file.read())
 
     template_kwords_cpp = {
-            "type_ofs": "\n".join([template_type_of_cpp.substitute(entity_type=t, entity_type_enum=to_enum(t)) for t in types]),
-            "type_formats": "\n".join([f"{' '*8}case EntityType::{to_enum(t)}: return snprintf(buffer, size, \"{t}\");" for t in types]),
+            "type_ofs": "\n".join([template_type_of_cpp.substitute(entity_type=t, entity_type_enum=to_enum(t)) for t in entity_structs.keys()]),
+            "type_formats": "\n".join([f"{' '*8}case EntityType::{to_enum(t)}: return snprintf(buffer, size, \"{t}\");" for t in entity_structs.keys()]),
             "fields_data": "\n".join(fields_data),
             "fields_switch": fields_switch,
     }

@@ -24,33 +24,33 @@ Field gen_BaseEntity[] = {
     { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(BaseEntity, type) }
 };
 Field gen_Entity[] = {
+    { typeid(bool), "remove", sizeof(bool), (int)offsetof(Entity, remove) },
+    { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(Entity, type) },
     { typeid(Vec3), "position", sizeof(Vec3), (int)offsetof(Entity, position) },
     { typeid(Vec3), "scale", sizeof(Vec3), (int)offsetof(Entity, scale) },
-    { typeid(Quat), "rotation", sizeof(Quat), (int)offsetof(Entity, rotation) },
-    { typeid(bool), "remove", sizeof(bool), (int)offsetof(Entity, remove) },
-    { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(Entity, type) }
+    { typeid(Quat), "rotation", sizeof(Quat), (int)offsetof(Entity, rotation) }
 };
 Field gen_Light[] = {
+    { typeid(bool), "remove", sizeof(bool), (int)offsetof(Light, remove) },
+    { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(Light, type) },
     { typeid(i32), "light_id", sizeof(i32), (int)offsetof(Light, light_id) },
     { typeid(Vec3), "position", sizeof(Vec3), (int)offsetof(Light, position) },
-    { typeid(Vec3), "color", sizeof(Vec3), (int)offsetof(Light, color) },
-    { typeid(bool), "remove", sizeof(bool), (int)offsetof(Light, remove) },
-    { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(Light, type) }
+    { typeid(Vec3), "color", sizeof(Vec3), (int)offsetof(Light, color) }
 };
 Field gen_Player[] = {
-    { typeid(Vec3), "velocity", sizeof(Vec3), (int)offsetof(Player, velocity) },
+    { typeid(bool), "remove", sizeof(bool), (int)offsetof(Player, remove) },
+    { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(Player, type) },
     { typeid(Vec3), "position", sizeof(Vec3), (int)offsetof(Player, position) },
     { typeid(Vec3), "scale", sizeof(Vec3), (int)offsetof(Player, scale) },
     { typeid(Quat), "rotation", sizeof(Quat), (int)offsetof(Player, rotation) },
-    { typeid(bool), "remove", sizeof(bool), (int)offsetof(Player, remove) },
-    { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(Player, type) }
+    { typeid(Vec3), "velocity", sizeof(Vec3), (int)offsetof(Player, velocity) }
 };
 Field gen_SoundEntity[] = {
+    { typeid(bool), "remove", sizeof(bool), (int)offsetof(SoundEntity, remove) },
+    { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(SoundEntity, type) },
     { typeid(AssetID), "asset_id", sizeof(AssetID), (int)offsetof(SoundEntity, asset_id) },
     { typeid(Audio::SoundSourceSettings), "sound_source_settings", sizeof(Audio::SoundSourceSettings), (int)offsetof(SoundEntity, sound_source_settings) },
-    { typeid(AudioID), "audio_id", sizeof(AudioID), (int)offsetof(SoundEntity, audio_id) },
-    { typeid(bool), "remove", sizeof(bool), (int)offsetof(SoundEntity, remove) },
-    { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(SoundEntity, type) }
+    { typeid(AudioID), "audio_id", sizeof(AudioID), (int)offsetof(SoundEntity, audio_id) }
 };
 
 FieldList get_fields_for(EntityType type) {
