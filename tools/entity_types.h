@@ -55,3 +55,7 @@ $event_entity_bytes_union
 
     void callback();
 };
+
+namespace EventSystem { struct Event; }
+
+$entity_events_prototypes

@@ -11,8 +11,6 @@
 
 #include "imgui/imgui.h"
 
-#include <cstring>
-
 GameState *_global_gs;
 #ifndef TESTS
 GameState *GAMESTATE() { return _global_gs; }
@@ -61,14 +59,7 @@ void init_game(GameState *gamestate, int width, int height) {
     Input::bind(Ac::Rebind, 1, SDLK_r);
 
     Player player;
-    EventSystem::Event e = {
-        .type = EventSystem::EventType::CREATE_ENTITY,
-        .CREATE_ENTITY = {
-            .type = EntityType::PLAYER,
-        },
-    };
-    std::memcpy(e.CREATE_ENTITY.PLAYER, &player, sizeof(Player));
-    GAMESTATE()->event_queue.push(e);
+    GAMESTATE()->event_queue.push(entity_event(player));
 
     Light l = Light();
     GAMESTATE()->lights[0] = GAMESTATE()->entity_system.add(l);

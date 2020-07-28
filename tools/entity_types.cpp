@@ -5,8 +5,10 @@
 #include "entity_types.h"
 #include "entity.h"
 
+
 #include <cstring>
 #include <stddef.h>
+#include "../event.h"
 #include "../game.h"
 
 i32 format(char *buffer, u32 size, FormatHint args, EntityType type) {
@@ -53,4 +55,14 @@ $callbacks
 
 /*
  * End of `tools/entity_types_event_callback.cpp`
+ */
+
+/*
+ * Included from `tools/entity_types_event.cpp`
+ */
+
+$entity_events
+
+/*
+ * End of `tools/entity_types_event.cpp`
  */

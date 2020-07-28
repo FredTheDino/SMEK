@@ -240,6 +240,7 @@ if __name__ == "__main__":
             "types": "\n".join([f"    {to_enum(t)}," for t in entity_structs.keys()]),
             "type_ofs": "\n".join([template_type_of_h.substitute(entity_type=t) for t in entity_structs.keys()]),
             "event_entity_bytes_union": "\n".join([f"{' '*8}u8 {to_enum(t)}[sizeof({t})];" for t in entity_structs.keys()]),
+            "entity_events_prototypes": "\n".join([f"EventSystem::Event entity_event({name});" for name in entity_structs.keys()]),
     }
 
     with open("tools/entity_types.h", "r") as template_file:
@@ -253,11 +254,18 @@ if __name__ == "__main__":
     with open("tools/entity_types_event_callback.cpp", "r") as template_file:
         template_event_callback = Template(template_file.read())
 
+    with open("tools/entity_types_event.cpp", "r") as template_file:
+        template_entity_events = Template(template_file.read())
+
     callbacks = [template_event_callback.substitute(entity_type_enum=to_enum(name),
                                                     entity_type=name,
                                                     fields="\n".join([f"{' '*12}entity.{field['NAME']} = {to_enum(name)}.{field['NAME']};"
                                                                       for field in struct.fields]))
                  for name, struct in entity_structs.items()]
+
+    entity_events = [template_entity_events.substitute(entity_type=name,
+                                                       entity_type_enum=to_enum(name))
+                     for name in entity_structs.keys()]
 
     template_kwords_cpp = {
             "type_ofs": "\n".join([template_type_of_cpp.substitute(entity_type=t, entity_type_enum=to_enum(t)) for t in entity_structs.keys()]),
@@ -265,6 +273,7 @@ if __name__ == "__main__":
             "fields_data": "\n".join(fields_data),
             "fields_switch": fields_switch,
             "callbacks": "".join(callbacks),
+            "entity_events": "\n".join(entity_events),
     }
 
     with open("tools/entity_types.cpp", "r") as template_file:

@@ -1,10 +1,10 @@
 #include "entity.h"
+#include "entity_types.h"
 #include "../asset/asset.h"
 #include "../renderer/renderer.h"
 #include "../game.h"
 #include "../test.h"
 #include "imgui/imgui.h"
-#include <cstring>
 
 EntitySystem *entity_system() {
     return &GAMESTATE()->entity_system;
@@ -225,14 +225,7 @@ void EntitySystem::draw() {
             sound_entity.asset_id = asset_id;
             sound_entity.sound_source_settings.gain = gain;
             sound_entity.sound_source_settings.repeat = repeat;
-            EventSystem::Event e = {
-                .type = EventSystem::EventType::CREATE_ENTITY,
-                .CREATE_ENTITY = {
-                    .type = EntityType::SOUNDENTITY,
-                },
-            };
-            std::memcpy(e.CREATE_ENTITY.SOUNDENTITY, &sound_entity, sizeof(SoundEntity));
-            GAMESTATE()->event_queue.push(e);
+            GAMESTATE()->event_queue.push(entity_event(sound_entity));
         }
         ImGui::SameLine();
         if (ImGui::Button("Close")) GAMESTATE()->show_create_sound_window = false;

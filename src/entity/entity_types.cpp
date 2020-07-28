@@ -5,8 +5,10 @@
 #include "entity_types.h"
 #include "entity.h"
 
+
 #include <cstring>
 #include <stddef.h>
+#include "../event.h"
 #include "../game.h"
 
 i32 format(char *buffer, u32 size, FormatHint args, EntityType type) {
@@ -142,4 +144,58 @@ void EventCreateEntity::callback() {
 
 /*
  * End of `tools/entity_types_event_callback.cpp`
+ */
+
+/*
+ * Included from `tools/entity_types_event.cpp`
+ */
+
+EventSystem::Event entity_event(BaseEntity entity) {
+    EventSystem::Event event = {
+        .type = EventSystem::EventType::CREATE_ENTITY,
+        .CREATE_ENTITY = { .type = EntityType::BASEENTITY }
+    };
+    std::memcpy(event.CREATE_ENTITY.BASEENTITY, &entity, sizeof(BaseEntity));
+    return event;
+}
+
+EventSystem::Event entity_event(Entity entity) {
+    EventSystem::Event event = {
+        .type = EventSystem::EventType::CREATE_ENTITY,
+        .CREATE_ENTITY = { .type = EntityType::ENTITY }
+    };
+    std::memcpy(event.CREATE_ENTITY.ENTITY, &entity, sizeof(Entity));
+    return event;
+}
+
+EventSystem::Event entity_event(Light entity) {
+    EventSystem::Event event = {
+        .type = EventSystem::EventType::CREATE_ENTITY,
+        .CREATE_ENTITY = { .type = EntityType::LIGHT }
+    };
+    std::memcpy(event.CREATE_ENTITY.LIGHT, &entity, sizeof(Light));
+    return event;
+}
+
+EventSystem::Event entity_event(Player entity) {
+    EventSystem::Event event = {
+        .type = EventSystem::EventType::CREATE_ENTITY,
+        .CREATE_ENTITY = { .type = EntityType::PLAYER }
+    };
+    std::memcpy(event.CREATE_ENTITY.PLAYER, &entity, sizeof(Player));
+    return event;
+}
+
+EventSystem::Event entity_event(SoundEntity entity) {
+    EventSystem::Event event = {
+        .type = EventSystem::EventType::CREATE_ENTITY,
+        .CREATE_ENTITY = { .type = EntityType::SOUNDENTITY }
+    };
+    std::memcpy(event.CREATE_ENTITY.SOUNDENTITY, &entity, sizeof(SoundEntity));
+    return event;
+}
+
+
+/*
+ * End of `tools/entity_types_event.cpp`
  */
