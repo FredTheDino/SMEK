@@ -220,7 +220,6 @@ void EntitySystem::draw() {
         if (ImGui::Button("Play") && (item_current_idx != AssetID::NONE())) {
             AssetID asset_id = AssetID(GAMESTATE()->asset_system.assets[item_current_idx].header->name);
             Asset::fetch_sound(asset_id);
-            //EventSystem::add_entity((SoundEntity) {.asset = asset_id, });
             SoundEntity sound_entity = {};
             sound_entity.asset_id = asset_id;
             sound_entity.sound_source_settings.gain = gain;
