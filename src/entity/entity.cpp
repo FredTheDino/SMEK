@@ -305,3 +305,49 @@ TEST_CASE("entity_id_valid", {
     ASSERT(!entity_system()->valid(b_id), "Id should not be valid");
     return true;
 });
+
+TEST_CASE("entity fetch", {
+    struct TestEnt: public BaseEntity {
+        int value = 1;
+    };
+    TestEnt a;
+    TestEnt *a_ptr;
+
+    ASSERT(a.value == 1, "Got {}, expected 1", a.value);
+    auto id = entity_system()->add(a);
+    a_ptr = entity_system()->fetch<TestEnt>(id);
+    ASSERT(a_ptr->value == 1, "Got {}, expected 1", a_ptr->value);
+    a_ptr->value = 2;
+    ASSERT(a_ptr->value == 2, "Got {}, expected 2", a_ptr->value);
+    return true;
+});
+
+TEST_CASE("entity on_create", {
+    struct TestEnt: public BaseEntity {
+        int value = 1;
+        void on_create() override {
+            value = 2;
+        }
+    };
+    TestEnt a;
+    ASSERT(a.value == 1, "Got {}, expected 1", a.value);
+    auto id = entity_system()->add(a);
+    TestEnt *a_ptr = entity_system()->fetch<TestEnt>(id);
+    ASSERT(a_ptr->value == 2, "Got {}, expected 2", a_ptr->value);
+    return true;
+});
+
+TEST_CASE("entity on_remove", {
+    struct TestEnt: public BaseEntity {
+        int value = 1;
+        void on_remove() override { value = 2; }
+    };
+    TestEnt a;
+    ASSERT(a.value == 1, "Got {}, expected 1", a.value);
+    auto id = entity_system()->add(a);
+    TestEnt *a_ptr = entity_system()->fetch<TestEnt>(id);
+    ASSERT(a_ptr->value == 1, "Got {}, expected 1", a_ptr->value);
+    entity_system()->remove(id);
+    ASSERT(a_ptr->value == 2, "Got {}, expected 2", a_ptr->value);
+    return true;
+});
