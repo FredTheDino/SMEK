@@ -140,7 +140,7 @@ void SoundEntity::draw() {
 }
 
 void SoundEntity::on_create() {
-    audio_id = GAMESTATE()->audio_struct->play_sound(asset_id, { .gain = sound_source_settings.gain, .repeat = sound_source_settings.repeat });
+    audio_id = GAMESTATE()->audio_struct->play_sound(*this);
 }
 
 void SoundEntity::on_remove() {

@@ -4,6 +4,7 @@
 #include "math/smek_math.h"
 #include "event.h"
 #include "game.h"
+#include "entity/entity.h"
 
 namespace Audio {
 
@@ -86,6 +87,10 @@ AudioID AudioStruct::play_sound(AssetID asset_id, SoundSourceSettings source_set
     }
     ERR("No free sources, skipping sound");
     return { .gen = 0, .slot = NUM_SOURCES };
+}
+
+AudioID AudioStruct::play_sound(SoundEntity sound_entity) {
+    return play_sound(sound_entity.asset_id, sound_entity.sound_source_settings);
 }
 
 void AudioStruct::stop_sound(AudioID id) {
