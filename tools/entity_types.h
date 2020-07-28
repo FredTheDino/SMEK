@@ -9,6 +9,10 @@
 #include "entity.h"
 #include "../util/util.h"
 
+#include "../asset/asset.h"
+#include "../audio.h"
+#include "../math/types.h"
+
 enum class EntityType {
 $types
 

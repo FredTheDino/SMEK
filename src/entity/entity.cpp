@@ -4,6 +4,7 @@
 #include "../game.h"
 #include "../test.h"
 #include "imgui/imgui.h"
+#include <cstring>
 
 EntitySystem *entity_system() {
     return &GAMESTATE()->entity_system;
@@ -220,13 +221,17 @@ void EntitySystem::draw() {
             AssetID asset_id = AssetID(GAMESTATE()->asset_system.assets[item_current_idx].header->name);
             Asset::fetch_sound(asset_id);
             //EventSystem::add_entity((SoundEntity) {.asset = asset_id, });
+            SoundEntity sound_entity = {};
+            sound_entity.asset_id = asset_id;
+            sound_entity.sound_source_settings.gain = gain;
+            sound_entity.sound_source_settings.repeat = repeat;
             EventSystem::Event e = {
-                .type = EventSystem::EventType::CREATE_SOUND_ENTITY,
-                .CREATE_SOUND_ENTITY = {
-                    .asset_id = asset_id,
-                    .source_settings = { .gain = gain, .repeat = repeat },
+                .type = EventSystem::EventType::CREATE_ENTITY,
+                .CREATE_ENTITY = {
+                    .type = EntityType::SOUNDENTITY,
                 },
             };
+            std::memcpy(e.CREATE_ENTITY.SOUNDENTITY, &sound_entity, sizeof(SoundEntity));
             GAMESTATE()->event_queue.push(e);
         }
         ImGui::SameLine();

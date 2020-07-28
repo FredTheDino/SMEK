@@ -13,24 +13,12 @@ void handle_events() {
         e = state->event_queue.front();
         state->event_queue.pop();
         switch (e.type) {
-            HANDLE(CREATE_SOUND_ENTITY);
-            HANDLE(CREATE_PLAYER);
-            HANDLE(CREATE_LIGHT);
+            HANDLE(CREATE_ENTITY);
             default:
                 ERR("Unkown event type {}", e.type);
         }
     }
 #undef HANDLE
-}
-
-void EventCreatePlayer::callback() {
-    Player player;
-    GAMESTATE()->entity_system.add(player);
-}
-
-void EventCreateLight::callback() {
-    Light l;
-    GAMESTATE()->entity_system.add(l);
 }
 
 }  // namespace EventSystem
