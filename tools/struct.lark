@@ -10,18 +10,14 @@ DERIVED_CLASS: ACCESS_MODIFIER? VIRTUAL? NAME
 
 _member: field
       | method
-      | static
       | struct
       | ";"
 
-static: STATIC CONST? ignored_field
+field: STATIC? CONST? TYPE POINTER* NAME ("[" INT? "]")? ("=" INITIALIZER_VALUE)? ";"
 
-ignored_field: TYPE pointer? NAME ("[" INT? "]")? ("=" INITIALIZER_VALUE)? ";"
-field: TYPE pointer? NAME ("[" INT? "]")? ("=" INITIALIZER_VALUE)? ";"
-
-method: VIRTUAL? (TYPE | destructor)? NAME "(" PARAMETERS? ")" OVERRIDE? "{" METHOD_BODY? "}" ";"?
-      | VIRTUAL? (TYPE | destructor)? NAME "(" PARAMETERS? ")" OVERRIDE? ";"
-      | VIRTUAL  (TYPE | destructor)? NAME "(" PARAMETERS? ")" "=" "0" ";"
+method: VIRTUAL? (TYPE | DESTRUCTOR)? NAME "(" PARAMETERS? ")" OVERRIDE? "{" METHOD_BODY? "}" ";"?
+      | VIRTUAL? (TYPE | DESTRUCTOR)? NAME "(" PARAMETERS? ")" OVERRIDE? ";"
+      | VIRTUAL  (TYPE | DESTRUCTOR)? NAME "(" PARAMETERS? ")" "=" "0" ";"
 
 PARAMETERS: PARAMETER ("," PARAMETER)*
 PARAMETER: TYPE NAME?
@@ -29,13 +25,13 @@ PARAMETER: TYPE NAME?
 METHOD_BODY: /[^}]*}/
 
 NAME: ALPHANUMWORD
-pointer: "*"                             -> pointer
-destructor: "~"                          -> destructor
+POINTER: "*"
+DESTRUCTOR: "~"
+STATIC: "static"
+CONST: "const"
 TYPE: (ALPHANUMWORD "::")* ALPHANUMWORD
 INITIALIZER_VALUE: /[^;]+/
-CONST: "const"
 VIRTUAL: "virtual"
-STATIC:"static" 
 OVERRIDE: "override"
 ACCESS_MODIFIER: "public"
                | "protected"

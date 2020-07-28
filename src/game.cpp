@@ -66,7 +66,6 @@ void init_game(GameState *gamestate, int width, int height) {
     Light l = Light();
     GAMESTATE()->lights[0] = GAMESTATE()->entity_system.add(l);
     GAMESTATE()->lights[1] = GAMESTATE()->entity_system.add(l);
-
 }
 
 void reload_game(GameState *game) {

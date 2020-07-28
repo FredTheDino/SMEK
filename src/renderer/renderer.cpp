@@ -479,7 +479,6 @@ PostProcessShader post_process_shader() {
     return GAMESTATE()->renderer.post_process_shader;
 }
 
-
 MasterShader master_shader() {
     if (Asset::needs_reload("MASTER_SHADER"))
         GAMESTATE()->renderer.master_shader = MasterShader::init();
