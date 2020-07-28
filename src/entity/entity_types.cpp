@@ -5,7 +5,9 @@
 #include "entity_types.h"
 #include "entity.h"
 
+#include <cstring>
 #include <stddef.h>
+#include "../game.h"
 
 i32 format(char *buffer, u32 size, FormatHint args, EntityType type) {
     switch (type) {
@@ -93,4 +95,51 @@ EntityType type_of(SoundEntity *e) {
 
 /*
  * End of `tools/entity_types_type_of.cpp`
+ */
+
+/*
+ * Included from `tools/entity_types_event_callback.cpp`
+ */
+
+void EventCreateEntity::callback() {
+    switch (type) {
+        case EntityType::BASEENTITY: {
+            BaseEntity entity;
+            std::memcpy(&entity, BASEENTITY, sizeof(BaseEntity));
+            GAMESTATE()->entity_system.add(entity);
+            break;
+        }
+        case EntityType::ENTITY: {
+            Entity entity;
+            std::memcpy(&entity, ENTITY, sizeof(Entity));
+            GAMESTATE()->entity_system.add(entity);
+            break;
+        }
+        case EntityType::LIGHT: {
+            Light entity;
+            std::memcpy(&entity, LIGHT, sizeof(Light));
+            GAMESTATE()->entity_system.add(entity);
+            break;
+        }
+        case EntityType::PLAYER: {
+            Player entity;
+            std::memcpy(&entity, PLAYER, sizeof(Player));
+            GAMESTATE()->entity_system.add(entity);
+            break;
+        }
+        case EntityType::SOUNDENTITY: {
+            SoundEntity entity;
+            std::memcpy(&entity, SOUNDENTITY, sizeof(SoundEntity));
+            GAMESTATE()->entity_system.add(entity);
+            break;
+        }
+
+        default:
+            UNREACHABLE("Unknown entity type");
+            break;
+    }
+}
+
+/*
+ * End of `tools/entity_types_event_callback.cpp`
  */

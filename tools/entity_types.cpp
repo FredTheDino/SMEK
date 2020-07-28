@@ -5,7 +5,9 @@
 #include "entity_types.h"
 #include "entity.h"
 
+#include <cstring>
 #include <stddef.h>
+#include "../game.h"
 
 i32 format(char *buffer, u32 size, FormatHint args, EntityType type) {
     switch (type) {
@@ -34,4 +36,21 @@ $type_ofs
 
 /*
  * End of `tools/entity_types_type_of.cpp`
+ */
+
+/*
+ * Included from `tools/entity_types_event_callback.cpp`
+ */
+
+void EventCreateEntity::callback() {
+    switch (type) {
+$callbacks
+        default:
+            UNREACHABLE("Unknown entity type");
+            break;
+    }
+}
+
+/*
+ * End of `tools/entity_types_event_callback.cpp`
  */

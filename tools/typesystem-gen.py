@@ -250,11 +250,21 @@ if __name__ == "__main__":
     with open("tools/entity_types_type_of.cpp", "r") as template_file:
         template_type_of_cpp = Template(template_file.read())
 
+    with open("tools/entity_types_event_callback.cpp", "r") as template_file:
+        template_event_callback = Template(template_file.read())
+
+    callbacks = [template_event_callback.substitute(entity_type_enum=to_enum(name),
+                                                    entity_type=name,
+                                                    fields="\n".join([f"{' '*12}entity.{field['NAME']} = {to_enum(name)}.{field['NAME']};"
+                                                                      for field in struct.fields]))
+                 for name, struct in entity_structs.items()]
+
     template_kwords_cpp = {
             "type_ofs": "\n".join([template_type_of_cpp.substitute(entity_type=t, entity_type_enum=to_enum(t)) for t in entity_structs.keys()]),
             "type_formats": "\n".join([f"{' '*8}case EntityType::{to_enum(t)}: return snprintf(buffer, size, \"{t}\");" for t in entity_structs.keys()]),
             "fields_data": "\n".join(fields_data),
             "fields_switch": fields_switch,
+            "callbacks": "".join(callbacks),
     }
 
     with open("tools/entity_types.cpp", "r") as template_file:
