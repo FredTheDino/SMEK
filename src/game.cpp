@@ -199,6 +199,7 @@ void draw() {
     GFX::current_camera()->upload(GFX::debug_shader());
     GFX::draw_primitivs();
 
+#ifndef IMGUI_DISABLE
     ImGui::Begin("Game View");
     {
         ImGui::Image((void *) target.color, ImVec2(target.width, target.height), ImVec2(0, 1), ImVec2(1, 0));
@@ -210,6 +211,7 @@ void draw() {
         ImGui::Image((void *) target.depth_output, ImVec2(target.width, target.height), ImVec2(0, 1), ImVec2(1, 0));
     }
     ImGui::End();
+#endif
 
     GFX::resolve_to_screen(target);
 }
