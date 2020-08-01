@@ -14,11 +14,13 @@ void main() {
 
 #else
 
-out vec4 color;
+layout(location=0) out vec3 color;
+layout(location=1) out float depth;
 
 in vec4 pass_color;
 void main() {
-    color = pass_color;
+    depth = pow(1.0 - gl_FragCoord.z, 0.25);
+    color = pass_color.rgb;
 }
 
 #endif

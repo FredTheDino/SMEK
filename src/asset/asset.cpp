@@ -69,7 +69,7 @@ static void load_shader(UsableAsset *asset, FILE *file) {
     char *data = new char[size];
     read<char>(file, data, size);
 
-    GFX::Shader new_shader = GFX::Shader::compile(data);
+    GFX::Shader new_shader = GFX::Shader::compile(asset->header->name, data);
 
     if (new_shader.is_valid()) {
         if (asset->loaded) {

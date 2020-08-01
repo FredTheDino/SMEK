@@ -1,5 +1,6 @@
 #include "../game.h"
 #include "../util/util.h"
+#include "imgui/imgui.h"
 #include "opengl.h"
 #include "renderer.h"
 
@@ -54,6 +55,74 @@ void Camera::upload(const DebugShader &shader) {
     shader.upload_proj(perspective);
     Mat view = (Mat::translate(position) * Mat::from(rotation)).invert();
     shader.upload_view(view);
+}
+
+RenderTexture RenderTexture::create(int width, int height, bool use_depth, bool use_color) {
+    RenderTexture t = {};
+    t.width = height;
+    t.height = height;
+    glGenFramebuffers(1, &t.fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, t.fbo);
+
+    if (use_color) {
+        glGenTextures(1, &t.color);
+        glBindTexture(GL_TEXTURE_2D, t.color);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, t.color, 0);
+    }
+
+    {
+        glGenTextures(1, &t.depth_output);
+        glBindTexture(GL_TEXTURE_2D, t.depth_output);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, 0);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, t.depth_output, 0);
+    }
+
+    if (use_depth) {
+        glGenRenderbuffers(1, &t.depth);
+        glBindRenderbuffer(GL_RENDERBUFFER, t.depth);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, t.depth);
+    }
+
+    // Assumes both depth and color
+    GLenum draw_buffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+    glDrawBuffers(LEN(draw_buffers), draw_buffers);
+
+    static bool run_once = false;
+    if (!run_once) {
+        run_once = true;
+
+    }
+
+    ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Failed to create FBO");
+    return t;
+}
+
+void RenderTexture::destroy() {
+    ASSERT(width, "Trying to destroy uninitalized RenderTexture");
+    width = 0;
+    glDeleteFramebuffers(1, &fbo);
+    if (color)
+        glDeleteTextures(1, &color);
+    if (depth)
+        glDeleteTextures(1, &depth);
+}
+
+void RenderTexture::use() {
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glViewport(0, 0, width, height);
 }
 
 const Vec4 color_list[] = {
@@ -127,7 +196,7 @@ void Mesh::destroy() {
 }
 
 Mesh Mesh::init(Vertex *verticies, u32 num_verticies) {
-    u32 vao, vbo;
+    u32 vao = 0, vbo = 0;
 
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
@@ -402,6 +471,12 @@ void MasterShader::upload_lights(Vec3 *positions, Vec3 *colors) const {
     glUniform3fv(loc_pos_lights, MAX_LIGHTS, positions->_);
 }
 
+PostProcessShader post_process_shader() {
+    if (Asset::needs_reload("POSTPROCESS_SHADER"))
+        GAMESTATE()->renderer.post_process_shader = PostProcessShader::init();
+    return GAMESTATE()->renderer.post_process_shader;
+}
+
 MasterShader master_shader() {
     if (Asset::needs_reload("MASTER_SHADER"))
         GAMESTATE()->renderer.master_shader = MasterShader::init();
@@ -444,29 +519,42 @@ MAT_SHADER_PROP(DebugShader, proj);
 MAT_SHADER_PROP(DebugShader, view);
 MAT_SHADER_PROP(DebugShader, model);
 
+PostProcessShader PostProcessShader::init() {
+    PostProcessShader shader;
+    shader.program_id = Asset::fetch_shader("POSTPROCESS_SHADER")->program_id;
+
+    FETCH_SHADER_PROP(t);
+    FETCH_SHADER_PROP(tex);
+
+    return shader;
+}
+
+F32_SHADER_PROP(PostProcessShader, t);
+U32_SHADER_PROP(PostProcessShader, tex);
+
 void Shader::destroy() {
     glDeleteProgram(program_id);
 }
 
-Shader Shader::compile(const char *source) {
-    auto shader_error_check = [](u32 shader) -> bool {
+Shader Shader::compile(const char *asset, const char *source) {
+    auto shader_error_check = [asset](u32 shader) -> bool {
         i32 success;
         glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
         if (!success) {
             char info_log[512];
             glGetShaderInfoLog(shader, sizeof(info_log), NULL, info_log);
-            ERR("Shader error: {}", info_log);
+            ERR("Shader error: ({}) {}", asset, info_log);
         }
         return success;
     };
 
-    auto program_error_check = [](u32 program) -> bool {
+    auto program_error_check = [asset](u32 program) -> bool {
         i32 success;
         glGetProgramiv(program, GL_LINK_STATUS, &success);
         if (!success) {
             char info_log[512];
             glGetProgramInfoLog(program, sizeof(info_log), NULL, info_log);
-            ERR("Program error: {}", info_log);
+            ERR("Program error: ({}) {}", asset, info_log);
         }
         return success;
     };
@@ -579,6 +667,15 @@ bool init(GameState *gs, i32 width, i32 height) {
         ERR("Failed to load OpenGL function.");
         return false;
     }
+
+    Mesh::Vertex a, b, c, d;
+    a = { { -1., -1., 0. }, {0., 0.}, {} };
+    b = { {  1., -1., 0. }, {1., 0.}, {} };
+    c = { {  1.,  1., 0. }, {1., 1.}, {} };
+    d = { { -1.,  1., 0. }, {0., 1.}, {} };
+
+    Mesh::Vertex verticies[] = { a, b, c, a, c, d };
+    gs->renderer.quad = Mesh::init(verticies, LEN(verticies));
 
     glEnable(GL_DEPTH_TEST);
     glClearColor(0, 0, 0, 0);
@@ -693,6 +790,22 @@ void draw_primitivs() {
         p.clear();
     }
     GAMESTATE()->renderer.first_empty = 0;
+}
+
+void resolve_to_screen(RenderTexture texture) {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, GAMESTATE()->renderer.width, GAMESTATE()->renderer.height);
+
+    glClearColor(0.1, 0.1, 0.1, 1); // We don't need to do this...
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    post_process_shader().use();
+    post_process_shader().upload_t(time());
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture.color);
+    post_process_shader().upload_tex(0);
+
+    GAMESTATE()->renderer.quad.draw();
 }
 
 } // namespace GFX

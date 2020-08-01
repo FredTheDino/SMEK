@@ -28,6 +28,8 @@ f32 delta() { return GAMESTATE()->delta; }
 f32 time() { return GAMESTATE()->time; }
 u32 frame() { return GAMESTATE()->frame; }
 
+GFX::RenderTexture target;
+
 void init_game(GameState *gamestate, int width, int height) {
     _global_gs = gamestate;
     GAMESTATE()->main_thread = SDL_GetThreadID(NULL);
@@ -73,6 +75,7 @@ void reload_game(GameState *game) {
 #ifndef IMGUI_DISABLE
     ImGui::SetCurrentContext((ImGuiContext *) game->imgui_context);
 #endif
+    target = GFX::RenderTexture::create(500, 500, true, true);
 }
 
 void update() {
@@ -99,6 +102,7 @@ void update() {
 
 
 void draw() {
+    target.use();
 
     static f32 t = 0;
 #ifndef IMGUI_DISABLE
@@ -194,6 +198,22 @@ void draw() {
     GFX::debug_shader().use();
     GFX::current_camera()->upload(GFX::debug_shader());
     GFX::draw_primitivs();
+
+#ifndef IMGUI_DISABLE
+    ImGui::Begin("Game View");
+    {
+        ImGui::Image((void *) target.color, ImVec2(target.width, target.height), ImVec2(0, 1), ImVec2(1, 0));
+    }
+    ImGui::End();
+
+    ImGui::Begin("Depth");
+    {
+        ImGui::Image((void *) target.depth_output, ImVec2(target.width, target.height), ImVec2(0, 1), ImVec2(1, 0));
+    }
+    ImGui::End();
+#endif
+
+    GFX::resolve_to_screen(target);
 }
 
 GameState update_game(GameState *game, GSUM mode) { // Game entry point
