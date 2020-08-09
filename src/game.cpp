@@ -209,12 +209,24 @@ void draw() {
     ImGui::End();
     ImGui::Begin("Networking");
     {
+        static int serverport = 8888;
+        ImGui::SetNextItemWidth(150);
+        ImGui::InputInt("port", &serverport);
         if (ImGui::Button("Create server")) {
             GAMESTATE()->network.is_server = true;
-            GAMESTATE()->network.setup_server(8888);
+            GAMESTATE()->network.setup_server(serverport);
         }
+
+        ImGui::Separator();
+
+        static char ip[64] = "";
+        static int connectport = 8888;
+        ImGui::SetNextItemWidth(150);
+        ImGui::InputText("server address", ip, IM_ARRAYSIZE(ip));
+        ImGui::SetNextItemWidth(150);
+        ImGui::InputInt("port", &connectport);
         if (ImGui::Button("Connect to server")) {
-            GAMESTATE()->network.connect_to_server("127.0.0.1", 8888);
+            GAMESTATE()->network.connect_to_server(ip, connectport);
         }
     }
     ImGui::End();
