@@ -207,6 +207,17 @@ void draw() {
         ImGui::Image((void *)target.depth_output, ImVec2(target.width, target.height), ImVec2(0, 1), ImVec2(1, 0));
     }
     ImGui::End();
+    ImGui::Begin("Networking");
+    {
+        if (ImGui::Button("Create server")) {
+            GAMESTATE()->network.is_server = true;
+            GAMESTATE()->network.setup_server(8888);
+        }
+        if (ImGui::Button("Connect to server")) {
+            GAMESTATE()->network.connect_to_server("127.0.0.1", 8888);
+        }
+    }
+    ImGui::End();
 #endif
 
     GFX::resolve_to_screen(target);

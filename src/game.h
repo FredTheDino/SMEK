@@ -6,6 +6,7 @@
 #include "input.h"
 #include "audio.h"
 #include "entity/entity.h"
+#include "network.h"
 
 #include <queue>
 
@@ -24,6 +25,7 @@ struct GameState {
     Audio::AudioStruct *audio_struct;
     EntitySystem entity_system;
     std::queue<EventSystem::Event> event_queue;
+    Network network = {};
 
     SDL_threadID main_thread;
     f32 delta;
