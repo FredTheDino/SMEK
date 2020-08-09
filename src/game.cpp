@@ -211,7 +211,9 @@ void draw() {
     {
         static int serverport = 8888;
         ImGui::SetNextItemWidth(150);
+        ImGui::PushID(&serverport);
         ImGui::InputInt("port", &serverport);
+        ImGui::PopID();
         if (ImGui::Button("Create server")) {
             GAMESTATE()->network.setup_server(serverport);
         }
@@ -223,7 +225,9 @@ void draw() {
         ImGui::SetNextItemWidth(150);
         ImGui::InputText("server address", ip, IM_ARRAYSIZE(ip));
         ImGui::SetNextItemWidth(150);
+        ImGui::PushID(&connectport);
         ImGui::InputInt("port", &connectport);
+        ImGui::PopID();
         if (ImGui::Button("Connect to server")) {
             GAMESTATE()->network.connect_to_server(ip, connectport);
         }

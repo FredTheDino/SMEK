@@ -17,10 +17,10 @@ Package unpack(u8 *from) {
 void log_pkg(Package package) {
     switch (package.type) {
     case PackageType::A:
-        LOG("A:\n a: {}", package.PKG_A.a);
+        LOG("A: a={}", package.PKG_A.a);
         break;
     case PackageType::B:
-        LOG("B:\n a: {}\n b: {}", package.PKG_B.a, package.PKG_B.b);
+        LOG("B: a={} b={}", package.PKG_B.a, package.PKG_B.b);
         break;
     default:
         LOG("Unknown type");
@@ -29,7 +29,6 @@ void log_pkg(Package package) {
 }
 
 void NetworkHandle::send(u8 *data, u32 data_len) {
-    LOG("Sending some data");
     CHECK(write(sockfd, data, data_len) >= 0, "Error writing to socket");
 }
 
@@ -44,7 +43,6 @@ int start_network_handle(void *data) {
     handle->active = true;
     int n;
     u8 buf[sizeof(Package)];
-    LOG("Listening on new network handle");
     while (handle->active) {
         std::memset(buf, 0, sizeof(Package));
         n = read(handle->sockfd, buf, sizeof(Package));
@@ -52,7 +50,6 @@ int start_network_handle(void *data) {
             UNREACHABLE("Error reading from socket, errno: {}", errno);
             continue;
         }
-        LOG("Received package");
         log_pkg(unpack(buf));
         //TODO(gu) unpack package etc
     }
@@ -61,7 +58,6 @@ int start_network_handle(void *data) {
 }
 
 bool Network::connect_to_server(char *hostname, int portno) {
-    LOG("Connecting to server at {}:{}", hostname, portno);
     server_handle.sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_handle.sockfd < 0) {
         ERR("Error opening socket");
@@ -105,7 +101,7 @@ void Network::stop() {
 #endif
 
 bool Network::setup_server(int portno) {
-    LOG("Setting up server at port {}", portno);
+    LOG("Setting up server on port {}", portno);
     listen_sockfd = socket(AF_INET, SOCK_STREAM, 0);
     sockaddr_in serv_addr = {};
     serv_addr.sin_family = AF_INET;
@@ -126,7 +122,6 @@ bool Network::setup_server(int portno) {
 }
 
 bool Network::new_client_handle(int newsockfd) {
-    LOG("Looking for available client handle");
     NetworkHandle *handle;
     for (u32 i = 0; i < MAX_CLIENTS; i++) {
         handle = client_handles + i;
@@ -139,7 +134,6 @@ bool Network::new_client_handle(int newsockfd) {
             ERR("Unable to create thread");
             return false;
         }
-        LOG("Client handle thread started");
         return true;
     }
     WARN("No available client handles, ignoring");
@@ -150,10 +144,9 @@ int network_listen_for_clients(void *data) {
     Network *system = (Network *) data;
     int newsockfd;
     system->server_listening = true;
-    LOG("Listening for new clients");
     while (system->server_listening) {
         newsockfd = accept(system->listen_sockfd, (sockaddr *) &system->cli_addr, &system->cli_len);
-        LOG("New client connection");
+        LOG("New client connected");
         if (newsockfd < 0) {
             ERR("Error accepting client connection");
             continue;
