@@ -9,12 +9,42 @@
 
 #include "math/smek_math.h"
 
+enum class PackageType {
+    A,
+    B,
+
+    NUM_TYPES,
+};
+
+struct PackageA {
+    int a;
+};
+
+struct PackageB {
+    int b;
+    int a;
+};
+
+struct Package {
+    PackageType type;
+    union {
+        PackageA PKG_A;
+        PackageB PKG_B;
+    };
+};
+
+void pack(Package package, u8 *into);
+Package unpack(u8 *from);
+
+void log_pkg(Package package);
+
 struct NetworkHandle {
     bool active = false;
     SDL_Thread *thread;
     int sockfd;
 
     void send(u8 *data, u32 data_len);  // send data to the handle
+    void send(Package package);
 };
 
 int start_network_handle(void *data);  // thread entry point
@@ -22,10 +52,9 @@ int start_network_handle(void *data);  // thread entry point
 struct Network {
     static const u32 MAX_CLIENTS = 2;
 
-    bool listening = false;
+    bool server_listening = false;
     SDL_Thread *listener_thread;
 
-    bool is_server;
     // server variables
     int listen_sockfd;
     sockaddr_in cli_addr;

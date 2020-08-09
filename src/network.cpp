@@ -4,25 +4,56 @@
 #include <errno.h>
 #include <cstring>
 
+void pack(Package package, u8 *into) {
+    std::memcpy(into, &package, sizeof(Package));
+}
+
+Package unpack(u8 *from) {
+    Package package;
+    std::memcpy(&package, from, sizeof(Package));
+    return package;
+}
+
+void log_pkg(Package package) {
+    switch (package.type) {
+    case PackageType::A:
+        LOG("A:\n a: {}", package.PKG_A.a);
+        break;
+    case PackageType::B:
+        LOG("B:\n a: {}\n b: {}", package.PKG_B.a, package.PKG_B.b);
+        break;
+    default:
+        LOG("Unknown type");
+        break;
+    }
+}
+
 void NetworkHandle::send(u8 *data, u32 data_len) {
     LOG("Sending some data");
     CHECK(write(sockfd, data, data_len) >= 0, "Error writing to socket");
+}
+
+void NetworkHandle::send(Package package) {
+    u8 buf[sizeof(Package)];
+    pack(package, buf);
+    send(buf, sizeof(Package));
 }
 
 int start_network_handle(void *data) {
     NetworkHandle *handle = (NetworkHandle *) data;
     handle->active = true;
     int n;
-    u8 buf[1];
+    u8 buf[sizeof(Package)];
     LOG("Listening on new network handle");
     while (handle->active) {
-        std::memset(buf, 0, sizeof(buf));
-        n = read(handle->sockfd, buf, sizeof(buf));
+        std::memset(buf, 0, sizeof(Package));
+        n = read(handle->sockfd, buf, sizeof(Package));
         if (n < 0) {
             UNREACHABLE("Error reading from socket, errno: {}", errno);
             continue;
         }
         LOG("Received package");
+        log_pkg(unpack(buf));
         //TODO(gu) unpack package etc
     }
     close(handle->sockfd);
@@ -50,6 +81,7 @@ bool Network::connect_to_server(char *hostname, int portno) {
         return false;
     }
     LOG("Connected");
+    server_handle.active = true;
     return true;
 }
 
@@ -117,9 +149,9 @@ bool Network::new_client_handle(int newsockfd) {
 int network_listen_for_clients(void *data) {
     Network *system = (Network *) data;
     int newsockfd;
-    system->listening = true;
+    system->server_listening = true;
     LOG("Listening for new clients");
-    while (system->listening) {
+    while (system->server_listening) {
         newsockfd = accept(system->listen_sockfd, (sockaddr *) &system->cli_addr, &system->cli_len);
         LOG("New client connection");
         if (newsockfd < 0) {
