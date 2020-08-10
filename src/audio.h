@@ -4,6 +4,8 @@
 #include "asset/asset.h"
 #include "util/log.h"
 
+struct SoundEntity;
+
 ///# Audio
 //
 
@@ -57,6 +59,7 @@ struct AudioStruct {
     }
 
     AudioID play_sound(AssetID asset_id, SoundSourceSettings source_settings = {});
+    AudioID play_sound(SoundEntity sound_entity);
     void stop_sound(AudioID id);
     void toggle_pause_sound(AudioID id);
 

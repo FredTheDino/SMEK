@@ -5,12 +5,12 @@
 #include "../math/smek_quat.h"
 #include "../audio.h"
 
-#include "entity_types.h"
-
 ///# Entity system
 //
 
 using EntityID = u64;
+
+enum class EntityType;
 
 // TODO(ed): Rename this to
 // "EntityInterface", BaseEntity makes you
@@ -21,6 +21,7 @@ struct BaseEntity {
     virtual ~BaseEntity() {};
     virtual void update() {};
     virtual void draw() {};
+    virtual void on_create() {};
     virtual void on_remove() {};
 
     EntityType type;
@@ -34,6 +35,7 @@ struct SoundEntity: public BaseEntity {
 
     void update() override;
     void draw() override;
+    void on_create() override;
     void on_remove() override;
 };
 
@@ -97,6 +99,7 @@ EntityID EntitySystem::add(E entity) {
     *e = entity;
     e->type = type_of(e);
     entities[id] = (BaseEntity *) e;
+    e->on_create();
     return id;
 }
 

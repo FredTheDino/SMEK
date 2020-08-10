@@ -5,7 +5,11 @@
 #include "entity_types.h"
 #include "entity.h"
 
+
+#include <cstring>
 #include <stddef.h>
+#include "../event.h"
+#include "../game.h"
 
 i32 format(char *buffer, u32 size, FormatHint args, EntityType type) {
     switch (type) {
@@ -24,33 +28,33 @@ Field gen_BaseEntity[] = {
     { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(BaseEntity, type) }
 };
 Field gen_Entity[] = {
+    { typeid(bool), "remove", sizeof(bool), (int)offsetof(Entity, remove) },
+    { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(Entity, type) },
     { typeid(Vec3), "position", sizeof(Vec3), (int)offsetof(Entity, position) },
     { typeid(Vec3), "scale", sizeof(Vec3), (int)offsetof(Entity, scale) },
-    { typeid(Quat), "rotation", sizeof(Quat), (int)offsetof(Entity, rotation) },
-    { typeid(bool), "remove", sizeof(bool), (int)offsetof(Entity, remove) },
-    { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(Entity, type) }
+    { typeid(Quat), "rotation", sizeof(Quat), (int)offsetof(Entity, rotation) }
 };
 Field gen_Light[] = {
+    { typeid(bool), "remove", sizeof(bool), (int)offsetof(Light, remove) },
+    { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(Light, type) },
     { typeid(i32), "light_id", sizeof(i32), (int)offsetof(Light, light_id) },
     { typeid(Vec3), "position", sizeof(Vec3), (int)offsetof(Light, position) },
-    { typeid(Vec3), "color", sizeof(Vec3), (int)offsetof(Light, color) },
-    { typeid(bool), "remove", sizeof(bool), (int)offsetof(Light, remove) },
-    { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(Light, type) }
+    { typeid(Vec3), "color", sizeof(Vec3), (int)offsetof(Light, color) }
 };
 Field gen_Player[] = {
-    { typeid(Vec3), "velocity", sizeof(Vec3), (int)offsetof(Player, velocity) },
+    { typeid(bool), "remove", sizeof(bool), (int)offsetof(Player, remove) },
+    { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(Player, type) },
     { typeid(Vec3), "position", sizeof(Vec3), (int)offsetof(Player, position) },
     { typeid(Vec3), "scale", sizeof(Vec3), (int)offsetof(Player, scale) },
     { typeid(Quat), "rotation", sizeof(Quat), (int)offsetof(Player, rotation) },
-    { typeid(bool), "remove", sizeof(bool), (int)offsetof(Player, remove) },
-    { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(Player, type) }
+    { typeid(Vec3), "velocity", sizeof(Vec3), (int)offsetof(Player, velocity) }
 };
 Field gen_SoundEntity[] = {
+    { typeid(bool), "remove", sizeof(bool), (int)offsetof(SoundEntity, remove) },
+    { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(SoundEntity, type) },
     { typeid(AssetID), "asset_id", sizeof(AssetID), (int)offsetof(SoundEntity, asset_id) },
     { typeid(Audio::SoundSourceSettings), "sound_source_settings", sizeof(Audio::SoundSourceSettings), (int)offsetof(SoundEntity, sound_source_settings) },
-    { typeid(AudioID), "audio_id", sizeof(AudioID), (int)offsetof(SoundEntity, audio_id) },
-    { typeid(bool), "remove", sizeof(bool), (int)offsetof(SoundEntity, remove) },
-    { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(SoundEntity, type) }
+    { typeid(AudioID), "audio_id", sizeof(AudioID), (int)offsetof(SoundEntity, audio_id) }
 };
 
 FieldList get_fields_for(EntityType type) {
@@ -93,4 +97,105 @@ EntityType type_of(SoundEntity *e) {
 
 /*
  * End of `tools/entity_types_type_of.cpp`
+ */
+
+/*
+ * Included from `tools/entity_types_event_callback.cpp`
+ */
+
+void EventCreateEntity::callback() {
+    switch (type) {
+        case EntityType::BASEENTITY: {
+            BaseEntity entity;
+            std::memcpy(((void *) &entity) + sizeof(void *), BASEENTITY, sizeof(BaseEntity) - sizeof(void *));
+            GAMESTATE()->entity_system.add(entity);
+            break;
+        }
+        case EntityType::ENTITY: {
+            Entity entity;
+            std::memcpy(((void *) &entity) + sizeof(void *), ENTITY, sizeof(Entity) - sizeof(void *));
+            GAMESTATE()->entity_system.add(entity);
+            break;
+        }
+        case EntityType::LIGHT: {
+            Light entity;
+            std::memcpy(((void *) &entity) + sizeof(void *), LIGHT, sizeof(Light) - sizeof(void *));
+            GAMESTATE()->entity_system.add(entity);
+            break;
+        }
+        case EntityType::PLAYER: {
+            Player entity;
+            std::memcpy(((void *) &entity) + sizeof(void *), PLAYER, sizeof(Player) - sizeof(void *));
+            GAMESTATE()->entity_system.add(entity);
+            break;
+        }
+        case EntityType::SOUNDENTITY: {
+            SoundEntity entity;
+            std::memcpy(((void *) &entity) + sizeof(void *), SOUNDENTITY, sizeof(SoundEntity) - sizeof(void *));
+            GAMESTATE()->entity_system.add(entity);
+            break;
+        }
+
+        default:
+            UNREACHABLE("Unknown entity type");
+            break;
+    }
+}
+
+/*
+ * End of `tools/entity_types_event_callback.cpp`
+ */
+
+/*
+ * Included from `tools/entity_types_event.cpp`
+ */
+
+EventSystem::Event entity_event(BaseEntity entity) {
+    EventSystem::Event event = {
+        .type = EventSystem::EventType::CREATE_ENTITY,
+        .CREATE_ENTITY = { .type = EntityType::BASEENTITY }
+    };
+    std::memcpy(event.CREATE_ENTITY.BASEENTITY, ((void *) &entity) + sizeof(void *), sizeof(BaseEntity) - sizeof(void *));
+    return event;
+}
+
+EventSystem::Event entity_event(Entity entity) {
+    EventSystem::Event event = {
+        .type = EventSystem::EventType::CREATE_ENTITY,
+        .CREATE_ENTITY = { .type = EntityType::ENTITY }
+    };
+    std::memcpy(event.CREATE_ENTITY.ENTITY, ((void *) &entity) + sizeof(void *), sizeof(Entity) - sizeof(void *));
+    return event;
+}
+
+EventSystem::Event entity_event(Light entity) {
+    EventSystem::Event event = {
+        .type = EventSystem::EventType::CREATE_ENTITY,
+        .CREATE_ENTITY = { .type = EntityType::LIGHT }
+    };
+    std::memcpy(event.CREATE_ENTITY.LIGHT, ((void *) &entity) + sizeof(void *), sizeof(Light) - sizeof(void *));
+    return event;
+}
+
+EventSystem::Event entity_event(Player entity) {
+    EventSystem::Event event = {
+        .type = EventSystem::EventType::CREATE_ENTITY,
+        .CREATE_ENTITY = { .type = EntityType::PLAYER }
+    };
+    std::memcpy(event.CREATE_ENTITY.PLAYER, ((void *) &entity) + sizeof(void *), sizeof(Player) - sizeof(void *));
+    return event;
+}
+
+EventSystem::Event entity_event(SoundEntity entity) {
+    EventSystem::Event event = {
+        .type = EventSystem::EventType::CREATE_ENTITY,
+        .CREATE_ENTITY = { .type = EntityType::SOUNDENTITY }
+    };
+    std::memcpy(event.CREATE_ENTITY.SOUNDENTITY, ((void *) &entity) + sizeof(void *), sizeof(SoundEntity) - sizeof(void *));
+    return event;
+}
+
+
+/*
+ * End of `tools/entity_types_event.cpp`
  */

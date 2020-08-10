@@ -58,10 +58,8 @@ void init_game(GameState *gamestate, int width, int height) {
     Input::bind(Ac::MouseToggle, 0, SDLK_m);
     Input::bind(Ac::Rebind, 1, SDLK_r);
 
-    EventSystem::Event e = {
-        .type = EventSystem::EventType::CREATE_PLAYER,
-    };
-    GAMESTATE()->event_queue.push(e);
+    Player player;
+    GAMESTATE()->event_queue.push(entity_event(player));
 
     Light l = Light();
     GAMESTATE()->lights[0] = GAMESTATE()->entity_system.add(l);

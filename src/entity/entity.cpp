@@ -1,4 +1,5 @@
 #include "entity.h"
+#include "entity_types.h"
 #include "../asset/asset.h"
 #include "../renderer/renderer.h"
 #include "../game.h"
@@ -138,6 +139,10 @@ void SoundEntity::draw() {
 #endif
 }
 
+void SoundEntity::on_create() {
+    audio_id = GAMESTATE()->audio_struct->play_sound(*this);
+}
+
 void SoundEntity::on_remove() {
     GAMESTATE()->audio_struct->stop_sound(audio_id);
 }
@@ -215,15 +220,11 @@ void EntitySystem::draw() {
         if (ImGui::Button("Play") && (item_current_idx != AssetID::NONE())) {
             AssetID asset_id = AssetID(GAMESTATE()->asset_system.assets[item_current_idx].header->name);
             Asset::fetch_sound(asset_id);
-            //EventSystem::add_entity((SoundEntity) {.asset = asset_id, });
-            EventSystem::Event e = {
-                .type = EventSystem::EventType::CREATE_SOUND_ENTITY,
-                .CREATE_SOUND_ENTITY = {
-                    .asset_id = asset_id,
-                    .source_settings = { .gain = gain, .repeat = repeat },
-                },
-            };
-            GAMESTATE()->event_queue.push(e);
+            SoundEntity sound_entity = {};
+            sound_entity.asset_id = asset_id;
+            sound_entity.sound_source_settings.gain = gain;
+            sound_entity.sound_source_settings.repeat = repeat;
+            GAMESTATE()->event_queue.push(entity_event(sound_entity));
         }
         ImGui::SameLine();
         if (ImGui::Button("Close")) GAMESTATE()->show_create_sound_window = false;
@@ -303,5 +304,51 @@ TEST_CASE("entity_id_valid", {
     ASSERT(entity_system()->valid(b_id), "Id should be valid");
     entity_system()->remove(b_id); // * 4
     ASSERT(!entity_system()->valid(b_id), "Id should not be valid");
+    return true;
+});
+
+TEST_CASE("entity fetch", {
+    struct TestEnt: public BaseEntity {
+        int value = 1;
+    };
+    TestEnt a;
+    TestEnt *a_ptr;
+
+    ASSERT(a.value == 1, "Got {}, expected 1", a.value);
+    auto id = entity_system()->add(a);
+    a_ptr = entity_system()->fetch<TestEnt>(id);
+    ASSERT(a_ptr->value == 1, "Got {}, expected 1", a_ptr->value);
+    a_ptr->value = 2;
+    ASSERT(a_ptr->value == 2, "Got {}, expected 2", a_ptr->value);
+    return true;
+});
+
+TEST_CASE("entity on_create", {
+    struct TestEnt: public BaseEntity {
+        int value = 1;
+        void on_create() override {
+            value = 2;
+        }
+    };
+    TestEnt a;
+    ASSERT(a.value == 1, "Got {}, expected 1", a.value);
+    auto id = entity_system()->add(a);
+    TestEnt *a_ptr = entity_system()->fetch<TestEnt>(id);
+    ASSERT(a_ptr->value == 2, "Got {}, expected 2", a_ptr->value);
+    return true;
+});
+
+TEST_CASE("entity on_remove", {
+    struct TestEnt: public BaseEntity {
+        int value = 1;
+        void on_remove() override { value = 2; }
+    };
+    TestEnt a;
+    ASSERT(a.value == 1, "Got {}, expected 1", a.value);
+    auto id = entity_system()->add(a);
+    TestEnt *a_ptr = entity_system()->fetch<TestEnt>(id);
+    ASSERT(a_ptr->value == 1, "Got {}, expected 1", a_ptr->value);
+    entity_system()->remove(id);
+    ASSERT(a_ptr->value == 2, "Got {}, expected 2", a_ptr->value);
     return true;
 });
