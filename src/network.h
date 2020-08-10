@@ -43,7 +43,7 @@ struct NetworkHandle {
     SDL_Thread *thread;
     int sockfd;
 
-    void send(u8 *data, u32 data_len);  // send data to the handle
+    void send(u8 *data, u32 data_len);
     void send(Package *package);
 };
 
