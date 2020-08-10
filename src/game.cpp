@@ -207,75 +207,9 @@ void draw() {
         ImGui::Image((void *)target.depth_output, ImVec2(target.width, target.height), ImVec2(0, 1), ImVec2(1, 0));
     }
     ImGui::End();
-    ImGui::Begin("Networking");
-    {
-        static int serverport = 8888;
-        ImGui::SetNextItemWidth(150);
-        ImGui::PushID(&serverport);
-        ImGui::InputInt("port", &serverport);
-        ImGui::PopID();
-        if (ImGui::Button("Create server")) {
-            GAMESTATE()->network.setup_server(serverport);
-        }
-        if (GAMESTATE()->network.server_listening) {
-            ImGui::SameLine();
-            if (ImGui::Button("Stop server")) {
-                GAMESTATE()->network.stop_server();
-            }
-        }
 
-        ImGui::Separator();
-
-        static char ip[64] = "127.0.0.1";
-        static int connectport = 8888;
-        ImGui::SetNextItemWidth(150);
-        ImGui::InputText("server address", ip, IM_ARRAYSIZE(ip));
-        ImGui::SetNextItemWidth(150);
-        ImGui::PushID(&connectport);
-        ImGui::InputInt("port", &connectport);
-        ImGui::PopID();
-        if (ImGui::Button("Connect to server")) {
-            GAMESTATE()->network.connect_to_server(ip, connectport);
-        }
-        if (GAMESTATE()->network.server_handle.active) {
-            //TODO(gu) Generate instead of writing manually. Custom imgui widget?
-            static PackageType package_type = PackageType::B;
-            static int a_a = 0;
-            static int b_a = 0;
-            static int b_b = 0;
-
-            static int type_current_id = 0;
-            ImGui::Combo("", &type_current_id, "A\0B\0\0");
-            
-            Package package;
-            package.type = (PackageType) type_current_id;
-            switch (package.type) {
-            case PackageType::A:
-                ImGui::InputInt("A::a", &a_a);
-                package.PKG_A.a = a_a;
-                break;
-            case PackageType::B:
-                ImGui::InputInt("B::a", &b_a);
-                ImGui::InputInt("B::b", &b_b);
-                package.PKG_B.a = b_a;
-                package.PKG_B.b = b_b;
-                break;
-            default:
-                break;
-            }
-
-            if (ImGui::Button("Send")) {
-                GAMESTATE()->network.server_handle.send(&package);
-            }
-
-            if (ImGui::Button("Disconnect")) {
-                GAMESTATE()->network.disconnect_from_server();
-            }
-        }
-    }
-    ImGui::End();
+    GAMESTATE()->network.imgui_draw();
 #endif
-
     GFX::resolve_to_screen(target);
 }
 

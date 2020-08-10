@@ -3,6 +3,7 @@
 
 #include <errno.h>
 #include <cstring>
+#include "imgui/imgui.h"
 
 void pack(Package *package, u8 *into) {
     std::memcpy(into, package, sizeof(Package));
@@ -173,6 +174,78 @@ bool Network::new_client_handle(int newsockfd) {
     WARN("No available client handles, ignoring");
     return false;
 }
+
+#ifndef IMGUI_DISABLE
+void Network::imgui_draw() {
+    ImGui::Begin("Networking");
+    {
+        static int serverport = 8888;
+        ImGui::SetNextItemWidth(150);
+        ImGui::PushID(&serverport);
+        ImGui::InputInt("port", &serverport);
+        ImGui::PopID();
+        if (ImGui::Button("Create server")) {
+            setup_server(serverport);
+        }
+        if (server_listening) {
+            ImGui::SameLine();
+            if (ImGui::Button("Stop server")) {
+                stop_server();
+            }
+        }
+
+        ImGui::Separator();
+
+        static char ip[64] = "127.0.0.1";
+        static int connectport = 8888;
+        ImGui::SetNextItemWidth(150);
+        ImGui::InputText("server address", ip, IM_ARRAYSIZE(ip));
+        ImGui::SetNextItemWidth(150);
+        ImGui::PushID(&connectport);
+        ImGui::InputInt("port", &connectport);
+        ImGui::PopID();
+        if (ImGui::Button("Connect to server")) {
+            connect_to_server(ip, connectport);
+        }
+        if (server_handle.active) {
+            //TODO(gu) Generate instead of writing manually. Custom imgui widget?
+            static PackageType package_type = PackageType::B;
+            static int a_a = 0;
+            static int b_a = 0;
+            static int b_b = 0;
+
+            static int type_current_id = 0;
+            ImGui::Combo("", &type_current_id, "A\0B\0\0");
+            
+            Package package;
+            package.type = (PackageType) type_current_id;
+            switch (package.type) {
+            case PackageType::A:
+                ImGui::InputInt("A::a", &a_a);
+                package.PKG_A.a = a_a;
+                break;
+            case PackageType::B:
+                ImGui::InputInt("B::a", &b_a);
+                ImGui::InputInt("B::b", &b_b);
+                package.PKG_B.a = b_a;
+                package.PKG_B.b = b_b;
+                break;
+            default:
+                break;
+            }
+
+            if (ImGui::Button("Send")) {
+                server_handle.send(&package);
+            }
+
+            if (ImGui::Button("Disconnect")) {
+                disconnect_from_server();
+            }
+        }
+    }
+    ImGui::End();
+}
+#endif
 
 int network_listen_for_clients(void *data) {
     Network *system = (Network *) data;

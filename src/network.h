@@ -71,6 +71,10 @@ struct Network {
     void disconnect_from_server();
 
     bool new_client_handle(int newsockfd);
+
+#ifndef IMGUI_DISABLE
+    void imgui_draw();
+#endif
 };
 
 int network_listen_for_clients(void *data);  // thread entry point
