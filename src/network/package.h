@@ -1,5 +1,5 @@
-#include "util/util.h"
-#include "math/types.h"
+#include "../util/util.h"
+#include "../math/types.h"
 
 enum class PackageType {
     A,

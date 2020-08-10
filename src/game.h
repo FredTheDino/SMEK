@@ -6,7 +6,7 @@
 #include "input.h"
 #include "audio.h"
 #include "entity/entity.h"
-#include "network.h"
+#include "network/network.h"
 
 #include <queue>
 

@@ -8,8 +8,8 @@
 #include "SDL.h"
 
 #include "package.h"
-#include "math/smek_math.h"
-#include "util/util.h"
+#include "../math/smek_math.h"
+#include "../util/util.h"
 
 struct NetworkHandle {
     bool active = false;
