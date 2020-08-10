@@ -5,30 +5,6 @@
 #include <cstring>
 #include "imgui/imgui.h"
 
-void pack(Package *package, u8 *into) {
-    std::memcpy(into, package, sizeof(Package));
-}
-
-Package unpack(u8 *from) {
-    Package package;
-    std::memcpy(&package, from, sizeof(Package));
-    return package;
-}
-
-i32 format(char *buffer, u32 size, FormatHint args, Package pkg) {
-    switch (pkg.type) {
-    case PackageType::A:
-        return snprintf(buffer, size, "A: a=%0*d",
-                        args.num_zero_pad, pkg.A.a);
-    case PackageType::B:
-        return snprintf(buffer, size, "B: a=%0*d, b=%0*d",
-                        args.num_zero_pad, pkg.B.a,
-                        args.num_zero_pad, pkg.B.b);
-    default:
-        return snprintf(buffer, size, "Unknown package type");
-    }
-}
-
 void NetworkHandle::send(u8 *data, u32 data_len) {
     int n = write(sockfd, data, data_len);
     if (n < 0) {
@@ -208,30 +184,8 @@ void Network::imgui_draw() {
             connect_to_server(ip, connectport);
         }
         if (server_handle.active) {
-            //TODO(gu) Generate instead of writing manually. Custom imgui widget?
-            static int type_current_id = 0;
-            ImGui::Combo("", &type_current_id, package_type_list, IM_ARRAYSIZE(package_type_list));
-            
             Package package;
-            package.type = (PackageType) type_current_id;
-            switch (package.type) {
-            case PackageType::A:
-                static int a_a = 0;
-                ImGui::InputInt("A::a", &a_a);
-                package.A.a = a_a;
-                break;
-            case PackageType::B:
-                static int b_a = 0;
-                static int b_b = 0;
-                ImGui::InputInt("B::a", &b_a);
-                ImGui::InputInt("B::b", &b_b);
-                package.B.a = b_a;
-                package.B.b = b_b;
-                break;
-            default:
-                break;
-            }
-
+            imgui_package_create(&package);
             if (ImGui::Button("Send")) {
                 server_handle.send(&package);
             }

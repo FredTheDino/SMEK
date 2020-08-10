@@ -7,42 +7,9 @@
 
 #include "SDL.h"
 
+#include "package.h"
 #include "math/smek_math.h"
 #include "util/util.h"
-
-enum class PackageType {
-    A,
-    B,
-
-    NUM_TYPES,
-};
-
-static const char *package_type_list[] = {
-    "A",
-    "B",
-};
-
-struct PackageA {
-    int a;
-};
-
-struct PackageB {
-    int b;
-    int a;
-};
-
-struct Package {
-    PackageType type;
-    union {
-        PackageA A;
-        PackageB B;
-    };
-};
-
-void pack(Package *package, u8 *into);
-Package unpack(u8 *from);
-
-i32 format(char *buffer, u32 size, FormatHint args, Package pkg);
 
 struct NetworkHandle {
     bool active = false;
