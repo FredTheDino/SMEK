@@ -17,6 +17,11 @@ enum class PackageType {
     NUM_TYPES,
 };
 
+static const char *package_type_list[] = {
+    "A",
+    "B",
+};
+
 struct PackageA {
     int a;
 };

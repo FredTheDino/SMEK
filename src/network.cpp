@@ -209,22 +209,20 @@ void Network::imgui_draw() {
         }
         if (server_handle.active) {
             //TODO(gu) Generate instead of writing manually. Custom imgui widget?
-            static PackageType package_type = PackageType::B;
-            static int a_a = 0;
-            static int b_a = 0;
-            static int b_b = 0;
-
             static int type_current_id = 0;
-            ImGui::Combo("", &type_current_id, "A\0B\0\0");
+            ImGui::Combo("", &type_current_id, package_type_list, IM_ARRAYSIZE(package_type_list));
             
             Package package;
             package.type = (PackageType) type_current_id;
             switch (package.type) {
             case PackageType::A:
+                static int a_a = 0;
                 ImGui::InputInt("A::a", &a_a);
                 package.PKG_A.a = a_a;
                 break;
             case PackageType::B:
+                static int b_a = 0;
+                static int b_b = 0;
                 ImGui::InputInt("B::a", &b_a);
                 ImGui::InputInt("B::b", &b_b);
                 package.PKG_B.a = b_a;
