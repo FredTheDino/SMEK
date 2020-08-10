@@ -15,17 +15,17 @@ Package unpack(u8 *from) {
     return package;
 }
 
-void log_pkg(Package package) {
-    switch (package.type) {
+i32 format(char *buffer, u32 size, FormatHint args, Package pkg) {
+    switch (pkg.type) {
     case PackageType::A:
-        LOG("A: a={}", package.PKG_A.a);
-        break;
+        return snprintf(buffer, size, "A: a=%0*d",
+                        args.num_zero_pad, pkg.PKG_A.a);
     case PackageType::B:
-        LOG("B: a={} b={}", package.PKG_B.a, package.PKG_B.b);
-        break;
+        return snprintf(buffer, size, "B: a=%0*d, b=%0*d",
+                        args.num_zero_pad, pkg.PKG_B.a,
+                        args.num_zero_pad, pkg.PKG_B.b);
     default:
-        LOG("Unknown type");
-        break;
+        return snprintf(buffer, size, "Unknown package type");
     }
 }
 
@@ -58,7 +58,7 @@ int start_network_handle(void *data) {
             ERR("{}: Error reading from socket, errno: {}", handle->thread_name, errno);
             continue;
         }
-        log_pkg(unpack(buf));
+        LOG("{}", unpack(buf));
     }
     LOG("{}: Setting active to FALSE", handle->thread_name);
     handle->active = false;

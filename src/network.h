@@ -8,6 +8,7 @@
 #include "SDL.h"
 
 #include "math/smek_math.h"
+#include "util/util.h"
 
 enum class PackageType {
     A,
@@ -36,7 +37,7 @@ struct Package {
 void pack(Package *package, u8 *into);
 Package unpack(u8 *from);
 
-void log_pkg(Package package);
+i32 format(char *buffer, u32 size, FormatHint args, Package pkg);
 
 struct NetworkHandle {
     bool active = false;
