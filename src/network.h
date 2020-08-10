@@ -65,6 +65,7 @@ struct Network {
 
     bool setup_server(int portno);
     bool connect_to_server(char *hostname, int portno);
+    void disconnect_from_server();
 
     bool new_client_handle(int newsockfd);
 };

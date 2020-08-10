@@ -261,6 +261,10 @@ void draw() {
             if (ImGui::Button("Send")) {
                 GAMESTATE()->network.server_handle.send(&package);
             }
+
+            if (ImGui::Button("Disconnect")) {
+                GAMESTATE()->network.disconnect_from_server();
+            }
         }
     }
     ImGui::End();

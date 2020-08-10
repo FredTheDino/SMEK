@@ -29,7 +29,12 @@ void log_pkg(Package package) {
 }
 
 void NetworkHandle::send(u8 *data, u32 data_len) {
-    CHECK(write(sockfd, data, data_len) >= 0, "Error writing to socket");
+    int n = write(sockfd, data, data_len);
+    if (n < 0) {
+        ERR("Error writing to socket, errno: {}", errno);
+    } else if (n < data_len) {
+        ERR("write did not write all data to socket, n={}, data_len={}", n, data_len);
+    }
 }
 
 void NetworkHandle::send(Package *package) {
@@ -45,18 +50,25 @@ int start_network_handle(void *data) {
     u8 buf[sizeof(Package)];
     while (handle->active) {
         n = read(handle->sockfd, buf, sizeof(Package));
-        if (n < 0) {
-            UNREACHABLE("Error reading from socket, errno: {}", errno);
+        if (n == 0) {
+            LOG("Connection closed by remote");
+            break;
+        } else if (n < 0) {
+            ERR("Error reading from socket, errno: {}", errno);
             continue;
         }
         log_pkg(unpack(buf));
-        //TODO(gu) unpack package etc
     }
+    handle->active = false;
     close(handle->sockfd);
     return 0;
 }
 
 bool Network::connect_to_server(char *hostname, int portno) {
+    if (server_handle.active) {
+        WARN("Already connected to server");
+        return false;
+    }
     server_handle.sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_handle.sockfd < 0) {
         ERR("Error opening socket");
@@ -80,6 +92,15 @@ bool Network::connect_to_server(char *hostname, int portno) {
     return true;
 }
 
+void Network::disconnect_from_server() {
+    if (!server_handle.active) {
+        WARN("Not connected to a server");
+        return;
+    }
+    close(server_handle.sockfd);
+    server_handle.active = false;
+}
+
 #if 0
 void Network::stop() {
     if (listening) {
@@ -100,6 +121,10 @@ void Network::stop() {
 #endif
 
 bool Network::setup_server(int portno) {
+    if (server_listening) {
+        WARN("Server already running");
+        return false;
+    }
     LOG("Setting up server on port {}", portno);
     listen_sockfd = socket(AF_INET, SOCK_STREAM, 0);
     sockaddr_in serv_addr = {};
@@ -147,7 +172,7 @@ int network_listen_for_clients(void *data) {
         newsockfd = accept(system->listen_sockfd, (sockaddr *) &system->cli_addr, &system->cli_len);
         LOG("New client connected");
         if (newsockfd < 0) {
-            ERR("Error accepting client connection");
+            ERR("Error accepting client connection, errno={}", errno);
             continue;
         }
         if (!system->new_client_handle(newsockfd)) {
