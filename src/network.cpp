@@ -19,11 +19,11 @@ i32 format(char *buffer, u32 size, FormatHint args, Package pkg) {
     switch (pkg.type) {
     case PackageType::A:
         return snprintf(buffer, size, "A: a=%0*d",
-                        args.num_zero_pad, pkg.PKG_A.a);
+                        args.num_zero_pad, pkg.A.a);
     case PackageType::B:
         return snprintf(buffer, size, "B: a=%0*d, b=%0*d",
-                        args.num_zero_pad, pkg.PKG_B.a,
-                        args.num_zero_pad, pkg.PKG_B.b);
+                        args.num_zero_pad, pkg.B.a,
+                        args.num_zero_pad, pkg.B.b);
     default:
         return snprintf(buffer, size, "Unknown package type");
     }
@@ -218,15 +218,15 @@ void Network::imgui_draw() {
             case PackageType::A:
                 static int a_a = 0;
                 ImGui::InputInt("A::a", &a_a);
-                package.PKG_A.a = a_a;
+                package.A.a = a_a;
                 break;
             case PackageType::B:
                 static int b_a = 0;
                 static int b_b = 0;
                 ImGui::InputInt("B::a", &b_a);
                 ImGui::InputInt("B::b", &b_b);
-                package.PKG_B.a = b_a;
-                package.PKG_B.b = b_b;
+                package.B.a = b_a;
+                package.B.b = b_b;
                 break;
             default:
                 break;

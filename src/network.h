@@ -34,8 +34,8 @@ struct PackageB {
 struct Package {
     PackageType type;
     union {
-        PackageA PKG_A;
-        PackageB PKG_B;
+        PackageA A;
+        PackageB B;
     };
 };
 
