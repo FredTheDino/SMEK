@@ -259,7 +259,7 @@ void draw() {
             }
 
             if (ImGui::Button("Send")) {
-                GAMESTATE()->network.server_handle.send(package);
+                GAMESTATE()->network.server_handle.send(&package);
             }
         }
     }

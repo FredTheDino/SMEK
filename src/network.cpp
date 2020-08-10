@@ -4,8 +4,8 @@
 #include <errno.h>
 #include <cstring>
 
-void pack(Package package, u8 *into) {
-    std::memcpy(into, &package, sizeof(Package));
+void pack(Package *package, u8 *into) {
+    std::memcpy(into, package, sizeof(Package));
 }
 
 Package unpack(u8 *from) {
@@ -32,7 +32,7 @@ void NetworkHandle::send(u8 *data, u32 data_len) {
     CHECK(write(sockfd, data, data_len) >= 0, "Error writing to socket");
 }
 
-void NetworkHandle::send(Package package) {
+void NetworkHandle::send(Package *package) {
     u8 buf[sizeof(Package)];
     pack(package, buf);
     send(buf, sizeof(Package));
@@ -44,7 +44,6 @@ int start_network_handle(void *data) {
     int n;
     u8 buf[sizeof(Package)];
     while (handle->active) {
-        std::memset(buf, 0, sizeof(Package));
         n = read(handle->sockfd, buf, sizeof(Package));
         if (n < 0) {
             UNREACHABLE("Error reading from socket, errno: {}", errno);

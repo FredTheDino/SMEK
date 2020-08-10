@@ -33,7 +33,7 @@ struct Package {
     };
 };
 
-void pack(Package package, u8 *into);
+void pack(Package *package, u8 *into);
 Package unpack(u8 *from);
 
 void log_pkg(Package package);
@@ -44,7 +44,7 @@ struct NetworkHandle {
     int sockfd;
 
     void send(u8 *data, u32 data_len);  // send data to the handle
-    void send(Package package);
+    void send(Package *package);
 };
 
 int start_network_handle(void *data);  // thread entry point
