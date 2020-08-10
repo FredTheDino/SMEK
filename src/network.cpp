@@ -51,14 +51,15 @@ int start_network_handle(void *data) {
     while (handle->active) {
         n = read(handle->sockfd, buf, sizeof(Package));
         if (n == 0) {
-            LOG("Connection closed by remote");
+            LOG("{}: Connection closed by remote", handle->thread_name);
             break;
         } else if (n < 0) {
-            ERR("Error reading from socket, errno: {}", errno);
+            ERR("{}: Error reading from socket, errno: {}", handle->thread_name, errno);
             continue;
         }
         log_pkg(unpack(buf));
     }
+    LOG("{}: Setting active to FALSE", handle->thread_name);
     handle->active = false;
     close(handle->sockfd);
     return 0;
@@ -89,6 +90,11 @@ bool Network::connect_to_server(char *hostname, int portno) {
     }
     LOG("Connected");
     server_handle.active = true;
+    server_handle.thread = SDL_CreateThread(start_network_handle, "ServerHandle", (void *) &server_handle);
+    if (!server_handle.thread) {
+        ERR("Unable to create thread");
+        return false;
+    }
     return true;
 }
 
@@ -97,28 +103,11 @@ void Network::disconnect_from_server() {
         WARN("Not connected to a server");
         return;
     }
-    close(server_handle.sockfd);
     server_handle.active = false;
+    shutdown(server_handle.sockfd, SHUT_RDWR);
+    close(server_handle.sockfd);
+    SDL_WaitThread(server_handle.thread, NULL);
 }
-
-#if 0
-void Network::stop() {
-    if (listening) {
-        listening = false;
-        close(listen_sockfd);
-        SDL_WaitThread(listener_thread, NULL);
-    }
-
-    for (u32 i = 0; i < MAX_CLIENTS; i++) {
-        if (client_handles[i].active) {
-            //TODO(gu) send restart notice to clients
-            client_handles[i].active = false;
-            close(client_handles[i].sockfd);
-            SDL_WaitThread(client_handles[i].thread, NULL);
-        }
-    }
-}
-#endif
 
 bool Network::setup_server(int portno) {
     if (server_listening) {
@@ -132,7 +121,7 @@ bool Network::setup_server(int portno) {
     serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port = htons(portno);
     if (bind(listen_sockfd, (sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-        ERR("Error binding to socket");
+        ERR("Error binding to socket, errno={}", errno);
         return false;
     }
     listen(listen_sockfd, 5);
@@ -145,6 +134,26 @@ bool Network::setup_server(int portno) {
     return true;
 }
 
+void Network::stop_server() {
+    if (!server_listening) {
+        WARN("Server not running");
+        return;
+    }
+    server_listening = false;
+    shutdown(listen_sockfd, SHUT_RDWR);
+    SDL_WaitThread(listener_thread, NULL);
+    close(listen_sockfd);
+    for (u32 i = 0; i < MAX_CLIENTS; i++) {
+        if (client_handles[i].active) {
+            client_handles[i].active = false;
+            shutdown(client_handles[i].sockfd, SHUT_RDWR);
+            close(client_handles[i].sockfd);
+            SDL_WaitThread(client_handles[i].thread, NULL);
+        }
+    }
+    LOG("Server stopped");
+}
+
 bool Network::new_client_handle(int newsockfd) {
     NetworkHandle *handle;
     for (u32 i = 0; i < MAX_CLIENTS; i++) {
@@ -153,7 +162,8 @@ bool Network::new_client_handle(int newsockfd) {
         LOG("Found client handle");
         *handle = {};
         handle->sockfd = newsockfd;
-        handle->thread = SDL_CreateThread(start_network_handle, "ClientHandle", (void *) handle);
+        sntprint(handle->thread_name, sizeof(handle->thread_name), "ClientHandle {}", next_handle_id++);
+        handle->thread = SDL_CreateThread(start_network_handle, handle->thread_name, (void *) handle);
         if (!handle->thread) {
             ERR("Unable to create thread");
             return false;
@@ -170,16 +180,17 @@ int network_listen_for_clients(void *data) {
     system->server_listening = true;
     while (system->server_listening) {
         newsockfd = accept(system->listen_sockfd, (sockaddr *) &system->cli_addr, &system->cli_len);
-        LOG("New client connected");
         if (newsockfd < 0) {
-            ERR("Error accepting client connection, errno={}", errno);
+            ERR("ListenForClients: Error accepting client connection, errno={}", errno);
             continue;
         }
+        LOG("ListenForClients: New client connected");
         if (!system->new_client_handle(newsockfd)) {
-            ERR("Unable to accept client connection, closing");
+            ERR("ListenForClients: Unable to accept client connection, closing");
             //TODO(gu) send reason
             close(newsockfd);
         }
     }
+    LOG("Stopped listening for new clients");
     return 0;
 }

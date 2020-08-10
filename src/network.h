@@ -41,6 +41,7 @@ void log_pkg(Package package);
 struct NetworkHandle {
     bool active = false;
     SDL_Thread *thread;
+    char thread_name[32] = {};
     int sockfd;
 
     void send(u8 *data, u32 data_len);
@@ -60,10 +61,12 @@ struct Network {
     sockaddr_in cli_addr;
     socklen_t cli_len;
 
+    u32 next_handle_id = 0;
     NetworkHandle server_handle;
     NetworkHandle client_handles[MAX_CLIENTS];
 
     bool setup_server(int portno);
+    void stop_server();
     bool connect_to_server(char *hostname, int portno);
     void disconnect_from_server();
 

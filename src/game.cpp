@@ -217,6 +217,12 @@ void draw() {
         if (ImGui::Button("Create server")) {
             GAMESTATE()->network.setup_server(serverport);
         }
+        if (GAMESTATE()->network.server_listening) {
+            ImGui::SameLine();
+            if (ImGui::Button("Stop server")) {
+                GAMESTATE()->network.stop_server();
+            }
+        }
 
         ImGui::Separator();
 
