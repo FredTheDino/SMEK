@@ -32,7 +32,7 @@ void NetworkHandle::send(u8 *data, u32 data_len) {
     int n = write(sockfd, data, data_len);
     if (n < 0) {
         ERR("Error writing to socket, errno: {}", errno);
-    } else if (n < data_len) {
+    } else if ((u32) n < data_len) {
         ERR("write did not write all data to socket, n={}, data_len={}", n, data_len);
     }
 }
