@@ -52,7 +52,7 @@ int start_network_handle(void *data) {
     while (handle->active) {
         n = read(handle->sockfd, buf, sizeof(Package));
         if (n == 0) {
-            LOG("{}: Connection closed by remote", handle->thread_name);
+            LOG("{}: Connection closed", handle->thread_name);
             break;
         } else if (n < 0) {
             ERR("{}: Error reading from socket, errno: {}", handle->thread_name, errno);
