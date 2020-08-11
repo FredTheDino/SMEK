@@ -41,7 +41,8 @@ struct Package {
     };
 };
 
-void pack(Package *package, u8 *into);
+void pack(u8 *into, Package *from);
+void unpack(Package *into, u8 *from);
 Package unpack(u8 *from);
 
 i32 format(char *buffer, u32 size, FormatHint args, Package pkg);

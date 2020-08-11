@@ -13,23 +13,28 @@
 
 struct NetworkHandle {
     bool active = false;
-    bool is_server_handle;
     SDL_Thread *thread;
     char thread_name[32] = {};
     int sockfd;
 
-    bool creating_package_to_send = true;
-    Package wip_package;
     u32 client_id;
     u32 next_package_id = 0;
 
+    bool creating_package_to_send = true;
+    Package wip_package;
+
     void send(u8 *data, u32 data_len);
     void send(Package *package);
+    bool recv(u8 *buf, u32 data_len, Package *package);
 
     void close();
 };
 
-int start_network_handle(void *data);  // thread entry point
+struct ServerHandle : public NetworkHandle {};
+int start_server_handle(void *data);  // thread entry point
+
+struct ClientHandle : public NetworkHandle {};
+int start_client_handle(void *data);  // thread entry point
 
 struct Network {
     static const u32 MAX_CLIENTS = 2;
@@ -45,8 +50,8 @@ struct Network {
     SDL_mutex *m_prev_package;
 
     u32 next_handle_id = 0;
-    NetworkHandle server_handle;
-    NetworkHandle client_handles[MAX_CLIENTS];
+    ServerHandle server_handle;
+    ClientHandle client_handles[MAX_CLIENTS];
 
     bool setup_server(int portno);
     void stop_server();

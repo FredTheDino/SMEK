@@ -3,13 +3,17 @@
 #include "imgui/imgui.h"
 #include <cstring>
 
-void pack(Package *package, u8 *into) {
-    std::memcpy(into, package, sizeof(Package));
+void pack(u8 *into, Package *from) {
+    std::memcpy(into, from, sizeof(Package));
+}
+
+void unpack(Package *into, u8 *from) {
+    std::memcpy(into, from, sizeof(Package));
 }
 
 Package unpack(u8 *from) {
     Package package;
-    std::memcpy(&package, from, sizeof(Package));
+    unpack(&package, from);
     return package;
 }
 

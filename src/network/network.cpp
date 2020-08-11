@@ -18,11 +18,8 @@ void NetworkHandle::send(u8 *data, u32 data_len) {
 
 void NetworkHandle::send(Package *package) {
     u8 buf[sizeof(Package)];
-    if (is_server_handle) {
-        package->client = client_id;
-    }
     package->id = next_package_id++;
-    pack(package, buf);
+    pack(buf, package);
     send(buf, sizeof(Package));
 }
 
@@ -33,34 +30,59 @@ void NetworkHandle::close() {
     ::close(sockfd);
 }
 
-int start_network_handle(void *data) {
-    NetworkHandle *handle = (NetworkHandle *) data;
+bool NetworkHandle::recv(u8 *buf, u32 data_len, Package *package) {
+    int n = read(sockfd, buf, data_len);
+    if (n == 0) {
+        LOG("{}: Connection closed", thread_name);
+        active = false;
+    } else if (n < 0) {
+        ERR("{}: Error reading from socket, errno={}", thread_name, errno);
+    } else if ((u32) n < data_len) {
+        WARN("{}: Did not read entire buffer, connection closed?", thread_name);
+    } else {
+        unpack(package, buf);
+        LOG("{}: {}", thread_name, *package);
+        return true;
+    }
+    return false;
+}
+
+int start_server_handle(void *data) {
+    ServerHandle *handle = (ServerHandle *) data;
     handle->active = true;
-    int n;
+    Package package;
     u8 buf[sizeof(Package)];
     while (handle->active) {
-        n = read(handle->sockfd, buf, sizeof(Package));
-        if (n == 0) {
-            LOG("{}: Connection closed", handle->thread_name);
-            break;
-        } else if (n < 0) {
-            ERR("{}: Error reading from socket, errno: {}", handle->thread_name, errno);
-            continue;
-        }
-        Package prev_package;
-        prev_package = unpack(buf);
-        LOG("{}: {}", handle->thread_name, prev_package);
-        if (SDL_LockMutex(GAMESTATE()->network.m_prev_package) != 0) {
-            ERR("Unable to lock mutex: {}", SDL_GetError());
-        } else {
-            GAMESTATE()->network.prev_package = prev_package;
-            SDL_UnlockMutex(GAMESTATE()->network.m_prev_package);
-        }
-        if (handle->is_server_handle && prev_package.type == PackageType::SET_CLIENT_ID) {
-            handle->client_id = prev_package.SET_CLIENT_ID.id;
+        if (handle->recv(buf, sizeof(buf), &package)) {
+            switch (package.type) {
+            case PackageType::SET_CLIENT_ID:
+                handle->client_id = package.SET_CLIENT_ID.id;
+                handle->wip_package.client = handle->client_id;
+                break;
+            default:
+                break;
+            }
         }
     }
-    handle->active = false;
+    close(handle->sockfd);
+    return 0;
+}
+
+int start_client_handle(void *data) {
+    ClientHandle *handle = (ClientHandle *) data;
+    handle->active = true;
+    Package package;
+    u8 buf[sizeof(Package)];
+    while (handle->active) {
+        if (handle->recv(buf, sizeof(buf), &package)) {
+            if (SDL_LockMutex(GAMESTATE()->network.m_prev_package) != 0) {
+                ERR("Unable to lock mutex: {}", SDL_GetError());
+            } else {
+                GAMESTATE()->network.prev_package = package;
+                SDL_UnlockMutex(GAMESTATE()->network.m_prev_package);
+            }
+        }
+    }
     close(handle->sockfd);
     return 0;
 }
@@ -133,9 +155,8 @@ bool Network::connect_to_server(char *hostname, int portno) {
         return false;
     }
     LOG("Connected");
-    server_handle.is_server_handle = true;
     sntprint(server_handle.thread_name, sizeof(server_handle.thread_name), "ServerHandle");
-    server_handle.thread = SDL_CreateThread(start_network_handle, "ServerHandle", (void *) &server_handle);
+    server_handle.thread = SDL_CreateThread(start_server_handle, "ServerHandle", (void *) &server_handle);
     if (!server_handle.thread) {
         ERR("Unable to create thread");
         return false;
@@ -155,17 +176,17 @@ void Network::disconnect_from_server() {
 }
 
 bool Network::new_client_handle(int newsockfd) {
-    NetworkHandle *handle;
+    ClientHandle *handle;
     for (u32 i = 0; i < MAX_CLIENTS; i++) {
         handle = client_handles + i;
         if (handle->active) continue;
         LOG("Found client handle");
         *handle = {};
-        handle->is_server_handle = false;
         handle->sockfd = newsockfd;
         handle->client_id = next_handle_id++;
+        handle->wip_package.client = handle->client_id;
         sntprint(handle->thread_name, sizeof(handle->thread_name), "ClientHandle {}", handle->client_id);
-        handle->thread = SDL_CreateThread(start_network_handle, handle->thread_name, (void *) handle);
+        handle->thread = SDL_CreateThread(start_client_handle, handle->thread_name, (void *) handle);
         if (!handle->thread) {
             ERR("Unable to create thread");
             return false;
