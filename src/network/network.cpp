@@ -22,6 +22,13 @@ void NetworkHandle::send(Package *package) {
     send(buf, sizeof(Package));
 }
 
+void NetworkHandle::close() {
+    active = false;
+    shutdown(sockfd, SHUT_RDWR);
+    SDL_WaitThread(thread, NULL);
+    ::close(sockfd);
+}
+
 int start_network_handle(void *data) {
     NetworkHandle *handle = (NetworkHandle *) data;
     handle->active = true;
@@ -92,10 +99,7 @@ void Network::stop_server() {
     close(listen_sockfd);
     for (u32 i = 0; i < MAX_CLIENTS; i++) {
         if (client_handles[i].active) {
-            client_handles[i].active = false;
-            shutdown(client_handles[i].sockfd, SHUT_RDWR);
-            close(client_handles[i].sockfd);
-            SDL_WaitThread(client_handles[i].thread, NULL);
+            client_handles[i].close();
         }
     }
     LOG("Server stopped");
@@ -200,6 +204,9 @@ void Network::imgui_draw() {
                     imgui_package_create(&handle->wip_package);
                     if (ImGui::Button("Send")) {
                         handle->send(&handle->wip_package);
+                    }
+                    if (ImGui::Button("Disconnect")) {
+                        handle->close();
                     }
                     ImGui::End();
                 }

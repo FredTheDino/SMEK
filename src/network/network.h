@@ -24,6 +24,8 @@ struct NetworkHandle {
 
     void send(u8 *data, u32 data_len);
     void send(Package *package);
+
+    void close();
 };
 
 int start_network_handle(void *data);  // thread entry point
