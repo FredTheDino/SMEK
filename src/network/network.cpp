@@ -1,5 +1,6 @@
 #include "network.h"
 #include "../util/util.h"
+#include "../game.h"
 
 #include <errno.h>
 #include <cstring>
@@ -34,9 +35,16 @@ int start_network_handle(void *data) {
             ERR("{}: Error reading from socket, errno: {}", handle->thread_name, errno);
             continue;
         }
-        LOG("{}", unpack(buf));
+        Package prev_package;
+        prev_package = unpack(buf);
+        LOG("{}: {}", handle->thread_name, prev_package);
+        if (SDL_LockMutex(GAMESTATE()->network.m_prev_package) != 0) {
+            ERR("Unable to lock mutex: {}", SDL_GetError());
+        } else {
+            GAMESTATE()->network.prev_package = prev_package;
+            SDL_UnlockMutex(GAMESTATE()->network.m_prev_package);
+        }
     }
-    LOG("{}: Setting active to FALSE", handle->thread_name);
     handle->active = false;
     close(handle->sockfd);
     return 0;
@@ -47,6 +55,8 @@ bool Network::setup_server(int portno) {
         WARN("Server already running");
         return false;
     }
+    m_prev_package = SDL_CreateMutex();
+    ASSERT(m_prev_package, "Unable to create mutex");
     LOG("Setting up server on port {}", portno);
     listen_sockfd = socket(AF_INET, SOCK_STREAM, 0);
     sockaddr_in serv_addr = {};
@@ -167,6 +177,13 @@ void Network::imgui_draw() {
             ImGui::SameLine();
             if (ImGui::Button("Stop server")) {
                 stop_server();
+            }
+            ImGui::Text("Latest package");
+            if (SDL_LockMutex(m_prev_package) != 0) {
+                ERR("Unable to lock mutex: {}", SDL_GetError());
+            } else {
+                imgui_package_show(&prev_package);
+                SDL_UnlockMutex(m_prev_package);
             }
         }
 

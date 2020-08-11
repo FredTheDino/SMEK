@@ -36,5 +36,6 @@ Package unpack(u8 *from);
 i32 format(char *buffer, u32 size, FormatHint args, Package pkg);
 
 #ifndef IMGUI_DISABLE
+void imgui_package_show(Package *package);
 void imgui_package_create(Package *package);
 #endif

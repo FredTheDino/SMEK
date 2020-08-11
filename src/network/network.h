@@ -33,6 +33,8 @@ struct Network {
     int listen_sockfd;
     sockaddr_in cli_addr;
     socklen_t cli_len;
+    Package prev_package;
+    SDL_mutex *m_prev_package;
 
     u32 next_handle_id = 0;
     NetworkHandle server_handle;

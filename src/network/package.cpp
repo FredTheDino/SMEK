@@ -51,4 +51,18 @@ void imgui_package_create(Package *package) {
         break;
     }
 }
+
+void imgui_package_show(Package *package) {
+    switch (package->type) {
+    case PackageType::A:
+        ImGui::Text("A\n a=%d", package->A.a);
+        break;
+    case PackageType::B:
+        ImGui::Text("B\n a=%d\n b=%d", package->B.a, package->B.b);
+        break;
+    default:
+        ImGui::Text("Unknown package type %u", (u32) package->type);
+        break;
+    }
+}
 #endif
