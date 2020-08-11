@@ -31,6 +31,8 @@ struct PackageSetClientID {
 };
 
 struct Package {
+    u32 client;
+    u32 id;
     PackageType type;
     union {
         PackageA A;

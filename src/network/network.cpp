@@ -18,6 +18,10 @@ void NetworkHandle::send(u8 *data, u32 data_len) {
 
 void NetworkHandle::send(Package *package) {
     u8 buf[sizeof(Package)];
+    if (is_server_handle) {
+        package->client = client_id;
+    }
+    package->id = next_package_id++;
     pack(package, buf);
     send(buf, sizeof(Package));
 }
@@ -53,7 +57,7 @@ int start_network_handle(void *data) {
             SDL_UnlockMutex(GAMESTATE()->network.m_prev_package);
         }
         if (handle->is_server_handle && prev_package.type == PackageType::SET_CLIENT_ID) {
-            handle->id = prev_package.SET_CLIENT_ID.id;
+            handle->client_id = prev_package.SET_CLIENT_ID.id;
         }
     }
     handle->active = false;
@@ -159,8 +163,8 @@ bool Network::new_client_handle(int newsockfd) {
         *handle = {};
         handle->is_server_handle = false;
         handle->sockfd = newsockfd;
-        handle->id = next_handle_id++;
-        sntprint(handle->thread_name, sizeof(handle->thread_name), "ClientHandle {}", handle->id);
+        handle->client_id = next_handle_id++;
+        sntprint(handle->thread_name, sizeof(handle->thread_name), "ClientHandle {}", handle->client_id);
         handle->thread = SDL_CreateThread(start_network_handle, handle->thread_name, (void *) handle);
         if (!handle->thread) {
             ERR("Unable to create thread");
@@ -168,7 +172,7 @@ bool Network::new_client_handle(int newsockfd) {
         }
         Package id_package;
         id_package.type = PackageType::SET_CLIENT_ID;
-        id_package.SET_CLIENT_ID.id = handle->id;
+        id_package.SET_CLIENT_ID.id = handle->client_id;
         handle->send(&id_package);
         return true;
     }
@@ -198,7 +202,7 @@ void Network::imgui_draw() {
                 NetworkHandle *handle = client_handles + i;
                 if (!handle->active) continue;
                 ImGui::PushID(i);
-                ImGui::Text("Active client handle, id=%u", handle->id);
+                ImGui::Text("Active client handle, id=%u", handle->client_id);
                 if (handle->creating_package_to_send) {
                     ImGui::Begin(handle->thread_name);
                     imgui_package_create(&handle->wip_package);
@@ -236,7 +240,7 @@ void Network::imgui_draw() {
             connect_to_server(ip, connectport);
         }
         if (server_handle.active) {
-            ImGui::Text("Connected to server, have id %u", server_handle.id);
+            ImGui::Text("Connected to server, have id %u", server_handle.client_id);
             if (server_handle.creating_package_to_send) {
                 ImGui::Begin(server_handle.thread_name);
                 imgui_package_create(&server_handle.wip_package);
