@@ -13,6 +13,7 @@
 
 struct NetworkHandle {
     bool active = false;
+    bool is_server_handle;
     SDL_Thread *thread;
     char thread_name[32] = {};
     int sockfd;

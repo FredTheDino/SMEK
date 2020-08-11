@@ -122,6 +122,7 @@ bool Network::connect_to_server(char *hostname, int portno) {
         return false;
     }
     LOG("Connected");
+    server_handle.is_server_handle = true;
     sntprint(server_handle.thread_name, sizeof(server_handle.thread_name), "ServerHandle");
     server_handle.thread = SDL_CreateThread(start_network_handle, "ServerHandle", (void *) &server_handle);
     if (!server_handle.thread) {
@@ -149,6 +150,7 @@ bool Network::new_client_handle(int newsockfd) {
         if (handle->active) continue;
         LOG("Found client handle");
         *handle = {};
+        handle->is_server_handle = false;
         handle->sockfd = newsockfd;
         sntprint(handle->thread_name, sizeof(handle->thread_name), "ClientHandle {}", next_handle_id++);
         handle->thread = SDL_CreateThread(start_network_handle, handle->thread_name, (void *) handle);
