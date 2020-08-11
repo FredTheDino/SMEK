@@ -152,7 +152,8 @@ bool Network::new_client_handle(int newsockfd) {
         *handle = {};
         handle->is_server_handle = false;
         handle->sockfd = newsockfd;
-        sntprint(handle->thread_name, sizeof(handle->thread_name), "ClientHandle {}", next_handle_id++);
+        handle->id = next_handle_id++;
+        sntprint(handle->thread_name, sizeof(handle->thread_name), "ClientHandle {}", handle->id);
         handle->thread = SDL_CreateThread(start_network_handle, handle->thread_name, (void *) handle);
         if (!handle->thread) {
             ERR("Unable to create thread");
@@ -181,6 +182,15 @@ void Network::imgui_draw() {
             if (ImGui::Button("Stop server")) {
                 stop_server();
             }
+
+            for (u32 i = 0; i < MAX_CLIENTS; i++) {
+                NetworkHandle *handle = client_handles + i;
+                if (!handle->active) continue;
+                ImGui::PushID(i);
+                ImGui::Text("Active client handle, id=%u", handle->id);
+                ImGui::PopID();
+            }
+
             ImGui::Text("Latest package");
             if (SDL_LockMutex(m_prev_package) != 0) {
                 ERR("Unable to lock mutex: {}", SDL_GetError());
@@ -204,6 +214,7 @@ void Network::imgui_draw() {
             connect_to_server(ip, connectport);
         }
         if (server_handle.active) {
+            ImGui::Text("Connected to server, have id %u", server_handle.id);
             Package package;
             imgui_package_create(&package);
             if (ImGui::Button("Send")) {
