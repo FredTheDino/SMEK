@@ -48,6 +48,7 @@ void imgui_package_create(Package *package) {
         package->B.b = b_b;
         break;
     default:
+        ImGui::Text("Unknown package type %u", (u32) package->type);
         break;
     }
 }
