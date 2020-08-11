@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../util/util.h"
 #include "../math/types.h"
 
