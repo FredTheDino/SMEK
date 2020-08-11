@@ -122,6 +122,7 @@ bool Network::connect_to_server(char *hostname, int portno) {
         return false;
     }
     LOG("Connected");
+    sntprint(server_handle.thread_name, sizeof(server_handle.thread_name), "ServerHandle");
     server_handle.thread = SDL_CreateThread(start_network_handle, "ServerHandle", (void *) &server_handle);
     if (!server_handle.thread) {
         ERR("Unable to create thread");
