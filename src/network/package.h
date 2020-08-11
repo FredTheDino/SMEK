@@ -5,6 +5,10 @@ enum class PackageType {
     A,
     B,
 
+    // Types below this line should not be creatable and thus not shown in the package type list.
+
+    SET_CLIENT_ID,
+
     NUM_TYPES,
 };
 
@@ -22,11 +26,16 @@ struct PackageB {
     int a;
 };
 
+struct PackageSetClientID {
+    u32 id;
+};
+
 struct Package {
     PackageType type;
     union {
         PackageA A;
         PackageB B;
+        PackageSetClientID SET_CLIENT_ID;
     };
 };
 

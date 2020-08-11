@@ -45,6 +45,9 @@ int start_network_handle(void *data) {
             GAMESTATE()->network.prev_package = prev_package;
             SDL_UnlockMutex(GAMESTATE()->network.m_prev_package);
         }
+        if (handle->is_server_handle && prev_package.type == PackageType::SET_CLIENT_ID) {
+            handle->id = prev_package.SET_CLIENT_ID.id;
+        }
     }
     handle->active = false;
     close(handle->sockfd);
@@ -159,6 +162,10 @@ bool Network::new_client_handle(int newsockfd) {
             ERR("Unable to create thread");
             return false;
         }
+        Package id_package;
+        id_package.type = PackageType::SET_CLIENT_ID;
+        id_package.SET_CLIENT_ID.id = handle->id;
+        handle->send(&id_package);
         return true;
     }
     WARN("No available client handles, ignoring");

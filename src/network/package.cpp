@@ -22,6 +22,9 @@ i32 format(char *buffer, u32 size, FormatHint args, Package pkg) {
         return snprintf(buffer, size, "B: a=%0*d, b=%0*d",
                         args.num_zero_pad, pkg.B.a,
                         args.num_zero_pad, pkg.B.b);
+    case PackageType::SET_CLIENT_ID:
+        return snprintf(buffer, size, "SetClientID: id=%0*u",
+                        args.num_zero_pad, pkg.SET_CLIENT_ID.id);
     default:
         return snprintf(buffer, size, "Unknown package type");
     }
