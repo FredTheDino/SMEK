@@ -1,6 +1,7 @@
 #include "network.h"
 #include "../util/util.h"
 #include "../game.h"
+#include "../test.h"
 
 #include <errno.h>
 #include <cstring>
@@ -236,3 +237,9 @@ int network_listen_for_clients(void *data) {
     LOG("Stopped listening for new clients");
     return 0;
 }
+
+TEST_CASE("network start/stop server", {
+    ASSERT(GAMESTATE()->network.setup_server(8888), "error setting up server");
+    GAMESTATE()->network.stop_server();
+    return true;
+});
