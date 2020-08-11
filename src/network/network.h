@@ -19,6 +19,9 @@ struct NetworkHandle {
     char thread_name[32] = {};
     int sockfd;
 
+    bool creating_package_to_send = true;
+    Package wip_package;
+
     void send(u8 *data, u32 data_len);
     void send(Package *package);
 };

@@ -32,23 +32,17 @@ i32 format(char *buffer, u32 size, FormatHint args, Package pkg) {
 
 #ifndef IMGUI_DISABLE
 void imgui_package_create(Package *package) {
-    static int type_current_id = 0;
+    int type_current_id = (u32) package->type;
     ImGui::Combo("", &type_current_id, package_type_list, IM_ARRAYSIZE(package_type_list));
     
     package->type = (PackageType) type_current_id;
     switch (package->type) {
     case PackageType::A:
-        static int a_a = 0;
-        ImGui::InputInt("a", &a_a);
-        package->A.a = a_a;
+        ImGui::InputInt("a", &package->A.a);
         break;
     case PackageType::B:
-        static int b_a = 0;
-        static int b_b = 0;
-        ImGui::InputInt("a", &b_a);
-        ImGui::InputInt("b", &b_b);
-        package->B.a = b_a;
-        package->B.b = b_b;
+        ImGui::InputInt("a", &package->B.a);
+        ImGui::InputInt("b", &package->B.b);
         break;
     default:
         ImGui::Text("Unknown package type %u", (u32) package->type);

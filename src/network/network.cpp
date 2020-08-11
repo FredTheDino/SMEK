@@ -195,6 +195,14 @@ void Network::imgui_draw() {
                 if (!handle->active) continue;
                 ImGui::PushID(i);
                 ImGui::Text("Active client handle, id=%u", handle->id);
+                if (handle->creating_package_to_send) {
+                    ImGui::Begin(handle->thread_name);
+                    imgui_package_create(&handle->wip_package);
+                    if (ImGui::Button("Send")) {
+                        handle->send(&handle->wip_package);
+                    }
+                    ImGui::End();
+                }
                 ImGui::PopID();
             }
 
@@ -222,10 +230,13 @@ void Network::imgui_draw() {
         }
         if (server_handle.active) {
             ImGui::Text("Connected to server, have id %u", server_handle.id);
-            Package package;
-            imgui_package_create(&package);
-            if (ImGui::Button("Send")) {
-                server_handle.send(&package);
+            if (server_handle.creating_package_to_send) {
+                ImGui::Begin(server_handle.thread_name);
+                imgui_package_create(&server_handle.wip_package);
+                if (ImGui::Button("Send")) {
+                    server_handle.send(&server_handle.wip_package);
+                }
+                ImGui::End();
             }
 
             if (ImGui::Button("Disconnect")) {
