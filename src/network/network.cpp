@@ -157,7 +157,7 @@ bool Network::connect_to_server(char *hostname, int portno) {
     serv_addr.sin_family = AF_INET;
     std::memcpy(&serv_addr.sin_addr.s_addr, server->h_addr, server->h_length);
     serv_addr.sin_port = htons(portno);
-    if (::connect(server_handle.sockfd, (sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
+    if (connect(server_handle.sockfd, (sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
         WARN("Unable to connect to server");
         return false;
     }
