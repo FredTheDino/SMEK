@@ -5,6 +5,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
+#include <forward_list>
 #include "SDL.h"
 
 #include "package.h"
@@ -23,6 +24,8 @@ struct NetworkHandle {
     bool creating_package_to_send = false;
     Package wip_package;
     WipEntities wip_entities;
+
+    std::forward_list<Package> package_log;
 
     void send(u8 *data, u32 data_len);
     void send(Package *package);

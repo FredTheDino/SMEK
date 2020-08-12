@@ -41,7 +41,8 @@ bool NetworkHandle::recv(u8 *buf, u32 data_len, Package *package) {
         WARN("{}: Did not read entire buffer, connection closed?", thread_name);
     } else {
         unpack(package, buf);
-        LOG("{}: {}", thread_name, *package);
+        package_log.push_front(*package);
+        LOG("{}: {}", thread_name, package_log.front());
         switch(package->type) {
         case PackageType::EVENT:
             GAMESTATE()->event_queue.push(package->EVENT.event);
@@ -292,6 +293,26 @@ void Network::imgui_draw() {
                 }
                 ImGui::End();
             }
+
+            if (ImGui::BeginChild("Package log", ImVec2(ImGui::GetWindowContentRegionWidth() * 0.5f, 160))) {
+                static int package_log_limit = 10;
+                ImGui::InputInt("Max packages shown", &package_log_limit);
+                int i = 0;
+                char buf[32] = {};
+                for (Package &package: server_handle.package_log) {
+                    ImGui::PushID(i);
+                    sntprint(buf, 32, "{}", package_type_list[(u32) package.type]);
+                    if (ImGui::Selectable(buf, false)) {
+                        LOG("{}", package);
+                    }
+                    if (++i == package_log_limit) {
+                        ImGui::PopID();
+                        break;
+                    }
+                    ImGui::PopID();
+                }
+            }
+            ImGui::EndChild();
 
             if (ImGui::Button("Disconnect")) {
                 disconnect_from_server();
