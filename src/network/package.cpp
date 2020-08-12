@@ -41,7 +41,7 @@ i32 format(char *buffer, u32 size, FormatHint args, Package pkg) {
         return snprintf(buffer, size, "Event: type=%0*u",
                         args.num_zero_pad, (u32) pkg.EVENT.event.type);
     default:
-        return snprintf(buffer, size, "Unknown package type");
+        return snprintf(buffer, size, "Not implemented for package type %u", (u32) pkg.type);
     }
 }
 
@@ -62,7 +62,7 @@ void imgui_package_create(Package *package, WipEntities *wip_entities) {
         imgui_event_create(package, wip_entities);
         break;
     default:
-        ImGui::Text("Unknown package type %u", (u32) package->type);
+        ImGui::Text("Not implemented for package type %u", (u32) package->type);
         break;
     }
 }
@@ -102,7 +102,7 @@ void imgui_package_show(Package *package) {
         ImGui::Text("B\n a=%d\n b=%d", package->B.a, package->B.b);
         break;
     default:
-        ImGui::Text("Unknown package type %u", (u32) package->type);
+        ImGui::Text("Not implemented for package type %u", (u32) package->type);
         break;
     }
 }
