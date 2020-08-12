@@ -2,10 +2,12 @@
 
 #include "../util/util.h"
 #include "../math/types.h"
+#include "../event.h"
 
 enum class PackageType {
     A,
     B,
+    EVENT,
 
     // Types below this line should not be creatable and thus not shown in the package type list.
 
@@ -17,6 +19,7 @@ enum class PackageType {
 static const char *package_type_list[] = {
     "A",
     "B",
+    // "Create event",
 };
 
 struct PackageA {
@@ -26,6 +29,10 @@ struct PackageA {
 struct PackageB {
     int b;
     int a;
+};
+
+struct PackageEvent {
+    Event event;
 };
 
 struct PackageSetClientID {
@@ -39,6 +46,7 @@ struct Package {
     union {
         PackageA A;
         PackageB B;
+        PackageEvent EVENT;
         PackageSetClientID SET_CLIENT_ID;
     };
 };

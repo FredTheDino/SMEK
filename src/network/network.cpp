@@ -42,6 +42,13 @@ bool NetworkHandle::recv(u8 *buf, u32 data_len, Package *package) {
     } else {
         unpack(package, buf);
         LOG("{}: {}", thread_name, *package);
+        switch(package->type) {
+        case PackageType::EVENT:
+            GAMESTATE()->event_queue.push(package->EVENT.event);
+            break;
+        default:
+            break;
+        }
         return true;
     }
     return false;
@@ -269,6 +276,19 @@ void Network::imgui_draw() {
                     server_handle.send(&server_handle.wip_package);
                 }
                 ImGui::End();
+
+                if (ImGui::Button("Send create light")) {
+                    static int i = 0;
+                    Light l;
+                    l.position.x = i++;
+                    l.color = Vec3(1.0, 1.0, 0.0);
+                    Package package;
+                    package.client = server_handle.client_id;
+                    package.id = server_handle.next_package_id++;
+                    package.type = PackageType::EVENT;
+                    package.EVENT.event = entity_event(l);
+                    server_handle.send(&package);
+                }
             }
 
             if (ImGui::Button("Disconnect")) {
