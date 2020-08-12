@@ -20,7 +20,7 @@ struct NetworkHandle {
     u32 client_id;
     u32 next_package_id = 0;
 
-    bool creating_package_to_send = true;
+    bool creating_package_to_send = false;
     Package wip_package;
     WipEntities wip_entities;
 

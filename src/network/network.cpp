@@ -235,7 +235,12 @@ void Network::imgui_draw() {
                 NetworkHandle *handle = client_handles + i;
                 if (!handle->active) continue;
                 ImGui::PushID(i);
-                ImGui::Text("Active client handle, id=%u", handle->client_id);
+                ImGui::AlignTextToFramePadding();
+                ImGui::Text(handle->thread_name);
+                ImGui::SameLine();
+                if (ImGui::Button("Send package")) {
+                    handle->creating_package_to_send = !handle->creating_package_to_send;
+                }
                 if (handle->creating_package_to_send) {
                     ImGui::Begin(handle->thread_name);
                     imgui_package_create(&handle->wip_package, &handle->wip_entities);
@@ -273,7 +278,12 @@ void Network::imgui_draw() {
             connect_to_server(ip, connectport);
         }
         if (server_handle.active) {
-            ImGui::Text("Connected to server, have id %u", server_handle.client_id);
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text(server_handle.thread_name);
+            ImGui::SameLine();
+            if (ImGui::Button("Send package")) {
+                server_handle.creating_package_to_send = !server_handle.creating_package_to_send;
+            }
             if (server_handle.creating_package_to_send) {
                 ImGui::Begin(server_handle.thread_name);
                 imgui_package_create(&server_handle.wip_package, &server_handle.wip_entities);
