@@ -275,13 +275,9 @@ void Network::imgui_draw() {
                 if (ImGui::Button("Send")) {
                     server_handle.send(&server_handle.wip_package);
                 }
-                ImGui::End();
-
+                static Light l;
+                l.imgui_create();
                 if (ImGui::Button("Send create light")) {
-                    static int i = 0;
-                    Light l;
-                    l.position.x = i++;
-                    l.color = Vec3(1.0, 1.0, 0.0);
                     Package package;
                     package.client = server_handle.client_id;
                     package.id = server_handle.next_package_id++;
@@ -289,6 +285,7 @@ void Network::imgui_draw() {
                     package.EVENT.event = entity_event(l);
                     server_handle.send(&package);
                 }
+                ImGui::End();
             }
 
             if (ImGui::Button("Disconnect")) {

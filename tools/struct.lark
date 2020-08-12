@@ -10,6 +10,7 @@ DERIVED_CLASS: ACCESS_MODIFIER? VIRTUAL? NAME
 
 _member: field
       | method
+      | ppif
       | struct
       | ";"
 
@@ -18,6 +19,8 @@ field: STATIC? CONST? TYPE POINTER* NAME ("[" INT? "]")? ("=" INITIALIZER_VALUE)
 method: VIRTUAL? (TYPE | DESTRUCTOR)? NAME "(" PARAMETERS? ")" OVERRIDE? "{" METHOD_BODY? "}" ";"?
       | VIRTUAL? (TYPE | DESTRUCTOR)? NAME "(" PARAMETERS? ")" OVERRIDE? ";"
       | VIRTUAL  (TYPE | DESTRUCTOR)? NAME "(" PARAMETERS? ")" "=" "0" ";"
+
+ppif: "#ifndef" /[^#endif]/* _member* /[^#endif]/* "#endif"
 
 PARAMETERS: PARAMETER ("," PARAMETER)*
 PARAMETER: TYPE NAME?
