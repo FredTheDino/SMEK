@@ -72,6 +72,7 @@ int start_server_handle(void *data) {
         }
     }
     close(handle->sockfd);
+    handle->wip_entities.free();
     return 0;
 }
 
@@ -91,6 +92,7 @@ int start_client_handle(void *data) {
         }
     }
     close(handle->sockfd);
+    handle->wip_entities.free();
     return 0;
 }
 
@@ -133,6 +135,7 @@ void Network::stop_server() {
     for (u32 i = 0; i < MAX_CLIENTS; i++) {
         if (client_handles[i].active) {
             client_handles[i].close();
+            client_handles[i].wip_entities.free();
         }
     }
     LOG("Server stopped");
@@ -162,6 +165,7 @@ bool Network::connect_to_server(char *hostname, int portno) {
         return false;
     }
     LOG("Connected");
+    server_handle.wip_entities.alloc();
     sntprint(server_handle.thread_name, sizeof(server_handle.thread_name), "ServerHandle");
     server_handle.thread = SDL_CreateThread(start_server_handle, "ServerHandle", (void *) &server_handle);
     if (!server_handle.thread) {
@@ -192,6 +196,7 @@ bool Network::new_client_handle(int newsockfd) {
         handle->sockfd = newsockfd;
         handle->client_id = next_handle_id++;
         handle->wip_package.client = handle->client_id;
+        handle->wip_entities.alloc();
         sntprint(handle->thread_name, sizeof(handle->thread_name), "ClientHandle {}", handle->client_id);
         handle->thread = SDL_CreateThread(start_client_handle, handle->thread_name, (void *) handle);
         if (!handle->thread) {
@@ -233,7 +238,7 @@ void Network::imgui_draw() {
                 ImGui::Text("Active client handle, id=%u", handle->client_id);
                 if (handle->creating_package_to_send) {
                     ImGui::Begin(handle->thread_name);
-                    imgui_package_create(&handle->wip_package);
+                    imgui_package_create(&handle->wip_package, &handle->wip_entities);
                     if (ImGui::Button("Send")) {
                         handle->send(&handle->wip_package);
                     }
@@ -271,19 +276,9 @@ void Network::imgui_draw() {
             ImGui::Text("Connected to server, have id %u", server_handle.client_id);
             if (server_handle.creating_package_to_send) {
                 ImGui::Begin(server_handle.thread_name);
-                imgui_package_create(&server_handle.wip_package);
+                imgui_package_create(&server_handle.wip_package, &server_handle.wip_entities);
                 if (ImGui::Button("Send")) {
                     server_handle.send(&server_handle.wip_package);
-                }
-                static Light l;
-                l.imgui_create();
-                if (ImGui::Button("Send create light")) {
-                    Package package;
-                    package.client = server_handle.client_id;
-                    package.id = server_handle.next_package_id++;
-                    package.type = PackageType::EVENT;
-                    package.EVENT.event = entity_event(l);
-                    server_handle.send(&package);
                 }
                 ImGui::End();
             }

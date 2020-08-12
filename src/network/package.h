@@ -19,7 +19,7 @@ enum class PackageType {
 static const char *package_type_list[] = {
     "A",
     "B",
-    // "Create event",
+    "Create event",
 };
 
 struct PackageA {
@@ -51,6 +51,14 @@ struct Package {
     };
 };
 
+struct WipEntities {
+    EntityType type;
+    Light *light;
+
+    void alloc();
+    void free();
+};
+
 void pack(u8 *into, Package *from);
 void unpack(Package *into, u8 *from);
 Package unpack(u8 *from);
@@ -59,5 +67,6 @@ i32 format(char *buffer, u32 size, FormatHint args, Package pkg);
 
 #ifndef IMGUI_DISABLE
 void imgui_package_show(Package *package);
-void imgui_package_create(Package *package);
+void imgui_entity_create(Light *light);
+void imgui_package_create(Package *package, WipEntities *wip_entities);
 #endif

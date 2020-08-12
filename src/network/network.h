@@ -22,6 +22,7 @@ struct NetworkHandle {
 
     bool creating_package_to_send = true;
     Package wip_package;
+    WipEntities wip_entities;
 
     void send(u8 *data, u32 data_len);
     void send(Package *package);
