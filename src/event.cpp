@@ -1,6 +1,5 @@
 #include "event.h"
 
-#include "entity/entity.h"
 #include "game.h"
 
 void handle_events() {

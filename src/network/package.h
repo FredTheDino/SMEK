@@ -69,4 +69,5 @@ i32 format(char *buffer, u32 size, FormatHint args, Package pkg);
 void imgui_package_show(Package *package);
 void imgui_entity_create(Light *light);
 void imgui_package_create(Package *package, WipEntities *wip_entities);
+void imgui_event_create(Package *package, WipEntities *wip_entities);
 #endif

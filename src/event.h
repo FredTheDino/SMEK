@@ -12,6 +12,10 @@ enum EventType {
     NUM_TYPES,
 };
 
+static const char *event_type_names[] = {
+    "CreateEntity",
+};
+
 struct Event {
     EventType type;
     union {
