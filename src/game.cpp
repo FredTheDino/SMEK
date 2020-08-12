@@ -81,7 +81,7 @@ void update() {
         GAMESTATE()->input.mouse_capture ^= 1;
     }
 
-    EventSystem::handle_events();
+    handle_events();
 
     // Debug camera movement, overwritten by player currently.
     if (GFX::current_camera() == GFX::debug_camera()) {

@@ -148,45 +148,45 @@ void EventCreateEntity::callback() {
  * Included from `tools/entity_types_event.cpp`
  */
 
-EventSystem::Event entity_event(BaseEntity entity) {
-    EventSystem::Event event = {
-        .type = EventSystem::EventType::CREATE_ENTITY,
+Event entity_event(BaseEntity entity) {
+    Event event = {
+        .type = EventType::CREATE_ENTITY,
         .CREATE_ENTITY = { .type = EntityType::BASEENTITY }
     };
     std::memcpy(event.CREATE_ENTITY.BASEENTITY, ((void *)&entity) + sizeof(void *), sizeof(BaseEntity) - sizeof(void *));
     return event;
 }
 
-EventSystem::Event entity_event(Entity entity) {
-    EventSystem::Event event = {
-        .type = EventSystem::EventType::CREATE_ENTITY,
+Event entity_event(Entity entity) {
+    Event event = {
+        .type = EventType::CREATE_ENTITY,
         .CREATE_ENTITY = { .type = EntityType::ENTITY }
     };
     std::memcpy(event.CREATE_ENTITY.ENTITY, ((void *)&entity) + sizeof(void *), sizeof(Entity) - sizeof(void *));
     return event;
 }
 
-EventSystem::Event entity_event(Light entity) {
-    EventSystem::Event event = {
-        .type = EventSystem::EventType::CREATE_ENTITY,
+Event entity_event(Light entity) {
+    Event event = {
+        .type = EventType::CREATE_ENTITY,
         .CREATE_ENTITY = { .type = EntityType::LIGHT }
     };
     std::memcpy(event.CREATE_ENTITY.LIGHT, ((void *)&entity) + sizeof(void *), sizeof(Light) - sizeof(void *));
     return event;
 }
 
-EventSystem::Event entity_event(Player entity) {
-    EventSystem::Event event = {
-        .type = EventSystem::EventType::CREATE_ENTITY,
+Event entity_event(Player entity) {
+    Event event = {
+        .type = EventType::CREATE_ENTITY,
         .CREATE_ENTITY = { .type = EntityType::PLAYER }
     };
     std::memcpy(event.CREATE_ENTITY.PLAYER, ((void *)&entity) + sizeof(void *), sizeof(Player) - sizeof(void *));
     return event;
 }
 
-EventSystem::Event entity_event(SoundEntity entity) {
-    EventSystem::Event event = {
-        .type = EventSystem::EventType::CREATE_ENTITY,
+Event entity_event(SoundEntity entity) {
+    Event event = {
+        .type = EventType::CREATE_ENTITY,
         .CREATE_ENTITY = { .type = EntityType::SOUNDENTITY }
     };
     std::memcpy(event.CREATE_ENTITY.SOUNDENTITY, ((void *)&entity) + sizeof(void *), sizeof(SoundEntity) - sizeof(void *));

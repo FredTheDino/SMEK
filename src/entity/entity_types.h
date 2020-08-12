@@ -77,12 +77,10 @@ struct EventCreateEntity {
     void callback();
 };
 
-namespace EventSystem {
 struct Event;
-}
 
-EventSystem::Event entity_event(BaseEntity);
-EventSystem::Event entity_event(Entity);
-EventSystem::Event entity_event(Light);
-EventSystem::Event entity_event(Player);
-EventSystem::Event entity_event(SoundEntity);
+Event entity_event(BaseEntity);
+Event entity_event(Entity);
+Event entity_event(Light);
+Event entity_event(Player);
+Event entity_event(SoundEntity);

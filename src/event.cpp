@@ -3,8 +3,6 @@
 #include "entity/entity.h"
 #include "game.h"
 
-namespace EventSystem {
-
 void handle_events() {
 #define HANDLE(NAME) \
     case NAME: e.NAME.callback(); break
@@ -21,5 +19,3 @@ void handle_events() {
     }
 #undef HANDLE
 }
-
-} // namespace EventSystem

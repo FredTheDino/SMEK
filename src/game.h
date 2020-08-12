@@ -24,7 +24,7 @@ struct GameState {
     Input::Input input = {};
     Audio::AudioStruct *audio_struct;
     EntitySystem entity_system;
-    std::queue<EventSystem::Event> event_queue;
+    std::queue<Event> event_queue;
     Network network = {};
 
     SDL_threadID main_thread;

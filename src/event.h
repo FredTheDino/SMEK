@@ -6,8 +6,6 @@
 #include "entity/entity.h"
 #include "entity/entity_types.h"
 
-namespace EventSystem {
-
 enum EventType {
     CREATE_ENTITY,
 
@@ -22,5 +20,3 @@ struct Event {
 };
 
 void handle_events();
-
-} // namespace EventSystem
