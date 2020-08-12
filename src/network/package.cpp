@@ -61,8 +61,6 @@ void imgui_package_create(Package *package, WipEntities *wip_entities) {
         break;
     case PackageType::EVENT: {
             //TODO(gu) not only EventCreateEntity
-            //TODO(gu) Actual solution for entity_type_names
-            const char *entity_type_names[] = { "BaseEntity", "Entity", "Light", "Player", "SoundEntity", };
             int entity_type_current_id = (u32) wip_entities->type;
             ImGui::Combo("Entity type", &entity_type_current_id, entity_type_names, IM_ARRAYSIZE(entity_type_names));
             wip_entities->type = (EntityType) entity_type_current_id;

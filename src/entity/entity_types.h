@@ -23,6 +23,14 @@ enum class EntityType {
     NUM_ENTITY_TYPES,
 };
 
+static const char *entity_type_names[] = {
+    "BaseEntity",
+    "Entity",
+    "Light",
+    "Player",
+    "SoundEntity"
+};
+
 i32 format(char *, u32, FormatHint, EntityType);
 
 struct Field {
