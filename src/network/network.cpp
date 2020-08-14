@@ -301,7 +301,12 @@ void Network::imgui_draw() {
                 char buf[32] = {};
                 for (Package &package: server_handle.package_log) {
                     ImGui::PushID(i);
-                    sntprint(buf, 32, "{}", package_type_list[(u32) package.type]);
+                    u32 package_type = (u32) package.type;
+                    if (package_type < IM_ARRAYSIZE(package_type_list)) {
+                        sntprint(buf, 32, "{}", package_type_list[(u32) package.type]);
+                    } else {
+                        sntprint(buf, 32, "(hidden)");
+                    }
                     if (ImGui::Selectable(buf, false)) {
                         LOG("{}", package);
                     }
