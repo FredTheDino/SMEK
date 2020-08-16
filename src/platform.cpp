@@ -83,12 +83,13 @@ bool load_gamelib() {
     }
 
     GameLibrary next_library = {};
+    dlerror(); // Clear all errors.
     void *tmp = dlopen(game_lib_path, RTLD_NOW);
     if (!tmp) {
+        WARN("Failed to open game lib: {}", dlerror());
         return false;
     }
 
-    dlerror(); // Clear all errors.
     dlsym(tmp, "init_game");
     if (const char *error = dlerror()) {
         dlclose(tmp);
