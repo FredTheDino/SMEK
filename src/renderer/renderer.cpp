@@ -603,6 +603,7 @@ Shader Shader::compile(const char *asset, const char *source) {
 
 Texture Texture::upload(u32 width, u32 height, u32 components, u8 *data, Sampling sampling) {
     u32 texture;
+#ifndef TESTS
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
 
@@ -623,7 +624,8 @@ Texture Texture::upload(u32 width, u32 height, u32 components, u8 *data, Samplin
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    return { texture };
+#endif
+    return { .texture_id=texture, .width=width, .height=height, .components=components };
 }
 
 void Texture::bind(u32 texture_slot) {
