@@ -16,6 +16,9 @@ enum class PackageType {
     NUM_TYPES,
 };
 
+// This has to match the order in the above package type enum.
+// Types not represented by a string here won't be creatable,
+// which is why creatable packages should be grouped at the top above.
 static const char *package_type_list[] = {
     "A",
     "B",
@@ -66,8 +69,7 @@ Package unpack(u8 *from);
 i32 format(char *buffer, u32 size, FormatHint args, Package pkg);
 
 #ifndef IMGUI_DISABLE
-void imgui_package_show(Package *package);
-void imgui_entity_create(Light *light);
 void imgui_package_create(Package *package, WipEntities *wip_entities);
 void imgui_event_create(Package *package, WipEntities *wip_entities);
+void imgui_package_show(Package *package);
 #endif

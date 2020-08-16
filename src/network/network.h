@@ -35,10 +35,10 @@ struct NetworkHandle {
 };
 
 struct ServerHandle : public NetworkHandle {};
-int start_server_handle(void *data);  // thread entry point
+int start_server_handle(void *data);  // thread entry point, takes a (ServerHandle *)
 
 struct ClientHandle : public NetworkHandle {};
-int start_client_handle(void *data);  // thread entry point
+int start_client_handle(void *data);  // thread entry point, takes a (ClientHandle *)
 
 struct Network {
     static const u32 MAX_CLIENTS = 2;
