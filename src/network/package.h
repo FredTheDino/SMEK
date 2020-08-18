@@ -42,10 +42,14 @@ struct PackageSetClientID {
     u32 id;
 };
 
-struct Package {
+struct PackageHeader {
     u32 client;
     u32 id;
     PackageType type;
+};
+
+struct Package {
+    PackageHeader header;
     union {
         PackageA A;
         PackageB B;

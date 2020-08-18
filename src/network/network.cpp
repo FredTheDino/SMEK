@@ -18,7 +18,7 @@ void NetworkHandle::send(u8 *data, u32 data_len) {
 
 void NetworkHandle::send(Package *package) {
     u8 buf[sizeof(Package)];
-    package->id = next_package_id++;
+    package->header.id = next_package_id++;
     pack(buf, package);
     send(buf, sizeof(Package));
 }
@@ -50,7 +50,7 @@ bool NetworkHandle::recv(u8 *buf, u32 data_len, Package *package) {
 
 void NetworkHandle::handle_package(Package *package) {
     LOG("{}: {}", thread_name, package_log.front());
-    switch(package->type) {
+    switch(package->header.type) {
     case PackageType::EVENT:
         GAMESTATE()->event_queue.push(package->EVENT.event);
         break;
@@ -66,10 +66,10 @@ int start_server_handle(void *data) {
     u8 buf[sizeof(Package)];
     while (handle->active) {
         if (handle->recv(buf, sizeof(buf), &package)) {
-            switch (package.type) {
+            switch (package.header.type) {
             case PackageType::SET_CLIENT_ID:
                 handle->client_id = package.SET_CLIENT_ID.id;
-                handle->wip_package.client = handle->client_id;
+                handle->wip_package.header.client = handle->client_id;
                 break;
             default:
                 break;
@@ -200,7 +200,7 @@ bool Network::new_client_handle(int newsockfd) {
         *handle = {};
         handle->sockfd = newsockfd;
         handle->client_id = next_handle_id++;
-        handle->wip_package.client = handle->client_id;
+        handle->wip_package.header.client = handle->client_id;
         handle->wip_entities.alloc();
         sntprint(handle->thread_name, sizeof(handle->thread_name), "ClientHandle {}", handle->client_id);
         handle->thread = SDL_CreateThread(start_client_handle, handle->thread_name, (void *) handle);
@@ -209,7 +209,7 @@ bool Network::new_client_handle(int newsockfd) {
             return false;
         }
         Package id_package;
-        id_package.type = PackageType::SET_CLIENT_ID;
+        id_package.header.type = PackageType::SET_CLIENT_ID;
         id_package.SET_CLIENT_ID.id = handle->client_id;
         handle->send(&id_package);
         return true;
@@ -274,7 +274,7 @@ void Network::imgui_draw() {
         static char ip[64] = "127.0.0.1";
         static int connectport = 8888;
         ImGui::SetNextItemWidth(150);
-        ImGui::InputText("server address", ip, IM_ARRAYSIZE(ip));
+        ImGui::InputText("server address", ip, LEN(ip));
         ImGui::SetNextItemWidth(150);
         ImGui::PushID(&connectport);
         ImGui::InputInt("port", &connectport);
@@ -305,9 +305,9 @@ void Network::imgui_draw() {
                 char buf[32] = {};
                 for (Package &package: server_handle.package_log) {
                     ImGui::PushID(i);
-                    u32 package_type = (u32) package.type;
-                    if (package_type < IM_ARRAYSIZE(package_type_list)) {
-                        sntprint(buf, 32, "{}", package_type_list[(u32) package.type]);
+                    u32 package_type = (u32) package.header.type;
+                    if (package_type < LEN(package_type_list)) {
+                        sntprint(buf, 32, "{}", package_type_list[(u32) package.header.type]);
                     } else {
                         sntprint(buf, 32, "(hidden)");
                     }
