@@ -47,7 +47,7 @@ i32 format(char *buffer, u32 size, FormatHint args, Package pkg) {
 
 #ifndef IMGUI_DISABLE
 void imgui_package_create(Package *package, WipEntities *wip_entities) {
-    int pkg_type_current_id = (u32) package->type;
+    int pkg_type_current_id = (int) package->type;
     ImGui::Combo("Package type", &pkg_type_current_id, package_type_list, IM_ARRAYSIZE(package_type_list));
     package->type = (PackageType) pkg_type_current_id;
     switch (package->type) {
@@ -68,12 +68,12 @@ void imgui_package_create(Package *package, WipEntities *wip_entities) {
 }
 
 void imgui_event_create(Package *package, WipEntities *wip_entities) {
-    int event_type_current_id = (u32) package->EVENT.event.type;
+    int event_type_current_id = (int) package->EVENT.event.type;
     ImGui::Combo("Event type", &event_type_current_id, event_type_names, IM_ARRAYSIZE(event_type_names));
     package->EVENT.event.type = (EventType) event_type_current_id;
     switch (package->EVENT.event.type) {
     case EventType::CREATE_ENTITY: {
-        int entity_type_current_id = (u32) wip_entities->type;
+        int entity_type_current_id = (int) wip_entities->type;
         ImGui::Combo("Entity type", &entity_type_current_id, entity_type_names, IM_ARRAYSIZE(entity_type_names));
         wip_entities->type = (EntityType) entity_type_current_id;
         switch (wip_entities->type) {
