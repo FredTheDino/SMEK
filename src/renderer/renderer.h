@@ -253,6 +253,11 @@ struct DebugShader: public Shader {
 struct Texture {
     u32 texture_id;
 
+    u32 width;
+    u32 height;
+    u32 components;
+
+
     enum class Sampling {
         LINEAR,
         NEAREST,

@@ -166,7 +166,7 @@ void draw() {
         GFX::push_line(Vec3(grid_size, 0, -x), Vec3(-grid_size, 0, -x), color, width);
     }
 
-    Asset::fetch_image("RGBA")->bind(0);
+    Asset::fetch_texture("RGBA")->bind(0);
     shader.upload_tex(0);
 
     GAMESTATE()->entity_system.draw();

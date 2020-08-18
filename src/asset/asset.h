@@ -55,19 +55,6 @@ struct AssetHeader {
     char *name;
 };
 
-///* Image
-struct Image {
-    // read from file
-    u32 width;
-    u32 height;
-    u32 components;
-    u8  *data;
-
-    u64 size() const {
-        return width * height * components;
-    }
-};
-
 ///* StringAsset
 struct StringAsset {
     // read from file
@@ -138,7 +125,7 @@ bool needs_reload(AssetID id);
 
 ///*
 // Fetch an image-asset.
-GFX::Texture *fetch_image(AssetID id);
+GFX::Texture *fetch_texture(AssetID id);
 
 ///*
 // Fetch a string asset.

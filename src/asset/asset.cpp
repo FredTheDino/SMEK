@@ -56,6 +56,7 @@ static void load_texture(UsableAsset *asset, FILE *file) {
                                           raw_image.components,
                                           data,
                                           GFX::Texture::Sampling::LINEAR);
+    delete[] data;
 }
 
 static void load_shader(UsableAsset *asset, FILE *file) {
@@ -147,7 +148,9 @@ static void load_animation(UsableAsset *asset, FILE *file) {
 }
 
 static void load_asset(UsableAsset *asset) {
+#ifndef TESTS
     ASSERT(GAMESTATE()->main_thread == SDL_GetThreadID(NULL), "Should only be called from main thread");
+#endif
 
     FILE *file = fopen(GAMESTATE()->asset_system.asset_path, "rb");
     defer { fclose(file); };
@@ -210,8 +213,8 @@ UsableAsset *_raw_fetch(AssetType type, AssetID id) {
     return asset;
 }
 
-GFX::Texture *fetch_image(AssetID id) {
-    return &_raw_fetch(AssetType::TEXTURE, id)->texture;
+GFX::Texture *fetch_texture(AssetID id) {
+  return &_raw_fetch(AssetType::TEXTURE, id)->texture;
 }
 
 StringAsset *fetch_string_asset(AssetID id) {
@@ -343,7 +346,7 @@ bool load(const char *path) {
 #include "../test.h"
 #include <cstring>
 
-#if 0
+#if 1
 TEST_CASE("asset text", {
     Asset::load("assets-tests.bin");
     AssetID id("ALPHABET");
@@ -357,14 +360,11 @@ TEST_CASE("asset 1x1x3 png white", {
     Asset::load("assets-tests.bin");
     AssetID id("ONE_BY_ONE_RGB_PNG_WHITE");
     if (!Asset::valid_asset(id)) return false;
-    Asset::Image *image = Asset::fetch_image(id);
+    GFX::Texture *image = Asset::fetch_texture(id);
 
     return image->width      == 1
         && image->height     == 1
         && image->components == 3
-        && image->data[0]    == 255
-        && image->data[1]    == 255
-        && image->data[2]    == 255
         ;
 });
 
@@ -372,7 +372,7 @@ TEST_CASE("asset 2x1x4 png", {
     Asset::load("assets-tests.bin");
     AssetID id("TWO_BY_ONE");
     if (!Asset::valid_asset(id)) return false;
-    Asset::Image *image = Asset::fetch_image(id);
+    GFX::Texture *image = Asset::fetch_texture(id);
 
     return image->width      == 2
         && image->height     == 1
@@ -384,7 +384,7 @@ TEST_CASE("asset 1x2x4 png", {
     Asset::load("assets-tests.bin");
     AssetID id("ONE_BY_TWO");
     if (!Asset::valid_asset(id)) return false;
-    Asset::Image *image = Asset::fetch_image(id);
+    GFX::Texture *image = Asset::fetch_texture(id);
 
     return image->width      == 1
         && image->height     == 2
@@ -396,15 +396,11 @@ TEST_CASE("asset 1x1x4 png white", {
     Asset::load("assets-tests.bin");
     AssetID id("ONE_BY_ONE_RGBA_PNG_WHITE");
     if (!Asset::valid_asset(id)) return false;
-    Asset::Image *image = Asset::fetch_image(id);
+    GFX::Texture *image = Asset::fetch_texture(id);
 
     return image->width      == 1
         && image->height     == 1
         && image->components == 4
-        && image->data[0]    == 255
-        && image->data[1]    == 255
-        && image->data[2]    == 255
-        && image->data[3]    == 255
         ;
 });
 
@@ -412,15 +408,11 @@ TEST_CASE("asset 1x1x4 png red", {
     Asset::load("assets-tests.bin");
     AssetID id("ONE_BY_ONE_RGBA_PNG_RED");
     if (!Asset::valid_asset(id)) return false;
-    Asset::Image *image = Asset::fetch_image(id);
+    GFX::Texture *image = Asset::fetch_texture(id);
 
     return image->width      == 1
         && image->height     == 1
         && image->components == 4
-        && image->data[0]    == 255
-        && image->data[1]    == 0
-        && image->data[2]    == 0
-        && image->data[3]    == 255
         ;
 });
 
@@ -428,15 +420,11 @@ TEST_CASE("asset 1x1x4 png green", {
     Asset::load("assets-tests.bin");
     AssetID id("ONE_BY_ONE_RGBA_PNG_GREEN");
     if (!Asset::valid_asset(id)) return false;
-    Asset::Image *image = Asset::fetch_image(id);
+    GFX::Texture *image = Asset::fetch_texture(id);
 
     return image->width      == 1
         && image->height     == 1
         && image->components == 4
-        && image->data[0]    == 0
-        && image->data[1]    == 255
-        && image->data[2]    == 0
-        && image->data[3]    == 255
         ;
 });
 
@@ -444,15 +432,11 @@ TEST_CASE("asset 1x1x4 png blue", {
     Asset::load("assets-tests.bin");
     AssetID id("ONE_BY_ONE_RGBA_PNG_BLUE");
     if (!Asset::valid_asset(id)) return false;
-    Asset::Image *image = Asset::fetch_image(id);
+    GFX::Texture *image = Asset::fetch_texture(id);
 
     return image->width      == 1
         && image->height     == 1
         && image->components == 4
-        && image->data[0]    == 0
-        && image->data[1]    == 0
-        && image->data[2]    == 255
-        && image->data[3]    == 255
         ;
 });
 
@@ -460,12 +444,11 @@ TEST_CASE("asset 1x1x4 png transparent", {
     Asset::load("assets-tests.bin");
     AssetID id("ONE_BY_ONE_RGBA_PNG_TRANS");
     if (!Asset::valid_asset(id)) return false;
-    Asset::Image *image = Asset::fetch_image(id);
+    GFX::Texture *image = Asset::fetch_texture(id);
 
     return image->width      == 1
         && image->height     == 1
         && image->components == 4
-        && image->data[3]    == 0
         ;
 });
 
@@ -473,14 +456,11 @@ TEST_CASE("asset 1x1x3 jpg white", {
     Asset::load("assets-tests.bin");
     AssetID id("ONE_BY_ONE_JPG_WHITE");
     if (!Asset::valid_asset(id)) return false;
-    Asset::Image *image = Asset::fetch_image(id);
+    GFX::Texture *image = Asset::fetch_texture(id);
 
     return image->width      == 1
         && image->height     == 1
         && image->components == 3
-        && image->data[0]    == 255
-        && image->data[1]    == 255
-        && image->data[2]    == 255
         ;
 });
 #endif
