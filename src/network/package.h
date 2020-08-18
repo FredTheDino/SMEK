@@ -10,10 +10,11 @@ enum class PackageType {
     EVENT,
 
     // Types below this line should not be creatable and thus not shown in the package type list.
+    _NUM_NAMED_TYPES,
 
     SET_CLIENT_ID,
 
-    NUM_TYPES,
+    _NUM_TYPES,
 };
 
 // This has to match the order in the above package type enum.
@@ -24,6 +25,9 @@ static const char *package_type_list[] = {
     "B",
     "Create event",
 };
+
+static_assert(!(LEN(package_type_list) < (u64) PackageType::_NUM_NAMED_TYPES), "Too few package type names");
+static_assert(!(LEN(package_type_list) > (u64) PackageType::_NUM_NAMED_TYPES), "Too many package type names");
 
 struct PackageA {
     int a;
