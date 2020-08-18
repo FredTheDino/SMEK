@@ -78,6 +78,6 @@ i32 format(char *buffer, u32 size, FormatHint args, Package pkg);
 
 #ifndef IMGUI_DISABLE
 void imgui_package_create(Package *package, WipEntities *wip_entities);
-void imgui_event_create(Package *package, WipEntities *wip_entities);
+void imgui_event_create(Event *event, WipEntities *wip_entities);
 void imgui_package_show(Package *package);
 #endif
