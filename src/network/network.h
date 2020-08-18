@@ -31,6 +31,8 @@ struct NetworkHandle {
     void send(Package *package);
     bool recv(u8 *buf, u32 data_len, Package *package);
 
+    void handle_package(Package *package);
+
     void close();
 };
 

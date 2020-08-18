@@ -32,27 +32,31 @@ void NetworkHandle::close() {
 
 bool NetworkHandle::recv(u8 *buf, u32 data_len, Package *package) {
     int n = read(sockfd, buf, data_len);
-    if (n == 0) {
+    if (n < 0) {
+        ERR("{}: Error reading from socket, errno={}", thread_name, errno);
+    } else if (n == 0) {
         LOG("{}: Connection closed", thread_name);
         active = false;
-    } else if (n < 0) {
-        ERR("{}: Error reading from socket, errno={}", thread_name, errno);
     } else if ((u32) n < data_len) {
         WARN("{}: Did not read entire buffer, connection closed?", thread_name);
     } else {
         unpack(package, buf);
         package_log.push_front(*package);
-        LOG("{}: {}", thread_name, package_log.front());
-        switch(package->type) {
-        case PackageType::EVENT:
-            GAMESTATE()->event_queue.push(package->EVENT.event);
-            break;
-        default:
-            break;
-        }
+        handle_package(package);
         return true;
     }
     return false;
+}
+
+void NetworkHandle::handle_package(Package *package) {
+    LOG("{}: {}", thread_name, package_log.front());
+    switch(package->type) {
+    case PackageType::EVENT:
+        GAMESTATE()->event_queue.push(package->EVENT.event);
+        break;
+    default:
+        break;
+    }
 }
 
 int start_server_handle(void *data) {
