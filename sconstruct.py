@@ -8,6 +8,23 @@ from collections import defaultdict
 from itertools import chain
 
 
+IMGUI_FILES_SRC = [
+        "vendor/imgui/imgui.cpp",
+        "vendor/imgui/imgui.h",
+        "vendor/imgui/imgui_demo.cpp",
+        "vendor/imgui/imgui_draw.cpp",
+        "vendor/imgui/examples/imgui_impl_opengl3.cpp",
+        "vendor/imgui/examples/imgui_impl_opengl3.h",
+        "vendor/imgui/examples/imgui_impl_sdl.cpp",
+        "vendor/imgui/examples/imgui_impl_sdl.h",
+        "vendor/imgui/imgui_internal.h",
+        "vendor/imgui/imgui_widgets.cpp",
+        "vendor/imgui/imstb_rectpack.h",
+        "vendor/imgui/imstb_textedit.h",
+        "vendor/imgui/imstb_truetype.h",
+        ]
+
+
 def shell(command):
     """Runs a command as if it were in the shell."""
     proc = Popen(command, stdout=PIPE)
@@ -146,9 +163,6 @@ if GetOption("windows"):
 
 smek_dir += "/"
 
-if GetOption("no_imgui"):
-    env.Append(CPPDEFINES="IMGUI_DISABLE")
-
 VariantDir(smek_dir, "src", duplicate=0)
 
 tests_dir = smek_dir + "tests/"
@@ -184,6 +198,14 @@ Execute("./tools/typesystem-gen.py")  # creates `src/entity/entity_types.{cpp,h}
 source = glob("src/**/*.c*", recursive=True)
 
 imgui = env.Object(smek_dir + "imgui.cpp")
+if GetOption("no_imgui"):
+    env.Append(CPPDEFINES="IMGUI_DISABLE")
+else:
+    imgui_files_dest = [f"inc/imgui/{f.split('/')[-1]}" for f in IMGUI_FILES_SRC]
+    for src, dest in zip(IMGUI_FILES_SRC, imgui_files_dest):
+        Command(dest, src, Copy(dest, src))
+        Depends(imgui, dest)
+
 glad = env.Object(smek_dir + "glad.cpp")
 if GetOption("jumbo"):
     jumbo_source = source.copy()
