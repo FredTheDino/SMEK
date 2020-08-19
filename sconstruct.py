@@ -294,8 +294,6 @@ AlwaysBuild(docs)
 if GetOption("tags"):
     shell(["ctags", "-R", "src"])
 
-
-env.Clean(smek_target, glob("bin/**/*.o", recursive=True))  # always remove *.o
-env.Clean(tests, glob("bin/**/*.o", recursive=True))  # always remove *.o
+env.Clean(smek_target, glob("bin/**/*.*", recursive=True))
+env.Clean(tests, glob("bin/**/*.*", recursive=True))
 env.Clean(docs, "docs/index.html")
-
