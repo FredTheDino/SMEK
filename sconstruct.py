@@ -8,6 +8,23 @@ from collections import defaultdict
 from itertools import chain
 
 
+IMGUI_FILES_SRC = [
+        "vendor/imgui/imgui.cpp",
+        "vendor/imgui/imgui.h",
+        "vendor/imgui/imgui_demo.cpp",
+        "vendor/imgui/imgui_draw.cpp",
+        "vendor/imgui/examples/imgui_impl_opengl3.cpp",
+        "vendor/imgui/examples/imgui_impl_opengl3.h",
+        "vendor/imgui/examples/imgui_impl_sdl.cpp",
+        "vendor/imgui/examples/imgui_impl_sdl.h",
+        "vendor/imgui/imgui_internal.h",
+        "vendor/imgui/imgui_widgets.cpp",
+        "vendor/imgui/imstb_rectpack.h",
+        "vendor/imgui/imstb_textedit.h",
+        "vendor/imgui/imstb_truetype.h",
+        ]
+
+
 def shell(command):
     """Runs a command as if it were in the shell."""
     proc = Popen(command, stdout=PIPE)
@@ -146,9 +163,6 @@ if GetOption("windows"):
 
 smek_dir += "/"
 
-if GetOption("no_imgui"):
-    env.Append(CPPDEFINES="IMGUI_DISABLE")
-
 VariantDir(smek_dir, "src", duplicate=0)
 
 tests_dir = smek_dir + "tests/"
@@ -166,7 +180,7 @@ def all_asset_targets(build_dir):
         elif f.startswith("res/tests/"):
             continue
         else:
-            asset_files["{}-{}".format("assets", "-".join(f.split("/")[1:-1]))].append(f)
+            asset_files["{}-{}".format("assets", "-".join(os.path.normcase(f).split("/")[1:-1]))].append(f)
     assets = [env.Assets(build_dir + "assets.bin", global_asset_files)]
     for out_file, files in asset_files.items():
         assets.append(env.Assets(build_dir + out_file + ".bin", files))
@@ -184,6 +198,14 @@ Execute("./tools/typesystem-gen.py")  # creates `src/entity/entity_types.{cpp,h}
 source = glob("src/**/*.c*", recursive=True)
 
 imgui = env.Object(smek_dir + "imgui.cpp")
+if GetOption("no_imgui"):
+    env.Append(CPPDEFINES="IMGUI_DISABLE")
+
+imgui_files_dest = [f"inc/imgui/{os.path.basename(f)}" for f in IMGUI_FILES_SRC]
+for src, dest in zip(IMGUI_FILES_SRC, imgui_files_dest):
+    Command(dest, src, Copy(dest, src))
+    Depends(imgui, dest)
+
 glad = env.Object(smek_dir + "glad.cpp")
 if GetOption("jumbo"):
     jumbo_source = source.copy()
@@ -232,10 +254,11 @@ tests_env.Append(CPPDEFINES="TESTS")
 tests_env.Append(CPPDEFINES="IMGUI_DISABLE")
 if GetOption("jumbo"):
     tests_env.Append(CXXFLAGS=list(chain(("-include", s) for s in source if "imgui" not in s and "test" not in s)))
-    tests_source = [tests_dir + "test.cpp"]
+    tests_objs = [tests_env.Object(tests_dir + "test.cpp")]
+    Depends(tests_objs[0], Command("inc/imgui/imgui.h", "vendor/imgui/imgui.h", Copy("inc/imgui/imgui.h", "vendor/imgui/imgui.h")))
 else:
-    tests_source = [re.sub("^src/", tests_dir, f) for f in source]
-tests = tests_env.Program(target=tests_dir + "tests", source=tests_source)
+    tests_objs = [tests_env.Object(re.sub("^src/", tests_dir, f)) for f in source]
+tests = tests_env.Program(target=tests_dir + "tests", source=tests_objs)
 
 zip_name = "smek"
 if GetOption("windows") or is_windows():
