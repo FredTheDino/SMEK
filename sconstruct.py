@@ -15,6 +15,8 @@ CPPSTD = "c++20"
 
 BIN_DIR = "bin/"
 
+reload_action = Action("(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
+
 IMGUI_FILES_SRC = [
         "vendor/imgui/imgui.cpp",
         "vendor/imgui/imgui.h",
@@ -193,7 +195,7 @@ tests_assets = env.Assets(tests_dir + "assets-tests.bin", glob("res/tests/*.*"))
 assets = all_asset_targets(smek_dir)
 env.Alias("assets", assets)
 if native and PLATFORMS["linux"]:
-    AddPostAction(assets, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
+    AddPostAction(assets, reload_action)
 
 #TODO(gu) don't execute on clean
 Execute("./tools/typesystem-gen.py")  # creates `src/entity/entity_types.{cpp,h}` so has to be run before the glob
@@ -234,16 +236,15 @@ else:
     smek = env.Program(smek_dir + "SMEK", [*platform_source, glad, imgui])
 
 if native and PLATFORMS["linux"]:
-    AddPostAction(libsmek, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
+    AddPostAction(libsmek, reload_action)
 smek_target = env.Alias("smek", smek)
 Depends(smek_target, assets)
 Depends(smek_target, libsmek)
 Depends(smek_target, smek)
+Default(smek_target)
 
 if GetOption("gen_compilation_db"):
     Depends(smek_target, compd)
-
-Default(smek_target)
 
 tests_runtime_flags = []
 if GetOption("ci"):
