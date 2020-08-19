@@ -8,6 +8,11 @@ from collections import defaultdict
 from itertools import chain
 
 
+DEBUG_FLAGS = ["-ggdb", "-O0", "-DDEBUG"]
+RELEASE_FLAGS = ["-O2", "-DRELEASE"]
+WARNINGS = "-Wall -Wno-unused -Wno-format-security -Wno-invalid-offsetof -Wno-class-memaccess -Wno-pointer-arith"
+CPPSTD = "c++20"
+
 IMGUI_FILES_SRC = [
         "vendor/imgui/imgui.cpp",
         "vendor/imgui/imgui.h",
@@ -124,7 +129,8 @@ else:
         smek_game_lib = "./libSMEK.so"
         env.Replace(SHLIBSUFFIX="so")
 
-env.MergeFlags("-Wall -Wno-unused -Wno-format-security -Wno-invalid-offsetof -Wno-class-memaccess -Wno-pointer-arith -std=c++20")
+env.MergeFlags(WARNINGS)
+env.MergeFlags(f"-std={CPPSTD}")
 env.MergeFlags("-Iinc -Llib")
 env.Append(LIBS="dl")
 env.Append(CPPDEFINES="IMGUI_IMPL_OPENGL_LOADER_GLAD")
@@ -152,15 +158,12 @@ if GetOption("no_color"):
 
 smek_dir = "bin/"
 
-debug_flags = ["-ggdb", "-O0", "-DDEBUG"]
-release_flags = ["-O2", "-DRELEASE"]
 if GetOption("release"):
     smek_dir += "release"
-    env.Append(CXXFLAGS=release_flags)
+    env.Append(CXXFLAGS=RELEASE_FLAGS)
 else:
     smek_dir += "debug"
-    env.Append(CXXFLAGS=debug_flags)
-
+    env.Append(CXXFLAGS=DEBUG_FLAGS)
 if GetOption("windows"):
     smek_dir += "-windows"
 
