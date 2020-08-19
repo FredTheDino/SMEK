@@ -147,15 +147,13 @@ void SoundEntity::on_remove() {
     GAMESTATE()->audio_struct->stop_sound(audio_id);
 }
 
-bool EntitySystem::valid(EntityID id) {
-    return entities.count(id);
-}
+bool EntitySystem::is_valid(EntityID id) { return entities.count(id); }
 
 void EntitySystem::remove(EntityID id) {
-    ASSERT(valid(id), "Cannot remove entity that doesn't exist");
-    entities[id]->on_remove();
-    delete entities[id];
-    entities.erase(id);
+  ASSERT(is_valid(id), "Cannot remove entity that doesn't exist");
+  entities[id]->on_remove();
+  delete entities[id];
+  entities.erase(id);
 }
 
 void EntitySystem::update() {

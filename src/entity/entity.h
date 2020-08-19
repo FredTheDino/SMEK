@@ -71,7 +71,7 @@ struct EntitySystem {
     EntityID next_id;
     std::unordered_map<u64, BaseEntity*> entities;
 
-    bool valid(EntityID id);
+    bool is_valid(EntityID id);
 
     template<typename E>
     EntityID add(E entity);
@@ -87,14 +87,14 @@ struct EntitySystem {
 
 template<typename E>
 E *EntitySystem::fetch(EntityID id) {
-    ASSERT(valid(id), "Cannot fetch entity that doesn't exist");
-    return dynamic_cast<E*>(entities[id]);
+  ASSERT(is_valid(id), "Cannot fetch entity that doesn't exist");
+  return dynamic_cast<E *>(entities[id]);
 }
 
 template<typename E>
 EntityID EntitySystem::add(E entity) {
     EntityID id = next_id++;
-    ASSERT(!valid(id), "Adding multiple entity ids for one id");
+    ASSERT(!is_valid(id), "Adding multiple entity ids for one id");
     E *e = new E();
     *e = entity;
     e->type = type_of(e);
