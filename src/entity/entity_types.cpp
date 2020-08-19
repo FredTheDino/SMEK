@@ -5,7 +5,6 @@
 #include "entity_types.h"
 #include "entity.h"
 
-
 #include <cstring>
 #include <stddef.h>
 #include "../event.h"
@@ -13,12 +12,12 @@
 
 i32 format(char *buffer, u32 size, FormatHint args, EntityType type) {
     switch (type) {
-        case EntityType::BASEENTITY: return snprintf(buffer, size, "BaseEntity");
-        case EntityType::ENTITY: return snprintf(buffer, size, "Entity");
-        case EntityType::LIGHT: return snprintf(buffer, size, "Light");
-        case EntityType::PLAYER: return snprintf(buffer, size, "Player");
-        case EntityType::SOUNDENTITY: return snprintf(buffer, size, "SoundEntity");
-        default: UNREACHABLE("Unknown entity type");
+    case EntityType::BASEENTITY: return snprintf(buffer, size, "BaseEntity");
+    case EntityType::ENTITY: return snprintf(buffer, size, "Entity");
+    case EntityType::LIGHT: return snprintf(buffer, size, "Light");
+    case EntityType::PLAYER: return snprintf(buffer, size, "Player");
+    case EntityType::SOUNDENTITY: return snprintf(buffer, size, "SoundEntity");
+    default: UNREACHABLE("Unknown entity type");
     }
     return 0;
 }
@@ -59,14 +58,14 @@ Field gen_SoundEntity[] = {
 
 FieldList get_fields_for(EntityType type) {
     switch (type) {
-        case EntityType::BASEENTITY: return { LEN(gen_BaseEntity), gen_BaseEntity };
-        case EntityType::ENTITY: return { LEN(gen_Entity), gen_Entity };
-        case EntityType::LIGHT: return { LEN(gen_Light), gen_Light };
-        case EntityType::PLAYER: return { LEN(gen_Player), gen_Player };
-        case EntityType::SOUNDENTITY: return { LEN(gen_SoundEntity), gen_SoundEntity };
-        default:
-            UNREACHABLE("Unknown entity type");
-            return {};
+    case EntityType::BASEENTITY: return { LEN(gen_BaseEntity), gen_BaseEntity };
+    case EntityType::ENTITY: return { LEN(gen_Entity), gen_Entity };
+    case EntityType::LIGHT: return { LEN(gen_Light), gen_Light };
+    case EntityType::PLAYER: return { LEN(gen_Player), gen_Player };
+    case EntityType::SOUNDENTITY: return { LEN(gen_SoundEntity), gen_SoundEntity };
+    default:
+        UNREACHABLE("Unknown entity type");
+        return {};
     }
 }
 
@@ -94,7 +93,6 @@ EntityType type_of(SoundEntity *e) {
     return EntityType::SOUNDENTITY;
 }
 
-
 /*
  * End of `tools/entity_types_type_of.cpp`
  */
@@ -105,40 +103,40 @@ EntityType type_of(SoundEntity *e) {
 
 void EventCreateEntity::callback() {
     switch (type) {
-        case EntityType::BASEENTITY: {
-            BaseEntity entity;
-            std::memcpy(((void *) &entity) + sizeof(void *), BASEENTITY, sizeof(BaseEntity) - sizeof(void *));
-            GAMESTATE()->entity_system.add(entity);
-            break;
-        }
-        case EntityType::ENTITY: {
-            Entity entity;
-            std::memcpy(((void *) &entity) + sizeof(void *), ENTITY, sizeof(Entity) - sizeof(void *));
-            GAMESTATE()->entity_system.add(entity);
-            break;
-        }
-        case EntityType::LIGHT: {
-            Light entity;
-            std::memcpy(((void *) &entity) + sizeof(void *), LIGHT, sizeof(Light) - sizeof(void *));
-            GAMESTATE()->entity_system.add(entity);
-            break;
-        }
-        case EntityType::PLAYER: {
-            Player entity;
-            std::memcpy(((void *) &entity) + sizeof(void *), PLAYER, sizeof(Player) - sizeof(void *));
-            GAMESTATE()->entity_system.add(entity);
-            break;
-        }
-        case EntityType::SOUNDENTITY: {
-            SoundEntity entity;
-            std::memcpy(((void *) &entity) + sizeof(void *), SOUNDENTITY, sizeof(SoundEntity) - sizeof(void *));
-            GAMESTATE()->entity_system.add(entity);
-            break;
-        }
+    case EntityType::BASEENTITY: {
+        BaseEntity entity;
+        std::memcpy(((void *)&entity) + sizeof(void *), BASEENTITY, sizeof(BaseEntity) - sizeof(void *));
+        GAMESTATE()->entity_system.add(entity);
+        break;
+    }
+    case EntityType::ENTITY: {
+        Entity entity;
+        std::memcpy(((void *)&entity) + sizeof(void *), ENTITY, sizeof(Entity) - sizeof(void *));
+        GAMESTATE()->entity_system.add(entity);
+        break;
+    }
+    case EntityType::LIGHT: {
+        Light entity;
+        std::memcpy(((void *)&entity) + sizeof(void *), LIGHT, sizeof(Light) - sizeof(void *));
+        GAMESTATE()->entity_system.add(entity);
+        break;
+    }
+    case EntityType::PLAYER: {
+        Player entity;
+        std::memcpy(((void *)&entity) + sizeof(void *), PLAYER, sizeof(Player) - sizeof(void *));
+        GAMESTATE()->entity_system.add(entity);
+        break;
+    }
+    case EntityType::SOUNDENTITY: {
+        SoundEntity entity;
+        std::memcpy(((void *)&entity) + sizeof(void *), SOUNDENTITY, sizeof(SoundEntity) - sizeof(void *));
+        GAMESTATE()->entity_system.add(entity);
+        break;
+    }
 
-        default:
-            UNREACHABLE("Unknown entity type");
-            break;
+    default:
+        UNREACHABLE("Unknown entity type");
+        break;
     }
 }
 
@@ -155,7 +153,7 @@ EventSystem::Event entity_event(BaseEntity entity) {
         .type = EventSystem::EventType::CREATE_ENTITY,
         .CREATE_ENTITY = { .type = EntityType::BASEENTITY }
     };
-    std::memcpy(event.CREATE_ENTITY.BASEENTITY, ((void *) &entity) + sizeof(void *), sizeof(BaseEntity) - sizeof(void *));
+    std::memcpy(event.CREATE_ENTITY.BASEENTITY, ((void *)&entity) + sizeof(void *), sizeof(BaseEntity) - sizeof(void *));
     return event;
 }
 
@@ -164,7 +162,7 @@ EventSystem::Event entity_event(Entity entity) {
         .type = EventSystem::EventType::CREATE_ENTITY,
         .CREATE_ENTITY = { .type = EntityType::ENTITY }
     };
-    std::memcpy(event.CREATE_ENTITY.ENTITY, ((void *) &entity) + sizeof(void *), sizeof(Entity) - sizeof(void *));
+    std::memcpy(event.CREATE_ENTITY.ENTITY, ((void *)&entity) + sizeof(void *), sizeof(Entity) - sizeof(void *));
     return event;
 }
 
@@ -173,7 +171,7 @@ EventSystem::Event entity_event(Light entity) {
         .type = EventSystem::EventType::CREATE_ENTITY,
         .CREATE_ENTITY = { .type = EntityType::LIGHT }
     };
-    std::memcpy(event.CREATE_ENTITY.LIGHT, ((void *) &entity) + sizeof(void *), sizeof(Light) - sizeof(void *));
+    std::memcpy(event.CREATE_ENTITY.LIGHT, ((void *)&entity) + sizeof(void *), sizeof(Light) - sizeof(void *));
     return event;
 }
 
@@ -182,7 +180,7 @@ EventSystem::Event entity_event(Player entity) {
         .type = EventSystem::EventType::CREATE_ENTITY,
         .CREATE_ENTITY = { .type = EntityType::PLAYER }
     };
-    std::memcpy(event.CREATE_ENTITY.PLAYER, ((void *) &entity) + sizeof(void *), sizeof(Player) - sizeof(void *));
+    std::memcpy(event.CREATE_ENTITY.PLAYER, ((void *)&entity) + sizeof(void *), sizeof(Player) - sizeof(void *));
     return event;
 }
 
@@ -191,10 +189,9 @@ EventSystem::Event entity_event(SoundEntity entity) {
         .type = EventSystem::EventType::CREATE_ENTITY,
         .CREATE_ENTITY = { .type = EntityType::SOUNDENTITY }
     };
-    std::memcpy(event.CREATE_ENTITY.SOUNDENTITY, ((void *) &entity) + sizeof(void *), sizeof(SoundEntity) - sizeof(void *));
+    std::memcpy(event.CREATE_ENTITY.SOUNDENTITY, ((void *)&entity) + sizeof(void *), sizeof(SoundEntity) - sizeof(void *));
     return event;
 }
-
 
 /*
  * End of `tools/entity_types_event.cpp`

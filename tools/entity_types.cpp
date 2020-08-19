@@ -5,7 +5,6 @@
 #include "entity_types.h"
 #include "entity.h"
 
-
 #include <cstring>
 #include <stddef.h>
 #include "../event.h"
@@ -14,7 +13,7 @@
 i32 format(char *buffer, u32 size, FormatHint args, EntityType type) {
     switch (type) {
 $type_formats
-        default: UNREACHABLE("Unknown entity type");
+    default: UNREACHABLE("Unknown entity type");
     }
     return 0;
 }
@@ -23,10 +22,10 @@ $fields_data
 
 FieldList get_fields_for(EntityType type) {
     switch (type) {
-        $fields_switch
-        default:
-            UNREACHABLE("Unknown entity type");
-            return {};
+$fields_switch
+    default:
+        UNREACHABLE("Unknown entity type");
+        return {};
     }
 }
 
@@ -35,7 +34,6 @@ FieldList get_fields_for(EntityType type) {
  */
 
 $type_ofs
-
 /*
  * End of `tools/entity_types_type_of.cpp`
  */
@@ -47,9 +45,9 @@ $type_ofs
 void EventCreateEntity::callback() {
     switch (type) {
 $callbacks
-        default:
-            UNREACHABLE("Unknown entity type");
-            break;
+    default:
+        UNREACHABLE("Unknown entity type");
+        break;
     }
 }
 
@@ -62,7 +60,6 @@ $callbacks
  */
 
 $entity_events
-
 /*
  * End of `tools/entity_types_event.cpp`
  */
