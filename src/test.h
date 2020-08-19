@@ -37,28 +37,29 @@
 #include "util/util.h"
 #include "game.h"
 
-#define PP_CAT(a, b) PP_CAT_I(a, b)
-#define PP_CAT_I(a, b) PP_CAT_II(a ## b)
+#define PP_CAT(a, b)   PP_CAT_I(a, b)
+#define PP_CAT_I(a, b) PP_CAT_II(a##b)
 #define PP_CAT_II(res) res
 
 #define UNIQUE_NAME(base) PP_CAT(PP_CAT(base, __LINE__), __COUNTER__)
 
-#define TEST_CASE(name, block) static int UNIQUE_NAME(_test_id_) = reg_test((name), [](GameState *game, FILE *report) -> bool block, __FILE__, __LINE__)
-#define TEST_STMT(name, stmt) static int UNIQUE_NAME(_test_id_) = reg_test((name), [](GameState *game, FILE *report) -> bool { return stmt; }, __FILE__, __LINE__)
-typedef bool(*TestCallback)(GameState *game, FILE *report);
+#define TEST_CASE(name, block) static int UNIQUE_NAME(_test_id_) = reg_test((name), [](GameState * game, FILE * report) -> bool block, __FILE__, __LINE__)
+#define TEST_STMT(name, stmt)  static int UNIQUE_NAME(_test_id_) = reg_test((name), [](GameState *game, FILE *report) -> bool { return stmt; }, __FILE__, __LINE__)
+typedef bool (*TestCallback)(GameState *game, FILE *report);
 
-#define TEST_FORMAT(IN, EXPECTED, ...) TEST_CASE("format " STR(IN), {   \
-    char buffer[64] = {};                                               \
-    format(buffer, 64, { __VA_ARGS__ }, IN);                            \
-    const char *expected = EXPECTED;                                    \
-    if (std::strcmp(buffer, expected) != 0) {                           \
-        LOG_TESTS("got '{}', expected '{}'", buffer, expected);         \
-        return false;                                                   \
-    }                                                                   \
-    return true;                                                        \
+#define TEST_FORMAT(IN, EXPECTED, ...) TEST_CASE("format " STR(IN), { \
+    char buffer[64] = {};                                             \
+    format(buffer, 64, { __VA_ARGS__ }, IN);                          \
+    const char *expected = EXPECTED;                                  \
+    if (std::strcmp(buffer, expected) != 0) {                         \
+        LOG_TESTS("got '{}', expected '{}'", buffer, expected);       \
+        return false;                                                 \
+    }                                                                 \
+    return true;                                                      \
 })
 
-#define LOG_TESTS(msg, ...) if (report) { ftprint(report, msg "\n", ##__VA_ARGS__); }  // matches the normal LOG
+#define LOG_TESTS(msg, ...) \
+    if (report) { ftprint(report, msg "\n", ##__VA_ARGS__); } // matches the normal LOG
 
 int reg_test(const char *name, TestCallback func, const char *file, unsigned int line);
 
@@ -101,4 +102,4 @@ LOG_TESTS(msg, ...)
 
 #endif
 
-#endif  // ifdef TESTS
+#endif // ifdef TESTS

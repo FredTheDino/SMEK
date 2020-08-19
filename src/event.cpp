@@ -6,7 +6,8 @@
 namespace EventSystem {
 
 void handle_events() {
-#define HANDLE(NAME) case NAME: e.NAME.callback(); break
+#define HANDLE(NAME) \
+    case NAME: e.NAME.callback(); break
     GameState *state = GAMESTATE();
     Event e = {};
     while (!state->event_queue.empty()) {
@@ -14,11 +15,11 @@ void handle_events() {
         state->event_queue.pop();
         switch (e.type) {
             HANDLE(CREATE_ENTITY);
-            default:
-                ERR("Unkown event type {}", e.type);
+        default:
+            ERR("Unkown event type {}", e.type);
         }
     }
 #undef HANDLE
 }
 
-}  // namespace EventSystem
+} // namespace EventSystem

@@ -27,7 +27,7 @@ struct BaseEntity {
     EntityType type;
 };
 
-struct SoundEntity: public BaseEntity {
+struct SoundEntity : public BaseEntity {
     AssetID asset_id;
     Audio::SoundSourceSettings sound_source_settings;
 
@@ -39,7 +39,7 @@ struct SoundEntity: public BaseEntity {
     void on_remove() override;
 };
 
-struct Entity: public BaseEntity {
+struct Entity : public BaseEntity {
     Vec3 position;
     Vec3 scale;
     Quat rotation;
@@ -47,7 +47,7 @@ struct Entity: public BaseEntity {
 
 // NOTE(ed): It might be more practical if
 // "Light" is an "Entity"
-struct Light: public BaseEntity {
+struct Light : public BaseEntity {
     static const int NONE = -1;
 
     i32 light_id = NONE;
@@ -60,7 +60,7 @@ struct Light: public BaseEntity {
     void on_remove() override;
 };
 
-struct Player: public Entity {
+struct Player : public Entity {
     Vec3 velocity;
 
     void update() override;
@@ -69,11 +69,11 @@ struct Player: public Entity {
 
 struct EntitySystem {
     EntityID next_id;
-    std::unordered_map<u64, BaseEntity*> entities;
+    std::unordered_map<u64, BaseEntity *> entities;
 
     bool is_valid(EntityID id);
 
-    template<typename E>
+    template <typename E>
     EntityID add(E entity);
 
     void remove(EntityID entity);
@@ -81,24 +81,24 @@ struct EntitySystem {
     void draw();
     void update();
 
-    template<typename E>
+    template <typename E>
     E *fetch(EntityID id);
 };
 
-template<typename E>
+template <typename E>
 E *EntitySystem::fetch(EntityID id) {
     ASSERT(is_valid(id), "Cannot fetch entity that doesn't exist");
     return dynamic_cast<E *>(entities[id]);
 }
 
-template<typename E>
+template <typename E>
 EntityID EntitySystem::add(E entity) {
     EntityID id = next_id++;
     ASSERT(!is_valid(id), "Adding multiple entity ids for one id");
     E *e = new E();
     *e = entity;
     e->type = type_of(e);
-    entities[id] = (BaseEntity *) e;
+    entities[id] = (BaseEntity *)e;
     e->on_create();
     return id;
 }

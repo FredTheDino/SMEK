@@ -89,5 +89,4 @@ real to_degrees(real radians) {
     return radians * 180 / PI;
 }
 
-
 } // namespace Math

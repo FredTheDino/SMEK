@@ -56,7 +56,7 @@ GameState *GAMESTATE();
 // things like that. The gamestate is expected to have
 // a GLContext on it.
 extern "C" void init_game(GameState *gamestate, int width, int height);
-typedef void(*GameInitFunc)(GameState *, int, int);
+typedef void (*GameInitFunc)(GameState *, int, int);
 
 enum class GameStateUpdateMode {
     RENDER,
@@ -77,10 +77,10 @@ bool should_draw(GSUM gsmu);
 // things on the global game state you should, but this is useful
 // for certain callbacks and opengl function pointers.
 extern "C" void reload_game(GameState *gamestate);
-typedef void(*GameReloadFunc)(GameState *);
+typedef void (*GameReloadFunc)(GameState *);
 
 ///*
 // Steps the game one frame forward. Doesn't have side-effects
 // outside of the GameState object, but the new one is returned.
-extern "C" GameState update_game(GameState *gamestate, GSUM mode=GSUM::UPDATE_AND_RENDER);
-typedef GameState(*GameUpdateFunc)(GameState *, GSUM);
+extern "C" GameState update_game(GameState *gamestate, GSUM mode = GSUM::UPDATE_AND_RENDER);
+typedef GameState (*GameUpdateFunc)(GameState *, GSUM);

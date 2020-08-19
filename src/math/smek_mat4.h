@@ -54,7 +54,7 @@ struct Mat {
 
     static Mat from(H h);
 
-    void gfx_dump(Vec4 color=Vec4(1.0, 1.0, 1.0, 1.0));
+    void gfx_dump(Vec4 color = Vec4(1.0, 1.0, 1.0, 1.0));
 
     Mat invert();
 };
@@ -82,8 +82,8 @@ Mat Mat::perspective(real fov, real near, real far);
 
 #endif
 
-Mat operator *(const Mat &a, const Mat &b);
+Mat operator*(const Mat &a, const Mat &b);
 
-Vec4 operator *(const Mat &m, const Vec4 &v);
+Vec4 operator*(const Mat &m, const Vec4 &v);
 
-Vec3 operator *(const Mat &m, const Vec3 &v);
+Vec3 operator*(const Mat &m, const Vec3 &v);

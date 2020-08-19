@@ -47,7 +47,7 @@ bool hot_reload_active = true;
 bool reload_lib = false;
 
 #ifndef WINDOWS
-void signal_handler (int signal) {
+void signal_handler(int signal) {
     if (!hot_reload_active) {
         WARN("Ignoring USR1");
     } else {
@@ -107,19 +107,19 @@ bool load_gamelib() {
     }
 
     game_lib.handle = lib;
-    game_lib.init = (GameInitFunc) dlsym(lib, "init_game");
+    game_lib.init = (GameInitFunc)dlsym(lib, "init_game");
     if (!game_lib.init) {
         UNREACHABLE("Failed to load \"init_game\": {}", dlerror());
     }
-    game_lib.update = (GameUpdateFunc) dlsym(lib, "update_game");
+    game_lib.update = (GameUpdateFunc)dlsym(lib, "update_game");
     if (!game_lib.update) {
         UNREACHABLE("Failed to load \"update_game\": {}", dlerror());
     }
-    game_lib.reload = (GameReloadFunc) dlsym(lib, "reload_game");
+    game_lib.reload = (GameReloadFunc)dlsym(lib, "reload_game");
     if (!game_lib.update) {
         UNREACHABLE("Failed to load \"reload_game\": {}", dlerror());
     }
-    game_lib.audio_callback = (AudioCallbackFunc) dlsym(lib, "audio_callback");
+    game_lib.audio_callback = (AudioCallbackFunc)dlsym(lib, "audio_callback");
     if (!game_lib.audio_callback) {
         UNREACHABLE("Failed to load \"audio_callback\": {}", dlerror());
     }
@@ -133,8 +133,8 @@ bool load_gamelib() {
 void platform_audio_callback(void *userdata, u8 *stream, int len);
 
 void platform_audio_callback(void *userdata, u8 *stream, int len) {
-    f32 *f_stream = (f32 *) stream;
-    Audio::AudioStruct *audio_struct_ptr = (Audio::AudioStruct *) userdata;
+    f32 *f_stream = (f32 *)stream;
+    Audio::AudioStruct *audio_struct_ptr = (Audio::AudioStruct *)userdata;
     game_lib.audio_callback(audio_struct_ptr, f_stream, len);
 }
 
@@ -147,7 +147,7 @@ void platform_audio_init() {
     want.samples = 2048;
     want.channels = 2;
     want.callback = platform_audio_callback;
-    want.userdata = (void *) &platform_audio_struct;
+    want.userdata = (void *)&platform_audio_struct;
 
     SDL_AudioSpec have;
     platform_audio_struct.dev = SDL_OpenAudioDevice(nullptr, 0, &want, &have, 0);
@@ -167,8 +167,9 @@ void platform_audio_init() {
 #ifndef IMGUI_DISABLE
 static void imgui_platform_start() {
     IMGUI_CHECKVERSION();
-    game_state.imgui_context = (void *) ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    game_state.imgui_context = (void *)ImGui::CreateContext();
+    ImGuiIO &io = ImGui::GetIO();
+    (void)io;
     // Enable Keyboard and gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
@@ -182,17 +183,18 @@ static void imgui_platform_start() {
 static bool imgui_eats_input(SDL_Event *event) {
     ImGui_ImplSDL2_ProcessEvent(event);
 
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGuiIO &io = ImGui::GetIO();
+    (void)io;
     if ((event->type == SDL_KEYDOWN
-     || event->type == SDL_KEYUP)
-     && io.WantCaptureKeyboard)
+         || event->type == SDL_KEYUP)
+        && io.WantCaptureKeyboard)
         return true;
 
     if ((event->type == SDL_MOUSEMOTION
-     || event->type == SDL_MOUSEBUTTONDOWN
-     || event->type == SDL_MOUSEBUTTONUP
-     || event->type == SDL_MOUSEWHEEL)
-     && io.WantCaptureMouse)
+         || event->type == SDL_MOUSEBUTTONDOWN
+         || event->type == SDL_MOUSEBUTTONUP
+         || event->type == SDL_MOUSEWHEEL)
+        && io.WantCaptureMouse)
         return true;
     return false;
 }
@@ -219,28 +221,27 @@ static void imgui_end_frame() {}
 #endif
 
 #ifndef TESTS
-#include "util/log.cpp" // I know, just meh.
+#include "util/log.cpp"           // I know, just meh.
 int main(int argc, char **argv) { // Game entrypoint
 #define ARGUMENT(LONG, SHORT) (std::strcmp((LONG), argv[index]) == 0 || std::strcmp((SHORT), argv[index]) == 0)
     int width = 500;
     int height = 500;
     for (int index = 1; index < argc; index++) {
-        if ARGUMENT("--help", "-h") {
+        if ARGUMENT ("--help", "-h") {
             //TODO(gu)
             std::printf("Usage: SMEK [--help] [--resolution <width> <height>]\n"
                         "            [--no-reload]\n");
             return 0;
-        } else if ARGUMENT("--resolution", "-r") {
+        } else if ARGUMENT ("--resolution", "-r") {
             width = std::atoi(argv[++index]);
             height = std::atoi(argv[++index]);
-        } else if ARGUMENT("--no-reload", "-R") {
+        } else if ARGUMENT ("--no-reload", "-R") {
             hot_reload_active = false;
         } else {
             ERR("Unknown command line argument '{}'", argv[index]);
         }
     }
 #undef ARGUMENT
-
 
     if (hot_reload_active) {
         m_reload_lib = SDL_CreateMutex();
@@ -326,7 +327,7 @@ int main(int argc, char **argv) { // Game entrypoint
                 }
             }
 
-            for (u32 i = 0; i < (u32) Ac::NUM_ACTIONS; i++) {
+            for (u32 i = 0; i < (u32)Ac::NUM_ACTIONS; i++) {
                 game_state.input.last_frame[i] = game_state.input.current_frame[i];
                 game_state.input.current_frame[i] = global_input.state[i];
             }
@@ -340,7 +341,7 @@ int main(int argc, char **argv) { // Game entrypoint
         imgui_start_frame();
 
         game_state = game_lib.update(&game_state, GSUM::RENDER);
-        SDL_SetRelativeMouseMode((SDL_bool) game_state.input.mouse_capture);
+        SDL_SetRelativeMouseMode((SDL_bool)game_state.input.mouse_capture);
 
         imgui_end_frame();
         SDL_GL_SwapWindow(game_state.window);

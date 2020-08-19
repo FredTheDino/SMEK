@@ -21,11 +21,11 @@ void bind(Action name, u32 slot, u32 button, f32 value) {
 }
 
 static f32 get_current(Action name) {
-    return GAMESTATE()->input.current_frame[(u32) name];
+    return GAMESTATE()->input.current_frame[(u32)name];
 }
 
 static f32 get_last(Action name) {
-    return GAMESTATE()->input.last_frame[(u32) name];
+    return GAMESTATE()->input.last_frame[(u32)name];
 }
 
 bool down(Action name) {
@@ -48,7 +48,7 @@ f32 value(Action name) {
     return get_current(name);
 }
 
-#define SOME_ACTION ((Ac) 0)
+#define SOME_ACTION ((Ac)0)
 
 TEST_CASE("input_down", {
     f32 *current = game->input.current_frame;

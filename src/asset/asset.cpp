@@ -23,7 +23,7 @@ namespace Asset {
 bool is_valid(AssetID id) { return GAMESTATE()->asset_system.assets.contains(id); }
 
 template <typename T>
-static void read(FILE *file, T *ptr, size_t num=1) {
+static void read(FILE *file, T *ptr, size_t num = 1) {
     size_t gobbled = fread(ptr, sizeof(T), num, file);
     CHECK(gobbled == num, "Faild to read a part of an asset.");
 }
@@ -38,7 +38,7 @@ static void load_texture(UsableAsset *asset, FILE *file) {
         u32 width;
         u32 height;
         u32 components;
-        u8  *data;
+        u8 *data;
 
         u64 size() const {
             return width * height * components;
@@ -139,8 +139,8 @@ static void load_animation(UsableAsset *asset, FILE *file) {
     i32 *times = new i32[num_frames];
     read(file, times, num_frames);
 
-    GFX::Transform *trans = new GFX::Transform[trans_per_frame*num_frames];
-    read(file, trans, trans_per_frame*num_frames);
+    GFX::Transform *trans = new GFX::Transform[trans_per_frame * num_frames];
+    read(file, trans, trans_per_frame * num_frames);
     // Ownership is passed to the animation for all pointers.
     asset->animation = GFX::Animation::init(times, num_frames, trans, trans_per_frame);
 }
@@ -188,7 +188,7 @@ static void load_asset(UsableAsset *asset) {
     } break;
     default:
         ERR("Unknown asset type {} in asset file {}",
-              asset->header->type, GAMESTATE()->asset_system.asset_path);
+            asset->header->type, GAMESTATE()->asset_system.asset_path);
         break;
     }
 
@@ -196,8 +196,7 @@ static void load_asset(UsableAsset *asset) {
     asset->dirty = false;
 }
 
-static
-UsableAsset *_raw_fetch(AssetType type, AssetID id) {
+static UsableAsset *_raw_fetch(AssetType type, AssetID id) {
     ASSERT(SDL_LockMutex(GAMESTATE()->asset_system.asset_lock) == 0, "Failed to aquire lock");
     ASSERT(is_valid(id), "Invalid asset id '{}'", id);
     UsableAsset *asset = &GAMESTATE()->asset_system.assets[id];
@@ -212,7 +211,7 @@ UsableAsset *_raw_fetch(AssetType type, AssetID id) {
 }
 
 GFX::Texture *fetch_texture(AssetID id) {
-  return &_raw_fetch(AssetType::TEXTURE, id)->texture;
+    return &_raw_fetch(AssetType::TEXTURE, id)->texture;
 }
 
 StringAsset *fetch_string_asset(AssetID id) {
@@ -239,7 +238,6 @@ GFX::Animation *fetch_animation(AssetID id) {
     return &_raw_fetch(AssetType::ANIMATION, id)->animation;
 }
 
-
 Sound *fetch_sound(AssetID id) {
     return &_raw_fetch(AssetType::SOUND, id)->sound;
 }
@@ -249,7 +247,6 @@ bool needs_reload(AssetID id) {
     UsableAsset *asset = &GAMESTATE()->asset_system.assets[id];
     return (!asset->loaded) || asset->dirty;
 }
-
 
 bool reload() {
     System *system = &GAMESTATE()->asset_system;
@@ -339,7 +336,7 @@ bool load(const char *path) {
     return true;
 }
 
-}  // namespace Asset
+} // namespace Asset
 
 #include "../test.h"
 #include <cstring>
@@ -360,10 +357,9 @@ TEST_CASE("asset 1x1x3 png white", {
     if (!Asset::is_valid(id)) return false;
     GFX::Texture *image = Asset::fetch_texture(id);
 
-    return image->width      == 1
-        && image->height     == 1
-        && image->components == 3
-        ;
+    return image->width == 1
+           && image->height == 1
+           && image->components == 3;
 });
 
 TEST_CASE("asset 2x1x4 png", {
@@ -372,10 +368,9 @@ TEST_CASE("asset 2x1x4 png", {
     if (!Asset::is_valid(id)) return false;
     GFX::Texture *image = Asset::fetch_texture(id);
 
-    return image->width      == 2
-        && image->height     == 1
-        && image->components == 4
-        ;
+    return image->width == 2
+           && image->height == 1
+           && image->components == 4;
 });
 
 TEST_CASE("asset 1x2x4 png", {
@@ -384,10 +379,9 @@ TEST_CASE("asset 1x2x4 png", {
     if (!Asset::is_valid(id)) return false;
     GFX::Texture *image = Asset::fetch_texture(id);
 
-    return image->width      == 1
-        && image->height     == 2
-        && image->components == 4
-        ;
+    return image->width == 1
+           && image->height == 2
+           && image->components == 4;
 });
 
 TEST_CASE("asset 1x1x4 png white", {
@@ -396,10 +390,9 @@ TEST_CASE("asset 1x1x4 png white", {
     if (!Asset::is_valid(id)) return false;
     GFX::Texture *image = Asset::fetch_texture(id);
 
-    return image->width      == 1
-        && image->height     == 1
-        && image->components == 4
-        ;
+    return image->width == 1
+           && image->height == 1
+           && image->components == 4;
 });
 
 TEST_CASE("asset 1x1x4 png red", {
@@ -408,10 +401,9 @@ TEST_CASE("asset 1x1x4 png red", {
     if (!Asset::is_valid(id)) return false;
     GFX::Texture *image = Asset::fetch_texture(id);
 
-    return image->width      == 1
-        && image->height     == 1
-        && image->components == 4
-        ;
+    return image->width == 1
+           && image->height == 1
+           && image->components == 4;
 });
 
 TEST_CASE("asset 1x1x4 png green", {
@@ -420,10 +412,9 @@ TEST_CASE("asset 1x1x4 png green", {
     if (!Asset::is_valid(id)) return false;
     GFX::Texture *image = Asset::fetch_texture(id);
 
-    return image->width      == 1
-        && image->height     == 1
-        && image->components == 4
-        ;
+    return image->width == 1
+           && image->height == 1
+           && image->components == 4;
 });
 
 TEST_CASE("asset 1x1x4 png blue", {
@@ -432,10 +423,9 @@ TEST_CASE("asset 1x1x4 png blue", {
     if (!Asset::is_valid(id)) return false;
     GFX::Texture *image = Asset::fetch_texture(id);
 
-    return image->width      == 1
-        && image->height     == 1
-        && image->components == 4
-        ;
+    return image->width == 1
+           && image->height == 1
+           && image->components == 4;
 });
 
 TEST_CASE("asset 1x1x4 png transparent", {
@@ -444,10 +434,9 @@ TEST_CASE("asset 1x1x4 png transparent", {
     if (!Asset::is_valid(id)) return false;
     GFX::Texture *image = Asset::fetch_texture(id);
 
-    return image->width      == 1
-        && image->height     == 1
-        && image->components == 4
-        ;
+    return image->width == 1
+           && image->height == 1
+           && image->components == 4;
 });
 
 TEST_CASE("asset 1x1x3 jpg white", {
@@ -456,9 +445,8 @@ TEST_CASE("asset 1x1x3 jpg white", {
     if (!Asset::is_valid(id)) return false;
     GFX::Texture *image = Asset::fetch_texture(id);
 
-    return image->width      == 1
-        && image->height     == 1
-        && image->components == 3
-        ;
+    return image->width == 1
+           && image->height == 1
+           && image->components == 3;
 });
 #endif

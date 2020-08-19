@@ -45,13 +45,13 @@ u32 smek_snprint(char *out_buffer, u32 buf_size, const char *in_buffer) {
     return snprintf(out_buffer, buf_size, in_buffer);
 }
 
-template<>
+template <>
 i32 sntprint<>(char *buffer, u32 buf_size, const char *fmt) {
     if (buf_size == 0) return 0;
     u32 head = 0;
     while (fmt[head]) {
         if (buf_size == head) {
-            buffer[head-1] = '\0';
+            buffer[head - 1] = '\0';
             break;
         }
         buffer[head] = fmt[head];
@@ -62,21 +62,21 @@ i32 sntprint<>(char *buffer, u32 buf_size, const char *fmt) {
 
 #include "../test.h"
 
-TEST_FORMAT((f32) 1.5,  "1.50", .num_decimals=2);
-TEST_FORMAT((f32) 1.5,  "1.5",  .num_decimals=1);
-TEST_FORMAT((f32) 1.45, "1.5",  .num_decimals=1);
-TEST_FORMAT((f32) 1.44, "1.4",  .num_decimals=1);
+TEST_FORMAT((f32)1.5, "1.50", .num_decimals = 2);
+TEST_FORMAT((f32)1.5, "1.5", .num_decimals = 1);
+TEST_FORMAT((f32)1.45, "1.5", .num_decimals = 1);
+TEST_FORMAT((f32)1.44, "1.4", .num_decimals = 1);
 
-TEST_FORMAT((f64) 1.44, "1.4",  .num_decimals=1);
-TEST_FORMAT((f64) 1.44, "1.44", .num_decimals=2);
+TEST_FORMAT((f64)1.44, "1.4", .num_decimals = 1);
+TEST_FORMAT((f64)1.44, "1.44", .num_decimals = 2);
 
-TEST_FORMAT((f32) 1.5,   "1.50",   .num_decimals=2, .num_zero_pad=4);
-TEST_FORMAT((f32) 1.5,   "01.50",  .num_decimals=2, .num_zero_pad=5);
-TEST_FORMAT((u32) 5000,  "5000",   .num_zero_pad=4);
-TEST_FORMAT((u32) 5000,  "05000",  .num_zero_pad=5);
-TEST_FORMAT((i32) -5000, "-5000",  .num_zero_pad=5);
-TEST_FORMAT((i32) -5000, "-05000", .num_zero_pad=6);
+TEST_FORMAT((f32)1.5, "1.50", .num_decimals = 2, .num_zero_pad = 4);
+TEST_FORMAT((f32)1.5, "01.50", .num_decimals = 2, .num_zero_pad = 5);
+TEST_FORMAT((u32)5000, "5000", .num_zero_pad = 4);
+TEST_FORMAT((u32)5000, "05000", .num_zero_pad = 5);
+TEST_FORMAT((i32)-5000, "-5000", .num_zero_pad = 5);
+TEST_FORMAT((i32)-5000, "-05000", .num_zero_pad = 6);
 
-TEST_FORMAT((char) 'a', "a", .num_zero_pad=6);
+TEST_FORMAT((char)'a', "a", .num_zero_pad = 6);
 
-TEST_FORMAT((const char *) "abc123", "abc123", .num_zero_pad=6);
+TEST_FORMAT((const char *)"abc123", "abc123", .num_zero_pad = 6);

@@ -42,15 +42,15 @@ int main(int argc, char **argv) { // Test entry point
     bool write_report = false;
     const char *report_path = "report.txt";
     for (int index = 1; index < argc; index++) {
-        if ARGUMENT("--help", "-h") {
+        if ARGUMENT ("--help", "-h") {
             //TODO(gu)
             std::printf("Usage: tests [--help] [--ci] [--report] [--report-path <path>]\n");
             return 0;
-        } else if ARGUMENT("--ci", "-c") {
+        } else if ARGUMENT ("--ci", "-c") {
             ci = true;
-        } else if ARGUMENT("--report", "-r") {
+        } else if ARGUMENT ("--report", "-r") {
             write_report = true;
-        } else if ARGUMENT("--report-path", "-p") {
+        } else if ARGUMENT ("--report-path", "-p") {
             write_report = true;
             report_path = argv[++index];
         } else {
@@ -73,7 +73,7 @@ unsigned int TestSuite::run(bool ci, bool write_report, const char *path) {
     } else {
         report = nullptr;
     }
-    
+
     const char *PRE, *POST;
     if (ci) {
         PRE = "";
@@ -94,18 +94,19 @@ unsigned int TestSuite::run(bool ci, bool write_report, const char *path) {
     for (unsigned int i = 0; i < num_tests; i++) {
         GameState state = {};
         _test_gs = &state;
-        ftprint(STREAM, "{}{03}: {}{}", PRE, i+1, tests[i].name, POST);
-        LOG_TESTS("{03}: {}", i+1, tests[i].name);
+        ftprint(STREAM, "{}{03}: {}{}", PRE, i + 1, tests[i].name, POST);
+        LOG_TESTS("{03}: {}", i + 1, tests[i].name);
         bool success = false;
         try {
             success = tests[i].func(&state, report);
-        } catch (const std::runtime_error &ex) { /* Empty */ }
+        } catch (const std::runtime_error &ex) { /* Empty */
+        }
         if (success) {
             succeeded++;
             LOG_TESTS("'{}' succeeded at {} @ {}\n", tests[i].name, tests[i].file, tests[i].line);
         } else {
             ftprint(STREAM, "{}" BOLDRED "| {}" RESET " failed ({} @ {})\n",
-                         PRE, tests[i].name, tests[i].file, tests[i].line);
+                    PRE, tests[i].name, tests[i].file, tests[i].line);
             LOG_TESTS("'{}' failed at {} @ {}\n", tests[i].name, tests[i].file, tests[i].line);
         }
     }
@@ -123,4 +124,3 @@ unsigned int TestSuite::run(bool ci, bool write_report, const char *path) {
 
     return num_tests - succeeded;
 }
-

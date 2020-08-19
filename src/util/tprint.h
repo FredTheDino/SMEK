@@ -29,59 +29,62 @@ i32 format(char *buffer, u32 size, FormatHint args, const char *a);
 
 ///*
 // Helper functions to skip including stdio.h everywhere.
-void smek_print(const char *buffer, FILE *stream=stderr);
+void smek_print(const char *buffer, FILE *stream = stderr);
 u32 smek_snprint(char *out_buffer, u32 buf_size, const char *in_buffer);
 
 ///*
 // A magical print function which writes out anything you throw at it,
 // given of course that is has a format() overload.
-template<typename... Args>
+template <typename... Args>
 void tprint(const char *fmt, Args... to_print);
 
-template<typename... Args>
+template <typename... Args>
 i32 sntprint(char *buffer, u32 buf_size, const char *fmt, Args... rest);
 
-template<typename... Args>
+template <typename... Args>
 void ftprint(FILE *stream, const char *fmt, Args... to_print);
 
-template<typename T, typename... Args>
+template <typename T, typename... Args>
 i32 sntprint_helper(char *buffer, u32 buf_size, const char *fmt, T first, Args... rest);
 
 // This needs to be here, to allow circular includes
 #include "../util/util.h"
 
-template<typename... Args>
+template <typename... Args>
 void tprint(const char *fmt, Args... to_print) {
     char buffer[512] = {};
     sntprint(buffer, 512, fmt, to_print...);
     smek_print(buffer);
 }
 
-template<typename... Args>
+template <typename... Args>
 void ftprint(FILE *stream, const char *fmt, Args... to_print) {
     char buffer[512] = {};
     sntprint(buffer, 512, fmt, to_print...);
     smek_print(buffer, stream);
 }
 
-template<>
+template <>
 i32 sntprint<>(char *buffer, u32 buf_size, const char *fmt);
 
-template<typename... Args>
+template <typename... Args>
 i32 sntprint(char *buffer, u32 buf_size, const char *fmt, Args... rest) {
     return sntprint_helper(buffer, buf_size, fmt, rest...);
 }
 
-template<typename T, typename... Args>
+template <typename T, typename... Args>
 i32 sntprint_helper(char *buffer, u32 buf_size, const char *fmt, T first, Args... rest) {
     u32 head = 0;
 
     if (!buf_size) { return 0; }
 
-#define EAT \
-    do {\
-        if (head == buf_size) { buffer[head-1] = '\0'; return head - 1; }\
-        buffer[head++] = *(fmt++);\
+#define EAT                          \
+    do {                             \
+        if (head == buf_size) {      \
+            buffer[head - 1] = '\0'; \
+            return head - 1;         \
+        }                            \
+        buffer[head++] = *(fmt++);   \
     } while (false);
 
 #define SKIP fmt++
@@ -92,7 +95,7 @@ i32 sntprint_helper(char *buffer, u32 buf_size, const char *fmt, T first, Args..
             EAT;
         } else if (*fmt == '{') {
             SKIP;
-            FormatHint hint;  // Setting some sane defaults
+            FormatHint hint; // Setting some sane defaults
             hint.num_decimals = 5;
             hint.num_zero_pad = 0;
             while (*fmt != '}') {
@@ -138,5 +141,4 @@ i32 sntprint_helper(char *buffer, u32 buf_size, const char *fmt, T first, Args..
     return head;
 #undef EAT
 #undef SKIP
-
 }

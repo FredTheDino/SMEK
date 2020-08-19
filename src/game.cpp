@@ -48,11 +48,11 @@ void init_game(GameState *gamestate, int width, int height) {
     GAMESTATE()->running = true;
 
     Input::bind(Ac::MoveX, 0, SDLK_a, -1.0);
-    Input::bind(Ac::MoveX, 1, SDLK_d,  1.0);
-    Input::bind(Ac::MoveY, 0, SDLK_q,  1.0);
+    Input::bind(Ac::MoveX, 1, SDLK_d, 1.0);
+    Input::bind(Ac::MoveY, 0, SDLK_q, 1.0);
     Input::bind(Ac::MoveY, 1, SDLK_e, -1.0);
     Input::bind(Ac::MoveZ, 0, SDLK_w, -1.0);
-    Input::bind(Ac::MoveZ, 1, SDLK_s,  1.0);
+    Input::bind(Ac::MoveZ, 1, SDLK_s, 1.0);
     Input::bind(Ac::Jump, 0, SDLK_SPACE, 1.0);
     Input::bind(Ac::Shoot, 0, SDLK_f, 1.0);
     Input::bind(Ac::MouseToggle, 0, SDLK_m);
@@ -71,7 +71,7 @@ void reload_game(GameState *game) {
     GFX::reload(game);
     Asset::reload();
 #ifndef IMGUI_DISABLE
-    ImGui::SetCurrentContext((ImGuiContext *) game->imgui_context);
+    ImGui::SetCurrentContext((ImGuiContext *)game->imgui_context);
 #endif
     target = GFX::RenderTexture::create(500, 500, true, true);
 }
@@ -85,7 +85,7 @@ void update() {
 
     // Debug camera movement, overwritten by player currently.
     if (GFX::current_camera() == GFX::debug_camera()) {
-        Vec3 move = {Input::value(Ac::MoveX), 0, Input::value(Ac::MoveZ)};
+        Vec3 move = { Input::value(Ac::MoveX), 0, Input::value(Ac::MoveZ) };
         Vec2 turn = Input::mouse_move();
         move = move * delta();
         turn = turn * delta();
@@ -95,9 +95,7 @@ void update() {
             Vec3(0, Input::value(Ac::MoveY) * delta(), 0));
     }
     GAMESTATE()->entity_system.update();
-
 }
-
 
 void draw() {
     target.use();
@@ -200,13 +198,13 @@ void draw() {
 #ifndef IMGUI_DISABLE
     ImGui::Begin("Game View");
     {
-        ImGui::Image((void *) target.color, ImVec2(target.width, target.height), ImVec2(0, 1), ImVec2(1, 0));
+        ImGui::Image((void *)target.color, ImVec2(target.width, target.height), ImVec2(0, 1), ImVec2(1, 0));
     }
     ImGui::End();
 
     ImGui::Begin("Depth");
     {
-        ImGui::Image((void *) target.depth_output, ImVec2(target.width, target.height), ImVec2(0, 1), ImVec2(1, 0));
+        ImGui::Image((void *)target.depth_output, ImVec2(target.width, target.height), ImVec2(0, 1), ImVec2(1, 0));
     }
     ImGui::End();
 #endif

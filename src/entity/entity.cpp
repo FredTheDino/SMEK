@@ -119,8 +119,8 @@ void SoundEntity::draw() {
     ImGui::Text("SoundEntity");
     ImGui::SameLine();
     ImGui::Text("%.2f/%.2f",
-                (f32) source->sample / source->sample_rate,
-                (f32) source->num_samples / source->channels / source->sample_rate);
+                (f32)source->sample / source->sample_rate,
+                (f32)source->num_samples / source->channels / source->sample_rate);
     ImGui::SameLine();
     ImGui::SetNextItemWidth(100.0);
     f32 gain = source->gain;
@@ -157,10 +157,10 @@ void EntitySystem::remove(EntityID id) {
 }
 
 void EntitySystem::update() {
-    for (auto [_, e]: entities) {
+    for (auto [_, e] : entities) {
         e->update();
     }
-    for (auto i = entities.begin(), last = entities.end(); i != last; ) {
+    for (auto i = entities.begin(), last = entities.end(); i != last;) {
         BaseEntity *e = i->second;
         if (e->remove) {
             e->on_remove();
@@ -198,15 +198,10 @@ void EntitySystem::draw() {
             item_current_idx = AssetID::NONE();
         }
 
-        const char *id_preview =
-            (Asset::is_valid(item_current_idx)
-                 ? GAMESTATE()
-                       ->asset_system.assets[item_current_idx]
-                       .header->name
-                 : "Sound asset");
+        const char *id_preview = (Asset::is_valid(item_current_idx) ? GAMESTATE()->asset_system.assets[item_current_idx].header->name : "Sound asset");
 
         if (ImGui::BeginCombo("", id_preview)) {
-            for (auto &it : GAMESTATE()->asset_system.assets ) {
+            for (auto &it : GAMESTATE()->asset_system.assets) {
                 Asset::UsableAsset asset = it.second;
                 if (asset.header->type != Asset::AssetType::SOUND) continue;
                 const bool is_selected = (item_current_idx == it.first);
@@ -238,7 +233,7 @@ void EntitySystem::draw() {
     ImGui::EndChild();
 
 #endif
-    for (auto [_, e]: entities) {
+    for (auto [_, e] : entities) {
         e->draw();
     }
 #ifndef IMGUI_DISABLE
@@ -248,7 +243,7 @@ void EntitySystem::draw() {
 
 TEST_CASE("entity_adding", {
     int calls;
-    struct TestEnt: public Entity {
+    struct TestEnt : public Entity {
         int *value;
         void update() { value[0]++; };
         void draw() {}
@@ -274,7 +269,7 @@ TEST_CASE("entity_adding", {
 
 TEST_CASE("entity_remove", {
     int calls;
-    struct TestEnt: public Entity {
+    struct TestEnt : public Entity {
         int *value;
         ~TestEnt() { value[0] *= 4; }
         void update() { value[0]++; };
@@ -289,13 +284,13 @@ TEST_CASE("entity_remove", {
     ASSERT(calls == 1, "Got {} calls to update.", calls);
 
     entity_system()->remove(b_id); // * 4
-    entity_system()->update();  // Should not add
+    entity_system()->update();     // Should not add
     ASSERT(calls == 4, "Got {} calls to update.", calls);
     return true;
 });
 
 TEST_CASE("entity_id_valid", {
-    struct TestEnt: public Entity {
+    struct TestEnt : public Entity {
         void update() {};
         void draw() {}
     };
@@ -309,7 +304,7 @@ TEST_CASE("entity_id_valid", {
 });
 
 TEST_CASE("entity fetch", {
-    struct TestEnt: public BaseEntity {
+    struct TestEnt : public BaseEntity {
         int value = 1;
     };
     TestEnt a;
@@ -325,7 +320,7 @@ TEST_CASE("entity fetch", {
 });
 
 TEST_CASE("entity on_create", {
-    struct TestEnt: public BaseEntity {
+    struct TestEnt : public BaseEntity {
         int value = 1;
         void on_create() override {
             value = 2;
@@ -340,7 +335,7 @@ TEST_CASE("entity on_create", {
 });
 
 TEST_CASE("entity on_remove", {
-    struct TestEnt: public BaseEntity {
+    struct TestEnt : public BaseEntity {
         int value = 1;
         void on_remove() override { value = 2; }
     };

@@ -5,7 +5,7 @@
 #include "../renderer/renderer.h"
 
 // Helper functions
-static bool close_enough(const Mat &a, const Mat &b, real r=0.001) {
+static bool close_enough(const Mat &a, const Mat &b, real r = 0.001) {
     bool success = true;
     for (u32 i = 0; i < 4; i++) {
         for (u32 j = 0; j < 4; j++) {
@@ -18,10 +18,10 @@ static bool close_enough(const Mat &a, const Mat &b, real r=0.001) {
 i32 format(char *buffer, u32 size, FormatHint args, Mat &m) {
     u32 p = args.num_decimals;
     return snprintf(buffer, size, "\n%.*f %.*f %.*f %.*f\n%.*f %.*f %.*f %.*f\n%.*f %.*f %.*f %.*f\n%.*f %.*f %.*f %.*f",
-        p, m._[0][0], p, m._[0][1], p, m._[0][2], p, m._[0][3],
-        p, m._[1][0], p, m._[1][1], p, m._[1][2], p, m._[1][3],
-        p, m._[2][0], p, m._[2][1], p, m._[2][2], p, m._[2][3],
-        p, m._[3][0], p, m._[3][1], p, m._[3][2], p, m._[3][3]);
+                    p, m._[0][0], p, m._[0][1], p, m._[0][2], p, m._[0][3],
+                    p, m._[1][0], p, m._[1][1], p, m._[1][2], p, m._[1][3],
+                    p, m._[2][0], p, m._[2][1], p, m._[2][2], p, m._[2][3],
+                    p, m._[3][0], p, m._[3][1], p, m._[3][2], p, m._[3][3]);
 }
 
 void Mat::gfx_dump(Vec4 color) {
@@ -34,7 +34,7 @@ void Mat::gfx_dump(Vec4 color) {
     GFX::push_line(o, z, color, Vec4(0, 0, 1, 1), 0.01);
 }
 
-Mat operator *(const Mat &a, const Mat &b) {
+Mat operator*(const Mat &a, const Mat &b) {
     Mat result = {};
     for (u32 row = 0; row < 4; row++) {
         for (u32 col = 0; col < 4; col++) {
@@ -46,7 +46,7 @@ Mat operator *(const Mat &a, const Mat &b) {
     return result;
 }
 
-Vec4 operator *(const Mat &m, const Vec4 &v) {
+Vec4 operator*(const Mat &m, const Vec4 &v) {
     Vec4 result = {};
     for (u32 i = 0; i < 4; i++) {
         for (u32 k = 0; k < 4; k++) {
@@ -56,7 +56,7 @@ Vec4 operator *(const Mat &m, const Vec4 &v) {
     return result;
 }
 
-Vec3 operator *(const Mat &m, const Vec3 &v) {
+Vec3 operator*(const Mat &m, const Vec3 &v) {
     Vec4 r = m * Vec4(v.x, v.y, v.z, 1.0);
     return Vec3(r.x, r.y, r.z);
 }
@@ -76,7 +76,8 @@ TEST_CASE("mat_mul", {
     Mat r = Mat::from(1, 2, 3, 4,
                       4, 3, 2, 1,
                       3, 4, 1, 2,
-                      2, 1, 4, 3) * Mat::scale(2);
+                      2, 1, 4, 3)
+            * Mat::scale(2);
     return close_enough(r, Mat::from(2, 4, 6, 4,
                                      8, 6, 4, 1,
                                      6, 8, 2, 2,
@@ -113,22 +114,18 @@ Mat Mat::look_at(Vec3 from, Vec3 to, Vec3 up) {
 }
 
 TEST_STMT("mat_look_at",
-    close_enough(Mat::look_at(Vec3(0, 1, 0), Vec3(1, 1, 0), Vec3(0, 1, 0)),
-                 Mat::from(+0, +0, +1, +0,
-                           +0, +1, +0, -1,
-                           -1, +0, +0, +0,
-                           +0, +0, +0, +1)
-        )
-);
+          close_enough(Mat::look_at(Vec3(0, 1, 0), Vec3(1, 1, 0), Vec3(0, 1, 0)),
+                       Mat::from(+0, +0, +1, +0,
+                                 +0, +1, +0, -1,
+                                 -1, +0, +0, +0,
+                                 +0, +0, +0, +1)));
 
 TEST_STMT("mat_look_at",
-    close_enough(Mat::look_at(Vec3(0, 0, 0), Vec3(0, 0, -1), Vec3(0, 1, 0)),
-                 Mat::from( 1,  0,  0, 0,
-                            0,  1,  0, 0,
-                            0,  0,  1, 0,
-                            0,  0,  0, 1)
-        )
-);
+          close_enough(Mat::look_at(Vec3(0, 0, 0), Vec3(0, 0, -1), Vec3(0, 1, 0)),
+                       Mat::from(1, 0, 0, 0,
+                                 0, 1, 0, 0,
+                                 0, 0, 1, 0,
+                                 0, 0, 0, 1)));
 
 Mat Mat::perspective(real fov, real aspect_ratio, real near_clipping, real far_clipping) {
     real s = 1.0 / Math::tan(fov / 2);
@@ -138,7 +135,7 @@ Mat Mat::perspective(real fov, real aspect_ratio, real near_clipping, real far_c
     result._[2][2] = -far_clipping / (far_clipping - near_clipping);
     result._[2][3] = -far_clipping * near_clipping / (far_clipping - near_clipping);
     result._[3][2] = -1;
-    result._[3][3] =  0;
+    result._[3][3] = 0;
     return result;
 }
 
@@ -182,7 +179,7 @@ Mat Mat::rotate_z(real d) {
 }
 
 Mat Mat::rotate(real x, real y, real z) {
-    return  rotate_z(z) * rotate_y(y) * rotate_x(x);
+    return rotate_z(z) * rotate_y(y) * rotate_x(x);
 }
 
 Mat Mat::rotate(Vec3 axis) {
@@ -190,11 +187,10 @@ Mat Mat::rotate(Vec3 axis) {
 }
 
 TEST_STMT("mat_translation",
-    close_enough(Mat::translate(1, 2, 3), Mat::from(1, 0, 0, 1,
-                                                    0, 1, 0, 2,
-                                                    0, 0, 1, 3,
-                                                    0, 0, 0, 1))
-);
+          close_enough(Mat::translate(1, 2, 3), Mat::from(1, 0, 0, 1,
+                                                          0, 1, 0, 2,
+                                                          0, 0, 1, 3,
+                                                          0, 0, 0, 1)));
 
 Mat Mat::scale(real scale) {
     Mat result = {};
@@ -213,11 +209,10 @@ Mat Mat::scale(Vec3 scale) {
 }
 
 TEST_STMT("mat_scale",
-    close_enough(Mat::scale(1), Mat::from(1, 0, 0, 0,
-                                          0, 1, 0, 0,
-                                          0, 0, 1, 0,
-                                          0, 0, 0, 1))
-);
+          close_enough(Mat::scale(1), Mat::from(1, 0, 0, 0,
+                                                0, 1, 0, 0,
+                                                0, 0, 1, 0,
+                                                0, 0, 0, 1)));
 
 // clang-format off
 Mat Mat::invert() {

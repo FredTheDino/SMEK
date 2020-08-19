@@ -11,7 +11,7 @@ struct GameState;
 // screen.
 
 namespace Asset {
-    struct Model;
+struct Model;
 };
 
 namespace GFX {
@@ -44,7 +44,7 @@ struct Camera {
     bool dirty_perspective;
 
     // NOTE(ed): Given in radians.
-    static Camera init(f32 fov=PI / 4);
+    static Camera init(f32 fov = PI / 4);
 
     // NOTE(ed): Given in radians.
     void set_fov(f32 fov);
@@ -56,10 +56,9 @@ struct Camera {
     void move(Vec3 movement);
     void move_relative(Vec3 movement);
 
-    template<typename S>
+    template <typename S>
     void upload(const S &s);
 };
-
 
 struct Mesh {
     struct Vertex {
@@ -67,7 +66,6 @@ struct Mesh {
         Vec2 texture;
         Vec3 normal;
     };
-
 
     u32 vao, vbo;
     u32 draw_length;
@@ -180,32 +178,32 @@ struct Shader {
     static Shader compile(const char *asset, const char *source);
 };
 
-#define F32_SHADER_PROP(name)\
-    u32 loc_ ##name;\
-    void upload_ ##name (f32) const;
+#define F32_SHADER_PROP(name) \
+    u32 loc_##name;           \
+    void upload_##name(f32) const;
 
-#define U32_SHADER_PROP(name)\
-    u32 loc_ ##name;\
-    void upload_ ##name (u32) const;
+#define U32_SHADER_PROP(name) \
+    u32 loc_##name;           \
+    void upload_##name(u32) const;
 
-#define V3_SHADER_PROP(name)\
-    u32 loc_ ##name;\
-    void upload_ ##name (Vec3) const;
+#define V3_SHADER_PROP(name) \
+    u32 loc_##name;          \
+    void upload_##name(Vec3) const;
 
-#define V4_SHADER_PROP(name)\
-    u32 loc_ ##name;\
-    void upload_ ##name (Vec4) const;
+#define V4_SHADER_PROP(name) \
+    u32 loc_##name;          \
+    void upload_##name(Vec4) const;
 
-#define MAT_SHADER_PROP(name)\
-    u32 loc_ ##name;\
-    void upload_ ##name (Mat &) const;
+#define MAT_SHADER_PROP(name) \
+    u32 loc_##name;           \
+    void upload_##name(Mat &) const;
 
-#define MATS_SHADER_PROP(name)\
-    u32 loc_num_ ##name;\
-    u32 loc_ ##name;\
-    void upload_ ##name (u32, Mat *) const;
+#define MATS_SHADER_PROP(name) \
+    u32 loc_num_##name;        \
+    u32 loc_##name;            \
+    void upload_##name(u32, Mat *) const;
 
-struct MasterShader: public Shader {
+struct MasterShader : public Shader {
     F32_SHADER_PROP(t);
     U32_SHADER_PROP(tex);
 
@@ -227,21 +225,20 @@ struct MasterShader: public Shader {
     static MasterShader init();
 };
 
-struct PostProcessShader: public Shader {
+struct PostProcessShader : public Shader {
     F32_SHADER_PROP(t);
     U32_SHADER_PROP(tex);
 
     static PostProcessShader init();
 };
 
-struct DebugShader: public Shader {
+struct DebugShader : public Shader {
     MAT_SHADER_PROP(proj);
     MAT_SHADER_PROP(view);
     MAT_SHADER_PROP(model);
 
     static DebugShader init();
 };
-
 
 #undef F32_SHADER_PROP
 #undef U32_SHADER_PROP
@@ -257,13 +254,12 @@ struct Texture {
     u32 height;
     u32 components;
 
-
     enum class Sampling {
         LINEAR,
         NEAREST,
     };
 
-    void bind(u32 texture_slot=0);
+    void bind(u32 texture_slot = 0);
     void destroy();
 
     static Texture upload(u32 width, u32 height, u32 components, u8 *data, Sampling sampling);
@@ -362,7 +358,7 @@ struct Renderer {
 
 ///*
 // Initalize the graphics pipeline.
-bool init(GameState *gs, i32 width=680, i32 height=480);
+bool init(GameState *gs, i32 width = 680, i32 height = 480);
 
 ///*
 // Returns the lighting struct.
@@ -372,7 +368,7 @@ Lighting *lighting();
 // Sets the camera to be used when rendering. There's a "debug"
 // camera and a "gameplay" camera. Passing true uses the "debug"
 // camera.
-void set_camera_mode(bool debug_mode=false);
+void set_camera_mode(bool debug_mode = false);
 
 ///*
 // Reloads opengl function pointers and such, which is faster
@@ -386,16 +382,16 @@ void deinit(GameState *gs);
 ///*
 // Returns a nice color, garanteed to match other
 // colors returned from here.
-Vec4 color(u32 index=0);
+Vec4 color(u32 index = 0);
 
 ///*
 // Draws a point in a with color c.
-void push_point(Vec3 a, Vec4 c=color(), f32 width=0.1);
+void push_point(Vec3 a, Vec4 c = color(), f32 width = 0.1);
 
 ///*
 // Draws a line form A to B, in the given color.
-void push_line(Vec3 a, Vec3 b, Vec4 c=color(), f32 width=0.1);
-void push_line(Vec3 a, Vec3 b, Vec4 a_color, Vec4 b_color, f32 width=0.1);
+void push_line(Vec3 a, Vec3 b, Vec4 c = color(), f32 width = 0.1);
+void push_line(Vec3 a, Vec3 b, Vec4 a_color, Vec4 b_color, f32 width = 0.1);
 
 ///*
 // Adds one triangle to be drawn during
@@ -411,8 +407,9 @@ void draw_primitivs();
 // the texture to the screen.
 void resolve_to_screen(RenderTexture texture);
 
-template<> void Camera::upload<MasterShader>(const MasterShader &shader);
-template<> void Camera::upload<DebugShader>(const DebugShader &shader);
-
+template <>
+void Camera::upload<MasterShader>(const MasterShader &shader);
+template <>
+void Camera::upload<DebugShader>(const DebugShader &shader);
 
 } // namespace GFX
