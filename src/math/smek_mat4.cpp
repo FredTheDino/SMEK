@@ -114,10 +114,10 @@ Mat Mat::look_at(Vec3 from, Vec3 to, Vec3 up) {
 
 TEST_STMT("mat_look_at",
     close_enough(Mat::look_at(Vec3(0, 1, 0), Vec3(1, 1, 0), Vec3(0, 1, 0)),
-                 Mat::from( 0,  0,  1, 0,
-                            0,  1,  0, -1,
-                           -1,  0,  0,  0,
-                            0,  0,  0,  1)
+                 Mat::from(+0, +0, +1, +0,
+                           +0, +1, +0, -1,
+                           -1, +0, +0, +0,
+                           +0, +0, +0, +1)
         )
 );
 
@@ -157,28 +157,28 @@ Mat Mat::translate(Vec3 delta) {
 Mat Mat::rotate_x(real d) {
     real c = Math::cos(d);
     real s = Math::sin(d);
-    return Mat::from(1, 0, 0, 0,
-                     0, c,-s, 0,
-                     0, s, c, 0,
-                     0, 0, 0, 1);
+    return Mat::from(+1, +0, +0, +0,
+                     +0, +c, -s, +0,
+                     +0, +s, +c, +0,
+                     +0, +0, +0, +1);
 }
 
 Mat Mat::rotate_y(real d) {
     real c = Math::cos(d);
     real s = Math::sin(d);
-    return Mat::from(c, 0, s, 0,
-                     0, 1, 0, 0,
-                    -s, 0, c, 0,
-                     0, 0, 0, 1);
+    return Mat::from(+c, +0, +s, +0,
+                     +0, +1, +0, +0,
+                     -s, +0, +c, +0,
+                     +0, +0, +0, +1);
 }
 
 Mat Mat::rotate_z(real d) {
     real c = Math::cos(d);
     real s = Math::sin(d);
-    return Mat::from(c,-s, 0, 0,
-                     s, c, 0, 0,
-                     0, 0, 1, 0,
-                     0, 0, 0, 1);
+    return Mat::from(+c, -s, +0, +0,
+                     +s, +c, +0, +0,
+                     +0, +0, +1, +0,
+                     +0, +0, +0, +1);
 }
 
 Mat Mat::rotate(real x, real y, real z) {
@@ -219,6 +219,7 @@ TEST_STMT("mat_scale",
                                           0, 0, 0, 1))
 );
 
+// clang-format off
 Mat Mat::invert() {
 	Mat inv = {};
 
@@ -346,3 +347,4 @@ Mat Mat::invert() {
 
 	return inv;
 }
+// clang-format off
