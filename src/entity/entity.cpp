@@ -150,10 +150,10 @@ void SoundEntity::on_remove() {
 bool EntitySystem::is_valid(EntityID id) { return entities.contains(id); }
 
 void EntitySystem::remove(EntityID id) {
-  ASSERT(is_valid(id), "Cannot remove entity that doesn't exist");
-  entities[id]->on_remove();
-  delete entities[id];
-  entities.erase(id);
+    ASSERT(is_valid(id), "Cannot remove entity that doesn't exist");
+    entities[id]->on_remove();
+    delete entities[id];
+    entities.erase(id);
 }
 
 void EntitySystem::update() {
@@ -195,7 +195,7 @@ void EntitySystem::draw() {
         static bool repeat = true;
 
         if (!Asset::is_valid(item_current_idx)) {
-          item_current_idx = AssetID::NONE();
+            item_current_idx = AssetID::NONE();
         }
 
         const char *id_preview =

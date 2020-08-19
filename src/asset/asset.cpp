@@ -245,9 +245,9 @@ Sound *fetch_sound(AssetID id) {
 }
 
 bool needs_reload(AssetID id) {
-  ASSERT(is_valid(id), "Invalid asset id '{}'", id);
-  UsableAsset *asset = &GAMESTATE()->asset_system.assets[id];
-  return (!asset->loaded) || asset->dirty;
+    ASSERT(is_valid(id), "Invalid asset id '{}'", id);
+    UsableAsset *asset = &GAMESTATE()->asset_system.assets[id];
+    return (!asset->loaded) || asset->dirty;
 }
 
 

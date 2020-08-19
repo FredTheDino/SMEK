@@ -87,8 +87,8 @@ struct EntitySystem {
 
 template<typename E>
 E *EntitySystem::fetch(EntityID id) {
-  ASSERT(is_valid(id), "Cannot fetch entity that doesn't exist");
-  return dynamic_cast<E *>(entities[id]);
+    ASSERT(is_valid(id), "Cannot fetch entity that doesn't exist");
+    return dynamic_cast<E *>(entities[id]);
 }
 
 template<typename E>
