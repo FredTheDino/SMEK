@@ -147,7 +147,7 @@ void SoundEntity::on_remove() {
     GAMESTATE()->audio_struct->stop_sound(audio_id);
 }
 
-bool EntitySystem::is_valid(EntityID id) { return entities.count(id); }
+bool EntitySystem::is_valid(EntityID id) { return entities.contains(id); }
 
 void EntitySystem::remove(EntityID id) {
   ASSERT(is_valid(id), "Cannot remove entity that doesn't exist");
@@ -302,9 +302,9 @@ TEST_CASE("entity_id_valid", {
 
     TestEnt b;
     auto b_id = entity_system()->add(b);
-    ASSERT(entity_system()->valid(b_id), "Id should be valid");
+    ASSERT(entity_system()->is_valid(b_id), "Id should be valid");
     entity_system()->remove(b_id); // * 4
-    ASSERT(!entity_system()->valid(b_id), "Id should not be valid");
+    ASSERT(!entity_system()->is_valid(b_id), "Id should not be valid");
     return true;
 });
 
