@@ -47,28 +47,3 @@ constexpr real PI = 3.1415926535;
 ///* E
 constexpr real E = 2.7182818284;
 
-///* AssetID
-// A way to identify assets.
-//
-// The string is expected to be const so it potentially can be hashed during
-// compile time.
-struct AssetID {
-    AssetID(const char *);
-    AssetID(u64 id)
-        : id(id) {}
-    AssetID()
-        : id(NONE()) {}
-
-    static AssetID NONE() { return 0xFFFFFFFF; }
-
-    u64 id;
-
-    bool operator==(AssetID &other) const {
-        return id == other;
-    }
-
-    operator u64() const {
-        return id;
-    }
-};
-
