@@ -72,14 +72,14 @@ struct Vec2 {
 
 
 ///*
-struct Vec2 {
-    Vec2(real x=0.0, real y=0.0, z=0.0);
+struct Vec3 {
+    Vec3(real x=0.0, real y=0.0, real z=0.0);
 }
 
 
 ///*
 struct Vec4 {
-    Vec4(real x=0.0, real y=0.0, z=0.0, w=0.0);
+    Vec4(real x=0.0, real y=0.0, real z=0.0, real w=0.0);
 }
 
 #endif
