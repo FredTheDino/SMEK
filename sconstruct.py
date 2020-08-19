@@ -140,14 +140,10 @@ env.Replace(SHLIBPREFIX="lib")
 # Generate a compilation database, has to be placed above all source files
 # Requires scons 4.
 if GetOption("gen_compilation_db"):
-    try:
-        env.Tool("compilation_db")
-        compd = env.CompilationDatabase("compile_commands.json")
-    except:
-        print("\nLooks like you don't have Scons 4, required for compilation DB\n")
-        raise
     print("Generating compilation DB")
-
+    EnsureSConsVersion(4, 0)
+    env.Tool("compilation_db")
+    compd = env.CompilationDatabase("compile_commands.json")
 
 if GetOption("verbose"):
     env.Append(CPPDEFINES="VERBOSE")
