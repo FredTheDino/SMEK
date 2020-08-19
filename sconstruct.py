@@ -24,14 +24,19 @@ IMGUI_FILES_SRC = [
         "vendor/imgui/imstb_truetype.h",
         ]
 
+system = platform.uname().system
+PLATFORMS = {
+        "windows": "MINGW64" in system or "MSYS_NT" in system,
+        "linux": "Linux" in system,
+        "darwin": "Darwin" in system,
+        }
+
 
 def shell(command):
     """Runs a command as if it were in the shell."""
     proc = Popen(command, stdout=PIPE)
     return proc.communicate()[0].decode()
 
-def is_windows():
-    return "MINGW64" in platform.uname().system or "MSYS_NT" in platform.uname().system
 
 AddOption("--verbose",
           dest="verbose",
@@ -84,11 +89,11 @@ AddOption("--compilation-db",
           help="Generates a compilation database for use with linters and tools")
 
 
+if GetOption("windows") and PLATFORMS["windows"]:
+    print("It look's like you're currently using Windows.\nTherefore, --windows isn't needed.")
+    Exit(1)
+
 if GetOption("windows"):
-    # linux -> windows
-    if is_windows():
-        print("It look's like you're currently using Windows.\nTherefore, --windows isn't needed.")
-        Exit(1)
     print("Targeting foreign Windows")
     native = False
     env = Environment(ENV=os.environ, tools=["mingw"])
@@ -108,15 +113,13 @@ else:
     env.MergeFlags(shell(["sdl2-config", "--cflags"]))
     env.MergeFlags(shell(["sdl2-config", "--libs"]))
 
-    if is_windows():
-        # native windows
+    if PLATFORMS["windows"]:
         print("Targeting native Windows")
         env.Append(CPPDEFINES="WINDOWS")
         smek_game_lib = "./libSMEK.dll"
         env.Replace(SHLIBSUFFIX="dll")
     else:
-        # native linux
-        print("Targeting native Linux")
+        print("Targeting native Linux/macOS")
         env.Append(LINKFLAGS="-rdynamic")  # Gives backtrace information
         smek_game_lib = "./libSMEK.so"
         env.Replace(SHLIBSUFFIX="so")
@@ -189,7 +192,7 @@ def all_asset_targets(build_dir):
 tests_assets = env.Assets(tests_dir + "assets-tests.bin", glob("res/tests/*.*"))
 assets = all_asset_targets(smek_dir)
 env.Alias("assets", assets)
-if native and not is_windows():
+if native and PLATFORMS["linux"]:
     AddPostAction(assets, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
 
 #TODO(gu) don't execute on clean
@@ -230,7 +233,7 @@ else:
     platform_source = [smek_dir + "platform.cpp", smek_dir + "util/tprint.cpp"]
     smek = env.Program(smek_dir + "SMEK", [*platform_source, glad, imgui])
 
-if native and not is_windows():
+if native and PLATFORMS["linux"]:
     AddPostAction(libsmek, "(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
 smek_target = env.Alias("smek", smek)
 Depends(smek_target, assets)
@@ -261,12 +264,17 @@ else:
 tests = tests_env.Program(target=tests_dir + "tests", source=tests_objs)
 
 zip_name = "smek"
-if GetOption("windows") or is_windows():
+if GetOption("windows") or PLATFORMS["windows"]:
     files = "bin/debug-windows/libSMEK.dll bin/debug-windows/SMEK.exe bin/debug-windows/assets.bin lib/dll/*"
     zip_name += "-windows"
 else:
     files = "bin/debug/libSMEK.so bin/debug/SMEK bin/debug/assets.bin"
-    zip_name += "-linux"
+    if PLATFORMS["linux"]:
+        zip_name += "-linux"
+    elif PLATFORMS["darwin"]:
+        zip_name += "-macos"
+    else:
+        zip_name += "-unknown"
 package_target = env.Alias("package", "", f"rm -f {zip_name}.zip; zip -j {zip_name} {files}")
 Depends(package_target, smek_target)
 AlwaysBuild(package_target)
