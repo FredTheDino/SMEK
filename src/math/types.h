@@ -46,4 +46,3 @@ using real = f32;
 constexpr real PI = 3.1415926535;
 ///* E
 constexpr real E = 2.7182818284;
-

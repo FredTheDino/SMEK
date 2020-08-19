@@ -37,10 +37,10 @@ struct NetworkHandle {
 };
 
 struct ServerHandle : public NetworkHandle {};
-int start_server_handle(void *data);  // thread entry point, takes a (ServerHandle *)
+int start_server_handle(void *data); // thread entry point, takes a (ServerHandle *)
 
 struct ClientHandle : public NetworkHandle {};
-int start_client_handle(void *data);  // thread entry point, takes a (ClientHandle *)
+int start_client_handle(void *data); // thread entry point, takes a (ClientHandle *)
 
 struct Network {
     static const u32 MAX_CLIENTS = 2;
@@ -71,4 +71,4 @@ struct Network {
 #endif
 };
 
-int network_listen_for_clients(void *data);  // thread entry point
+int network_listen_for_clients(void *data); // thread entry point

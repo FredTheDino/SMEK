@@ -26,8 +26,8 @@ static const char *package_type_list[] = {
     "Create event",
 };
 
-static_assert(!(LEN(package_type_list) < (u64) PackageType::_NUM_NAMED_TYPES), "Too few package type names");
-static_assert(!(LEN(package_type_list) > (u64) PackageType::_NUM_NAMED_TYPES), "Too many package type names");
+static_assert(!(LEN(package_type_list) < (u64)PackageType::_NUM_NAMED_TYPES), "Too few package type names");
+static_assert(!(LEN(package_type_list) > (u64)PackageType::_NUM_NAMED_TYPES), "Too many package type names");
 
 struct PackageA {
     int a;

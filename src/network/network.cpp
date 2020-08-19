@@ -11,7 +11,7 @@ void NetworkHandle::send(u8 *data, u32 data_len) {
     int n = write(sockfd, data, data_len);
     if (n < 0) {
         ERR("Error writing to socket, errno: {}", errno);
-    } else if ((u32) n < data_len) {
+    } else if ((u32)n < data_len) {
         ERR("write did not write all data to socket, n={}, data_len={}", n, data_len);
     }
 }
@@ -37,7 +37,7 @@ bool NetworkHandle::recv(u8 *buf, u32 data_len, Package *package) {
     } else if (n == 0) {
         LOG("{}: Connection closed", thread_name);
         active = false;
-    } else if ((u32) n < data_len) {
+    } else if ((u32)n < data_len) {
         WARN("{}: Did not read entire buffer, connection closed?", thread_name);
     } else {
         unpack(package, buf);
@@ -50,7 +50,7 @@ bool NetworkHandle::recv(u8 *buf, u32 data_len, Package *package) {
 
 void NetworkHandle::handle_package(Package *package) {
     LOG("{}: {}", thread_name, package_log.front());
-    switch(package->header.type) {
+    switch (package->header.type) {
     case PackageType::EVENT:
         GAMESTATE()->event_queue.push(package->EVENT.event);
         break;
@@ -60,7 +60,7 @@ void NetworkHandle::handle_package(Package *package) {
 }
 
 int start_server_handle(void *data) {
-    ServerHandle *handle = (ServerHandle *) data;
+    ServerHandle *handle = (ServerHandle *)data;
     handle->active = true;
     Package package;
     u8 buf[sizeof(Package)];
@@ -82,7 +82,7 @@ int start_server_handle(void *data) {
 }
 
 int start_client_handle(void *data) {
-    ClientHandle *handle = (ClientHandle *) data;
+    ClientHandle *handle = (ClientHandle *)data;
     handle->active = true;
     Package package;
     u8 buf[sizeof(Package)];
@@ -114,13 +114,13 @@ bool Network::setup_server(int portno) {
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port = htons(portno);
-    if (bind(listen_sockfd, (sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
+    if (bind(listen_sockfd, (sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
         ERR("Error binding to socket, errno={}", errno);
         return false;
     }
     listen(listen_sockfd, 5);
     cli_len = sizeof(cli_addr);
-    listener_thread = SDL_CreateThread(network_listen_for_clients, "ListenForClients", (void *) this);
+    listener_thread = SDL_CreateThread(network_listen_for_clients, "ListenForClients", (void *)this);
     if (!listener_thread) {
         ERR("Unable to create thread");
         return false;
@@ -165,14 +165,14 @@ bool Network::connect_to_server(char *hostname, int portno) {
     serv_addr.sin_family = AF_INET;
     std::memcpy(&serv_addr.sin_addr.s_addr, server->h_addr, server->h_length);
     serv_addr.sin_port = htons(portno);
-    if (connect(server_handle.sockfd, (sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
+    if (connect(server_handle.sockfd, (sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
         WARN("Unable to connect to server");
         return false;
     }
     LOG("Connected");
     server_handle.wip_entities.alloc();
     sntprint(server_handle.thread_name, sizeof(server_handle.thread_name), "ServerHandle");
-    server_handle.thread = SDL_CreateThread(start_server_handle, "ServerHandle", (void *) &server_handle);
+    server_handle.thread = SDL_CreateThread(start_server_handle, "ServerHandle", (void *)&server_handle);
     if (!server_handle.thread) {
         ERR("Unable to create thread");
         return false;
@@ -203,7 +203,7 @@ bool Network::new_client_handle(int newsockfd) {
         handle->wip_package.header.client = handle->client_id;
         handle->wip_entities.alloc();
         sntprint(handle->thread_name, sizeof(handle->thread_name), "ClientHandle {}", handle->client_id);
-        handle->thread = SDL_CreateThread(start_client_handle, handle->thread_name, (void *) handle);
+        handle->thread = SDL_CreateThread(start_client_handle, handle->thread_name, (void *)handle);
         if (!handle->thread) {
             ERR("Unable to create thread");
             return false;
@@ -303,11 +303,11 @@ void Network::imgui_draw() {
                 ImGui::InputInt("Max packages shown", &package_log_limit);
                 int i = 0;
                 char buf[32] = {};
-                for (Package &package: server_handle.package_log) {
+                for (Package &package : server_handle.package_log) {
                     ImGui::PushID(i);
-                    u32 package_type = (u32) package.header.type;
+                    u32 package_type = (u32)package.header.type;
                     if (package_type < LEN(package_type_list)) {
-                        sntprint(buf, 32, "{}", package_type_list[(u32) package.header.type]);
+                        sntprint(buf, 32, "{}", package_type_list[(u32)package.header.type]);
                     } else {
                         sntprint(buf, 32, "(hidden)");
                     }
@@ -333,11 +333,11 @@ void Network::imgui_draw() {
 #endif
 
 int network_listen_for_clients(void *data) {
-    Network *system = (Network *) data;
+    Network *system = (Network *)data;
     int newsockfd;
     system->server_listening = true;
     while (system->server_listening) {
-        newsockfd = accept(system->listen_sockfd, (sockaddr *) &system->cli_addr, &system->cli_len);
+        newsockfd = accept(system->listen_sockfd, (sockaddr *)&system->cli_addr, &system->cli_len);
         if (newsockfd < 0) {
             ERR("ListenForClients: Error accepting client connection, errno={}", errno);
             continue;
