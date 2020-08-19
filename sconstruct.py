@@ -180,7 +180,7 @@ def all_asset_targets(build_dir):
         elif f.startswith("res/tests/"):
             continue
         else:
-            asset_files["{}-{}".format("assets", "-".join(f.split("/")[1:-1]))].append(f)
+            asset_files["{}-{}".format("assets", "-".join(os.path.normcase(f).split("/")[1:-1]))].append(f)
     assets = [env.Assets(build_dir + "assets.bin", global_asset_files)]
     for out_file, files in asset_files.items():
         assets.append(env.Assets(build_dir + out_file + ".bin", files))
@@ -201,7 +201,7 @@ imgui = env.Object(smek_dir + "imgui.cpp")
 if GetOption("no_imgui"):
     env.Append(CPPDEFINES="IMGUI_DISABLE")
 
-imgui_files_dest = [f"inc/imgui/{f.split('/')[-1]}" for f in IMGUI_FILES_SRC]
+imgui_files_dest = [f"inc/imgui/{os.path.basename(f)}" for f in IMGUI_FILES_SRC]
 for src, dest in zip(IMGUI_FILES_SRC, imgui_files_dest):
     Command(dest, src, Copy(dest, src))
     Depends(imgui, dest)
