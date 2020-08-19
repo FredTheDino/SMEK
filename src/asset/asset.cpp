@@ -20,9 +20,7 @@ AssetID::AssetID(const char *str) {
 
 namespace Asset {
 
-bool valid_asset(AssetID id) {
-    return GAMESTATE()->asset_system.assets.count(id);
-}
+bool is_valid(AssetID id) { return GAMESTATE()->asset_system.assets.count(id); }
 
 template <typename T>
 static void read(FILE *file, T *ptr, size_t num=1) {
@@ -201,7 +199,7 @@ static void load_asset(UsableAsset *asset) {
 static
 UsableAsset *_raw_fetch(AssetType type, AssetID id) {
     ASSERT(SDL_LockMutex(GAMESTATE()->asset_system.asset_lock) == 0, "Failed to aquire lock");
-    ASSERT(valid_asset(id), "Invalid asset id '{}'", id);
+    ASSERT(is_valid(id), "Invalid asset id '{}'", id);
     UsableAsset *asset = &GAMESTATE()->asset_system.assets[id];
     ASSERT(asset->header->type == type, "Type mismatch, type={}, id={}", type, id);
 
@@ -247,9 +245,9 @@ Sound *fetch_sound(AssetID id) {
 }
 
 bool needs_reload(AssetID id) {
-    ASSERT(valid_asset(id), "Invalid asset id '{}'", id);
-    UsableAsset *asset = &GAMESTATE()->asset_system.assets[id];
-    return (!asset->loaded) || asset->dirty;
+  ASSERT(is_valid(id), "Invalid asset id '{}'", id);
+  UsableAsset *asset = &GAMESTATE()->asset_system.assets[id];
+  return (!asset->loaded) || asset->dirty;
 }
 
 

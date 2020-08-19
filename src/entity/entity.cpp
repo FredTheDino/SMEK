@@ -194,13 +194,16 @@ void EntitySystem::draw() {
         static f32 gain = 0.3;
         static bool repeat = true;
 
-        if (!Asset::valid_asset(item_current_idx)) {
-            item_current_idx = AssetID::NONE();
+        if (!Asset::is_valid(item_current_idx)) {
+          item_current_idx = AssetID::NONE();
         }
 
-        const char *id_preview = (Asset::valid_asset(item_current_idx) ?
-                GAMESTATE()->asset_system.assets[item_current_idx].header->name :
-                "Sound asset");
+        const char *id_preview =
+            (Asset::is_valid(item_current_idx)
+                 ? GAMESTATE()
+                       ->asset_system.assets[item_current_idx]
+                       .header->name
+                 : "Sound asset");
 
         if (ImGui::BeginCombo("", id_preview)) {
             for (auto &it : GAMESTATE()->asset_system.assets ) {
