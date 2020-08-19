@@ -13,6 +13,8 @@ RELEASE_FLAGS = ["-O2", "-DRELEASE"]
 WARNINGS = "-Wall -Wno-unused -Wno-format-security -Wno-invalid-offsetof -Wno-class-memaccess -Wno-pointer-arith"
 CPPSTD = "c++20"
 
+BIN_DIR = "bin/"
+
 IMGUI_FILES_SRC = [
         "vendor/imgui/imgui.cpp",
         "vendor/imgui/imgui.h",
@@ -152,8 +154,10 @@ if GetOption("verbose"):
 if GetOption("no_color"):
     env.Append(CPPDEFINES="COLOR_DISABLE")
 
-smek_dir = "bin/"
-
+smek_dir = BIN_DIR
+if GetOption("jumbo"):
+    smek_dir += "jumbo-"
+tests_dir = smek_dir + "tests/"
 if GetOption("release"):
     smek_dir += "release"
     env.Append(CXXFLAGS=RELEASE_FLAGS)
@@ -162,12 +166,9 @@ else:
     env.Append(CXXFLAGS=DEBUG_FLAGS)
 if GetOption("windows"):
     smek_dir += "-windows"
-
 smek_dir += "/"
 
 VariantDir(smek_dir, "src", duplicate=0)
-
-tests_dir = smek_dir + "tests/"
 VariantDir(tests_dir, "src", duplicate=0)
 
 asset_gen = Builder(action="./tools/asset-gen.py -o $TARGET -f $SOURCES $ASSETS_VERBOSE")
