@@ -103,7 +103,7 @@ struct System {
 
 ///*
 // Check if an ID is valid, i.e points to *some* asset.
-bool valid_asset(AssetID id);
+bool is_valid(AssetID id);
 
 ///*
 // Load the specified binary asset file.

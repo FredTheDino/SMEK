@@ -20,9 +20,7 @@ AssetID::AssetID(const char *str) {
 
 namespace Asset {
 
-bool valid_asset(AssetID id) {
-    return GAMESTATE()->asset_system.assets.count(id);
-}
+bool is_valid(AssetID id) { return GAMESTATE()->asset_system.assets.contains(id); }
 
 template <typename T>
 static void read(FILE *file, T *ptr, size_t num=1) {
@@ -201,7 +199,7 @@ static void load_asset(UsableAsset *asset) {
 static
 UsableAsset *_raw_fetch(AssetType type, AssetID id) {
     ASSERT(SDL_LockMutex(GAMESTATE()->asset_system.asset_lock) == 0, "Failed to aquire lock");
-    ASSERT(valid_asset(id), "Invalid asset id '{}'", id);
+    ASSERT(is_valid(id), "Invalid asset id '{}'", id);
     UsableAsset *asset = &GAMESTATE()->asset_system.assets[id];
     ASSERT(asset->header->type == type, "Type mismatch, type={}, id={}", type, id);
 
@@ -247,7 +245,7 @@ Sound *fetch_sound(AssetID id) {
 }
 
 bool needs_reload(AssetID id) {
-    ASSERT(valid_asset(id), "Invalid asset id '{}'", id);
+    ASSERT(is_valid(id), "Invalid asset id '{}'", id);
     UsableAsset *asset = &GAMESTATE()->asset_system.assets[id];
     return (!asset->loaded) || asset->dirty;
 }
@@ -270,7 +268,7 @@ bool reload() {
     for (u64 slot = 0; slot < num_assets; slot++) {
         AssetHeader *header = headers + slot;
         AssetID id(header->name_hash);
-        if (system->assets.count(id)) {
+        if (system->assets.contains(id)) {
             // Old asset
             UsableAsset &asset = system->assets[id];
             asset.dirty = asset.header->data_hash != header->data_hash;
@@ -329,7 +327,7 @@ bool load(const char *path) {
     for (u64 slot = 0; slot < num_assets; slot++) {
         AssetHeader header = system->headers[slot];
         AssetID id(header.name_hash);
-        ASSERT(system->assets.count(id) == 0, "Collision in asset system! Possibly reloading datafile.");
+        ASSERT(system->assets.contains(id) == 0, "Collision in asset system! Possibly reloading datafile.");
         UsableAsset data = {};
         data.header = system->headers + slot;
         data.dirty = true;
@@ -359,7 +357,7 @@ TEST_CASE("asset text", {
 TEST_CASE("asset 1x1x3 png white", {
     Asset::load("assets-tests.bin");
     AssetID id("ONE_BY_ONE_RGB_PNG_WHITE");
-    if (!Asset::valid_asset(id)) return false;
+    if (!Asset::is_valid(id)) return false;
     GFX::Texture *image = Asset::fetch_texture(id);
 
     return image->width      == 1
@@ -371,7 +369,7 @@ TEST_CASE("asset 1x1x3 png white", {
 TEST_CASE("asset 2x1x4 png", {
     Asset::load("assets-tests.bin");
     AssetID id("TWO_BY_ONE");
-    if (!Asset::valid_asset(id)) return false;
+    if (!Asset::is_valid(id)) return false;
     GFX::Texture *image = Asset::fetch_texture(id);
 
     return image->width      == 2
@@ -383,7 +381,7 @@ TEST_CASE("asset 2x1x4 png", {
 TEST_CASE("asset 1x2x4 png", {
     Asset::load("assets-tests.bin");
     AssetID id("ONE_BY_TWO");
-    if (!Asset::valid_asset(id)) return false;
+    if (!Asset::is_valid(id)) return false;
     GFX::Texture *image = Asset::fetch_texture(id);
 
     return image->width      == 1
@@ -395,7 +393,7 @@ TEST_CASE("asset 1x2x4 png", {
 TEST_CASE("asset 1x1x4 png white", {
     Asset::load("assets-tests.bin");
     AssetID id("ONE_BY_ONE_RGBA_PNG_WHITE");
-    if (!Asset::valid_asset(id)) return false;
+    if (!Asset::is_valid(id)) return false;
     GFX::Texture *image = Asset::fetch_texture(id);
 
     return image->width      == 1
@@ -407,7 +405,7 @@ TEST_CASE("asset 1x1x4 png white", {
 TEST_CASE("asset 1x1x4 png red", {
     Asset::load("assets-tests.bin");
     AssetID id("ONE_BY_ONE_RGBA_PNG_RED");
-    if (!Asset::valid_asset(id)) return false;
+    if (!Asset::is_valid(id)) return false;
     GFX::Texture *image = Asset::fetch_texture(id);
 
     return image->width      == 1
@@ -419,7 +417,7 @@ TEST_CASE("asset 1x1x4 png red", {
 TEST_CASE("asset 1x1x4 png green", {
     Asset::load("assets-tests.bin");
     AssetID id("ONE_BY_ONE_RGBA_PNG_GREEN");
-    if (!Asset::valid_asset(id)) return false;
+    if (!Asset::is_valid(id)) return false;
     GFX::Texture *image = Asset::fetch_texture(id);
 
     return image->width      == 1
@@ -431,7 +429,7 @@ TEST_CASE("asset 1x1x4 png green", {
 TEST_CASE("asset 1x1x4 png blue", {
     Asset::load("assets-tests.bin");
     AssetID id("ONE_BY_ONE_RGBA_PNG_BLUE");
-    if (!Asset::valid_asset(id)) return false;
+    if (!Asset::is_valid(id)) return false;
     GFX::Texture *image = Asset::fetch_texture(id);
 
     return image->width      == 1
@@ -443,7 +441,7 @@ TEST_CASE("asset 1x1x4 png blue", {
 TEST_CASE("asset 1x1x4 png transparent", {
     Asset::load("assets-tests.bin");
     AssetID id("ONE_BY_ONE_RGBA_PNG_TRANS");
-    if (!Asset::valid_asset(id)) return false;
+    if (!Asset::is_valid(id)) return false;
     GFX::Texture *image = Asset::fetch_texture(id);
 
     return image->width      == 1
@@ -455,7 +453,7 @@ TEST_CASE("asset 1x1x4 png transparent", {
 TEST_CASE("asset 1x1x3 jpg white", {
     Asset::load("assets-tests.bin");
     AssetID id("ONE_BY_ONE_JPG_WHITE");
-    if (!Asset::valid_asset(id)) return false;
+    if (!Asset::is_valid(id)) return false;
     GFX::Texture *image = Asset::fetch_texture(id);
 
     return image->width      == 1
