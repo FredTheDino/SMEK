@@ -39,7 +39,7 @@ void Camera::move_relative(Vec3 movement) {
     position = position + relative_move;
 }
 
-template<>
+template <>
 void Camera::upload(const MasterShader &shader) {
     if (dirty_perspective) {
         perspective = Mat::perspective(fov, aspect_ratio, 0.01, 10.0);
@@ -50,7 +50,7 @@ void Camera::upload(const MasterShader &shader) {
     shader.upload_view(view);
 }
 
-template<>
+template <>
 void Camera::upload(const DebugShader &shader) {
     shader.upload_proj(perspective);
     Mat view = (Mat::translate(position) * Mat::from(rotation)).invert();
@@ -97,13 +97,12 @@ RenderTexture RenderTexture::create(int width, int height, bool use_depth, bool 
     }
 
     // Assumes both depth and color
-    GLenum draw_buffers[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+    GLenum draw_buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
     glDrawBuffers(LEN(draw_buffers), draw_buffers);
 
     static bool run_once = false;
     if (!run_once) {
         run_once = true;
-
     }
 
     ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Failed to create FBO");
@@ -206,16 +205,16 @@ Mesh Mesh::init(Vertex *verticies, u32 num_verticies) {
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * num_verticies, verticies, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, position));
+    glVertexAttribPointer(0, 3, GL_FLOAT, 0, sizeof(Vertex), (void *)offsetof(Vertex, position));
 
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, texture));
+    glVertexAttribPointer(1, 2, GL_FLOAT, 0, sizeof(Vertex), (void *)offsetof(Vertex, texture));
 
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, normal));
+    glVertexAttribPointer(2, 3, GL_FLOAT, 0, sizeof(Vertex), (void *)offsetof(Vertex, normal));
     glBindVertexArray(0);
 
-    return {vao, vbo, num_verticies};
+    return { vao, vbo, num_verticies };
 }
 
 void Mesh::draw() {
@@ -240,25 +239,25 @@ Skin Skin::init(Vertex *verticies, u32 num_verticies) {
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * num_verticies, verticies, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, position));
+    glVertexAttribPointer(0, 3, GL_FLOAT, 0, sizeof(Vertex), (void *)offsetof(Vertex, position));
 
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, texture));
+    glVertexAttribPointer(1, 2, GL_FLOAT, 0, sizeof(Vertex), (void *)offsetof(Vertex, texture));
 
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, normal));
+    glVertexAttribPointer(2, 3, GL_FLOAT, 0, sizeof(Vertex), (void *)offsetof(Vertex, normal));
 
     glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 2, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, weight1));
+    glVertexAttribPointer(3, 2, GL_FLOAT, 0, sizeof(Vertex), (void *)offsetof(Vertex, weight1));
 
     glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 2, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, weight2));
+    glVertexAttribPointer(4, 2, GL_FLOAT, 0, sizeof(Vertex), (void *)offsetof(Vertex, weight2));
 
     glEnableVertexAttribArray(5);
-    glVertexAttribPointer(5, 2, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, weight3));
+    glVertexAttribPointer(5, 2, GL_FLOAT, 0, sizeof(Vertex), (void *)offsetof(Vertex, weight3));
     glBindVertexArray(0);
 
-    return {vao, vbo, num_verticies};
+    return { vao, vbo, num_verticies };
 }
 
 void Skin::draw() {
@@ -272,7 +271,7 @@ Mat Transform::to_matrix() {
 }
 
 Skeleton Skeleton::init(Bone *bones, u32 num_bones) {
-    return {num_bones, bones};
+    return { num_bones, bones };
 }
 
 void Skeleton::destroy() {
@@ -290,7 +289,7 @@ Mat Skeleton::matrix(i32 i) {
 void Skeleton::draw() {
     // TODO(ed): This can be made better since the order 0...n will allways result
     // in correct updated animations.
-    for (i32 i = 0; i < (i32) num_bones; i++) {
+    for (i32 i = 0; i < (i32)num_bones; i++) {
         Vec4 color = i == 0 ? Vec4(0, 0, 0, 1) : Vec4(1, 1, 1, 1);
         matrix(i).gfx_dump(color);
     }
@@ -300,7 +299,7 @@ void Skeleton::draw() {
 Animation Animation::init(i32 *times, i32 num_frames, Transform *trans, i32 trans_per_frame) {
     defer { delete[] times; };
 
-    Animation anim = {trans_per_frame, num_frames};
+    Animation anim = { trans_per_frame, num_frames };
     anim.frames = new Frame[num_frames];
     for (i32 frame = 0; frame < num_frames; frame++) {
         anim.frames[frame].t = times[frame];
@@ -321,19 +320,17 @@ AnimatedMesh AnimatedMesh::init(AssetID skin, AssetID skeleton, AssetID animatio
     Asset::fetch_skeleton(skeleton);
     Asset::fetch_animation(animation);
 
-    return {skin, skeleton, animation, AnimatedMesh::STANDARD_FRAME_PER_SECOND};
+    return { skin, skeleton, animation, AnimatedMesh::STANDARD_FRAME_PER_SECOND };
 }
 
 static Mat lerp_to_matrix(Transform a, Transform b, f32 blend) {
 #define LERP(a, b, l) ((a) + (l) * ((b) - (a)))
     // TODO(ed): Maybe break this out so you can lerp to a new transform.
     // If this code needs to be reused that would be great.
-    return
-           Mat::translate(LERP(a.position, b.position, blend)) *
+    return Mat::translate(LERP(a.position, b.position, blend)) *
            // NOTE(ed): This should be a slerp to be "accurate", but this is less work
            // and will probably not be noticed.
-           Mat::from(lerp(a.rotation, b.rotation, blend)) *
-           Mat::scale(LERP(a.scale, b.scale, blend));
+           Mat::from(lerp(a.rotation, b.rotation, blend)) * Mat::scale(LERP(a.scale, b.scale, blend));
 #undef LERP
 }
 
@@ -399,12 +396,12 @@ void AnimatedMesh::draw_at(float time) {
 
 void Shader::use() { glUseProgram(program_id); }
 
-#define FETCH_SHADER_PROP(name)\
-    shader.loc_ ##name = glGetUniformLocation(shader.program_id, #name)
+#define FETCH_SHADER_PROP(name) \
+    shader.loc_##name = glGetUniformLocation(shader.program_id, #name)
 
-#define FETCH_SHADER_PROP_FOR_LIST(name)\
-    shader.loc_ ##name = glGetUniformLocation(shader.program_id, #name);\
-    shader.loc_num_ ##name = glGetUniformLocation(shader.program_id, "num_" #name)
+#define FETCH_SHADER_PROP_FOR_LIST(name)                                \
+    shader.loc_##name = glGetUniformLocation(shader.program_id, #name); \
+    shader.loc_num_##name = glGetUniformLocation(shader.program_id, "num_" #name)
 
 MasterShader MasterShader::init() {
 
@@ -425,32 +422,31 @@ MasterShader MasterShader::init() {
     shader.loc_pos_lights = glGetUniformLocation(shader.program_id, "light_positions");
     shader.loc_col_lights = glGetUniformLocation(shader.program_id, "light_colors");
 
-
     return shader;
 }
 
-#define F32_SHADER_PROP(classname, name)\
-    void classname::upload_ ##name(f32 f) const { glUniform1f(loc_ ##name, f); }
+#define F32_SHADER_PROP(classname, name) \
+    void classname::upload_##name(f32 f) const { glUniform1f(loc_##name, f); }
 
-#define U32_SHADER_PROP(classname, name)\
-    void classname::upload_ ##name(u32 f) const { glUniform1i(loc_ ##name, f); }
+#define U32_SHADER_PROP(classname, name) \
+    void classname::upload_##name(u32 f) const { glUniform1i(loc_##name, f); }
 
-#define U32_SHADER_PROP(classname, name)\
-    void classname::upload_ ##name(u32 f) const { glUniform1i(loc_ ##name, f); }
+#define U32_SHADER_PROP(classname, name) \
+    void classname::upload_##name(u32 f) const { glUniform1i(loc_##name, f); }
 
-#define V3_SHADER_PROP(classname, name)\
-    void classname::upload_ ##name(Vec3 f) const { glUniform3f(loc_ ##name, f.x, f.y, f.z); }
+#define V3_SHADER_PROP(classname, name) \
+    void classname::upload_##name(Vec3 f) const { glUniform3f(loc_##name, f.x, f.y, f.z); }
 
-#define V4_SHADER_PROP(classname, name)\
-    void classname::upload_ ##name(Vec4 f) const { glUniform4f(loc_ ##name, f.x, f.y, f.z, f.w); }
+#define V4_SHADER_PROP(classname, name) \
+    void classname::upload_##name(Vec4 f) const { glUniform4f(loc_##name, f.x, f.y, f.z, f.w); }
 
-#define MAT_SHADER_PROP(classname, name)\
-    void classname::upload_ ##name(Mat &m) const { glUniformMatrix4fv(loc_ ##name, 1, true, m.data()); }
+#define MAT_SHADER_PROP(classname, name) \
+    void classname::upload_##name(Mat &m) const { glUniformMatrix4fv(loc_##name, 1, true, m.data()); }
 
-#define MATS_SHADER_PROP(classname, name)\
-    void classname::upload_ ##name(u32 num, Mat *m) const {\
-        glUniform1i(loc_num_ ##name, num);\
-        glUniformMatrix4fv(loc_ ##name, num, true, m->data());\
+#define MATS_SHADER_PROP(classname, name)                     \
+    void classname::upload_##name(u32 num, Mat *m) const {    \
+        glUniform1i(loc_num_##name, num);                     \
+        glUniformMatrix4fv(loc_##name, num, true, m->data()); \
     }
 
 F32_SHADER_PROP(MasterShader, t);
@@ -572,7 +568,7 @@ Shader Shader::compile(const char *asset, const char *source) {
     glShaderSource(vertex_shader, sizeof(vertex_source) / sizeof(vertex_source[0]), vertex_source, NULL);
     glCompileShader(vertex_shader);
 
-    if (!shader_error_check(vertex_shader)) return {-1};
+    if (!shader_error_check(vertex_shader)) return { -1 };
 
     // Fragment
     const char *fragment_source[] = {
@@ -586,7 +582,7 @@ Shader Shader::compile(const char *asset, const char *source) {
     glShaderSource(fragment_shader, sizeof(fragment_source) / sizeof(fragment_source[0]), fragment_source, NULL);
     glCompileShader(fragment_shader);
 
-    if (!shader_error_check(fragment_shader)) return {-1};
+    if (!shader_error_check(fragment_shader)) return { -1 };
 
     i32 program = glCreateProgram();
     glAttachShader(program, vertex_shader);
@@ -595,10 +591,10 @@ Shader Shader::compile(const char *asset, const char *source) {
 
     if (!program_error_check(program)) {
         glDeleteProgram(program);
-        return {-1};
+        return { -1 };
     }
 
-    return {program};
+    return { program };
 }
 
 Texture Texture::upload(u32 width, u32 height, u32 components, u8 *data, Sampling sampling) {
@@ -609,15 +605,21 @@ Texture Texture::upload(u32 width, u32 height, u32 components, u8 *data, Samplin
 
     GLenum format = GL_RED;
     if (components == 1) format = GL_RED;
-    else if (components == 2) format = GL_RG;
-    else if (components == 3) format = GL_RGB;
-    else if (components == 4) format = GL_RGBA;
-    else UNREACHABLE("Invalid number of components ({})", components);
+    else if (components == 2)
+        format = GL_RG;
+    else if (components == 3)
+        format = GL_RGB;
+    else if (components == 4)
+        format = GL_RGBA;
+    else
+        UNREACHABLE("Invalid number of components ({})", components);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     GLenum gl_sampling = GL_LINEAR;
     if (sampling == Sampling::LINEAR) gl_sampling = GL_LINEAR;
-    else if (sampling == Sampling::NEAREST) gl_sampling = GL_NEAREST;
-    else UNREACHABLE("Unsupported sampling ({})", components);
+    else if (sampling == Sampling::NEAREST)
+        gl_sampling = GL_NEAREST;
+    else
+        UNREACHABLE("Unsupported sampling ({})", components);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_sampling);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_sampling);
@@ -625,7 +627,7 @@ Texture Texture::upload(u32 width, u32 height, u32 components, u8 *data, Samplin
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 #endif
-    return { .texture_id=texture, .width=width, .height=height, .components=components };
+    return { .texture_id = texture, .width = width, .height = height, .components = components };
 }
 
 void Texture::bind(u32 texture_slot) {
@@ -653,11 +655,11 @@ bool init(GameState *gs, i32 width, i32 height) {
     gs->renderer.height = height;
 
     gs->window = SDL_CreateWindow("SMEK - The new begining",
-            SDL_WINDOWPOS_UNDEFINED,
-            SDL_WINDOWPOS_UNDEFINED,
-            width,
-            height,
-            SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
+                                  SDL_WINDOWPOS_UNDEFINED,
+                                  SDL_WINDOWPOS_UNDEFINED,
+                                  width,
+                                  height,
+                                  SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
 
     if (gs->window == NULL) {
         ERR("Failed to create OpenGL window \"{}\"", SDL_GetError());
@@ -666,16 +668,16 @@ bool init(GameState *gs, i32 width, i32 height) {
 
     gs->gl_context = SDL_GL_CreateContext(gs->window);
     SDL_GL_MakeCurrent(gs->window, gs->gl_context);
-    if (!gladLoadGLLoader((GLADloadproc) SDL_GL_GetProcAddress)) {
+    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
         ERR("Failed to load OpenGL function.");
         return false;
     }
 
     Mesh::Vertex a, b, c, d;
-    a = { { -1., -1., 0. }, {0., 0.}, {} };
-    b = { {  1., -1., 0. }, {1., 0.}, {} };
-    c = { {  1.,  1., 0. }, {1., 1.}, {} };
-    d = { { -1.,  1., 0. }, {0., 1.}, {} };
+    a = { { -1., -1., +0. }, { 0., 0. }, {} };
+    b = { { +1., -1., +0. }, { 1., 0. }, {} };
+    c = { { +1., +1., +0. }, { 1., 1. }, {} };
+    d = { { -1., +1., +0. }, { 0., 1. }, {} };
 
     Mesh::Vertex verticies[] = { a, b, c, a, c, d };
     gs->renderer.quad = Mesh::init(verticies, LEN(verticies));
@@ -704,7 +706,7 @@ Lighting *lighting() {
 bool reload(GameState *gs) {
     SDL_GL_MakeCurrent(gs->window, gs->gl_context);
 
-    if (!gladLoadGLLoader((GLADloadproc) SDL_GL_GetProcAddress)) {
+    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
         ERR("Failed to reload OpenGL function.");
         return false;
     }
@@ -730,10 +732,10 @@ DebugPrimitive DebugPrimitive::init() {
     glBufferData(GL_ARRAY_BUFFER, sizeof(DebugPrimitive::Vertex) * VERTS_PER_BUFFER, nullptr, GL_DYNAMIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, position));
+    glVertexAttribPointer(0, 3, GL_FLOAT, 0, sizeof(Vertex), (void *)offsetof(Vertex, position));
 
     glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 4, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, color));
+    glVertexAttribPointer(3, 4, GL_FLOAT, 0, sizeof(Vertex), (void *)offsetof(Vertex, color));
     glBindVertexArray(0);
 
     DebugPrimitive d = {};
@@ -742,7 +744,6 @@ DebugPrimitive DebugPrimitive::init() {
     d.buffer = new Vertex[VERTS_PER_BUFFER];
     return d;
 }
-
 
 bool DebugPrimitive::push_triangle(Vertex v1, Vertex v2, Vertex v3) {
     if (size + 3 >= VERTS_PER_BUFFER) return false;
@@ -761,10 +762,10 @@ void DebugPrimitive::draw() {
     glBufferSubData(GL_ARRAY_BUFFER, 0, size * sizeof(Vertex), buffer);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, position));
+    glVertexAttribPointer(0, 3, GL_FLOAT, 0, sizeof(Vertex), (void *)offsetof(Vertex, position));
 
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 4, GL_FLOAT, 0, sizeof(Vertex), (void *) offsetof(Vertex, color));
+    glVertexAttribPointer(1, 4, GL_FLOAT, 0, sizeof(Vertex), (void *)offsetof(Vertex, color));
 
     glDrawArrays(GL_TRIANGLES, 0, size);
 
@@ -779,7 +780,7 @@ void DebugPrimitive::clear() {
 
 void push_debug_triangle(Vec3 p1, Vec4 c1, Vec3 p2, Vec4 c2, Vec3 p3, Vec4 c3) {
     Renderer *renderer = &GAMESTATE()->renderer;
-    while (!renderer->primitives[renderer->first_empty].push_triangle({p1, c1}, {p2, c2}, {p3, c3})) {
+    while (!renderer->primitives[renderer->first_empty].push_triangle({ p1, c1 }, { p2, c2 }, { p3, c3 })) {
         if (++renderer->first_empty == renderer->primitives.size())
             renderer->primitives.push_back(DebugPrimitive::init());
     }

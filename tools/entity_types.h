@@ -42,7 +42,6 @@ FieldList get_fields_for(EntityType type);
  */
 
 $type_ofs
-
 /*
  * End of `tools/entity_types_type_of.h`
  */
@@ -56,6 +55,8 @@ $event_entity_bytes_union
     void callback();
 };
 
-namespace EventSystem { struct Event; }
+namespace EventSystem {
+struct Event;
+}
 
 $entity_events_prototypes

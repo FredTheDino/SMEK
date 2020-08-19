@@ -52,8 +52,8 @@ void audio_callback(AudioStruct *audio_struct, f32 *stream, int len) {
                 right = sample;
             }
 
-            stream[i+0] += left * source->gain;
-            stream[i+1] += right * source->gain;
+            stream[i + 0] += left * source->gain;
+            stream[i + 1] += right * source->gain;
         }
     }
 }

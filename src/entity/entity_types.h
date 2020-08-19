@@ -60,7 +60,6 @@ EntityType type_of(Player *);
 struct SoundEntity;
 EntityType type_of(SoundEntity *);
 
-
 /*
  * End of `tools/entity_types_type_of.h`
  */
@@ -78,7 +77,9 @@ struct EventCreateEntity {
     void callback();
 };
 
-namespace EventSystem { struct Event; }
+namespace EventSystem {
+struct Event;
+}
 
 EventSystem::Event entity_event(BaseEntity);
 EventSystem::Event entity_event(Entity);

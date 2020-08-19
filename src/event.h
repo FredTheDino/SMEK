@@ -23,4 +23,4 @@ struct Event {
 
 void handle_events();
 
-}  // namespace EventSystem
+} // namespace EventSystem

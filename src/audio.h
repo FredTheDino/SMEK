@@ -74,7 +74,7 @@ void audio_callback(AudioStruct *audio_struct, f32 *stream, int len);
 } // namespace Audio
 
 extern "C" void audio_callback(Audio::AudioStruct *audio_struct, f32 *stream, int len);
-typedef void(*AudioCallbackFunc)(void *, f32 *, int);
+typedef void (*AudioCallbackFunc)(void *, f32 *, int);
 
 #if 0
 

@@ -8,11 +8,12 @@
 #include "../renderer/renderer.h"
 
 namespace std {
-    template<> struct hash<AssetID> {
-        std::size_t operator()(const AssetID &id) const noexcept {
-            return u64(id);
-        }
-    };
+template <>
+struct hash<AssetID> {
+    std::size_t operator()(const AssetID &id) const noexcept {
+        return u64(id);
+    }
+};
 }
 
 namespace Asset {
@@ -62,7 +63,6 @@ struct StringAsset {
     char *data;
 };
 
-
 struct Sound {
     // read from file
     u32 channels;
@@ -90,7 +90,7 @@ struct UsableAsset {
 
 struct System {
     // read directly from file
-    FileHeader  file_header;
+    FileHeader file_header;
     AssetHeader *headers;
     std::unordered_map<AssetID, UsableAsset> assets;
 
@@ -147,4 +147,4 @@ GFX::Animation *fetch_animation(AssetID id);
 
 Sound *fetch_sound(AssetID id);
 
-}  // namespace Asset
+} // namespace Asset

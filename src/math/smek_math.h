@@ -4,14 +4,16 @@
 // The asset id is almost universal, and is needed almost everywhere.
 struct AssetID {
     AssetID(const char *);
-    AssetID(u64 id): id(id) {}
-    AssetID(): id(NONE()) {}
+    AssetID(u64 id)
+        : id(id) {}
+    AssetID()
+        : id(NONE()) {}
 
     static AssetID NONE() { return 0xFFFFFFFF; }
 
     u64 id;
 
-    bool operator ==(AssetID &other) const {
+    bool operator==(AssetID &other) const {
         return id == other;
     }
 
@@ -27,33 +29,33 @@ namespace Math {
 
 ///*
 // Returns the absolute value of a.
-template<typename T>
+template <typename T>
 T abs(T a);
 
 ///*
 // Returns the minimum of the two values 'a' and 'b'.
-template<typename T>
+template <typename T>
 T min(T a, T b);
 
 ///*
 // Returns the maximum of the two values 'a' and 'b'.
-template<typename T>
+template <typename T>
 T max(T a, T b);
 
 ///*
 // Returns the 1 if a is larger or equal to zero, -1 otherwise.
-template<typename T>
+template <typename T>
 T sign(T a);
 
 ///*
 // See sign, but returns 0 for 0.
-template<typename T>
+template <typename T>
 T sign_with_zero(T a);
 
 ///*
 // Returns true if the value a lies within distance r of b.
-template<typename T>
-bool close_enough(T a, T b, f32 r=0.0001);
+template <typename T>
+bool close_enough(T a, T b, f32 r = 0.0001);
 
 ///*
 // Raises a to the b power.
@@ -113,17 +115,17 @@ real copysign(real x, real y);
 
 ///*
 // Returns a rounded up to the nearest integer.
-template<typename R>
+template <typename R>
 R ceil(real a);
 
 ///*
 // Returns a rounded down to the nearest integer.
-template<typename R>
+template <typename R>
 R floor(real a);
 
 ///*
 // Returns a rounded to the nearest integer, 0.5 rounds down.
-template<typename R>
+template <typename R>
 R round(real a);
 
 ///*
@@ -137,38 +139,38 @@ real to_degrees(real radians);
 //
 // IMPLEMENTATIONS
 //
-template<typename T>
+template <typename T>
 T abs(T a) {
     return a > 0 ? a : -a;
 }
 
-template<typename T>
+template <typename T>
 T min(T a, T b) {
     return a > b ? b : a;
 }
 
-template<typename T>
+template <typename T>
 T max(T a, T b) {
     return a < b ? b : a;
 }
 
-template<typename T>
+template <typename T>
 T sign(T a) {
     return 0 <= a ? 1 : -1;
 }
 
-template<typename T>
+template <typename T>
 T sign_with_zero(T a) {
     if (a == 0) return 0;
     return sign(a);
 }
 
-template<typename T>
+template <typename T>
 bool close_enough(T a, T b, f32 r) {
     return abs(a - b) < r;
 }
 
-template<typename R>
+template <typename R>
 R ceil(real a) {
     if (a < 0)
         return R(a);
@@ -176,7 +178,7 @@ R ceil(real a) {
         return R(a) + 1;
 }
 
-template<typename R>
+template <typename R>
 R floor(real a) {
     if (a < 0)
         return R(a) - 1;
@@ -184,7 +186,7 @@ R floor(real a) {
         return R(a);
 }
 
-template<typename R>
+template <typename R>
 R round(real a) {
     return floor<R>(a + 0.5);
 }

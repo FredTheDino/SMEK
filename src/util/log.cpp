@@ -18,9 +18,9 @@ void print_stacktrace(unsigned int max_frames) {
 
 // Kinda borrowed from https://panthema.net/2008/0901-stacktrace-demangled/
 void print_stacktrace(unsigned int max_frames) {
-    void* addrlist[max_frames+1];
+    void *addrlist[max_frames + 1];
 
-    int addrlen = backtrace(addrlist, sizeof(addrlist) / sizeof(void*));
+    int addrlen = backtrace(addrlist, sizeof(addrlist) / sizeof(void *));
 
     // filename(function+address)
     char **symbollist = backtrace_symbols(addrlist, addrlen);
@@ -31,7 +31,7 @@ void print_stacktrace(unsigned int max_frames) {
     // Iterate over the returned symbol lines. The first is this function,
     // the second is either _assert or _unreachable. The last two are _start
     // and libc_start.
-    for (int i = 2; i < addrlen-2; i++) {
+    for (int i = 2; i < addrlen - 2; i++) {
         char *begin_name = 0, *begin_offset = 0, *end_offset = 0;
 
         // Find parentheses and +address offset surrounding the mangled name:
@@ -65,8 +65,7 @@ void print_stacktrace(unsigned int max_frames) {
                 // Demangling failed. Output function name as a C function with no arguments.
                 std::fprintf(STREAM, "  %s()\n", begin_name);
             }
-        }
-        else {
+        } else {
             // Couldn't parse the line? print the whole line.
             std::fprintf(STREAM, "%s\n", symbollist[i]);
         }

@@ -17,9 +17,9 @@ struct GameInput {
     };
 
     // Button state.
-    Button action_to_input[(u32) Ac::NUM_ACTIONS][2] = {};
+    Button action_to_input[(u32)Ac::NUM_ACTIONS][2] = {};
     std::unordered_map<Button, ButtonPress> input_to_action;
-    f32 state[(u32) Ac::NUM_ACTIONS] = {};
+    f32 state[(u32)Ac::NUM_ACTIONS] = {};
 
     // Mouse state
     Vec2 mouse_pos;
@@ -32,12 +32,12 @@ struct GameInput {
     u32 rebind_slot;
     f32 rebind_value;
 
-    void bind(Ac action, u32 slot, Button button, f32 value=1.0) {
+    void bind(Ac action, u32 slot, Button button, f32 value = 1.0) {
         ASSERT(slot < LEN(action_to_input[0]), "Invalid binding slot, max %d. (%d)",
                LEN(action_to_input[0]), slot);
         if (input_to_action.count(button))
             WARN("Button cannot be bound to multiple actions (%d)", button);
-        action_to_input[(u32) action][slot] = button;
+        action_to_input[(u32)action][slot] = button;
         input_to_action[button] = { action, value };
     }
 
@@ -45,8 +45,8 @@ struct GameInput {
         ASSERT(slot < LEN(action_to_input[0]), "Invalid binding slot, max %d. (%d)",
                LEN(action_to_input[0]), slot);
 
-        Button button = action_to_input[(u32) action][slot];
-        action_to_input[(u32) action][slot] = 0;
+        Button button = action_to_input[(u32)action][slot];
+        action_to_input[(u32)action][slot] = 0;
 
         if (button == 0) { return false; }
         input_to_action.erase(button);
@@ -65,10 +65,10 @@ struct GameInput {
         if (input_to_action.count(button)) {
             ButtonPress press = input_to_action[button];
             if (down) {
-                state[(u32) press.action] = down * press.value;
+                state[(u32)press.action] = down * press.value;
             } else {
-                if (state[(u32) press.action] == press.value) {
-                    state[(u32) press.action] = 0.0;
+                if (state[(u32)press.action] == press.value) {
+                    state[(u32)press.action] = 0.0;
                 }
             }
         }

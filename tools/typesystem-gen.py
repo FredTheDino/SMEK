@@ -217,12 +217,10 @@ if __name__ == "__main__":
         return f"Field gen_{name}[] = {{\n    {gen()}\n}};"
 
     def gen_fields_switch(names):
-        def gen():
-            out = []
-            for name in names:
-                out.append(f"case EntityType::{to_enum(name)}: return {{ LEN(gen_{name}), gen_{name} }};")
-            return "\n        ".join(out)
-        return gen()
+        out = []
+        for name in names:
+            out.append(f"{' '*4}case EntityType::{to_enum(name)}: return {{ LEN(gen_{name}), gen_{name} }};")
+        return "\n".join(out)
 
     fields_data = [gen_fields_data(name, struct.fields) for name, struct in entity_structs.items()]
     fields_switch = gen_fields_switch(entity_structs.keys())
@@ -258,9 +256,7 @@ if __name__ == "__main__":
         template_entity_events = Template(template_file.read())
 
     callbacks = [template_event_callback.substitute(entity_type_enum=to_enum(name),
-                                                    entity_type=name,
-                                                    fields="\n".join([f"{' '*12}entity.{field['NAME']} = {to_enum(name)}.{field['NAME']};"
-                                                                      for field in struct.fields]))
+                                                    entity_type=name)
                  for name, struct in entity_structs.items()]
 
     entity_events = [template_entity_events.substitute(entity_type=name,
@@ -269,7 +265,7 @@ if __name__ == "__main__":
 
     template_kwords_cpp = {
             "type_ofs": "\n".join([template_type_of_cpp.substitute(entity_type=t, entity_type_enum=to_enum(t)) for t in entity_structs.keys()]),
-            "type_formats": "\n".join([f"{' '*8}case EntityType::{to_enum(t)}: return snprintf(buffer, size, \"{t}\");" for t in entity_structs.keys()]),
+            "type_formats": "\n".join([f"{' '*4}case EntityType::{to_enum(t)}: return snprintf(buffer, size, \"{t}\");" for t in entity_structs.keys()]),
             "fields_data": "\n".join(fields_data),
             "fields_switch": fields_switch,
             "callbacks": "".join(callbacks),
