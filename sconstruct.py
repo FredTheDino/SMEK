@@ -254,10 +254,11 @@ tests_env.Append(CPPDEFINES="TESTS")
 tests_env.Append(CPPDEFINES="IMGUI_DISABLE")
 if GetOption("jumbo"):
     tests_env.Append(CXXFLAGS=list(chain(("-include", s) for s in source if "imgui" not in s and "test" not in s)))
-    tests_source = [tests_dir + "test.cpp"]
+    tests_objs = [tests_env.Object(tests_dir + "test.cpp")]
+    Depends(tests_objs[0], Command("inc/imgui/imgui.h", "vendor/imgui/imgui.h", Copy("inc/imgui/imgui.h", "vendor/imgui/imgui.h")))
 else:
-    tests_source = [re.sub("^src/", tests_dir, f) for f in source]
-tests = tests_env.Program(target=tests_dir + "tests", source=tests_source)
+    tests_objs = [tests_env.Object(re.sub("^src/", tests_dir, f)) for f in source]
+tests = tests_env.Program(target=tests_dir + "tests", source=tests_objs)
 
 zip_name = "smek"
 if GetOption("windows") or is_windows():
