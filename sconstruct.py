@@ -200,11 +200,11 @@ source = glob("src/**/*.c*", recursive=True)
 imgui = env.Object(smek_dir + "imgui.cpp")
 if GetOption("no_imgui"):
     env.Append(CPPDEFINES="IMGUI_DISABLE")
-else:
-    imgui_files_dest = [f"inc/imgui/{f.split('/')[-1]}" for f in IMGUI_FILES_SRC]
-    for src, dest in zip(IMGUI_FILES_SRC, imgui_files_dest):
-        Command(dest, src, Copy(dest, src))
-        Depends(imgui, dest)
+
+imgui_files_dest = [f"inc/imgui/{f.split('/')[-1]}" for f in IMGUI_FILES_SRC]
+for src, dest in zip(IMGUI_FILES_SRC, imgui_files_dest):
+    Command(dest, src, Copy(dest, src))
+    Depends(imgui, dest)
 
 glad = env.Object(smek_dir + "glad.cpp")
 if GetOption("jumbo"):
