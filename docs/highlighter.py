@@ -1,18 +1,31 @@
 # TODO(ed): Don't write static colors, add a style instead.
 TYPE_COLOR = "#f80"
 TYPE_STRINGS = {
-    "static", "void", "Vec2", "Vec3", "Vec4", "f32", "LogicID",
-    "Callback", "At", "const", "bool", "int", "Function", "struct",
-    "real", "s8", "s16", "s32", "s64", "u8", "u16", "u32", "u64",
-    "AssetID", "Mapping", "InputCode", "Player", "Name"
+    "void",
+    "f32", "f64", "real",
+    "b8",
+    "i8", "i16", "i32", "i64",
+    "u8", "u16", "u32", "u64",
+    "int", "bool"
 }
 
 def is_type(string):
     global TYPE_STRINGS
     if string in TYPE_STRINGS:
         return True
-    if string[0].isupper() and any(map(lambda c: c.islower(), string)):
+    if string.strip("*&") == "":
         return True
+    return string.strip("*&")[0].isupper() and any(map(lambda c: c.islower(), string))
+
+KEYWORD_COLOR = "#99e"
+KEYWORD_STRINGS = {
+    "static", "struct", "class", "const", "public", "private", "override",
+    "typename", "template"
+}
+
+def is_keyword(string):
+    global KEYWORD_STRINGS
+    return string in KEYWORD_STRINGS
 
 MACRO_COLOR = "#0cc"
 MACRO_STRINGS = {
@@ -24,31 +37,34 @@ def is_macro(string):
     global MACRO_STRINGS
     if ":" in string:
         return False
+    if string and string[0] == "#":
+        return True
     if string in MACRO_STRINGS:
         return True
-    if all(map(lambda c: c.isupper() or c == "_", string)):
-        return True
-    return False
+    return all(map(lambda c: c.isupper() or c == "_", string))
 
 def is_constant(string):
     last = string.split(":")[-1]
     return all(map(lambda c: c.isupper() or c == "_", last))
 
-STRING_COLOR = "#cc8"
-NUMBER_COLOR = "#c8c"
-SPLIT_SEPS = set(" ,;()\n")
+SPLIT_SEPS = set(" ,;:()<>=\n")
 
 def highlight_code(line):
     """ Adds orange color to words marked to be highlighted """
     def highlight(word):
-        if is_macro(word):
-            return color_html(word, MACRO_COLOR)
-        if is_type(word):
-            return color_html(word, TYPE_COLOR)
-        if is_number(word):
-            return color_html(word, NUMBER_COLOR)
-        if is_string(word):
-            return color_html(word, STRING_COLOR)
+        styler = [
+            (is_keyword, KEYWORD_COLOR),
+            (is_macro, MACRO_COLOR),
+            (is_type, TYPE_COLOR),
+            (is_number, NUMBER_COLOR),
+            (is_bool, BOOL_COLOR),
+            (is_string, STRING_COLOR),
+        ]
+
+        for f, c in styler:
+            if f(word):
+                return color_html(word, c)
+
         return word
 
     return "".join([highlight(w) + s for w, s in zip(*split_all(line, SPLIT_SEPS))])
@@ -98,10 +114,12 @@ def split_all(string, sep):
 
     return words, splits
 
+STRING_COLOR = "#cc8"
 def is_string(string):
     """ Return whether or not a string is a... string """
     return string.startswith("\"") and string.endswith("\"")
 
+NUMBER_COLOR = "#c8c"
 def is_number(string):
     """ Return whether or not a string is a number """
     if string.startswith("0x"):
@@ -110,3 +128,7 @@ def is_number(string):
         return all(s in "01" for s in string[2:])
     else:
         return string.lstrip("-").replace(".", "", 1).isdigit()
+
+BOOL_COLOR = "#c8c"
+def is_bool(string):
+    return string in ["true", "false"]
