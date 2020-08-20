@@ -7,8 +7,9 @@
 struct SoundEntity;
 
 ///# Audio
-//
+// Code to interact with the audio thread.
 
+///* AudioID
 struct AudioID {
     u32 gen;
     u32 slot;
@@ -16,7 +17,13 @@ struct AudioID {
 
 namespace Audio {
 
+///* NUM_SOURCES
+// The total number of available sources.
 const u32 NUM_SOURCES = 10;
+
+///* SoundSource
+// Internal representation for playing sounds.
+struct SoundSource;
 
 struct SoundSource {
     u32 channels;
