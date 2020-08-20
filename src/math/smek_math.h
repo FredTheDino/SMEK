@@ -1,7 +1,11 @@
 #pragma once
 #include "types.h"
 
-// The asset id is almost universal, and is needed almost everywhere.
+///* AssetID
+// A way to identify assets.
+//
+// The string is expected to be const so it potentially can be hashed during
+// compile time.
 struct AssetID {
     AssetID(const char *);
     AssetID(u64 id)

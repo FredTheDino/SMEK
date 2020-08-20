@@ -18,10 +18,21 @@ struct hash<AssetID> {
 
 namespace Asset {
 
-///# Asset types
-// These are the types of assets in the asset binary.
+///# Asset System
+// The asset system is in charge of managing the assets, an asset
+// packer (tools/asset-gen.py) packs assets into a binary format
+// which is then read by the engine. Assets are loaded when they
+// are needed.
 
-typedef enum {
+//// Asset Types and serialization
+// Structs and functions related to reading assets from file. Doesn't
+// really concern the rest of the engine or game code much.
+
+///* AssetType
+// A listing of all available asset types. Note that these must match
+// the constants in the python script.
+// TODO(ed): Make this an enum class, and add a format function.
+enum AssetType {
     NONE = 0,
     TEXTURE = 1,
     STRING = 2,
@@ -33,8 +44,9 @@ typedef enum {
     ANIMATION = 8,
 
     NUM_TYPES,
-} AssetType;
+};
 
+///* FileHeader
 struct FileHeader {
     // read from file
     u64 num_assets;
@@ -43,6 +55,7 @@ struct FileHeader {
     u64 data_offset;
 };
 
+///* AssetType
 struct AssetHeader {
     // read from file
     AssetType type;
@@ -63,6 +76,7 @@ struct StringAsset {
     char *data;
 };
 
+///* Sound
 struct Sound {
     // read from file
     u32 channels;
@@ -71,6 +85,7 @@ struct Sound {
     f32 *data;
 };
 
+///* UsableAsset
 struct UsableAsset {
     union {
         GFX::Texture texture;
@@ -123,28 +138,24 @@ AssetID fetch_id(const char *name);
 // Returns true if the asset needs to be reloaded.
 bool needs_reload(AssetID id);
 
-///*
-// Fetch an image-asset.
-GFX::Texture *fetch_texture(AssetID id);
+/// Asset Requests
+// Functions for interacting with the asset system.
 
-///*
-// Fetch a string asset.
-StringAsset *fetch_string_asset(AssetID id);
+using namespace GFX;
 
-///*
-// Fetch a shader source asset.
-GFX::Shader *fetch_shader(AssetID id);
-
-///*
-// Fetch a 3D-model.
-GFX::Mesh *fetch_mesh(AssetID id);
-
-GFX::Skin *fetch_skin(AssetID id);
-
-GFX::Skeleton *fetch_skeleton(AssetID id);
-
-GFX::Animation *fetch_animation(AssetID id);
-
+///* fetch anything
+// Queries the asset system, loads it to ram if needed.
+// These functions are cheap to call, most of the time.
+//
+// The first time a fetch is called for an asset is when
+// it is loaded.
+Animation *fetch_animation(AssetID id);
+Mesh *fetch_mesh(AssetID id);
+Shader *fetch_shader(AssetID id);
+Skeleton *fetch_skeleton(AssetID id);
+Skin *fetch_skin(AssetID id);
+Texture *fetch_texture(AssetID id);
 Sound *fetch_sound(AssetID id);
+StringAsset *fetch_string_asset(AssetID id);
 
 } // namespace Asset
