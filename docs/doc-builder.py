@@ -53,7 +53,7 @@ def find_comments(file_path):
                     appending_to_comment = True
                     if comobj.kind is not None:
                         comments.append(comobj)
-                    comobj = Comment(next_type, file_path, line)
+                    comobj = Comment(next_type, file_path, linenr)
                     if comobj.kind != HEADING:
                         comobj.comment = line
 
@@ -182,6 +182,7 @@ def format_comment(section, comobj, docs):
     namespace = comobj.namespace
     title = find_comment_title(comment)
     return tag("div", tag("h3", title) + "\n" +
+               tag("h5", comobj.path + ":" + str(comobj.line), "linenr") + \
                process_comment_section(comment.split("\n")[1:], docs) + "\n",
                "block comment",
                find_comment_id(section, comment)) + "\n"
@@ -223,6 +224,7 @@ def format_documentation(section, comobj, docs):
     if namespace:
         namespace = tag("span", namespace + "::", html_class="namespace")
     return tag("div", "\n" + tag("h3", namespace + title) + "\n" +
+               tag("h5", comobj.path + ":" + str(comobj.line), "linenr") + \
                process_comment_section(comment.split("\n")[1:], docs) + "\n",
                "block doc",
                find_documentation_id(section, comment)) + "\n"
@@ -232,6 +234,7 @@ def format_heading(heading, comobj, _):
     comment = comobj.comment
     namespace = comobj.namespace
     return tag("h2", heading, "section heading", make_id_friendly(heading)) + \
+           tag("h5", comobj.path + ":" + str(comobj.line), "linenr") + \
            tag("p", comment.replace("///#", "").replace("//", "").strip())
 
 
