@@ -25,7 +25,8 @@ def find_comments(file_path):
         current_type = None
         comment = ""
         namespace = ""
-        for line in f:
+        bracket_stack = 0
+        for linenr, line in enumerate(f):
             if not appending_to_comment:
                 next_type = None
                 if "namespace" in line and not comments:
@@ -50,8 +51,11 @@ def find_comments(file_path):
                         comment = line
 
             elif appending_to_comment:
-                if line.strip() == "":
+                bracket_stack += line.count("{") - line.count("}")
+                blank_line = line.strip() == ""
+                if blank_line and bracket_stack <= 0:
                     appending_to_comment = False
+                    bracket_stack = 0
                 else:
                     comment += line
     if comment:
