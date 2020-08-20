@@ -19,19 +19,18 @@ struct hash<AssetID> {
 namespace Asset {
 
 ///# Asset System
-// The asset system is in charge of managing the assets, a asset
+// The asset system is in charge of managing the assets, an asset
 // packer (tools/asset-gen.py) packs assets into a binary format
 // which is then read by the engine. Assets are loaded when they
 // are needed.
 
 //// Asset Types and serialization
-// Structs and functions related to reading assets from file. Don't
+// Structs and functions related to reading assets from file. Doesn't
 // really concern the rest of the engine or game code much.
 
 ///* AssetType
 // A listing of all available asset types. Note that these must match
 // the constants in the python script.
-//
 // TODO(ed): Make this an enum class, and add a format function.
 enum AssetType {
     NONE = 0,

@@ -3,7 +3,7 @@
 
 ///# Game standard types
 // Use these if you can, since the size is always known,
-// and the look sexy. (They're also easy to change if we
+// and they look sexy. (They're also easy to change if we
 // have to).
 
 ///* b8
