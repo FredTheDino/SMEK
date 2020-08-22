@@ -60,6 +60,26 @@ void NetworkHandle::handle_package(Package *package) {
     }
 }
 
+void ServerHandle::send_heartbeat() {
+    Package heartbeatPackage;
+    heartbeatPackage.header.type = PackageType::HEARTBEAT;
+    heartbeatPackage.HEARTBEAT.id = next_package_id;
+    heartbeat_time_start = std::chrono::steady_clock::now();
+    send(&heartbeatPackage);
+    prev_heartbeat_id = heartbeatPackage.header.id;
+}
+
+void ServerHandle::recv_heartbeat(u32 id) {
+    if (id < prev_heartbeat_id) {
+        ERR("Received old heartbeat");
+    } else if (id > prev_heartbeat_id) {
+        ERR("Received heartbeat from the future");
+    } else {
+        auto now = std::chrono::steady_clock::now();
+        LOG("Heartbeat latency: {} microseconds", std::chrono::duration_cast<std::chrono::microseconds>(now - heartbeat_time_start).count());
+    }
+}
+
 int start_server_handle(void *data) {
     ServerHandle *handle = (ServerHandle *)data;
     handle->active = true;
@@ -71,6 +91,9 @@ int start_server_handle(void *data) {
             case PackageType::SET_CLIENT_ID:
                 handle->client_id = package.SET_CLIENT_ID.client_id;
                 handle->wip_package.header.client = handle->client_id;
+                break;
+            case PackageType::HEARTBEAT:
+                handle->recv_heartbeat(package.HEARTBEAT.id);
                 break;
             default:
                 break;
@@ -94,6 +117,18 @@ int start_client_handle(void *data) {
             } else {
                 GAMESTATE()->network.prev_package = package;
                 SDL_UnlockMutex(GAMESTATE()->network.m_prev_package);
+            }
+            switch (package.header.type) {
+            case PackageType::HEARTBEAT: {
+                Package heartbeatResponse;
+                heartbeatResponse.header.type = PackageType::HEARTBEAT;
+                heartbeatResponse.header.client = package.header.client;
+                heartbeatResponse.HEARTBEAT.id = package.header.id;
+                handle->send(&heartbeatResponse);
+                break;
+            }
+            default:
+                break;
             }
         }
     }
@@ -297,6 +332,9 @@ void Network::imgui_draw() {
                     server_handle.send(&server_handle.wip_package);
                 }
                 ImGui::End();
+            }
+            if (ImGui::Button("Send heartbeat")) {
+                server_handle.send_heartbeat();
             }
 
             if (ImGui::BeginChild("Package log", ImVec2(ImGui::GetWindowContentRegionWidth() * 0.5f, 160))) {

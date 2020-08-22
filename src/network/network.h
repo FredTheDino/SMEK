@@ -6,6 +6,7 @@
 #include <netdb.h>
 
 #include <forward_list>
+#include <chrono>
 #include "SDL.h"
 
 #include "package.h"
@@ -36,7 +37,13 @@ struct NetworkHandle {
     void close();
 };
 
-struct ServerHandle : public NetworkHandle {};
+struct ServerHandle : public NetworkHandle {
+    std::chrono::steady_clock::time_point heartbeat_time_start;
+    u32 prev_heartbeat_id;
+
+    void send_heartbeat();
+    void recv_heartbeat(u32 id);
+};
 int start_server_handle(void *data); // thread entry point, takes a (ServerHandle *)
 
 struct ClientHandle : public NetworkHandle {};

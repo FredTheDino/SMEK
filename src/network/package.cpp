@@ -40,6 +40,9 @@ i32 format(char *buffer, u32 size, FormatHint args, Package pkg) {
     case PackageType::EVENT:
         return snprintf(buffer, size, "Event: type=%0*u",
                         args.num_zero_pad, (u32)pkg.EVENT.event.type);
+    case PackageType::HEARTBEAT:
+        return snprintf(buffer, size, "Heartbeat: id=%0*u",
+                        args.num_zero_pad, pkg.HEARTBEAT.id);
     default:
         return snprintf(buffer, size, "Not implemented for package type %u", (u32)pkg.header.type);
     }
@@ -66,6 +69,9 @@ void imgui_package_create(Package *package, WipEntities *wip_entities) {
         break;
     case PackageType::EVENT:
         imgui_event_create(&package->EVENT.event, wip_entities);
+        break;
+    case PackageType::HEARTBEAT:
+        ImGui::InputInt("id", (int *)&package->HEARTBEAT.id);
         break;
     default:
         ImGui::Text("Not implemented for package type %u", (u32)package->header.type);
