@@ -92,7 +92,7 @@ void imgui_event_create(Event *event, WipEntities *wip_entities) {
             break;
         }
         break;
-    } // case CREATE_ENTITY
+    }
     default:
         ImGui::Text("Not implemented for event type %u", (u32)event->type);
         break;
