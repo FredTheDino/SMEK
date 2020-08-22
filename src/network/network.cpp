@@ -76,7 +76,7 @@ void ServerHandle::recv_heartbeat(u32 id) {
         ERR("Received heartbeat from the future");
     } else {
         auto now = std::chrono::steady_clock::now();
-        LOG("Heartbeat latency: {} microseconds", std::chrono::duration_cast<std::chrono::microseconds>(now - heartbeat_time_start).count());
+        LOG("Heartbeat latency: {} ms", (f32)std::chrono::duration_cast<std::chrono::microseconds>(now - heartbeat_time_start).count() / 1000);
     }
 }
 
