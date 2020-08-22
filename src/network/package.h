@@ -43,7 +43,7 @@ struct PackageEvent {
 };
 
 struct PackageSetClientID {
-    u32 id;
+    u32 client_id;
 };
 
 struct PackageHeader {

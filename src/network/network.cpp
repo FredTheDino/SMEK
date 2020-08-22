@@ -18,6 +18,7 @@ void NetworkHandle::send(u8 *data, u32 data_len) {
 
 void NetworkHandle::send(Package *package) {
     u8 buf[sizeof(Package)];
+    package->header.client = client_id;
     package->header.id = next_package_id++;
     pack(buf, package);
     send(buf, sizeof(Package));
@@ -68,7 +69,7 @@ int start_server_handle(void *data) {
         if (handle->recv(buf, sizeof(buf), &package)) {
             switch (package.header.type) {
             case PackageType::SET_CLIENT_ID:
-                handle->client_id = package.SET_CLIENT_ID.id;
+                handle->client_id = package.SET_CLIENT_ID.client_id;
                 handle->wip_package.header.client = handle->client_id;
                 break;
             default:
@@ -210,7 +211,7 @@ bool Network::new_client_handle(int newsockfd) {
         }
         Package id_package;
         id_package.header.type = PackageType::SET_CLIENT_ID;
-        id_package.SET_CLIENT_ID.id = handle->client_id;
+        id_package.SET_CLIENT_ID.client_id = handle->client_id;
         handle->send(&id_package);
         return true;
     }
