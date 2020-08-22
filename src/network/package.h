@@ -75,6 +75,7 @@ void unpack(Package *into, u8 *from);
 Package unpack(u8 *from);
 
 i32 format(char *buffer, u32 size, FormatHint args, Package pkg);
+i32 format(char *buffer, u32 size, FormatHint args, PackageHeader header);
 
 #ifndef IMGUI_DISABLE
 void imgui_package_create(Package *package, WipEntities *wip_entities);

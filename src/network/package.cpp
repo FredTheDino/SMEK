@@ -45,6 +45,12 @@ i32 format(char *buffer, u32 size, FormatHint args, Package pkg) {
     }
 }
 
+i32 format(char *buffer, u32 size, FormatHint args, PackageHeader header) {
+    return snprintf(buffer, size, "client=%0*u id=%0*u",
+                    args.num_zero_pad, header.client,
+                    args.num_zero_pad, header.id);
+}
+
 #ifndef IMGUI_DISABLE
 void imgui_package_create(Package *package, WipEntities *wip_entities) {
     int pkg_type_current_id = (int)package->header.type;
