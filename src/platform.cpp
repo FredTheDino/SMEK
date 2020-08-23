@@ -263,6 +263,8 @@ int main(int argc, char **argv) { // Game entrypoint
     game_state.input.bind_func = platform_bind;
     game_state.input.rebind_func = platform_rebind;
     game_state.input.bind_func = platform_bind;
+    game_state.m_reload_lib = m_reload_lib;
+    game_state.reload_lib = &reload_lib;
 
     game_lib.init(&game_state, width, height);
     platform_audio_init();

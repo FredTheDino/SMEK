@@ -104,8 +104,19 @@ void draw() {
 #ifndef IMGUI_DISABLE
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
-            if (ImGui::MenuItem("Reload")) {}
-            if (ImGui::MenuItem("Exit")) {}
+            if (ImGui::MenuItem("Reload")) {
+                if (SDL_LockMutex(GAMESTATE()->m_reload_lib) == 0) {
+                    *GAMESTATE()->reload_lib = true;
+                    SDL_UnlockMutex(GAMESTATE()->m_reload_lib);
+                } else {
+                    ERR("Unable to lock mutex: {}", SDL_GetError());
+                }
+            }
+            if (ImGui::MenuItem("Exit")) {
+                SDL_Event quit_event;
+                quit_event.type = SDL_QUIT;
+                SDL_PushEvent(&quit_event);
+            }
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("View")) {

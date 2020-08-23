@@ -26,6 +26,9 @@ struct GameState {
     EntitySystem entity_system;
     std::queue<EventSystem::Event> event_queue;
 
+    SDL_mutex *m_reload_lib;
+    bool *reload_lib;
+
     SDL_threadID main_thread;
     f32 delta;
     f32 time;
