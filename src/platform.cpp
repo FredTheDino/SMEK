@@ -228,7 +228,6 @@ int main(int argc, char **argv) { // Game entrypoint
     int height = 500;
     for (int index = 1; index < argc; index++) {
         if ARGUMENT ("--help", "-h") {
-            //TODO(gu)
             std::printf("Usage: SMEK [--help] [--resolution <width> <height>]\n"
                         "            [--no-reload]\n");
             return 0;
