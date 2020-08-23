@@ -61,6 +61,7 @@ i32 sntprint<>(char *buffer, u32 buf_size, const char *fmt) {
 }
 
 #include "../test.h"
+#include <cstring>
 
 TEST_FORMAT((f32)1.5, "1.50", .num_decimals = 2);
 TEST_FORMAT((f32)1.5, "1.5", .num_decimals = 1);
@@ -80,3 +81,14 @@ TEST_FORMAT((i32)-5000, "-05000", .num_zero_pad = 6);
 TEST_FORMAT((char)'a', "a", .num_zero_pad = 6);
 
 TEST_FORMAT((const char *)"abc123", "abc123", .num_zero_pad = 6);
+
+TEST_CASE("reuse sntprint buffer - base case", {
+    char buffer[3] = {};
+    sntprint(buffer, 4, "1");
+    ASSERT(std::strcmp(buffer, "1") == 0, "Got '{}', '1' expected", buffer);
+    sntprint(buffer, 4, "22");
+    ASSERT(std::strcmp(buffer, "22") == 0, "Got '{}', '22' expected", buffer);
+    sntprint(buffer, 4, "3");
+    ASSERT(std::strcmp(buffer, "3") == 0, "Got '{}', '3' expected", buffer);
+    return true;
+});
