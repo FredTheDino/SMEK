@@ -310,12 +310,12 @@ TEST_CASE("entity fetch", {
     TestEnt a;
     TestEnt *a_ptr;
 
-    ASSERT(a.value == 1, "Got {}, expected 1", a.value);
+    ASSERT_EQ(a.value, 1);
     auto id = entity_system()->add(a);
     a_ptr = entity_system()->fetch<TestEnt>(id);
-    ASSERT(a_ptr->value == 1, "Got {}, expected 1", a_ptr->value);
+    ASSERT_EQ(a_ptr->value, 1);
     a_ptr->value = 2;
-    ASSERT(a_ptr->value == 2, "Got {}, expected 2", a_ptr->value);
+    ASSERT_EQ(a_ptr->value, 2);
     return true;
 });
 
@@ -327,10 +327,10 @@ TEST_CASE("entity on_create", {
         }
     };
     TestEnt a;
-    ASSERT(a.value == 1, "Got {}, expected 1", a.value);
+    ASSERT_EQ(a.value, 1);
     auto id = entity_system()->add(a);
     TestEnt *a_ptr = entity_system()->fetch<TestEnt>(id);
-    ASSERT(a_ptr->value == 2, "Got {}, expected 2", a_ptr->value);
+    ASSERT_EQ(a_ptr->value, 2);
     return true;
 });
 
@@ -340,11 +340,11 @@ TEST_CASE("entity on_remove", {
         void on_remove() override { value = 2; }
     };
     TestEnt a;
-    ASSERT(a.value == 1, "Got {}, expected 1", a.value);
+    ASSERT_EQ(a.value, 1);
     auto id = entity_system()->add(a);
     TestEnt *a_ptr = entity_system()->fetch<TestEnt>(id);
-    ASSERT(a_ptr->value == 1, "Got {}, expected 1", a_ptr->value);
+    ASSERT_EQ(a_ptr->value, 1);
     entity_system()->remove(id);
-    ASSERT(a_ptr->value == 2, "Got {}, expected 2", a_ptr->value);
+    ASSERT_EQ(a_ptr->value, 2);
     return true;
 });

@@ -155,8 +155,8 @@ void platform_audio_init() {
         UNREACHABLE("Unable to initialize audio: {}", SDL_GetError());
     }
     CHECK(have.freq == want.freq, "Got different sample rate ({})", have.freq);
-    ASSERT(have.format == want.format, "Got wrong format ({})", have.format);
-    ASSERT(have.channels == want.channels, "Got wrong amount of channels ({})", have.channels);
+    ASSERT_EQ(have.format, want.format);
+    ASSERT_EQ(have.channels, want.channels);
 
     platform_audio_struct.sample_rate = have.freq;
     platform_audio_struct.active = true;
