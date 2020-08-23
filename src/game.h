@@ -10,6 +10,7 @@
 #include <queue>
 
 #include "event.h"
+#include "imgui_state.h"
 
 ///# Game
 //
@@ -39,9 +40,7 @@ struct GameState {
     bool running;
 
 #ifndef IMGUI_DISABLE
-    // state for imgui
-    void *imgui_context;
-    bool show_create_sound_window = false;
+    ImGuiState imgui = {};
 #endif
 };
 
