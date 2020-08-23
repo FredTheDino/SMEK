@@ -84,12 +84,67 @@ TEST_FORMAT((char)'a', "a", .num_zero_pad = 6);
 TEST_FORMAT((const char *)"abc123", "abc123", .num_zero_pad = 6);
 
 TEST_CASE("reuse sntprint buffer - base case", {
-    char buffer[3] = {};
+    char buffer[4] = {};
     sntprint(buffer, 4, "1");
     ASSERT(std::strcmp(buffer, "1") == 0, "Got '{}', '1' expected", buffer);
     sntprint(buffer, 4, "22");
     ASSERT(std::strcmp(buffer, "22") == 0, "Got '{}', '22' expected", buffer);
     sntprint(buffer, 4, "3");
+    ASSERT(std::strcmp(buffer, "3") == 0, "Got '{}', '3' expected", buffer);
+    return true;
+});
+
+TEST_CASE("reuse sntprint buffer - base case at buf_size", {
+    char buffer[3] = {};
+    sntprint(buffer, 3, "1");
+    ASSERT(std::strcmp(buffer, "1") == 0, "Got '{}', '1' expected", buffer);
+    sntprint(buffer, 3, "22");
+    ASSERT(std::strcmp(buffer, "22") == 0, "Got '{}', '22' expected", buffer);
+    sntprint(buffer, 3, "3");
+    ASSERT(std::strcmp(buffer, "3") == 0, "Got '{}', '3' expected", buffer);
+    return true;
+});
+
+TEST_CASE("reuse sntprint buffer - base case over buf_size", {
+    char buffer[2] = {};
+    sntprint(buffer, 2, "1");
+    ASSERT(std::strcmp(buffer, "1") == 0, "Got '{}', '1' expected", buffer);
+    sntprint(buffer, 2, "22");
+    ASSERT(std::strcmp(buffer, "2") == 0, "Got '{}', '2' expected", buffer);
+    sntprint(buffer, 2, "3");
+    ASSERT(std::strcmp(buffer, "3") == 0, "Got '{}', '3' expected", buffer);
+    return true;
+});
+
+TEST_CASE("reuse sntprint buffer - with formatting", {
+    char buffer[4] = {};
+    sntprint(buffer, 4, "{}", 1);
+    ASSERT(std::strcmp(buffer, "1") == 0, "Got '{}', '1' expected", buffer);
+    sntprint(buffer, 4, "{}", 22);
+    ASSERT(std::strcmp(buffer, "22") == 0, "Got '{}', '22' expected", buffer);
+    sntprint(buffer, 4, "{}", 3);
+    ASSERT(std::strcmp(buffer, "3") == 0, "Got '{}', '3' expected", buffer);
+    return true;
+});
+
+TEST_CASE("reuse sntprint buffer - with formatting at buf_size", {
+    char buffer[3] = {};
+    sntprint(buffer, 3, "{}", 1);
+    ASSERT(std::strcmp(buffer, "1") == 0, "Got '{}', '1' expected", buffer);
+    sntprint(buffer, 3, "{}", 22);
+    ASSERT(std::strcmp(buffer, "22") == 0, "Got '{}', '22' expected", buffer);
+    sntprint(buffer, 3, "{}", 3);
+    ASSERT(std::strcmp(buffer, "3") == 0, "Got '{}', '3' expected", buffer);
+    return true;
+});
+
+TEST_CASE("reuse sntprint buffer - with formatting over buf_size", {
+    char buffer[2] = {};
+    sntprint(buffer, 2, "{}", 1);
+    ASSERT(std::strcmp(buffer, "1") == 0, "Got '{}', '1' expected", buffer);
+    sntprint(buffer, 2, "{}", 22);
+    ASSERT(std::strcmp(buffer, "2") == 0, "Got '{}', '2' expected", buffer);
+    sntprint(buffer, 2, "{}", 3);
     ASSERT(std::strcmp(buffer, "3") == 0, "Got '{}', '3' expected", buffer);
     return true;
 });
