@@ -219,3 +219,8 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
     if (should_draw(mode)) { draw(); }
     return *game;
 }
+
+void shutdown_game(GameState *game) {
+    _global_gs = game;
+    LOG("Game shutting down");
+}
