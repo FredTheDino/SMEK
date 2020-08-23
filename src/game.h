@@ -84,3 +84,8 @@ typedef void (*GameReloadFunc)(GameState *);
 // outside of the GameState object, but the new one is returned.
 extern "C" GameState update_game(GameState *gamestate, GSUM mode = GSUM::UPDATE_AND_RENDER);
 typedef GameState (*GameUpdateFunc)(GameState *, GSUM);
+
+///*
+// Shutdown everything nicely.
+extern "C" void shutdown_game(GameState *gamestate);
+typedef void (*GameShutdownFunc)(GameState *);

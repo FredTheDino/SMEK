@@ -31,6 +31,7 @@ struct GameLibrary {
     GameInitFunc init;
     GameReloadFunc reload;
     GameUpdateFunc update;
+    GameShutdownFunc shutdown;
     AudioCallbackFunc audio_callback;
 
     void *handle;
@@ -118,6 +119,10 @@ bool load_gamelib() {
     game_lib.reload = (GameReloadFunc)dlsym(lib, "reload_game");
     if (!game_lib.update) {
         UNREACHABLE("Failed to load \"reload_game\": {}", dlerror());
+    }
+    game_lib.shutdown = (GameShutdownFunc)dlsym(lib, "shutdown_game");
+    if (!game_lib.update) {
+        UNREACHABLE("Failed to load \"shutdown_game\": {}", dlerror());
     }
     game_lib.audio_callback = (AudioCallbackFunc)dlsym(lib, "audio_callback");
     if (!game_lib.audio_callback) {
@@ -346,6 +351,7 @@ int main(int argc, char **argv) { // Game entrypoint
         imgui_end_frame();
         SDL_GL_SwapWindow(game_state.window);
     }
+    game_lib.shutdown(&game_state);
     return 0;
 }
 #endif
