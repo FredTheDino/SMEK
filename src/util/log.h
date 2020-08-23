@@ -14,6 +14,13 @@
 #define ASSERT(pass, msg, ...) _smek_assert(__FILE__, __LINE__, __func__, pass, STR(pass), msg, ##__VA_ARGS__)
 #define CHECK(pass, msg, ...)  _smek_check(__FILE__, __LINE__, __func__, pass, STR(pass), msg, ##__VA_ARGS__)
 
+#define ASSERT_EQ(LHS, RHS) ASSERT((LHS) == (RHS), STR(LHS) " ({}) and " STR(RHS) " ({}) should be equal", (LHS), (RHS));
+#define ASSERT_NE(LHS, RHS) ASSERT((LHS) != (RHS), STR(LHS) " ({}) and " STR(RHS) " ({}) should not be equal", (LHS), (RHS));
+#define ASSERT_LT(LHS, RHS) ASSERT((LHS) < (RHS), STR(LHS) " ({}) should be less than " STR(RHS) " ({})", (LHS), (RHS));
+#define ASSERT_GT(LHS, RHS) ASSERT((LHS) > (RHS), STR(LHS) " ({}) should be greater than " STR(RHS) " ({})", (LHS), (RHS));
+#define ASSERT_LE(LHS, RHS) ASSERT((LHS) <= (RHS), STR(LHS) " ({}) should be less than or equal to " STR(RHS) " ({})", (LHS), (RHS));
+#define ASSERT_GE(LHS, RHS) ASSERT((LHS) >= (RHS), STR(LHS) " ({}) should be greater than or equal to " STR(RHS) " ({})", (LHS), (RHS));
+
 template <typename... Args>
 void _smek_log_err(const char *file, u32 line, const char *func, const char *message, Args... args);
 
@@ -137,6 +144,14 @@ CHECK(func, ...)
 ///*
 // Message is optional. Errors if <code>func</code> is evaluated to false.
 ASSERT(func, ...)
+
+///* Specialized asserts
+ASSERT_EQ(LHS, RHS)
+ASSERT_NE(LHS, RHS)
+ASSERT_LT(LHS, RHS)
+ASSERT_GT(LHS, RHS)
+ASSERT_LE(LHS, RHS)
+ASSERT_GE(LHS, RHS)
 
 ///*
 UNREACHABLE(...)
