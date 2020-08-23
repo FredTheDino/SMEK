@@ -49,13 +49,14 @@ template <>
 i32 sntprint<>(char *buffer, u32 buf_size, const char *fmt) {
     if (buf_size == 0) return 0;
     u32 head = 0;
-    while (fmt[head]) {
-        if (buf_size == head) {
-            buffer[head - 1] = '\0';
-            break;
-        }
+    while (fmt[head] && head != buf_size) {
         buffer[head] = fmt[head];
         head++;
+    }
+    if (head == buf_size) {
+        buffer[head - 1] = '\0';
+    } else {
+        buffer[head] = '\0';
     }
     return head;
 }
