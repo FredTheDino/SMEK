@@ -73,7 +73,7 @@ void reload_game(GameState *game) {
 #ifndef IMGUI_DISABLE
     ImGui::SetCurrentContext((ImGuiContext *)game->imgui_context);
 #endif
-    target = GFX::RenderTexture::create(500, 500, true, true);
+    target = GFX::RenderTexture::create(GAMESTATE()->renderer.width, GAMESTATE()->renderer.height, true, true);
 }
 
 void update() {
