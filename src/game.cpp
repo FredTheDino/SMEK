@@ -198,13 +198,27 @@ void draw() {
 #ifndef IMGUI_DISABLE
     ImGui::Begin("Game View");
     {
-        ImGui::Image((void *)target.color, ImVec2(target.width, target.height), ImVec2(0, 1), ImVec2(1, 0));
+        if (ImGui::Button("Default width/height")) {
+            ImGui::SetWindowSize(Vec2(target.width, target.height + 36 + ImGui::GetFrameHeightWithSpacing()));
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Set width to height")) {
+            ImGui::SetWindowSize(Vec2(ImGui::GetWindowHeight() - (36 + ImGui::GetFrameHeightWithSpacing()), ImGui::GetWindowHeight()));
+        }
+        ImGui::Image((void *)target.color, (Vec2)ImGui::GetWindowSize() - Vec2(0, 36 + ImGui::GetFrameHeightWithSpacing()), ImVec2(0, 1), ImVec2(1, 0));
     }
     ImGui::End();
 
     ImGui::Begin("Depth");
     {
-        ImGui::Image((void *)target.depth_output, ImVec2(target.width, target.height), ImVec2(0, 1), ImVec2(1, 0));
+        if (ImGui::Button("Default width/height")) {
+            ImGui::SetWindowSize(Vec2(target.width, target.height + 36 + ImGui::GetFrameHeightWithSpacing()));
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Set width to height")) {
+            ImGui::SetWindowSize(Vec2(ImGui::GetWindowHeight() - (36 + ImGui::GetFrameHeightWithSpacing()), ImGui::GetWindowHeight()));
+        }
+        ImGui::Image((void *)target.depth_output, (Vec2)ImGui::GetWindowSize() - Vec2(0, 36 + ImGui::GetFrameHeightWithSpacing()), ImVec2(0, 1), ImVec2(1, 0));
     }
     ImGui::End();
 #endif
