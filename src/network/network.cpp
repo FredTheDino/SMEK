@@ -24,6 +24,7 @@ void NetworkHandle::send(Package *package) {
 }
 
 void NetworkHandle::close() {
+    if (!active) return;
     active = false;
     shutdown(sockfd, SHUT_RDWR);
     SDL_WaitThread(thread, NULL);
