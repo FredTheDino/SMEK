@@ -202,7 +202,7 @@ bool Network::connect_to_server(char *hostname, int portno) {
     std::memcpy(&serv_addr.sin_addr.s_addr, server->h_addr, server->h_length);
     serv_addr.sin_port = htons(portno);
     if (connect(server_handle.sockfd, (sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-        WARN("Unable to connect to server");
+        WARN("Unable to connect to server, errno={}", errno);
         return false;
     }
     LOG("Connected");
