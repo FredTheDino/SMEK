@@ -1,4 +1,5 @@
 #include "physics.h"
+#include "../renderer/renderer.h"
 
 i32 format(char *buffer, u32 size, FormatHint args, Collision c) {
     return snprintf(buffer, size, "%0*.*f, (%0*.*f, %0*.*f, %0*.*f)",
@@ -6,6 +7,29 @@ i32 format(char *buffer, u32 size, FormatHint args, Collision c) {
                     args.num_zero_pad, args.num_decimals, c.normal.x,
                     args.num_zero_pad, args.num_decimals, c.normal.y,
                     args.num_zero_pad, args.num_decimals, c.normal.z);
+}
+
+void draw_box(Box a, Vec4 color) {
+    Vec3 p = a.position;
+    Vec3 r = a.half_size;
+    Vec3 points[] = {
+        p + Vec3(+r.x, +r.y, +r.z),
+        p + Vec3(-r.x, +r.y, +r.z),
+        p + Vec3(+r.x, -r.y, +r.z),
+        p + Vec3(-r.x, -r.y, +r.z),
+        p + Vec3(+r.x, +r.y, -r.z),
+        p + Vec3(-r.x, +r.y, -r.z),
+        p + Vec3(+r.x, -r.y, -r.z),
+        p + Vec3(-r.x, -r.y, -r.z),
+    };
+
+    for (u32 i = 0; i < LEN(points); i++) {
+        for (u32 j = i + 1; j < LEN(points); j++) {
+            Vec3 a = points[i];
+            Vec3 b = points[j];
+            GFX::push_line(a, b, color);
+        }
+    }
 }
 
 Collision collision_check(Box a, Box b) {
@@ -31,4 +55,3 @@ Collision collision_check(Box a, Box b) {
 
     return col;
 }
-

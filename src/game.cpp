@@ -5,6 +5,7 @@
 #include "renderer/opengl.h"
 #include "renderer/renderer.h"
 #include "asset/asset.h"
+#include "physics/physics.h"
 
 #include "math/smek_mat4.h"
 #include "math/smek_math.h"
@@ -99,6 +100,18 @@ void update() {
 
 void draw() {
     target.use();
+
+    {
+        Box a = { Vec3(), Vec3(1, 1, 1) };
+        Box b = { Vec3(sin(time()) * 5, 0, 0), Vec3(1, 1, 1) };
+        auto c = collision_check(a, b);
+        Vec4 color = c ? Vec4(0.5, 0.1, 0.1, 1.0) : Vec4(0.0, 0.0, 1.0, 1.0);
+        if (c) {
+            b.position -= c.normal * c.depth;
+        }
+        draw_box(a, color);
+        draw_box(b, color);
+    }
 
     static f32 t = 0;
 #ifndef IMGUI_DISABLE

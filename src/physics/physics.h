@@ -16,6 +16,7 @@ struct Collision {
     }
 };
 
+void draw_box(Box a, Vec4 color);
 Collision collision_check(Box a, Box b);
 
 #include "../test.h"
