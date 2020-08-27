@@ -172,7 +172,7 @@ void platform_audio_init() {
 #ifndef IMGUI_DISABLE
 static void imgui_platform_start() {
     IMGUI_CHECKVERSION();
-    game_state.imgui_context = (void *)ImGui::CreateContext();
+    game_state.imgui.context = (void *)ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     (void)io;
     // Enable Keyboard and gamepad Controls
@@ -233,7 +233,6 @@ int main(int argc, char **argv) { // Game entrypoint
     int height = 500;
     for (int index = 1; index < argc; index++) {
         if ARGUMENT ("--help", "-h") {
-            //TODO(gu)
             std::printf("Usage: SMEK [--help] [--resolution <width> <height>]\n"
                         "            [--no-reload]\n");
             return 0;
@@ -269,6 +268,8 @@ int main(int argc, char **argv) { // Game entrypoint
     game_state.input.bind_func = platform_bind;
     game_state.input.rebind_func = platform_rebind;
     game_state.input.bind_func = platform_bind;
+    game_state.m_reload_lib = m_reload_lib;
+    game_state.reload_lib = &reload_lib;
 
     game_lib.init(&game_state, width, height);
     platform_audio_init();

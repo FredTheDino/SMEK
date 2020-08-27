@@ -182,13 +182,13 @@ void EntitySystem::draw() {
     ImGui::BeginChild("Sound entities", ImVec2(0, 170 + ((ImGui::GetTextLineHeightWithSpacing() + 6) * 4)), true);
     ImGui::Text("Sound entities:");
     if (ImGui::Button("Create sound"))
-        GAMESTATE()->show_create_sound_window = true;
+        GAMESTATE()->imgui.show_create_sound_window = true;
     ImGui::SameLine();
     if (ImGui::Button("Stop all sounds"))
         GAMESTATE()->audio_struct->stop_all();
     ImGui::Spacing();
 
-    if (GAMESTATE()->show_create_sound_window) {
+    if (GAMESTATE()->imgui.show_create_sound_window) {
         ImGui::BeginChild("Create sound entity", ImVec2(0, 110), true);
         static AssetID item_current_idx;
         static f32 gain = 0.3;
@@ -223,7 +223,7 @@ void EntitySystem::draw() {
             GAMESTATE()->event_queue.push(entity_event(sound_entity));
         }
         ImGui::SameLine();
-        if (ImGui::Button("Close")) GAMESTATE()->show_create_sound_window = false;
+        if (ImGui::Button("Close")) GAMESTATE()->imgui.show_create_sound_window = false;
         ImGui::EndChild();
     }
     ImGui::EndChild();

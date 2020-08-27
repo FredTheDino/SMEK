@@ -10,6 +10,7 @@
 #include <queue>
 
 #include "event.h"
+#include "imgui_state.h"
 
 ///# Game
 //
@@ -25,6 +26,9 @@ struct GameState {
     EntitySystem entity_system;
     std::queue<EventSystem::Event> event_queue;
 
+    SDL_mutex *m_reload_lib;
+    bool *reload_lib;
+
     SDL_threadID main_thread;
     f32 delta;
     f32 time;
@@ -39,9 +43,7 @@ struct GameState {
     bool running;
 
 #ifndef IMGUI_DISABLE
-    // state for imgui
-    void *imgui_context;
-    bool show_create_sound_window = false;
+    ImGuiState imgui = {};
 #endif
 };
 

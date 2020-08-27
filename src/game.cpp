@@ -71,7 +71,7 @@ void reload_game(GameState *game) {
     GFX::reload(game);
     Asset::reload();
 #ifndef IMGUI_DISABLE
-    ImGui::SetCurrentContext((ImGuiContext *)game->imgui_context);
+    ImGui::SetCurrentContext((ImGuiContext *)game->imgui.context);
 #endif
     target = GFX::RenderTexture::create(500, 500, true, true);
 }
@@ -102,6 +102,34 @@ void draw() {
 
     static f32 t = 0;
 #ifndef IMGUI_DISABLE
+    if (ImGui::BeginMainMenuBar()) {
+        if (ImGui::BeginMenu("File")) {
+            if (ImGui::MenuItem("Reload")) {
+                if (SDL_LockMutex(GAMESTATE()->m_reload_lib) == 0) {
+                    *GAMESTATE()->reload_lib = true;
+                    SDL_UnlockMutex(GAMESTATE()->m_reload_lib);
+                } else {
+                    ERR("Unable to lock mutex: {}", SDL_GetError());
+                }
+            }
+            if (ImGui::MenuItem("Exit")) {
+                SDL_Event quit_event;
+                quit_event.type = SDL_QUIT;
+                SDL_PushEvent(&quit_event);
+            }
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("View")) {
+            ImGui::MenuItem("Show depth map", "", &GAMESTATE()->imgui.depth_map_enabled);
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Help")) {
+            if (ImGui::MenuItem("About")) {}
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
+    }
+
     ImGui::SliderFloat("Time", &t, 0.0, 16.0, "%.2f");
 
     static bool use_debug_camera = GFX::current_camera() == GFX::debug_camera();
@@ -202,11 +230,13 @@ void draw() {
     }
     ImGui::End();
 
-    ImGui::Begin("Depth");
-    {
-        ImGui::Image((void *)target.depth_output, ImVec2(target.width, target.height), ImVec2(0, 1), ImVec2(1, 0));
+    if (GAMESTATE()->imgui.depth_map_enabled) {
+        ImGui::Begin("Depth");
+        {
+            ImGui::Image((void *)target.depth_output, ImVec2(target.width, target.height), ImVec2(0, 1), ImVec2(1, 0));
+        }
+        ImGui::End();
     }
-    ImGui::End();
 #endif
 
     GFX::resolve_to_screen(target);
