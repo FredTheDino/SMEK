@@ -146,6 +146,10 @@ Vec3 to_euler(H h) {
     return { roll, pitch, yaw };
 }
 
+real dot(const H &q1, const H &q2) {
+    return q1.x * q2.x + q1.y * q2.y + q1.z * q2.z + q1.w * q2.w;
+}
+
 Mat Mat::from(H q) {
     return Mat::from(
         1.0f - 2.0f * q.y * q.y - 2.0f * q.z * q.z,
