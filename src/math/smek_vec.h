@@ -132,6 +132,10 @@ template <VectorType T>
 T normalized(const T &a);
 
 ///*
+template <typename T>
+T abs(const T &a);
+
+///*
 Vec3 cross(const Vec3 &a, const Vec3 &b);
 
 template <VectorType T>
@@ -234,3 +238,11 @@ bool _close_enough_vec(const T &a, const T &b, real r) {
         result &= Math::close_enough(a._[i], b._[i], r);
     return result;
 }
+
+template <VectorType T>
+T abs(const T &a) {
+    T result;
+    for (i32 i = 0; i < DIM<T>(); i++)
+        result._[i] = Math::abs(a._[i]);
+    return result;
+};
