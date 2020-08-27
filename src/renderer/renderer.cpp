@@ -105,7 +105,7 @@ RenderTexture RenderTexture::create(int width, int height, bool use_depth, bool 
         run_once = true;
     }
 
-    ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Failed to create FBO");
+    ASSERT_EQ(glCheckFramebufferStatus(GL_FRAMEBUFFER), GL_FRAMEBUFFER_COMPLETE);
     return t;
 }
 
@@ -631,7 +631,7 @@ Texture Texture::upload(u32 width, u32 height, u32 components, u8 *data, Samplin
 }
 
 void Texture::bind(u32 texture_slot) {
-    ASSERT(texture_slot < 80, "Invalid texture slots. ({})", texture_slot);
+    ASSERT_LT(texture_slot, 80);
     glActiveTexture(GL_TEXTURE0 + texture_slot);
     glBindTexture(GL_TEXTURE_2D, texture_id);
     glActiveTexture(GL_TEXTURE0 + 79); // Hardcoded since it's the "minimum maximum".
