@@ -4,6 +4,7 @@ from itertools import repeat
 from glob import glob
 from enum import Enum
 from highlighter import highlight_code, split_all
+from dataclasses import dataclass
 
 
 # Used to describe what is in this file, the first line is also
@@ -11,6 +12,14 @@ from highlighter import highlight_code, split_all
 HEADING = 1
 DOC = 2  # API referend.
 COMMENT = 3  # Misc comments.
+
+@dataclass
+class Comment:
+    kind: int
+    path: str
+    line: int
+    namespace: str = ""
+    comment: str = ""
 
 
 def find_comments(file_path):
@@ -22,16 +31,16 @@ def find_comments(file_path):
         appending_to_comment = False
         heading = ""
         comments = []
+        comobj = Comment(None, file_path, 0)
         current_type = None
-        comment = ""
-        namespace = ""
-        for line in f:
+        bracket_stack = 0
+        for linenr, line in enumerate(f):
             if not appending_to_comment:
                 next_type = None
                 if "namespace" in line and not comments:
                     words = line.split()
                     if words[0] == "namespace" and len(words) <= 3:
-                        namespace = words[1]
+                        comobj.namespace = words[1]
                 if "///#" in line:
                     next_type = HEADING
                     heading = line[4:].strip()
@@ -42,20 +51,22 @@ def find_comments(file_path):
 
                 if next_type is not None:
                     appending_to_comment = True
-                    if current_type is not None:
-                        comments.append((current_type, comment, namespace))
-                    current_type = next_type
-                    comment = ""
-                    if current_type != HEADING:
-                        comment = line
+                    if comobj.kind is not None:
+                        comments.append(comobj)
+                    comobj = Comment(next_type, file_path, linenr)
+                    if comobj.kind != HEADING:
+                        comobj.comment = line
 
             elif appending_to_comment:
-                if line.strip() == "":
+                bracket_stack += line.count("{") - line.count("}")
+                blank_line = line.strip() == ""
+                if blank_line and bracket_stack <= 0:
                     appending_to_comment = False
+                    bracket_stack = 0
                 else:
-                    comment += line
-    if comment:
-        comments.append((current_type, comment, namespace))
+                    comobj.comment += line
+    if comobj.comment:
+        comments.append(comobj)
     return heading, comments
 
 
@@ -163,12 +174,15 @@ def find_comment_id(section, comment):
     return make_id_friendly(section + find_comment_title(comment))
 
 
-def format_comment(section, comment, namespace, docs):
+def format_comment(section, comobj, docs):
     """
     Formats the code according to how a comment should be formatted.
     """
+    comment = comobj.comment
+    namespace = comobj.namespace
     title = find_comment_title(comment)
     return tag("div", tag("h3", title) + "\n" +
+               tag("h5", comobj.path + ":" + str(comobj.line), "linenr") + \
                process_comment_section(comment.split("\n")[1:], docs) + "\n",
                "block comment",
                find_comment_id(section, comment)) + "\n"
@@ -200,28 +214,34 @@ def find_documentation_id(section, comment):
     return "ERROR-NO-ID"
 
 
-def format_documentation(section, comment, namespace, docs):
+def format_documentation(section, comobj, docs):
     """
     Formats the code according to how a comment should be formatted.
     """
+    comment = comobj.comment
+    namespace = comobj.namespace
     title = find_documentation_title(section, comment, namespace)
     if namespace:
         namespace = tag("span", namespace + "::", html_class="namespace")
     return tag("div", "\n" + tag("h3", namespace + title) + "\n" +
+               tag("h5", comobj.path + ":" + str(comobj.line), "linenr") + \
                process_comment_section(comment.split("\n")[1:], docs) + "\n",
                "block doc",
                find_documentation_id(section, comment)) + "\n"
 
 
-def format_heading(heading, comment, namespace, _):
+def format_heading(heading, comobj, _):
+    comment = comobj.comment
+    namespace = comobj.namespace
     return tag("h2", heading, "section heading", make_id_friendly(heading)) + \
+           tag("h5", comobj.path + ":" + str(comobj.line), "linenr") + \
            tag("p", comment.replace("///#", "").replace("//", "").strip())
 
 
 def has_content(region_headings):
     for heading in region_headings:
-        for comment_type, comment, namespace in region_headings[heading]:
-            if comment:
+        for comobj in region_headings[heading]:
+            if comobj.comment:
                 return True
     return False
 
@@ -241,17 +261,17 @@ def write_documentation(path, documentation):
             for heading in headings:
                 f.write(tag("li", link(heading, "#" + make_id_friendly(heading)),  "hide hideable"))
                 f.write("\n<li><ul>\n")
-                for comment_type, comment, namespace in headings[heading]:
-                    if not comment: continue
+                for comobj in headings[heading]:
+                    if not comobj.comment: continue
 
-                    if comment_type == HEADING:
+                    if comobj.kind == HEADING:
                         continue
-                    elif comment_type == DOC:
-                        text = find_documentation_title(heading, comment, namespace)
-                        html_id = find_documentation_id(heading, comment)
-                    elif comment_type == COMMENT:
-                        text = find_comment_title(comment)
-                        html_id = find_comment_id(heading, comment)
+                    elif comobj.kind == DOC:
+                        text = find_documentation_title(heading, comobj.comment, comobj.namespace)
+                        html_id = find_documentation_id(heading, comobj.comment)
+                    elif comobj.kind == COMMENT:
+                        text = find_comment_title(comobj.comment)
+                        html_id = find_comment_id(heading, comobj.comment)
                     documented_code[text] = html_id
                     f.write(tag("li", link(text, "#" + html_id)))
                 f.write("\n</li></ul>\n")
@@ -265,15 +285,15 @@ def write_documentation(path, documentation):
             if not has_content(headings): continue
             f.write(tag("h1", region.capitalize(), "region heading", region) + "\n")
             for heading in headings:
-                for comment_type, comment, namespace in headings[heading]:
-                    if not comment: continue
-                    args = (heading, comment, namespace, documented_code)
+                for comobj in headings[heading]:
+                    if not comobj.comment: continue
+                    args = (heading, comobj, documented_code)
                     # Formats the comments to a more suitable HTML format.
-                    if comment_type == HEADING:
+                    if comobj.kind == HEADING:
                         output = format_heading(*args)
-                    elif comment_type == DOC:
+                    elif comobj.kind == DOC:
                         output = format_documentation(*args)
-                    elif comment_type == COMMENT:
+                    elif comobj.kind == COMMENT:
                         output = format_comment(*args)
                     f.write(output)
         f.write("</article>\n")
