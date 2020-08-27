@@ -5,8 +5,6 @@
 #include "../event.h"
 
 ///# Packages
-// Packages are a way of standardizing the content of what the instances send
-// to each other.
 
 ///*
 enum class PackageType {
@@ -21,10 +19,10 @@ enum class PackageType {
     _NUM_TYPES,
 };
 
-///*
 // This has to match the order in the above package type enum.
 // Types not represented by a string here won't be creatable,
 // which is why creatable packages should be grouped at the top above.
+///*
 static const char *package_type_list[] = {
     "Create event",
     "Heartbeat",
@@ -75,9 +73,6 @@ void pack(u8 *into, Package *from);
 
 ///*
 void unpack(Package *into, u8 *from);
-
-///*
-// Like above, but returns an actual value.
 Package unpack(u8 *from);
 
 i32 format(char *buffer, u32 size, FormatHint args, Package pkg);
