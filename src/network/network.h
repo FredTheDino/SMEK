@@ -38,7 +38,8 @@ struct NetworkHandle {
 };
 
 struct ServerHandle : public NetworkHandle {
-    std::chrono::steady_clock::time_point heartbeat_time_start;
+    using steady_clock = std::chrono::steady_clock;
+    steady_clock::time_point heartbeat_time_start;
     u32 prev_heartbeat_id;
 
     void send_heartbeat();

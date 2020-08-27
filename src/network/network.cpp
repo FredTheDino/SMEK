@@ -64,7 +64,7 @@ void ServerHandle::send_heartbeat() {
     Package heartbeatPackage;
     heartbeatPackage.header.type = PackageType::HEARTBEAT;
     heartbeatPackage.HEARTBEAT.id = next_package_id;
-    heartbeat_time_start = std::chrono::steady_clock::now();
+    heartbeat_time_start = steady_clock::now();
     send(&heartbeatPackage);
     prev_heartbeat_id = heartbeatPackage.header.id;
 }
@@ -75,7 +75,7 @@ void ServerHandle::recv_heartbeat(u32 id) {
     } else if (id > prev_heartbeat_id) {
         ERR("Received heartbeat from the future");
     } else {
-        auto now = std::chrono::steady_clock::now();
+        auto now = steady_clock::now();
         LOG("Heartbeat latency: {} ms", (f32)std::chrono::duration_cast<std::chrono::microseconds>(now - heartbeat_time_start).count() / 1000);
     }
 }
