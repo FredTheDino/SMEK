@@ -63,11 +63,6 @@ i32 format(char *buffer, u32 size, FormatHint args, Vec2 v);
 i32 format(char *buffer, u32 size, FormatHint args, Vec3 v);
 i32 format(char *buffer, u32 size, FormatHint args, Vec4 v);
 
-///*
-Vec2 operator-(const Vec2 &a, const Vec2 &b);
-Vec3 operator-(const Vec3 &a, const Vec3 &b);
-Vec4 operator-(const Vec4 &a, const Vec4 &b);
-
 #if 0
 
 ///*
@@ -106,6 +101,10 @@ T operator*(const real &s, const T &a);
 
 template <typename T>
 T operator/(const T &a, const real &s);
+
+///*
+template <typename T>
+T operator-(const T &a);
 
 template <typename T>
 T operator-=(T &a, const T &b);
@@ -157,6 +156,13 @@ template <typename T>
 T operator+=(T &a, const T &b) {
     for (i32 i = 0; i < DIM<T>(); i++) a._[i] += b._[i];
     return a;
+}
+
+template <typename T>
+T operator-(const T &a, const T &b) {
+    T result;
+    for (i32 i = 0; i < DIM<T>(); i++) result._[i] = a._[i] - b._[i];
+    return result;
 }
 
 template <typename T>

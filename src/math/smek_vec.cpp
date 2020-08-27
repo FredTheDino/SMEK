@@ -28,30 +28,6 @@ i32 format(char *buffer, u32 size, FormatHint args, Vec4 v) {
                     args.num_zero_pad, args.num_decimals, v.w);
 }
 
-Vec2 operator-(const Vec2 &a, const Vec2 &b) {
-    Vec2 result;
-    result.x = a.x - b.x;
-    result.y = a.y - b.y;
-    return result;
-}
-
-Vec3 operator-(const Vec3 &a, const Vec3 &b) {
-    Vec3 result;
-    result.x = a.x - b.x;
-    result.y = a.y - b.y;
-    result.z = a.z - b.z;
-    return result;
-}
-
-Vec4 operator-(const Vec4 &a, const Vec4 &b) {
-    Vec4 result;
-    result.x = a.x - b.x;
-    result.y = a.y - b.y;
-    result.z = a.z - b.z;
-    result.w = a.w - b.w;
-    return result;
-}
-
 bool close_enough(const Vec2 &a, const Vec2 &b, real r) {
     return _close_enough_vec(a, b, r);
 }
