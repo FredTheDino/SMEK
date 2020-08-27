@@ -19,6 +19,10 @@ $types
     NUM_ENTITY_TYPES,
 };
 
+static const char *entity_type_names[] = {
+$type_names
+};
+
 i32 format(char *, u32, FormatHint, EntityType);
 
 struct Field {
@@ -55,8 +59,6 @@ $event_entity_bytes_union
     void callback();
 };
 
-namespace EventSystem {
 struct Event;
-}
 
 $entity_events_prototypes

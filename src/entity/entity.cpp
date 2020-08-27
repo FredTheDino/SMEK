@@ -46,6 +46,13 @@ void Light::on_remove() {
     }
 }
 
+#ifndef IMGUI_DISABLE
+void Light::imgui_create() {
+    ImGui::InputFloat3("Position", position._);
+    ImGui::ColorEdit3("Color", color._);
+}
+#endif
+
 void Player::update() {
     const f32 floor = 0.2;
 

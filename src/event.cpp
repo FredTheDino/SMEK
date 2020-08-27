@@ -1,9 +1,6 @@
 #include "event.h"
 
-#include "entity/entity.h"
 #include "game.h"
-
-namespace EventSystem {
 
 void handle_events() {
 #define HANDLE(NAME) \
@@ -21,5 +18,3 @@ void handle_events() {
     }
 #undef HANDLE
 }
-
-} // namespace EventSystem

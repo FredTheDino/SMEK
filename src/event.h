@@ -6,12 +6,14 @@
 #include "entity/entity.h"
 #include "entity/entity_types.h"
 
-namespace EventSystem {
-
 enum EventType {
     CREATE_ENTITY,
 
     NUM_TYPES,
+};
+
+static const char *event_type_names[] = {
+    "CreateEntity",
 };
 
 struct Event {
@@ -22,5 +24,3 @@ struct Event {
 };
 
 void handle_events();
-
-} // namespace EventSystem

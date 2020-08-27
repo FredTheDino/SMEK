@@ -26,6 +26,10 @@ struct BaseEntity {
     virtual void on_create() {};
     virtual void on_remove() {};
 
+#ifndef IMGUI_DISABLE
+    virtual void imgui_create() {};
+#endif
+
     EntityType type;
 };
 
@@ -71,6 +75,10 @@ struct Light : public BaseEntity {
     void update() override;
     void draw() override;
     void on_remove() override;
+
+#ifndef IMGUI_DISABLE
+    void imgui_create() override;
+#endif
 };
 
 ///* Player

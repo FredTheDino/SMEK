@@ -23,6 +23,14 @@ enum class EntityType {
     NUM_ENTITY_TYPES,
 };
 
+static const char *entity_type_names[] = {
+    "BaseEntity",
+    "Entity",
+    "Light",
+    "Player",
+    "SoundEntity"
+};
+
 i32 format(char *, u32, FormatHint, EntityType);
 
 struct Field {
@@ -77,12 +85,10 @@ struct EventCreateEntity {
     void callback();
 };
 
-namespace EventSystem {
 struct Event;
-}
 
-EventSystem::Event entity_event(BaseEntity);
-EventSystem::Event entity_event(Entity);
-EventSystem::Event entity_event(Light);
-EventSystem::Event entity_event(Player);
-EventSystem::Event entity_event(SoundEntity);
+Event entity_event(BaseEntity);
+Event entity_event(Entity);
+Event entity_event(Light);
+Event entity_event(Player);
+Event entity_event(SoundEntity);

@@ -81,7 +81,7 @@ void update() {
         GAMESTATE()->input.mouse_capture ^= 1;
     }
 
-    EventSystem::handle_events();
+    handle_events();
 
     // Debug camera movement, overwritten by player currently.
     if (GFX::current_camera() == GFX::debug_camera()) {
@@ -251,8 +251,9 @@ void draw() {
         }
         ImGui::End();
     }
-#endif
 
+    GAMESTATE()->network.imgui_draw();
+#endif
     GFX::resolve_to_screen(target);
 }
 
@@ -265,5 +266,8 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
 
 void shutdown_game(GameState *game) {
     _global_gs = game;
-    LOG("Game shutting down");
+    LOG("Disconnecting from server");
+    GAMESTATE()->network.disconnect_from_server();
+    LOG("Stopping server");
+    GAMESTATE()->network.stop_server();
 }
