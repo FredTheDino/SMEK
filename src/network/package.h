@@ -4,6 +4,11 @@
 #include "../math/types.h"
 #include "../event.h"
 
+///# Packages
+// Packages are a way of standardizing the content of what the instances send
+// to each other.
+
+///*
 enum class PackageType {
     A,
     B,
@@ -18,6 +23,7 @@ enum class PackageType {
     _NUM_TYPES,
 };
 
+///*
 // This has to match the order in the above package type enum.
 // Types not represented by a string here won't be creatable,
 // which is why creatable packages should be grouped at the top above.
@@ -52,12 +58,14 @@ struct PackageHeartbeat {
     u32 id;
 };
 
+///*
 struct PackageHeader {
     u32 client;
     u32 id;
     PackageType type;
 };
 
+///*
 struct Package {
     PackageHeader header;
     union {
@@ -77,8 +85,14 @@ struct WipEntities {
     void free();
 };
 
+///*
 void pack(u8 *into, Package *from);
+
+///*
 void unpack(Package *into, u8 *from);
+
+///*
+// Like above, but returns an actual value.
 Package unpack(u8 *from);
 
 i32 format(char *buffer, u32 size, FormatHint args, Package pkg);
