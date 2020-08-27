@@ -8,6 +8,7 @@ enum class PackageType {
     A,
     B,
     EVENT,
+    HEARTBEAT,
 
     // Types below this line should not be creatable and thus not shown in the package type list.
     _NUM_NAMED_TYPES,
@@ -24,6 +25,7 @@ static const char *package_type_list[] = {
     "A",
     "B",
     "Create event",
+    "Heartbeat",
 };
 
 static_assert(!(LEN(package_type_list) < (u64)PackageType::_NUM_NAMED_TYPES), "Too few package type names");
@@ -43,6 +45,10 @@ struct PackageEvent {
 };
 
 struct PackageSetClientID {
+    u32 client_id;
+};
+
+struct PackageHeartbeat {
     u32 id;
 };
 
@@ -59,6 +65,7 @@ struct Package {
         PackageB B;
         PackageEvent EVENT;
         PackageSetClientID SET_CLIENT_ID;
+        PackageHeartbeat HEARTBEAT;
     };
 };
 
@@ -75,6 +82,7 @@ void unpack(Package *into, u8 *from);
 Package unpack(u8 *from);
 
 i32 format(char *buffer, u32 size, FormatHint args, Package pkg);
+i32 format(char *buffer, u32 size, FormatHint args, PackageHeader header);
 
 #ifndef IMGUI_DISABLE
 void imgui_package_create(Package *package, WipEntities *wip_entities);

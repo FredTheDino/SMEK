@@ -36,13 +36,22 @@ i32 format(char *buffer, u32 size, FormatHint args, Package pkg) {
                         args.num_zero_pad, pkg.B.b);
     case PackageType::SET_CLIENT_ID:
         return snprintf(buffer, size, "SetClientID: id=%0*u",
-                        args.num_zero_pad, pkg.SET_CLIENT_ID.id);
+                        args.num_zero_pad, pkg.SET_CLIENT_ID.client_id);
     case PackageType::EVENT:
         return snprintf(buffer, size, "Event: type=%0*u",
                         args.num_zero_pad, (u32)pkg.EVENT.event.type);
+    case PackageType::HEARTBEAT:
+        return snprintf(buffer, size, "Heartbeat: id=%0*u",
+                        args.num_zero_pad, pkg.HEARTBEAT.id);
     default:
         return snprintf(buffer, size, "Not implemented for package type %u", (u32)pkg.header.type);
     }
+}
+
+i32 format(char *buffer, u32 size, FormatHint args, PackageHeader header) {
+    return snprintf(buffer, size, "client=%0*u id=%0*u",
+                    args.num_zero_pad, header.client,
+                    args.num_zero_pad, header.id);
 }
 
 #ifndef IMGUI_DISABLE
@@ -60,6 +69,9 @@ void imgui_package_create(Package *package, WipEntities *wip_entities) {
         break;
     case PackageType::EVENT:
         imgui_event_create(&package->EVENT.event, wip_entities);
+        break;
+    case PackageType::HEARTBEAT:
+        ImGui::InputInt("id", (int *)&package->HEARTBEAT.id);
         break;
     default:
         ImGui::Text("Not implemented for package type %u", (u32)package->header.type);
@@ -86,7 +98,7 @@ void imgui_event_create(Event *event, WipEntities *wip_entities) {
             break;
         }
         break;
-    } // case CREATE_ENTITY
+    }
     default:
         ImGui::Text("Not implemented for event type %u", (u32)event->type);
         break;

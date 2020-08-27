@@ -18,6 +18,7 @@ void NetworkHandle::send(u8 *data, u32 data_len) {
 
 void NetworkHandle::send(Package *package) {
     u8 buf[sizeof(Package)];
+    package->header.client = client_id;
     package->header.id = next_package_id++;
     pack(buf, package);
     send(buf, sizeof(Package));
@@ -50,13 +51,33 @@ bool NetworkHandle::recv(u8 *buf, u32 data_len, Package *package) {
 }
 
 void NetworkHandle::handle_package(Package *package) {
-    LOG("{}: {}", thread_name, package_log.front());
+    LOG("{} ({}): {}", thread_name, package_log.front().header, package_log.front());
     switch (package->header.type) {
     case PackageType::EVENT:
         GAMESTATE()->event_queue.push(package->EVENT.event);
         break;
     default:
         break;
+    }
+}
+
+void ServerHandle::send_heartbeat() {
+    Package heartbeatPackage;
+    heartbeatPackage.header.type = PackageType::HEARTBEAT;
+    heartbeatPackage.HEARTBEAT.id = next_package_id;
+    heartbeat_time_start = steady_clock::now();
+    send(&heartbeatPackage);
+    prev_heartbeat_id = heartbeatPackage.header.id;
+}
+
+void ServerHandle::recv_heartbeat(u32 id) {
+    if (id < prev_heartbeat_id) {
+        ERR("Received old heartbeat");
+    } else if (id > prev_heartbeat_id) {
+        ERR("Received heartbeat from the future");
+    } else {
+        auto now = steady_clock::now();
+        LOG("Heartbeat latency: {} ms", (f32)std::chrono::duration_cast<std::chrono::microseconds>(now - heartbeat_time_start).count() / 1000);
     }
 }
 
@@ -69,8 +90,11 @@ int start_server_handle(void *data) {
         if (handle->recv(buf, sizeof(buf), &package)) {
             switch (package.header.type) {
             case PackageType::SET_CLIENT_ID:
-                handle->client_id = package.SET_CLIENT_ID.id;
+                handle->client_id = package.SET_CLIENT_ID.client_id;
                 handle->wip_package.header.client = handle->client_id;
+                break;
+            case PackageType::HEARTBEAT:
+                handle->recv_heartbeat(package.HEARTBEAT.id);
                 break;
             default:
                 break;
@@ -94,6 +118,18 @@ int start_client_handle(void *data) {
             } else {
                 GAMESTATE()->network.prev_package = package;
                 SDL_UnlockMutex(GAMESTATE()->network.m_prev_package);
+            }
+            switch (package.header.type) {
+            case PackageType::HEARTBEAT: {
+                Package heartbeatResponse;
+                heartbeatResponse.header.type = PackageType::HEARTBEAT;
+                heartbeatResponse.header.client = package.header.client;
+                heartbeatResponse.HEARTBEAT.id = package.header.id;
+                handle->send(&heartbeatResponse);
+                break;
+            }
+            default:
+                break;
             }
         }
     }
@@ -167,7 +203,7 @@ bool Network::connect_to_server(char *hostname, int portno) {
     std::memcpy(&serv_addr.sin_addr.s_addr, server->h_addr, server->h_length);
     serv_addr.sin_port = htons(portno);
     if (connect(server_handle.sockfd, (sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-        WARN("Unable to connect to server");
+        WARN("Unable to connect to server, errno={}", errno);
         return false;
     }
     LOG("Connected");
@@ -211,7 +247,7 @@ bool Network::new_client_handle(int newsockfd) {
         }
         Package id_package;
         id_package.header.type = PackageType::SET_CLIENT_ID;
-        id_package.SET_CLIENT_ID.id = handle->client_id;
+        id_package.SET_CLIENT_ID.client_id = handle->client_id;
         handle->send(&id_package);
         return true;
     }
@@ -297,6 +333,9 @@ void Network::imgui_draw() {
                     server_handle.send(&server_handle.wip_package);
                 }
                 ImGui::End();
+            }
+            if (ImGui::Button("Send heartbeat")) {
+                server_handle.send_heartbeat();
             }
 
             if (ImGui::BeginChild("Package log", ImVec2(ImGui::GetWindowContentRegionWidth() * 0.5f, 160))) {
