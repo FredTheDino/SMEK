@@ -10,8 +10,6 @@
 
 ///*
 enum class PackageType {
-    A,
-    B,
     EVENT,
     HEARTBEAT,
 
@@ -28,23 +26,12 @@ enum class PackageType {
 // Types not represented by a string here won't be creatable,
 // which is why creatable packages should be grouped at the top above.
 static const char *package_type_list[] = {
-    "A",
-    "B",
     "Create event",
     "Heartbeat",
 };
 
 static_assert(!(LEN(package_type_list) < (u64)PackageType::_NUM_NAMED_TYPES), "Too few package type names");
 static_assert(!(LEN(package_type_list) > (u64)PackageType::_NUM_NAMED_TYPES), "Too many package type names");
-
-struct PackageA {
-    int a;
-};
-
-struct PackageB {
-    int b;
-    int a;
-};
 
 struct PackageEvent {
     Event event;
@@ -69,8 +56,6 @@ struct PackageHeader {
 struct Package {
     PackageHeader header;
     union {
-        PackageA A;
-        PackageB B;
         PackageEvent EVENT;
         PackageSetClientID SET_CLIENT_ID;
         PackageHeartbeat HEARTBEAT;
