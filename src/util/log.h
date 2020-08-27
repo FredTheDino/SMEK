@@ -14,12 +14,47 @@
 #define ASSERT(pass, msg, ...) _smek_assert(__FILE__, __LINE__, __func__, pass, STR(pass), msg, ##__VA_ARGS__)
 #define CHECK(pass, msg, ...)  _smek_check(__FILE__, __LINE__, __func__, pass, STR(pass), msg, ##__VA_ARGS__)
 
-#define ASSERT_EQ(LHS, RHS) ASSERT((LHS) == (RHS), STR(LHS) " ({}) and " STR(RHS) " ({}) should be equal", (LHS), (RHS));
-#define ASSERT_NE(LHS, RHS) ASSERT((LHS) != (RHS), STR(LHS) " ({}) and " STR(RHS) " ({}) should not be equal", (LHS), (RHS));
-#define ASSERT_LT(LHS, RHS) ASSERT((LHS) < (RHS), STR(LHS) " ({}) should be less than " STR(RHS) " ({})", (LHS), (RHS));
-#define ASSERT_GT(LHS, RHS) ASSERT((LHS) > (RHS), STR(LHS) " ({}) should be greater than " STR(RHS) " ({})", (LHS), (RHS));
-#define ASSERT_LE(LHS, RHS) ASSERT((LHS) <= (RHS), STR(LHS) " ({}) should be less than or equal to " STR(RHS) " ({})", (LHS), (RHS));
-#define ASSERT_GE(LHS, RHS) ASSERT((LHS) >= (RHS), STR(LHS) " ({}) should be greater than or equal to " STR(RHS) " ({})", (LHS), (RHS));
+#define ASSERT_EQ(LHS, RHS)                                                                           \
+    do {                                                                                              \
+        auto lhs = LHS;                                                                               \
+        decltype(lhs) rhs = RHS;                                                                      \
+        ASSERT((lhs) == (rhs), STR(LHS) " ({}) and " STR(RHS) " ({}) should be equal", (lhs), (rhs)); \
+    } while (false)
+
+#define ASSERT_NE(LHS, RHS)                                                                               \
+    do {                                                                                                  \
+        auto lhs = LHS;                                                                                   \
+        decltype(lhs) rhs = RHS;                                                                          \
+        ASSERT((lhs) != (rhs), STR(LHS) " ({}) and " STR(RHS) " ({}) should not be equal", (lhs), (rhs)); \
+    } while (false)
+
+#define ASSERT_LT(LHS, RHS)                                                                          \
+    do {                                                                                             \
+        auto lhs = LHS;                                                                              \
+        decltype(lhs) rhs = RHS;                                                                     \
+        ASSERT((lhs) < (rhs), STR(LHS) " ({}) should be less than " STR(RHS) " ({})", (lhs), (rhs)); \
+    } while (false)
+
+#define ASSERT_GT(LHS, RHS)                                                                             \
+    do {                                                                                                \
+        auto lhs = LHS;                                                                                 \
+        decltype(lhs) rhs = RHS;                                                                        \
+        ASSERT((lhs) > (rhs), STR(LHS) " ({}) should be greater than " STR(RHS) " ({})", (lhs), (rhs)); \
+    } while (false)
+
+#define ASSERT_LE(LHS, RHS)                                                                                       \
+    do {                                                                                                          \
+        auto lhs = LHS;                                                                                           \
+        decltype(lhs) rhs = RHS;                                                                                  \
+        ASSERT((lhs) <= (rhs), STR(LHS) " ({}) should be less than or equal to " STR(RHS) " ({})", (lhs), (rhs)); \
+    } while (false)
+
+#define ASSERT_GE(LHS, RHS)                                                                                          \
+    do {                                                                                                             \
+        auto lhs = LHS;                                                                                              \
+        decltype(lhs) rhs = RHS;                                                                                     \
+        ASSERT((lhs) >= (rhs), STR(LHS) " ({}) should be greater than or equal to " STR(RHS) " ({})", (lhs), (rhs)); \
+    } while (false)
 
 template <typename... Args>
 void _smek_log_err(const char *file, u32 line, const char *func, const char *message, Args... args);
