@@ -62,6 +62,8 @@ H lerp(H q1, H q2, real lerp);
 ///*
 Vec3 to_euler(H h);
 
+real dot(const H &q1, const H &q2);
+
 i32 format(char *buffer, u32 size, FormatHint args, H q);
 
 using Quat = H;
