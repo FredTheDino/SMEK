@@ -202,9 +202,11 @@ def find_documentation_title(heading, comment, namespace):
         for s in ["struct", "class"]:
             if s in words and "//" not in line:
                 return line[line.index(s) + len(s) + 1:line.index(" ", line.index(s) + len(s) + 1)]
-        for word in words:
-            if "(" in word and "//" not in line:
-                return word[:word.index("(")].replace("*", "")
+        if not line.startswith("//"): # found line of code, assume it contains the title
+            for word in words:
+                if "(" in word:
+                    return word[:word.index("(")].replace("*", "")
+            return line[:line.find("=")]
     return "ERROR-NO-TITLE"
 
 
