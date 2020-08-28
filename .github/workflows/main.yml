@@ -13,7 +13,7 @@ jobs:
       - name: Install dependencies
         run: |
           pacman -Syy
-          pacman --noconfirm -S binutils gcc python python-pip python-wheel sdl2 scons git
+          pacman --noconfirm -S binutils gcc clang python python-pip python-wheel sdl2 scons git
       - uses: actions/checkout@v2
         with:
           submodules: "recursive"
