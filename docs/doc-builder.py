@@ -197,7 +197,12 @@ def find_documentation_title(heading, comment, namespace):
             potential_title = line[5:].strip()
             if potential_title:
                 return potential_title
-        for word in line.split(" "):
+        words = line.strip().split()
+        line = " ".join(words) # make sure only single spaces exist
+        for s in ["struct", "class"]:
+            if s in words and "//" not in line:
+                return line[line.index(s) + len(s) + 1:line.index(" ", line.index(s) + len(s) + 1)]
+        for word in words:
             if "(" in word and "//" not in line:
                 return word[:word.index("(")].replace("*", "")
     return "ERROR-NO-TITLE"
@@ -209,7 +214,7 @@ def find_documentation_id(section, comment):
             potential_title = line[5:].strip()
             if potential_title:
                 return potential_title
-        if "(" in line and "//" not in line:
+        if "//" not in line:
             return make_id_friendly(line)
     return "ERROR-NO-ID"
 
