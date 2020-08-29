@@ -121,8 +121,10 @@ def make_id_friendly(string):
 
 def insert_links(line, docs):
     def link(l):
-        if l in docs:
-            return "<a href='{}' class='code-link'>{}</a>".format("#" + docs[l], l)
+        if (match := l) in docs:
+            return "<a href='{}' class='code-link'>{}</a>".format("#" + docs[match], match)
+        elif (match := l.split("::")[-1]) in docs:
+            return "::<a href='{}' class='code-link'>{}</a>".format("#" + docs[match], match)
         return l
     SPLIT_SEPS = set(" ,;(){}[]<>.-'*+\n")
     return "".join([link(w) + s for w, s in zip(*split_all(line, SPLIT_SEPS))])
@@ -280,6 +282,7 @@ def write_documentation(path, documentation):
                         text = find_comment_title(comobj.comment)
                         html_id = find_comment_id(heading, comobj.comment)
                     documented_code[text] = html_id
+                    documented_code[text.split("::")[-1]] = html_id
                     f.write(tag("li", link(text, "#" + html_id)))
                 f.write("\n</li></ul>\n")
 
