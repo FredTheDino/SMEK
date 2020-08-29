@@ -13,7 +13,7 @@ jobs:
       - name: Install dependencies
         run: |
           pacman -Syy
-          pacman --noconfirm -S binutils gcc python python-pip python-wheel sdl2 scons git
+          pacman --noconfirm -S binutils gcc clang python python-pip python-wheel sdl2 scons git
       - uses: actions/checkout@v2
         with:
           submodules: "recursive"
@@ -38,6 +38,9 @@ jobs:
           name: report
           path: |
             bin/tests/report.txt
-      - name: Try to build release version
+      - name: Try to build release version (g++)
         run: |
-          scons -Q --release --no-imgui --jumbo
+          scons -Q --release --no-imgui --jumbo CXX=g++
+      - name: Try to build release version (clang++)
+        run: |
+          scons -Q --release --no-imgui --jumbo CXX=clang++

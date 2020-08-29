@@ -10,7 +10,7 @@ from itertools import chain
 
 DEBUG_FLAGS = ["-ggdb", "-O0", "-DDEBUG"]
 RELEASE_FLAGS = ["-O2", "-DRELEASE"]
-WARNINGS = "-Wall -Wno-unused -Wno-format-security -Wno-invalid-offsetof -Wno-class-memaccess -Wno-pointer-arith"
+WARNINGS = "-Wall -Wno-unused -Wno-format-security -Wno-invalid-offsetof"
 CPPSTD = "c++20"
 
 BIN_DIR = "bin/"
@@ -118,7 +118,7 @@ else:
     # native
     native = True
     env = Environment(ENV=os.environ)
-    env.Replace(CXX="g++")
+    env.Replace(CXX=ARGUMENTS.get("CXX", "g++"))
     env.MergeFlags(shell(["sdl2-config", "--cflags"]))
     env.MergeFlags(shell(["sdl2-config", "--libs"]))
 
