@@ -20,13 +20,6 @@ in vec2 pass_uv;
 void main() {
 
     vec2 uv = pass_uv;
-    if (uv.x < 0.5) {
-        uv = vec2(1.0 - uv.x, uv.y);
-    }
-
-    if (uv.y < 0.5) {
-        uv = vec2(uv.x, 1.0 - uv.y);
-    }
     color = texture(tex, uv);
 }
 

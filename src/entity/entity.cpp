@@ -102,14 +102,6 @@ void Player::draw() {
     Mat model_matrix = Mat::translate(position) * Mat::scale(0.2);
     shader.upload_model(model_matrix);
     mesh.draw();
-
-    for (f32 x = -5; x <= 5; x += 1) {
-        for (f32 z = -5; z <= 5; z += 1) {
-            Mat m = Mat::translate(Vec3(x, 0.5, z)) * model_matrix;
-            shader.upload_model(m);
-            mesh.draw();
-        }
-    }
 }
 
 void SoundEntity::update() {
