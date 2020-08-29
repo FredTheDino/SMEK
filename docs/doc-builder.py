@@ -202,7 +202,7 @@ def find_documentation_title(heading, comment, namespace):
         for s in ["struct", "class"]:
             if s in words and "//" not in line:
                 return line[line.index(s) + len(s) + 1:line.index(" ", line.index(s) + len(s) + 1)]
-        if not line.startswith("//"): # found line of code, assume it contains the title
+        if not (line.startswith("//") or line.startswith("template")): # found line of code, assume it contains the title
             for word in words:
                 if "(" in word:
                     return word[:word.index("(")].replace("*", "")
@@ -216,7 +216,7 @@ def find_documentation_id(section, comment):
             potential_title = line[5:].strip()
             if potential_title:
                 return potential_title
-        if "//" not in line:
+        if not (line.startswith("//") or line.startswith("template")): # found line of code, assume it contains the title
             return make_id_friendly(line)
     return "ERROR-NO-ID"
 
