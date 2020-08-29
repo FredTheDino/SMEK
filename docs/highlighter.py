@@ -6,7 +6,7 @@ TYPE_STRINGS = {
     "b8",
     "i8", "i16", "i32", "i64",
     "u8", "u16", "u32", "u64",
-    "int", "bool"
+    "int", "bool", "char"
 }
 
 def is_type(string):
@@ -20,7 +20,7 @@ def is_type(string):
 KEYWORD_COLOR = "#99e"
 KEYWORD_STRINGS = {
     "static", "struct", "class", "const", "public", "private", "override",
-    "typename", "template"
+    "typename", "template", "enum"
 }
 
 def is_keyword(string):
