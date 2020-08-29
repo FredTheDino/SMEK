@@ -2,10 +2,8 @@
 #include "../math/smek_math.h"
 // includes "util.h" further down
 
-///* FormatHint
+///*
 // The extra information passed to each format.
-struct FormatHint;
-
 struct FormatHint {
     int num_decimals;
     int num_zero_pad;
