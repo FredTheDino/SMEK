@@ -7,7 +7,6 @@ from subprocess import Popen, PIPE
 from collections import defaultdict
 from itertools import chain
 
-
 DEBUG_FLAGS = ["-ggdb", "-O0", "-DDEBUG"]
 RELEASE_FLAGS = ["-O2", "-DRELEASE"]
 WARNINGS = "-Wall -Wno-unused -Wno-format-security -Wno-invalid-offsetof"
@@ -105,7 +104,7 @@ if GetOption("windows") and PLATFORMS["windows"]:
 if GetOption("windows"):
     print("Targeting foreign Windows")
     native = False
-    env = Environment(ENV=os.environ, tools=["mingw"])
+    env = Environment(tools=["mingw"])
     env.Replace(CXX="x86_64-w64-mingw32-g++")
     env.MergeFlags(shell(["x86_64-w64-mingw32-sdl2-config", "--cflags"]))
     env.MergeFlags(shell(["x86_64-w64-mingw32-sdl2-config", "--libs"]))
@@ -117,7 +116,7 @@ if GetOption("windows"):
 else:
     # native
     native = True
-    env = Environment(ENV=os.environ)
+    env = Environment()
     env.Replace(CXX=ARGUMENTS.get("CXX", "g++"))
     env.MergeFlags(shell(["sdl2-config", "--cflags"]))
     env.MergeFlags(shell(["sdl2-config", "--libs"]))
