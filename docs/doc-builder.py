@@ -206,7 +206,7 @@ def find_documentation_title(heading, comment, namespace):
             for word in words:
                 if "(" in word:
                     return word[:word.index("(")].replace("*", "")
-            return line[:line.find("=")]
+            return line[:min(pos for pos in [line.find("="), line.find(";")] if pos != -1)] # no function found, assume variable
     return "ERROR-NO-TITLE"
 
 
