@@ -1,3 +1,5 @@
+import re
+
 # TODO(ed): Don't write static colors, add a style instead.
 TYPE_COLOR = "#f80"
 TYPE_STRINGS = {
@@ -6,7 +8,7 @@ TYPE_STRINGS = {
     "b8",
     "i8", "i16", "i32", "i64",
     "u8", "u16", "u32", "u64",
-    "int", "bool"
+    "int", "bool", "char"
 }
 
 def is_type(string):
@@ -20,7 +22,7 @@ def is_type(string):
 KEYWORD_COLOR = "#99e"
 KEYWORD_STRINGS = {
     "static", "struct", "class", "const", "public", "private", "override",
-    "typename", "template"
+    "typename", "template", "enum"
 }
 
 def is_keyword(string):
@@ -32,12 +34,16 @@ MACRO_STRINGS = {
     "LOG_MSG", "CLAMP", "LERP", "ABS", "ABS_MAX", "MAX", "SIGN",
     "SIGN_NO_ZERO", "ABS_MIN", "MIN", "IN_RANGE", "SQ", "MOD"
 }
+CPP_DIRECTIVES = {
+    "define", "elif", "else", "endif", "if", "ifdef", "ifndef", "include",
+    "pragma", "undef",
+}
 
 def is_macro(string):
     global MACRO_STRINGS
     if ":" in string:
         return False
-    if string and string[0] == "#":
+    if string and string[0] == "#" and string[1:] in CPP_DIRECTIVES:
         return True
     if string in MACRO_STRINGS:
         return True
@@ -47,27 +53,35 @@ def is_constant(string):
     last = string.split(":")[-1]
     return all(map(lambda c: c.isupper() or c == "_", last))
 
+def is_comment(string):
+    return string.startswith("//")
+
+COMMENT_COLOR="#999"
+STRING_COLOR = "#cc8"
 SPLIT_SEPS = set(" ,;:()<>=\n")
 
 def highlight_code(line):
     """ Adds orange color to words marked to be highlighted """
-    def highlight(word):
+    def highlight_word(word):
         styler = [
             (is_keyword, KEYWORD_COLOR),
             (is_macro, MACRO_COLOR),
             (is_type, TYPE_COLOR),
             (is_number, NUMBER_COLOR),
             (is_bool, BOOL_COLOR),
-            (is_string, STRING_COLOR),
         ]
-
         for f, c in styler:
             if f(word):
                 return color_html(word, c)
-
         return word
 
-    return "".join([highlight(w) + s for w, s in zip(*split_all(line, SPLIT_SEPS))])
+    def color_string(match):
+        return color_html(match[0], STRING_COLOR)
+
+    if is_comment(line.strip()):
+        return color_html(line, COMMENT_COLOR)
+    line = re.sub(r"\"(?:\\\"|.)*?\"", color_string, line) # matches strings, handles escaped quotes
+    return "".join([highlight_word(w) + s for w, s in zip(*split_all(line, SPLIT_SEPS))])
 
 def color_html(string, color):
     """ Wrap a string in a span with color specified as style. """
@@ -113,11 +127,6 @@ def split_all(string, sep):
         splits.append("")
 
     return words, splits
-
-STRING_COLOR = "#cc8"
-def is_string(string):
-    """ Return whether or not a string is a... string """
-    return string.startswith("\"") and string.endswith("\"")
 
 NUMBER_COLOR = "#c8c"
 def is_number(string):

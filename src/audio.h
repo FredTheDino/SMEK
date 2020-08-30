@@ -9,7 +9,7 @@ struct SoundEntity;
 ///# Audio
 // Code to interact with the audio thread.
 
-///* AudioID
+///*
 struct AudioID {
     u32 gen;
     u32 slot;
@@ -39,7 +39,7 @@ struct SoundSource {
     u32 gen;
 };
 
-//// Sound source settings
+///*
 // This struct is used when calling <code>play_sound</code> so you can
 // specify only the variables you want to be different from their
 // default values, without having to specify all variables before the

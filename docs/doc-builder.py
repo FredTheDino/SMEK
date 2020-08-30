@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 import re
 from itertools import repeat
 from glob import glob
@@ -121,8 +121,10 @@ def make_id_friendly(string):
 
 def insert_links(line, docs):
     def link(l):
-        if l in docs:
-            return "<a href='{}' class='code-link'>{}</a>".format("#" + docs[l], l)
+        if (match := l) in docs:
+            return "<a href='{}' class='code-link'>{}</a>".format("#" + docs[match], match)
+        elif (match := l.split("::")[-1]) in docs:
+            return "::<a href='{}' class='code-link'>{}</a>".format("#" + docs[match], match)
         return l
     SPLIT_SEPS = set(" ,;(){}[]<>.-'*+\n")
     return "".join([link(w) + s for w, s in zip(*split_all(line, SPLIT_SEPS))])
@@ -197,9 +199,15 @@ def find_documentation_title(heading, comment, namespace):
             potential_title = line[5:].strip()
             if potential_title:
                 return potential_title
-        for word in line.split(" "):
-            if "(" in word and "//" not in line:
-                return word[:word.index("(")].replace("*", "")
+        words = line.strip().split()
+        line = " ".join(words) # make sure only single spaces exist
+        if match := re.search(r"^[^/]*?(?:struct|class) (\S+)", line):
+            return match[1]
+        if not (line.startswith("//") or line.startswith("template")): # found line of code, assume it contains the title
+            for word in words:
+                if "(" in word:
+                    return word[:word.index("(")].replace("*", "")
+            return line[:re.search(r"[;=]", line).start()] # no function found, assume variable
     return "ERROR-NO-TITLE"
 
 
@@ -209,7 +217,7 @@ def find_documentation_id(section, comment):
             potential_title = line[5:].strip()
             if potential_title:
                 return potential_title
-        if "(" in line and "//" not in line:
+        if not (line.startswith("//") or line.startswith("template")): # found line of code, assume it contains the title
             return make_id_friendly(line)
     return "ERROR-NO-ID"
 
@@ -273,6 +281,7 @@ def write_documentation(path, documentation):
                         text = find_comment_title(comobj.comment)
                         html_id = find_comment_id(heading, comobj.comment)
                     documented_code[text] = html_id
+                    documented_code[text.split("::")[-1]] = html_id
                     f.write(tag("li", link(text, "#" + html_id)))
                 f.write("\n</li></ul>\n")
 
