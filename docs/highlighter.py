@@ -32,12 +32,16 @@ MACRO_STRINGS = {
     "LOG_MSG", "CLAMP", "LERP", "ABS", "ABS_MAX", "MAX", "SIGN",
     "SIGN_NO_ZERO", "ABS_MIN", "MIN", "IN_RANGE", "SQ", "MOD"
 }
+CPP_DIRECTIVES = {
+    "define", "elif", "else", "endif", "if", "ifdef", "ifndef", "include",
+    "pragma", "undef",
+}
 
 def is_macro(string):
     global MACRO_STRINGS
     if ":" in string:
         return False
-    if string and string[0] == "#":
+    if string and string[0] == "#" and string[1:] in CPP_DIRECTIVES:
         return True
     if string in MACRO_STRINGS:
         return True
