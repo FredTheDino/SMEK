@@ -13,7 +13,7 @@ jobs:
     - name: Install Pacman deps
       run: |
         pacman -Syy
-        pacman --noconfirm -S binutils gcc clang sdl2 git scons glibc
+        pacman --noconfirm -S binutils gcc clang sdl2 git scons glibc libffi
         
     # Requires git for submodules (2020)
     - name: Checkout code
