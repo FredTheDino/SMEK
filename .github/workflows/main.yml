@@ -10,10 +10,17 @@ jobs:
     runs-on: ubuntu-latest
     container: archlinux:latest
     steps:
+      - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
       - name: Install dependencies
         run: |
           pacman -Syy
-          pacman --noconfirm -S binutils gcc clang python python-pip python-wheel sdl2 scons git glibc
+          pacman --noconfirm -S binutils gcc clang sdl2 scons glibc
       - uses: actions/checkout@v2
         with:
           submodules: "recursive"
