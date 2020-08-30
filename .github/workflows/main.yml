@@ -10,9 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     container: archlinux:latest
     steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: "recursive"
   
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
@@ -26,13 +23,18 @@ jobs:
     - name: Install Pacman dependencies
       run: |
         pacman -Syy
-        pacman --noconfirm -S binutils gcc clang sdl2 scons glibc
+        pacman --noconfirm -S binutils gcc clang sdl2 git scons glibc
   
     - name: requirements.txt
       run: |
         python3 -m venv venv
         source venv/bin/activate
         pip install -r requirements.txt
+
+    # Requires git for submodules (2020)
+    - uses: actions/checkout@v2
+      with:
+        submodules: "recursive"
   
     - name: Run tests
       run: |
