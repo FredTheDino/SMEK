@@ -201,9 +201,8 @@ def find_documentation_title(heading, comment, namespace):
                 return potential_title
         words = line.strip().split()
         line = " ".join(words) # make sure only single spaces exist
-        for s in ["struct", "class"]:
-            if s in words and "//" not in line:
-                return line[line.index(s) + len(s) + 1:line.index(" ", line.index(s) + len(s) + 1)]
+        if match := re.search(r"^[^/]*?(?:struct|class) (\S+)", line):
+            return match[1]
         if not (line.startswith("//") or line.startswith("template")): # found line of code, assume it contains the title
             for word in words:
                 if "(" in word:
