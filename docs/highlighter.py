@@ -51,12 +51,15 @@ def is_constant(string):
     last = string.split(":")[-1]
     return all(map(lambda c: c.isupper() or c == "_", last))
 
+def is_comment(string):
+    return string.startswith("//")
+
 COMMENT_COLOR="#999"
 SPLIT_SEPS = set(" ,;:()<>=\n")
 
 def highlight_code(line):
     """ Adds orange color to words marked to be highlighted """
-    def highlight(word):
+    def highlight_word(word):
         styler = [
             (is_keyword, KEYWORD_COLOR),
             (is_macro, MACRO_COLOR),
@@ -65,16 +68,14 @@ def highlight_code(line):
             (is_bool, BOOL_COLOR),
             (is_string, STRING_COLOR),
         ]
-
         for f, c in styler:
             if f(word):
                 return color_html(word, c)
-
         return word
 
-    if line.strip().startswith("//"):
+    if is_comment(line.strip()):
         return color_html(line, COMMENT_COLOR)
-    return "".join([highlight(w) + s for w, s in zip(*split_all(line, SPLIT_SEPS))])
+    return "".join([highlight_word(w) + s for w, s in zip(*split_all(line, SPLIT_SEPS))])
 
 def color_html(string, color):
     """ Wrap a string in a span with color specified as style. """
