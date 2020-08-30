@@ -255,7 +255,7 @@ bool Network::new_client_handle(int newsockfd) {
     return false;
 }
 
-#ifndef IMGUI_DISABLE
+#ifdef IMGUI_ACTIVE
 void Network::imgui_draw() {
     ImGui::Begin("Networking");
     {

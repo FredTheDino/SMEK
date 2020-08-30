@@ -47,7 +47,7 @@ i32 format(char *buffer, u32 size, FormatHint args, PackageHeader header) {
                     args.num_zero_pad, header.id);
 }
 
-#ifndef IMGUI_DISABLE
+#ifdef IMGUI_ACTIVE
 void imgui_package_create(Package *package, WipEntities *wip_entities) {
     int pkg_type_current_id = (int)package->header.type;
     ImGui::Combo("Package type", &pkg_type_current_id, package_type_list, LEN(package_type_list));

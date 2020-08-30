@@ -70,7 +70,7 @@ void reload_game(GameState *game) {
     _global_gs = game;
     GFX::reload(game);
     Asset::reload();
-#ifndef IMGUI_DISABLE
+#ifdef IMGUI_ACTIVE
     ImGui::SetCurrentContext((ImGuiContext *)game->imgui.context);
 #endif
     target = GFX::RenderTexture::create(GAMESTATE()->renderer.width, GAMESTATE()->renderer.height, true, true);
@@ -101,7 +101,7 @@ void draw() {
     target.use();
 
     static f32 t = 0;
-#ifndef IMGUI_DISABLE
+#ifdef IMGUI
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("Reload")) {
@@ -223,7 +223,7 @@ void draw() {
     GFX::current_camera()->upload(GFX::debug_shader());
     GFX::draw_primitivs();
 
-#ifndef IMGUI_DISABLE
+#ifdef IMGUI_CHECKVERSION
     ImGui::Begin("Game View");
     {
         if (ImGui::Button("Default width/height")) {
