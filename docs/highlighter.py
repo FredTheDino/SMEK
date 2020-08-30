@@ -1,3 +1,5 @@
+import re
+
 # TODO(ed): Don't write static colors, add a style instead.
 TYPE_COLOR = "#f80"
 TYPE_STRINGS = {
@@ -55,6 +57,7 @@ def is_comment(string):
     return string.startswith("//")
 
 COMMENT_COLOR="#999"
+STRING_COLOR = "#cc8"
 SPLIT_SEPS = set(" ,;:()<>=\n")
 
 def highlight_code(line):
@@ -66,15 +69,18 @@ def highlight_code(line):
             (is_type, TYPE_COLOR),
             (is_number, NUMBER_COLOR),
             (is_bool, BOOL_COLOR),
-            (is_string, STRING_COLOR),
         ]
         for f, c in styler:
             if f(word):
                 return color_html(word, c)
         return word
 
+    def color_string(match):
+        return color_html(match[0], STRING_COLOR)
+
     if is_comment(line.strip()):
         return color_html(line, COMMENT_COLOR)
+    line = re.sub(r"\"(?:\\\"|.)*?\"", color_string, line) # matches strings, handles escaped quotes
     return "".join([highlight_word(w) + s for w, s in zip(*split_all(line, SPLIT_SEPS))])
 
 def color_html(string, color):
@@ -121,11 +127,6 @@ def split_all(string, sep):
         splits.append("")
 
     return words, splits
-
-STRING_COLOR = "#cc8"
-def is_string(string):
-    """ Return whether or not a string is a... string """
-    return string.startswith("\"") and string.endswith("\"")
 
 NUMBER_COLOR = "#c8c"
 def is_number(string):
