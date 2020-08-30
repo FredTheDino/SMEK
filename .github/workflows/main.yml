@@ -24,6 +24,7 @@ jobs:
           pip install -r requirements.txt
       - name: Run tests
         run: |
+          source venv/bin/activate
           scons -Q tests --ci --report --jumbo
       - name: Upload build
         if: ${{ !success() }}
@@ -42,7 +43,9 @@ jobs:
             bin/tests/report.txt
       - name: Try to build release version (g++)
         run: |
+          source venv/bin/activate
           scons -Q --release --no-imgui --jumbo CXX=g++
       - name: Try to build release version (clang++)
         run: |
+          source venv/bin/activate
           scons -Q --release --no-imgui --jumbo CXX=clang++
