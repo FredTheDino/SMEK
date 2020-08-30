@@ -4,6 +4,21 @@ SMEK
 
 docs/index.html
 
+# imgui
+inc/imgui/imgui.cpp
+inc/imgui/imgui.h
+inc/imgui/imgui_demo.cpp
+inc/imgui/imgui_draw.cpp
+inc/imgui/imgui_impl_opengl3.cpp
+inc/imgui/imgui_impl_opengl3.h
+inc/imgui/imgui_impl_sdl.cpp
+inc/imgui/imgui_impl_sdl.h
+inc/imgui/imgui_internal.h
+inc/imgui/imgui_widgets.cpp
+inc/imgui/imstb_rectpack.h
+inc/imgui/imstb_textedit.h
+inc/imgui/imstb_truetype.h
+
 # scons
 .sconsign.dblite
 
