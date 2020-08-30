@@ -47,6 +47,7 @@ def is_constant(string):
     last = string.split(":")[-1]
     return all(map(lambda c: c.isupper() or c == "_", last))
 
+COMMENT_COLOR="#999"
 SPLIT_SEPS = set(" ,;:()<>=\n")
 
 def highlight_code(line):
@@ -67,6 +68,8 @@ def highlight_code(line):
 
         return word
 
+    if line.strip().startswith("//"):
+        return color_html(line, COMMENT_COLOR)
     return "".join([highlight(w) + s for w, s in zip(*split_all(line, SPLIT_SEPS))])
 
 def color_html(string, color):
