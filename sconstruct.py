@@ -97,6 +97,11 @@ AddOption("--compilation-db",
           action="store_true",
           help="Generates a compilation database for use with linters and tools")
 
+AddOption("--no-env",
+          dest="no_env",
+          action="store_true",
+          help="Don't copy the entire environment when setting up sconstruct")
+
 
 if GetOption("windows") and PLATFORMS["windows"]:
     print("It look's like you're currently using Windows.\nTherefore, --windows isn't needed.")
@@ -105,7 +110,10 @@ if GetOption("windows") and PLATFORMS["windows"]:
 if GetOption("windows"):
     print("Targeting foreign Windows")
     native = False
-    env = Environment(ENV=os.environ, tools=["mingw"])
+    if GetOption("no_env"):
+        env = Environment(tools=["mingw"])
+    else:
+        env = Environment(ENV=os.environ, tools=["mingw"])
     env.Replace(CXX="x86_64-w64-mingw32-g++")
     env.MergeFlags(shell(["x86_64-w64-mingw32-sdl2-config", "--cflags"]))
     env.MergeFlags(shell(["x86_64-w64-mingw32-sdl2-config", "--libs"]))
@@ -117,7 +125,10 @@ if GetOption("windows"):
 else:
     # native
     native = True
-    env = Environment(ENV=os.environ)
+    if GetOption("no_env"):
+        env = Environment()
+    else:
+        env = Environment(ENV=os.environ)
     env.Replace(CXX=ARGUMENTS.get("CXX", "g++"))
     env.MergeFlags(shell(["sdl2-config", "--cflags"]))
     env.MergeFlags(shell(["sdl2-config", "--libs"]))
