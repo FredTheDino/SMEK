@@ -82,7 +82,7 @@ struct Network {
 
     bool new_client_handle(int newsockfd);
 
-#ifndef IMGUI_DISABLE
+#ifdef IMGUI_ACTIVE
     void imgui_draw();
 #endif
 };
@@ -201,7 +201,7 @@ bool Network::new_client_handle(int newsockfd);
 ///*
 // The entry point for the thread listening for new clients. When a new client
 // tries to connect the thread tries to pair it to a ClientHandle on a new
-// thread. 
+// thread.
 int network_listen_for_clients(void *data);
 
 #endif
