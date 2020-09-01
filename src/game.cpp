@@ -111,6 +111,13 @@ void draw() {
         }
         draw_box(a, color);
         draw_box(b, color);
+
+        Vec3 pos = GFX::debug_camera()->position;
+        Vec3 dir = GFX::debug_camera()->get_forward();
+        auto hit = collision_line_box(pos, dir, b);
+        LOG("{}, {}", hit.t, hit.point);
+        if (hit.t > 0)
+            GFX::push_point(hit.point);
     }
 
     static f32 t = 0;

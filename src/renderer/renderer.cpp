@@ -39,6 +39,10 @@ void Camera::move_relative(Vec3 movement) {
     position = position + relative_move;
 }
 
+Vec3 Camera::get_forward() {
+    return Mat::from(rotation) * Vec3(0, 0, -1);
+}
+
 template <>
 void Camera::upload(const MasterShader &shader) {
     if (dirty_perspective) {

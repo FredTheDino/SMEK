@@ -55,3 +55,45 @@ Collision collision_check(Box a, Box b) {
 
     return col;
 }
+
+RayHit collision_line_box(Vec3 origin, Vec3 dir, Box a) {
+    bool inside = true;
+    Vec3 min = a.position - a.half_size;
+    Vec3 max = a.position + a.half_size;
+    Vec3 point;
+    Vec3 max_t = Vec3(-1, -1, -1);
+
+    // Find candidate planes.
+    for (int i = 0; i < 3; i++) {
+        if (origin._[i] < min._[i])
+            point._[i] = min._[i];
+        else if (origin._[i] > max._[i])
+            point._[i] = max._[i];
+        else
+            continue;
+        if (dir._[i])
+            max_t._[i] = (point._[i] - origin._[i]) / dir._[i];
+        inside = false;
+    }
+
+    // Ray origin inside bounding box
+    if (inside) {
+        return { 0, origin };
+    }
+
+    // Find Max T
+    int plane = 0;
+    if (max_t._[1] > max_t._[plane]) plane = 1;
+    if (max_t._[2] > max_t._[plane]) plane = 2;
+
+    // Check final candidate actually inside box
+    if (max_t._[plane] < 0)
+        return { -1, origin };
+    point = origin + max_t._[plane] * dir;
+    for (int i = 0; i < 3; i++) {
+        if (i == plane) continue;
+        if (point._[i] < min._[i] || point._[i] > max._[i])
+            return { -1, origin };
+    }
+    return { max_t._[plane], point };
+}

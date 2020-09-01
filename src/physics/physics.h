@@ -1,6 +1,11 @@
 #pragma once
 #include "../math/smek_vec.h"
 
+struct RayHit {
+    real t;
+    Vec3 point;
+};
+
 struct Box {
     Vec3 position;
     Vec3 half_size;
@@ -17,7 +22,10 @@ struct Collision {
 };
 
 void draw_box(Box a, Vec4 color);
+
 Collision collision_check(Box a, Box b);
+
+RayHit collision_line_box(Vec3 start, Vec3 dir, Box a);
 
 #include "../test.h"
 
