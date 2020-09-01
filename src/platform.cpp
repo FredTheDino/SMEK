@@ -1,4 +1,4 @@
-#ifdef IMGUI_ACTIVE
+#ifndef IMGUI_DISABLE
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl3.h"
@@ -169,7 +169,7 @@ void platform_audio_init() {
     SDL_PauseAudioDevice(platform_audio_struct.dev, 0);
 }
 
-#ifdef IMGUI_ACTIVE
+#ifndef IMGUI_DISABLE
 static void imgui_platform_start() {
     IMGUI_CHECKVERSION();
     game_state.imgui.context = (void *)ImGui::CreateContext();

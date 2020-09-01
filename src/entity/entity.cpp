@@ -46,7 +46,7 @@ void Light::on_remove() {
     }
 }
 
-#if IMGUI_ACTIVE
+#ifndef IMGUI_DISABLE
 void Light::imgui_create() {
     ImGui::InputFloat3("Position", position._);
     ImGui::ColorEdit3("Color", color._);
@@ -89,7 +89,7 @@ void Player::update() {
 }
 
 void Player::draw() {
-#ifdef IMGUI_ACTIVE
+#ifndef IMGUI_DISABLE
     ImGui::BeginChild("Player");
     ImGui::SliderFloat("Jump speed", &GAMESTATE()->player_jump_speed, 0.0, 10.0, "%.2f");
     ImGui::SliderFloat("Movement speed", &GAMESTATE()->player_movement_speed, 0.0, 10.0, "%.2f");
@@ -109,7 +109,7 @@ void SoundEntity::update() {
 }
 
 void SoundEntity::draw() {
-#ifdef IMGUI_ACTIVE
+#ifndef IMGUI_DISABLE
     Audio::SoundSource *source = GAMESTATE()->audio_struct->fetch_source(audio_id);
     if (!source) return;
     ImGui::BeginChild("Sound entities");
@@ -172,7 +172,7 @@ void EntitySystem::update() {
 }
 
 void EntitySystem::draw() {
-#ifdef IMGUI_ACTIVE
+#ifndef IMGUI_DISABLE
     ImGui::Begin("Entities");
     ImGui::Text("Current entities: %ld", entities.size());
 
@@ -235,7 +235,7 @@ void EntitySystem::draw() {
     for (auto [_, e] : entities) {
         e->draw();
     }
-#ifdef IMGUI_ACTIVE
+#ifndef IMGUI_DISABLE
     ImGui::End();
 #endif
 }
