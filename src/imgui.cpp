@@ -1,6 +1,6 @@
 // Compilation unit for IMGUI
 
-#ifdef IMGUI_ACTIVE
+#ifndef IMGUI_DISABLE
 #include <imgui/imgui.cpp>
 #include <imgui/imgui_demo.cpp>
 #include <imgui/imgui_draw.cpp>

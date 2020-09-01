@@ -20,7 +20,7 @@ method: VIRTUAL? (TYPE | DESTRUCTOR)? NAME "(" PARAMETERS? ")" OVERRIDE? "{" MET
       | VIRTUAL? (TYPE | DESTRUCTOR)? NAME "(" PARAMETERS? ")" OVERRIDE? ";"
       | VIRTUAL  (TYPE | DESTRUCTOR)? NAME "(" PARAMETERS? ")" "=" "0" ";"
 
-ppif: /#ifn?def/ /[^#endif]/* _member* /[^#endif]/* "#endif"
+ppif: "#ifndef" /[^#endif]/* _member* /[^#endif]/* "#endif"
 
 PARAMETERS: PARAMETER ("," PARAMETER)*
 PARAMETER: TYPE NAME?
