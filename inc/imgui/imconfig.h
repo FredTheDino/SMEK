@@ -12,9 +12,6 @@
 //-----------------------------------------------------------------------------
 
 #pragma once
-#ifndef IMGUI_DISABLE
-#define IMGUI_ACTIVE
-#endif
 
 //---- Define assertion handler. Defaults to calling assert().
 // If your macro uses multiple statements, make sure is enclosed in a 'do { .. } while (0)' block so it can be used as a single statement.

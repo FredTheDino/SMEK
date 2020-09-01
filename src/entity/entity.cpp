@@ -46,7 +46,7 @@ void Light::on_remove() {
     }
 }
 
-#if IMGUI_ACTIVE
+#ifdef IMGUI_ACTIVE
 void Light::imgui_create() {
     ImGui::InputFloat3("Position", position._);
     ImGui::ColorEdit3("Color", color._);
