@@ -27,15 +27,18 @@ void draw_box(Box a, Vec4 color) {
         for (u32 j = i + 1; j < LEN(points); j++) {
             Vec3 a = points[i];
             Vec3 b = points[j];
-            GFX::push_line(a, b, color);
+            // Lower to 2 to dnot get the crosses on the sides
+            if ((a.x != b.x) + (a.y != b.y) + (a.z != b.z) < 2)
+                GFX::push_line(a, b, color, 0.01);
         }
     }
 }
 
 void draw_ray_hit(RayHit a, Vec4 color) {
-    if (a.t > 0) {
+    if (a) {
         GFX::push_point(a.point, color, 0.04);
-        GFX::push_line(a.point, a.point + a.normal, color, 0.01);
+        GFX::push_line(a.point, a.point + a.normal, color, 0.005);
+        GFX::push_line(a.point, a.point + a.normal * a.t, color, 0.01);
     }
 }
 
