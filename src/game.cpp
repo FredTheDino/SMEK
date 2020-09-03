@@ -101,24 +101,22 @@ void update() {
 void draw() {
     target.use();
 
+    static f32 t = 0;
     {
+        // Velocity is derivative of position.
         Box a = { Vec3(), Vec3(1, 1, 1) };
-        Box b = { Vec3(sin(time()) * 5, 0, 0), Vec3(1, 1, 1) };
-        auto c = collision_check(a, b);
-        Vec4 color = c ? Vec4(0.5, 0.1, 0.1, 1.0) : Vec4(0.0, 0.0, 1.0, 1.0);
-        if (c) {
-            b.position -= c.normal * c.depth;
-        }
+        Vec3 vel_a = Vec3();
+        Box b = { Vec3(sin(t) * 5, 0, 0), Vec3(1, 1, 1) };
+        Vec3 vel_b = Vec3(cos(t) * 5 * delta(), 0, 0);
+
+        Vec4 color = Vec4(0.6, 0.2, 0.5, 1.0);
         draw_box(a, color);
         draw_box(b, color);
 
-        Vec3 pos = GFX::debug_camera()->position;
-        Vec3 dir = GFX::debug_camera()->get_forward();
-        RayHit hit = collision_line_box(pos, dir, b);
+        RayHit hit = continous_collision_check(a, vel_a, b, vel_b);
         draw_ray_hit(hit, Vec4(0.2, 0.5, 0.5, 1.0));
     }
 
-    static f32 t = 0;
 #ifndef IMGUI_DISABLE
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {

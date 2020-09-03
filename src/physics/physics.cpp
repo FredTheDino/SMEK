@@ -86,15 +86,14 @@ RayHit collision_line_box(Vec3 origin, Vec3 dir, Box a) {
         inside = false;
     }
 
-    // Ray origin inside bounding box
-    if (inside) {
-        return { 0, origin };
-    }
-
     // Find Max T
     int plane = 0;
     if (max_t._[1] > max_t._[plane]) plane = 1;
     if (max_t._[2] > max_t._[plane]) plane = 2;
+
+    // Ray origin inside bounding box
+    if (inside)
+        return { 0, origin };
 
     // Check final candidate actually inside box
     if (max_t._[plane] < 0)
@@ -108,9 +107,16 @@ RayHit collision_line_box(Vec3 origin, Vec3 dir, Box a) {
 
     Vec3 normal = {};
     normal._[plane] = Math::sign(origin._[plane] - point._[plane]);
-    return {
-        max_t._[plane],
-        point,
-        normal,
-    };
+    return { max_t._[plane], point, normal };
+}
+
+RayHit continous_collision_check(Box a, Vec3 vel_a, Box b, Vec3 vel_b) {
+    // Change the problem to something that is WAY EASIER to solve.
+    Vec3 total_vel = vel_a - vel_b;
+    Box extended_box = b.extend(a);
+
+    draw_box(extended_box, Vec4(1.0, 0.4, 0.3, 1.0));
+    GFX::push_line(a.position, total_vel, Vec4(1.0, 0.4, 0.3, 1.0));
+
+    return collision_line_box(a.position, total_vel, b.extend(a));
 }
