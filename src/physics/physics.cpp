@@ -86,14 +86,21 @@ RayHit collision_line_box(Vec3 origin, Vec3 dir, Box a) {
         inside = false;
     }
 
+    // Ray origin inside bounding box
+    //
+    // NOTE(ed): Not returning a normal here
+    // makes things more numerically unstable.
+    // I didn't mange to think of a way to do this,
+    // but there might be a smart way to do it here.
+    // Otherwise we fall back on the "collision_check"
+    // function for the "t" we know they are overlapping.
+    if (inside)
+        return { 0, origin };
+
     // Find Max T
     int plane = 0;
     if (max_t._[1] > max_t._[plane]) plane = 1;
     if (max_t._[2] > max_t._[plane]) plane = 2;
-
-    // Ray origin inside bounding box
-    if (inside)
-        return { 0, origin };
 
     // Check final candidate actually inside box
     if (max_t._[plane] < 0)
