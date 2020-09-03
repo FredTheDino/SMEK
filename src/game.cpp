@@ -114,10 +114,8 @@ void draw() {
 
         Vec3 pos = GFX::debug_camera()->position;
         Vec3 dir = GFX::debug_camera()->get_forward();
-        auto hit = collision_line_box(pos, dir, b);
-        LOG("{}, {}", hit.t, hit.point);
-        if (hit.t > 0)
-            GFX::push_point(hit.point);
+        RayHit hit = collision_line_box(pos, dir, b);
+        draw_ray_hit(hit, Vec4(0.2, 0.5, 0.5, 1.0));
     }
 
     static f32 t = 0;

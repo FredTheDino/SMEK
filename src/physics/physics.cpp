@@ -32,6 +32,13 @@ void draw_box(Box a, Vec4 color) {
     }
 }
 
+void draw_ray_hit(RayHit a, Vec4 color) {
+    if (a.t > 0) {
+        GFX::push_point(a.point, color, 0.04);
+        GFX::push_line(a.point, a.point + a.normal, color, 0.01);
+    }
+}
+
 Collision collision_check(Box a, Box b) {
     Vec3 delta = a.position - b.position;
     Vec3 range = a.half_size + b.half_size;
@@ -95,5 +102,12 @@ RayHit collision_line_box(Vec3 origin, Vec3 dir, Box a) {
         if (point._[i] < min._[i] || point._[i] > max._[i])
             return { -1, origin };
     }
-    return { max_t._[plane], point };
+
+    Vec3 normal = {};
+    normal._[plane] = Math::sign(origin._[plane] - point._[plane]);
+    return {
+        max_t._[plane],
+        point,
+        normal,
+    };
 }
