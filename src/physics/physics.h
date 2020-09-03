@@ -4,6 +4,7 @@
 struct RayHit {
     real t;
     Vec3 point;
+    Vec3 normal;
 };
 
 struct Box {
@@ -22,6 +23,8 @@ struct Collision {
 };
 
 void draw_box(Box a, Vec4 color);
+
+void draw_ray_hit(RayHit a, Vec4 color);
 
 Collision collision_check(Box a, Box b);
 
