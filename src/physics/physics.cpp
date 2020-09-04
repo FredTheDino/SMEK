@@ -123,7 +123,9 @@ bool check_and_solve_collision(Box *a, Box *b, real delta) {
     Box extended_box = b->extend(a->half_size);
     RayHit hit = collision_line_box(a->position, total_movement, extended_box);
     // TODO(ed): Here we can check that we didn't miss a collision.
-    if (!hit)
+
+    const real MARGIN = 0.001;
+    if (!hit || hit.t < MARGIN)
         return false;
 
     draw_ray_hit(hit, Vec4(0.5, 0.2, 0.3, 1.0));
@@ -131,13 +133,13 @@ bool check_and_solve_collision(Box *a, Box *b, real delta) {
     // Solve
 
     // Move forward in time
-    const real MARGIN = 0.001;
-    real effective_t = Math::max(hit.t - MARGIN, 0.0f) * delta;
+    real effective_t = Math::max(hit.t - MARGIN, 0.0f);
     a->integrate_part(effective_t, delta);
     b->integrate_part(effective_t, delta);
+    LOG("{} {}", hit.t, effective_t);
 
     // Update velocities
-    const real BOUNCE = 0.1;
+    const real BOUNCE = 0.0;
     real vel_rel_norm = (1.0 + BOUNCE) * (dot(a->velocity, hit.normal) - dot(b->velocity, hit.normal));
     real total_mass = a->mass + b->mass;
     if (total_mass != 0 and vel_rel_norm < 0) {

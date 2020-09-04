@@ -23,7 +23,7 @@ struct Box {
     real curr_t;
 
     void integrate_part(real t, real delta) {
-        position += velocity * (1 - t) * delta;
+        position += velocity * t * delta;
         curr_t += t;
         ASSERT_LT(curr_t, 1.0);
     }

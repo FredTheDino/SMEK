@@ -124,7 +124,7 @@ void draw() {
 
         if (ImGui::Button("Restart")) {
             a.position.y = 3;
-            a.velocity.y = -1;
+            a.velocity.y = -1000;
         }
 
         int hit = check_and_solve_collision(&a, &b, delta());
