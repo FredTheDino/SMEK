@@ -15,10 +15,28 @@ struct RayHit {
 
 struct Box {
     Vec3 position;
+    Vec3 velocity;
+
     Vec3 half_size;
 
-    Box extend(const Box &b) const {
-        return { position, half_size + b.half_size };
+    real mass;
+    real curr_t;
+
+    void integrate_part(real t, real delta) {
+        position += velocity * (1 - t) * delta;
+        curr_t += t;
+        ASSERT_LT(curr_t, 1.0);
+    }
+
+    void integrate(real delta) {
+        position += velocity * (1 - curr_t) * delta;
+        curr_t = 0;
+    }
+
+    Box extend(const Vec3 &ext) const {
+        Box copy = *this;
+        copy.half_size += ext;
+        return copy;
     }
 };
 
@@ -38,9 +56,9 @@ void draw_ray_hit(RayHit a, Vec4 color);
 
 Collision collision_check(Box a, Box b);
 
-RayHit continous_collision_check(Box a, Vec3 vel_a, Box b, Vec3 vel_b);
-
 RayHit collision_line_box(Vec3 start, Vec3 dir, Box a);
+
+bool check_and_solve_collision(Box *a, Box *b, real delta);
 
 #include "../test.h"
 

@@ -98,23 +98,44 @@ void update() {
     GAMESTATE()->entity_system.update();
 }
 
+Box a = {
+    .position = Vec3(0, +3, 0),
+    .velocity = Vec3(0, -1, 0),
+    .half_size = Vec3(1, 1, 1),
+    .mass = 1.0,
+};
+Box b = {
+    .position = Vec3(0, 0, 0),
+    .velocity = Vec3(0, 0, 0),
+    .half_size = Vec3(1, 1, 1),
+    .mass = 0,
+};
+
 void draw() {
     target.use();
 
     static f32 t = 0;
     {
         // Velocity is derivative of position.
-        Box a = { Vec3(), Vec3(1, 1, 1) };
-        Vec3 vel_a = Vec3();
-        Box b = { Vec3(sin(t) * 5, 0, 0), Vec3(1, 1, 1) };
-        Vec3 vel_b = Vec3(cos(t) * 5 * delta(), 0, 0);
 
         Vec4 color = Vec4(0.6, 0.2, 0.5, 1.0);
         draw_box(a, color);
         draw_box(b, color);
 
-        RayHit hit = continous_collision_check(a, vel_a, b, vel_b);
-        draw_ray_hit(hit, Vec4(0.2, 0.5, 0.5, 1.0));
+        if (ImGui::Button("Restart")) {
+            a.position.y = 3;
+            a.velocity.y = -1;
+        }
+
+        int hit = check_and_solve_collision(&a, &b, delta());
+        a.integrate(delta());
+        b.integrate(delta());
+        ImGui::InputFloat3("A", a.position._, 3);
+        ImGui::InputFloat3("Vel", a.velocity._, 3);
+
+        ImGui::InputFloat3("B", b.position._, 3);
+        ImGui::InputFloat3("Vel", b.velocity._, 3);
+        ImGui::InputInt("HIT", &hit);
     }
 
 #ifndef IMGUI_DISABLE
