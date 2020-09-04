@@ -117,13 +117,35 @@ RayHit collision_line_box(Vec3 origin, Vec3 dir, Box a) {
     return { max_t._[plane], point, normal };
 }
 
-RayHit continous_collision_check(Box a, Vec3 vel_a, Box b, Vec3 vel_b) {
-    // Change the problem to something that is WAY EASIER to solve.
-    Vec3 total_vel = vel_a - vel_b;
-    Box extended_box = b.extend(a);
+bool check_and_solve_collision(Box *a, Box *b, real delta) {
+    // Check
+    Vec3 total_movement = (a->velocity - b->velocity) * delta;
+    Box extended_box = b->extend(a->half_size);
+    RayHit hit = collision_line_box(a->position, total_movement, extended_box);
+    // TODO(ed): Here we can check that we didn't miss a collision.
 
-    draw_box(extended_box, Vec4(1.0, 0.4, 0.3, 1.0));
-    GFX::push_line(a.position, total_vel, Vec4(1.0, 0.4, 0.3, 1.0));
+    const real MARGIN = 0.001;
+    if (!hit || hit.t < MARGIN)
+        return false;
 
-    return collision_line_box(a.position, total_vel, b.extend(a));
+    draw_ray_hit(hit, Vec4(0.5, 0.2, 0.3, 1.0));
+
+    // Solve
+
+    // Move forward in time
+    real effective_t = Math::max(hit.t - MARGIN, 0.0f);
+    a->integrate_part(effective_t, delta);
+    b->integrate_part(effective_t, delta);
+    LOG("{} {}", hit.t, effective_t);
+
+    // Update velocities
+    const real BOUNCE = 0.0;
+    real vel_rel_norm = (1.0 + BOUNCE) * (dot(a->velocity, hit.normal) - dot(b->velocity, hit.normal));
+    real total_mass = a->mass + b->mass;
+    if (total_mass != 0 && vel_rel_norm < 0) {
+        a->velocity += hit.normal * (-vel_rel_norm * a->mass / total_mass);
+        b->velocity += hit.normal * (+vel_rel_norm * b->mass / total_mass);
+    }
+
+    return true;
 }
