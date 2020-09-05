@@ -117,26 +117,22 @@ RayHit collision_line_box(Vec3 origin, Vec3 dir, Box a) {
     return { max_t._[plane], point, normal };
 }
 
-bool check_and_solve_collision(Box *a, Box *b, real delta) {
+RayHit check_collision(Box *a, Box *b, real delta) {
     // Check
-    Vec3 total_movement = (a->velocity - b->velocity) * delta;
     Box extended_box = b->extend(a->half_size);
+
+    Vec3 total_movement = (a->velocity - b->velocity) * delta;
     RayHit hit = collision_line_box(a->position, total_movement, extended_box);
-    // TODO(ed): Here we can check that we didn't miss a collision.
+    hit.a = a;
+    hit.b = b;
+    return hit;
+}
 
-    const real MARGIN = 0.001;
-    if (!hit || hit.t < MARGIN)
-        return false;
-
-    draw_ray_hit(hit, Vec4(0.5, 0.2, 0.3, 1.0));
-
-    // Solve
-
-    // Move forward in time
-    real effective_t = Math::max(hit.t - MARGIN, 0.0f);
-    a->integrate_part(effective_t, delta);
-    b->integrate_part(effective_t, delta);
-    LOG("{} {}", hit.t, effective_t);
+const real MARGIN = 0.001;
+void solve_collision(RayHit hit, real delta) {
+    Box *a, *b;
+    a = hit.a;
+    b = hit.b;
 
     // Update velocities
     const real BOUNCE = 0.0;
@@ -146,6 +142,63 @@ bool check_and_solve_collision(Box *a, Box *b, real delta) {
         a->velocity += hit.normal * (-vel_rel_norm * a->mass / total_mass);
         b->velocity += hit.normal * (+vel_rel_norm * b->mass / total_mass);
     }
+}
 
+bool check_and_solve_collision(Box *a, Box *b, real delta) {
+    RayHit hit = check_collision(a, b, delta);
+
+    if (!hit || hit.t < MARGIN)
+        return false;
+
+    draw_ray_hit(hit, Vec4(0.5, 0.2, 0.3, 1.0));
+
+    solve_collision(hit, delta);
     return true;
+}
+
+void PhysicsEngine::add_box(Box b) {
+    boxes.push_back(b);
+}
+
+void PhysicsEngine::step(real delta) {
+    real passed_t = 0;
+    int collisions = 0;
+    for (int UPPER = 0; UPPER < 100 && passed_t < 1; UPPER++) {
+        // Invalid collision that is past the current timestep
+        RayHit closest_hit = { 2 };
+        for (int outer = 0; outer < boxes.size(); outer++) {
+            Box *a = &boxes[outer];
+            for (int inner = outer + 1; inner < boxes.size(); inner++) {
+                Box *b = &boxes[inner];
+                if (a->mass == 0 && b->mass == 0) continue;
+                RayHit hit_candidate = check_collision(a, b, delta);
+                const bool is_collision = MARGIN < hit_candidate.t && hit_candidate.t < 1.0 - passed_t;
+                const bool is_closest = hit_candidate.t < closest_hit.t;
+                if (is_collision && is_closest) {
+                    closest_hit = hit_candidate;
+                }
+            }
+        }
+
+        if (closest_hit) {
+            LOG("HIT {} {}", collisions++, closest_hit.t);
+            for (Box &a : boxes) {
+                a.integrate_part(closest_hit.t, delta);
+            }
+            solve_collision(closest_hit, delta);
+            passed_t += closest_hit.t;
+        } else {
+            break;
+        }
+    }
+
+    for (Box &a : boxes) {
+        a.integrate(delta);
+    }
+}
+
+void PhysicsEngine::draw() {
+    for (Box &a : boxes) {
+        draw_box(a, Vec4(1.0, 0.0, 1.0, 1.0));
+    }
 }
