@@ -31,6 +31,7 @@ struct Box {
 
 struct RayHit {
     real t;
+    real depth;
     Vec3 point;
     Vec3 normal;
 
@@ -56,7 +57,7 @@ struct PhysicsEngine {
     std::vector<Box> boxes;
 
     void add_box(Box b);
-    void step(real delta);
+    void update(real delta);
     void draw();
 };
 
