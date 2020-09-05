@@ -130,12 +130,15 @@ void draw() {
         int hit = check_and_solve_collision(&a, &b, delta());
         a.integrate(delta());
         b.integrate(delta());
+
+#ifndef IMGUI_DISABLE
         ImGui::InputFloat3("A", a.position._, 3);
         ImGui::InputFloat3("Vel", a.velocity._, 3);
 
         ImGui::InputFloat3("B", b.position._, 3);
         ImGui::InputFloat3("Vel", b.velocity._, 3);
         ImGui::InputInt("HIT", &hit);
+#endif
     }
 
 #ifndef IMGUI_DISABLE

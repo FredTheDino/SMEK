@@ -142,7 +142,7 @@ bool check_and_solve_collision(Box *a, Box *b, real delta) {
     const real BOUNCE = 0.0;
     real vel_rel_norm = (1.0 + BOUNCE) * (dot(a->velocity, hit.normal) - dot(b->velocity, hit.normal));
     real total_mass = a->mass + b->mass;
-    if (total_mass != 0 and vel_rel_norm < 0) {
+    if (total_mass != 0 && vel_rel_norm < 0) {
         a->velocity += hit.normal * (-vel_rel_norm * a->mass / total_mass);
         b->velocity += hit.normal * (+vel_rel_norm * b->mass / total_mass);
     }
