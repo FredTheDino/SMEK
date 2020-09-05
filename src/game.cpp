@@ -103,21 +103,28 @@ void update() {
             Vec3(0, Input::value(Ac::MoveY) * delta(), 0));
     }
     GAMESTATE()->entity_system.update();
-    GAMESTATE()->physics_engine.step(delta());
+    GAMESTATE()->physics_engine.update(delta());
 }
 
 void draw() {
     target.use();
 
     static f32 t = 0;
+#ifndef IMGUI_DISABLE
+    static f32 mass = 0.0;
+    static f32 speed = 5.0;
+
+    ImGui::DragFloat("Mass", &mass, 0, 100);
+    ImGui::DragFloat("Speed", &speed, 0, 100);
     if (ImGui::Button("Send Box!")) {
         Box b;
         b.position = GFX::debug_camera()->position;
-        b.velocity = GFX::debug_camera()->get_forward() * 43;
+        b.velocity = GFX::debug_camera()->get_forward() * speed;
         b.half_size = { 1, 1, 1 };
-        b.mass = 1.0;
+        b.mass = mass;
         GAMESTATE()->physics_engine.add_box(b);
     }
+#endif
     GAMESTATE()->physics_engine.draw();
 
 #ifndef IMGUI_DISABLE

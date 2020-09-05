@@ -160,28 +160,33 @@ void PhysicsEngine::add_box(Box b) {
     boxes.push_back(b);
 }
 
-void PhysicsEngine::step(real delta) {
+void PhysicsEngine::update(real delta) {
     real passed_t = 0;
-    int collisions = 0;
-    for (int UPPER = 0; UPPER < 100 && passed_t < 1; UPPER++) {
-        // Invalid collision that is past the current timestep
-        RayHit closest_hit = { 2 };
+    const int MAX_COLLISIONS = 100;
+
+    // Find at max MAX_COLLISIONS and solve them in order.
+    //
+    // TODO(ed): If we reach the end of our checking with there
+    // potentially being more collisions. We should solve _ALL_
+    // collisions so we don't fall through the floor forexample.
+    for (int collision_counter = 0; collision_counter < MAX_COLLISIONS; collision_counter++) {
+        // Invalid collision that is past the current timestep.
+        real t_left = 1.0 - passed_t;
+        RayHit closest_hit = { .t = 2 };
         for (int outer = 0; outer < boxes.size(); outer++) {
             Box *a = &boxes[outer];
             for (int inner = outer + 1; inner < boxes.size(); inner++) {
                 Box *b = &boxes[inner];
                 if (a->mass == 0 && b->mass == 0) continue;
                 RayHit hit_candidate = check_collision(a, b, delta);
-                const bool is_collision = MARGIN < hit_candidate.t && hit_candidate.t < 1.0 - passed_t;
-                const bool is_closest = hit_candidate.t < closest_hit.t;
-                if (is_collision && is_closest) {
+                if (MARGIN < hit_candidate.t && hit_candidate.t < t_left
+                    && hit_candidate.t < closest_hit.t) {
                     closest_hit = hit_candidate;
                 }
             }
         }
 
-        if (closest_hit) {
-            LOG("HIT {} {}", collisions++, closest_hit.t);
+        if (closest_hit.t < 1.0) {
             for (Box &a : boxes) {
                 a.integrate_part(closest_hit.t, delta);
             }
@@ -192,6 +197,7 @@ void PhysicsEngine::step(real delta) {
         }
     }
 
+    // Move the bodies to the end of the step.
     for (Box &a : boxes) {
         a.integrate(delta);
     }
