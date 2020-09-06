@@ -59,10 +59,10 @@ Manifold collision_aabb(AABody *a, AABody *b) {
     return col;
 }
 
-Manifold collision_line_box(Vec3 origin, Vec3 dir, AABody a) {
+Manifold collision_line_aabody(Vec3 origin, Vec3 dir, AABody *a) {
     bool inside = true;
-    Vec3 min = a.position - a.half_size;
-    Vec3 max = a.position + a.half_size;
+    Vec3 min = a->position - a->half_size;
+    Vec3 max = a->position + a->half_size;
     Vec3 point;
     Vec3 max_t = Vec3(-1, -1, -1);
 
@@ -114,7 +114,7 @@ Manifold check_collision(AABody *a, AABody *b, real delta) {
     AABody extended_box = b->extend(a->half_size);
 
     Vec3 total_movement = (a->velocity - b->velocity) * delta;
-    Manifold hit = collision_line_box(a->position, total_movement, extended_box);
+    Manifold hit = collision_line_aabody(a->position, total_movement, &extended_box);
     if (hit.depth) {
         hit = collision_aabb(a, b);
     }

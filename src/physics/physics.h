@@ -82,58 +82,70 @@ void draw_manifold(Manifold a, Vec4 color);
 // Check the collisions between two bodies.
 Manifold collision_aabb(AABody *a, AABody *b);
 
-///* collision_line_box
+///* collision_line_aabody
 // Check the collisions between a line and a box.
-Manifold collision_line_box(Vec3 start, Vec3 dir, AABody a);
+Manifold collision_line_aabody(Vec3 start, Vec3 dir, AABody *a);
+
+}
 
 #include "../test.h"
 
-TEST_CASE("collision test simple", {
-    AABody a;
+TEST_CASE("collision simple", {
+    Phy::AABody a;
     a.position = Vec3(1, 0, 0);
     a.half_size = Vec3(1, 1, 1);
 
-    AABody b;
+    Phy::AABody b;
     b.position = Vec3(0, 0, 0);
     b.half_size = Vec3(1, 1, 1);
 
     return collision_aabb(&a, &b);
 });
 
-TEST_CASE("collision test simple", {
-    AABody a;
+TEST_CASE("collision simple", {
+    Phy::AABody a;
     a.position = Vec3(1, 0, 0);
     a.half_size = Vec3(0, 0, 0);
 
-    AABody b;
+    Phy::AABody b;
     b.position = Vec3(0, 0, 0);
     b.half_size = Vec3(0, 0, 0);
 
     return !collision_aabb(&a, &b);
 });
 
-TEST_CASE("collision test simple", {
-    AABody a;
+TEST_CASE("collision simple", {
+    Phy::AABody a;
     a.position = Vec3(0, 0, 0);
     a.half_size = Vec3(1, 1, 1);
 
-    AABody b;
+    Phy::AABody b;
     b.position = Vec3(0, 0, 0);
     b.half_size = Vec3(0, 1, 1);
 
     return collision_aabb(&a, &b);
 });
 
-TEST_CASE("collision test simple", {
-    AABody a;
+TEST_CASE("collision simple", {
+    Phy::AABody a;
     a.position = Vec3(0, 0, 0);
     a.half_size = Vec3(1, 1, 1);
 
-    AABody b;
+    Phy::AABody b;
     b.position = Vec3(1, 0, 0);
     b.half_size = Vec3(1, 1, 1);
 
     return !_close_enough_vec(collision_aabb(&b, &a).normal, collision_aabb(&a, &b).normal, 0.1);
 });
 
-}
+TEST_CASE("collision cast simple", {
+    Phy::AABody a;
+    a.position = Vec3(0, 0, 0);
+    a.half_size = Vec3(1, 1, 1);
+
+    Vec3 start = Vec3(0, -2, 0);
+    Vec3 dir = Vec3(0, 1, 0);
+
+    Phy::Manifold m = collision_line_aabody(start, dir, &a);
+    return 0.9 < m.t && m.t < 1.1;
+});
