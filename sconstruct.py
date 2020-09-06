@@ -216,6 +216,8 @@ source = glob("src/**/*.c*", recursive=True)
 imgui = env.Object(smek_dir + "imgui.cpp")
 if GetOption("no_imgui"):
     env.Append(CPPDEFINES="IMGUI_DISABLE")
+else:
+    env.Append(CPPDEFINES="IMGUI_ENABLE")
 
 imgui_files_dest = [f"inc/imgui/{os.path.basename(f)}" for f in IMGUI_FILES_SRC]
 for src, dest in zip(IMGUI_FILES_SRC, imgui_files_dest):

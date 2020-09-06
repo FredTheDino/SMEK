@@ -26,7 +26,7 @@ struct BaseEntity {
     virtual void on_create() {};
     virtual void on_remove() {};
 
-#ifndef IMGUI_DISABLE
+#ifdef IMGUI_ENABLE
     virtual void imgui_create() {};
 #endif
 
@@ -76,7 +76,7 @@ struct Light : public BaseEntity {
     void draw() override;
     void on_remove() override;
 
-#ifndef IMGUI_DISABLE
+#ifdef IMGUI_ENABLE
     void imgui_create() override;
 #endif
 };

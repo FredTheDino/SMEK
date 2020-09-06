@@ -82,7 +82,7 @@ struct Network {
 
     bool new_client_handle(int newsockfd);
 
-#ifndef IMGUI_DISABLE
+#ifdef IMGUI_ENABLE
     void imgui_draw();
 #endif
 };
