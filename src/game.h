@@ -46,7 +46,7 @@ struct GameState {
 
     bool running;
 
-#ifndef IMGUI_DISABLE
+#ifdef IMGUI_ENABLE
     ImGuiState imgui = {};
 #endif
 };
