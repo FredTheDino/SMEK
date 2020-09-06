@@ -81,7 +81,7 @@ struct Light : public BaseEntity {
 #endif
 };
 
-///* Player
+///*
 // A playable character
 struct Player : public Entity {
     Vec3 velocity;
@@ -90,8 +90,7 @@ struct Player : public Entity {
     void draw() override;
 };
 
-///* EntitySystem
-// The core
+///*
 struct EntitySystem {
     EntityID next_id;
     std::unordered_map<u64, BaseEntity *> entities;
