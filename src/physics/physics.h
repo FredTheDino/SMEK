@@ -32,7 +32,7 @@ struct AABody {
     }
 };
 
-struct RayHit {
+struct Manifold {
     real t;
     real depth;
     Vec3 point;
@@ -44,15 +44,6 @@ struct RayHit {
         // We include 0, since collisions when the origin
         // is inside the box exists.
         return (t > 0 && t <= 1) || (depth >= 0 && t >= 0);
-    }
-};
-
-struct Collision {
-    Vec3 normal;
-    f32 depth;
-
-    operator bool() const {
-        return depth > 0;
     }
 };
 
@@ -71,18 +62,18 @@ struct PhysicsEngine {
 // Draws a body as a box.
 void draw_aabody(AABody a, Vec4 color);
 
-///* draw_ray_hit
-// Draws a ray hit as a position and a normal.
+///* draw_manifold
+// Draws a collision manifold as a position and a normal.
 // Position might not match "real" position.
-void draw_ray_hit(RayHit a, Vec4 color);
+void draw_manifold(Manifold a, Vec4 color);
 
 ///* collision_aabb
 // Check the collisions between two bodies.
-RayHit collision_aabb(AABody *a, AABody *b);
+Manifold collision_aabb(AABody *a, AABody *b);
 
 ///* collision_line_box
 // Check the collisions between a line and a box.
-RayHit collision_line_box(Vec3 start, Vec3 dir, AABody a);
+Manifold collision_line_box(Vec3 start, Vec3 dir, AABody a);
 
 #include "../test.h"
 

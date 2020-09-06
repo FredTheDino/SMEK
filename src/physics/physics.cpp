@@ -2,14 +2,6 @@
 #include "../renderer/renderer.h"
 #include "imgui/imgui.h"
 
-i32 format(char *buffer, u32 size, FormatHint args, Collision c) {
-    return snprintf(buffer, size, "%0*.*f, (%0*.*f, %0*.*f, %0*.*f)",
-                    args.num_zero_pad, args.num_decimals, c.depth,
-                    args.num_zero_pad, args.num_decimals, c.normal.x,
-                    args.num_zero_pad, args.num_decimals, c.normal.y,
-                    args.num_zero_pad, args.num_decimals, c.normal.z);
-}
-
 void draw_aabody(AABody a, Vec4 color) {
     Vec3 p = a.position;
     Vec3 r = a.half_size;
@@ -35,7 +27,7 @@ void draw_aabody(AABody a, Vec4 color) {
     }
 }
 
-void draw_ray_hit(RayHit a, Vec4 color) {
+void draw_manifold(Manifold a, Vec4 color) {
     if (a) {
         GFX::push_point(a.point, color, 0.04);
         GFX::push_line(a.point, a.point + a.normal, color, 0.005);
@@ -43,12 +35,12 @@ void draw_ray_hit(RayHit a, Vec4 color) {
     }
 }
 
-RayHit collision_aabb(AABody *a, AABody *b) {
+Manifold collision_aabb(AABody *a, AABody *b) {
     Vec3 delta = a->position - b->position;
     Vec3 range = a->half_size + b->half_size;
     Vec3 depths = range - abs(delta);
 
-    RayHit col = {};
+    Manifold col = {};
     col.point = (a->position + b->position) / 2.0;
 
     if (depths.x < depths.y && depths.x < depths.z) {
@@ -65,7 +57,7 @@ RayHit collision_aabb(AABody *a, AABody *b) {
     return col;
 }
 
-RayHit collision_line_box(Vec3 origin, Vec3 dir, AABody a) {
+Manifold collision_line_box(Vec3 origin, Vec3 dir, AABody a) {
     bool inside = true;
     Vec3 min = a.position - a.half_size;
     Vec3 max = a.position + a.half_size;
@@ -116,11 +108,11 @@ RayHit collision_line_box(Vec3 origin, Vec3 dir, AABody a) {
     return { max_t._[plane], 0.0, point, normal };
 }
 
-RayHit check_collision(AABody *a, AABody *b, real delta) {
+Manifold check_collision(AABody *a, AABody *b, real delta) {
     AABody extended_box = b->extend(a->half_size);
 
     Vec3 total_movement = (a->velocity - b->velocity) * delta;
-    RayHit hit = collision_line_box(a->position, total_movement, extended_box);
+    Manifold hit = collision_line_box(a->position, total_movement, extended_box);
     if (hit.depth) {
         hit = collision_aabb(a, b);
     }
@@ -130,7 +122,7 @@ RayHit check_collision(AABody *a, AABody *b, real delta) {
 }
 
 const real MARGIN = 0.001;
-void solve_collision(RayHit hit, real delta) {
+void solve_collision(Manifold hit, real delta) {
     AABody *a, *b;
     a = hit.a;
     b = hit.b;
@@ -171,13 +163,13 @@ void PhysicsEngine::update(real delta) {
     for (int loop_breaker = 0; loop_breaker < MAX_COLLISIONS; loop_breaker++) {
         // Invalid collision that is past the current timestep.
         real t_left = 1.0 - passed_t;
-        RayHit closest_hit = { .t = 2 };
+        Manifold closest_hit = { .t = 2 };
         for (u32 outer = 0; outer < bodies.size(); outer++) {
             AABody *a = &bodies[outer];
             for (u32 inner = outer + 1; inner < bodies.size(); inner++) {
                 AABody *b = &bodies[inner];
                 if (a->mass == 0 && b->mass == 0) continue;
-                RayHit hit_candidate = check_collision(a, b, delta);
+                Manifold hit_candidate = check_collision(a, b, delta);
                 if (hit_candidate.depth) {
                     solve_collision(hit_candidate, delta);
                 } else if (MARGIN < hit_candidate.t
