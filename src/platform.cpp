@@ -341,12 +341,12 @@ int main(int argc, char **argv) { // Game entrypoint
             game_state.input.mouse_move = global_input.mouse_move;
             game_state.input.mouse_pos = global_input.mouse_pos;
 
-            game_state = game_lib.update(&game_state, GSUM::UPDATE);
+            game_state = game_lib.update(&game_state, { .update = true });
         }
 
         imgui_start_frame();
 
-        game_state = game_lib.update(&game_state, GSUM::RENDER);
+        game_state = game_lib.update(&game_state, { .draw = true, .send = true });
         SDL_SetRelativeMouseMode((SDL_bool)game_state.input.mouse_capture);
 
         imgui_end_frame();

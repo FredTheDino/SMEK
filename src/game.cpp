@@ -17,14 +17,6 @@ GameState *_global_gs;
 GameState *GAMESTATE() { return _global_gs; }
 #endif
 
-bool should_update(GSUM gsmu) {
-    return gsmu == GSUM::UPDATE || gsmu == GSUM::UPDATE_AND_RENDER;
-}
-
-bool should_draw(GSUM gsmu) {
-    return gsmu == GSUM::RENDER || gsmu == GSUM::UPDATE_AND_RENDER;
-}
-
 f32 delta() { return GAMESTATE()->delta; }
 f32 time() { return GAMESTATE()->time; }
 u32 frame() { return GAMESTATE()->frame; }
