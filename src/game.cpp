@@ -65,6 +65,13 @@ void init_game(GameState *gamestate, int width, int height) {
     Light l = Light();
     GAMESTATE()->lights[0] = GAMESTATE()->entity_system.add(l);
     GAMESTATE()->lights[1] = GAMESTATE()->entity_system.add(l);
+
+    GAMESTATE()->physics_engine = {};
+    Box b;
+    b.position = { 0, 0, 0 };
+    b.half_size = { 5, 1, 5 };
+    b.mass = 0.0;
+    GAMESTATE()->physics_engine.add_box(b);
 }
 
 void reload_game(GameState *game) {
@@ -96,26 +103,29 @@ void update() {
             Vec3(0, Input::value(Ac::MoveY) * delta(), 0));
     }
     GAMESTATE()->entity_system.update();
+    GAMESTATE()->physics_engine.update(delta());
 }
 
 void draw() {
     target.use();
 
     static f32 t = 0;
-    {
-        // Velocity is derivative of position.
-        Box a = { Vec3(), Vec3(1, 1, 1) };
-        Vec3 vel_a = Vec3();
-        Box b = { Vec3(sin(t) * 5, 0, 0), Vec3(1, 1, 1) };
-        Vec3 vel_b = Vec3(cos(t) * 5 * delta(), 0, 0);
+#ifndef IMGUI_DISABLE
+    static f32 mass = 0.0;
+    static f32 speed = 5.0;
 
-        Vec4 color = Vec4(0.6, 0.2, 0.5, 1.0);
-        draw_box(a, color);
-        draw_box(b, color);
-
-        RayHit hit = continous_collision_check(a, vel_a, b, vel_b);
-        draw_ray_hit(hit, Vec4(0.2, 0.5, 0.5, 1.0));
+    ImGui::DragFloat("Mass", &mass, 0, 100);
+    ImGui::DragFloat("Speed", &speed, 0, 100);
+    if (ImGui::Button("Send Box!")) {
+        Box b;
+        b.position = GFX::debug_camera()->position;
+        b.velocity = GFX::debug_camera()->get_forward() * speed;
+        b.half_size = { 1, 1, 1 };
+        b.mass = mass;
+        GAMESTATE()->physics_engine.add_box(b);
     }
+#endif
+    GAMESTATE()->physics_engine.draw();
 
 #ifndef IMGUI_DISABLE
     if (ImGui::BeginMainMenuBar()) {
