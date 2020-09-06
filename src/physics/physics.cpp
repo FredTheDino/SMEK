@@ -43,13 +43,13 @@ void draw_ray_hit(RayHit a, Vec4 color) {
     }
 }
 
-Collision collision_aabb(AABody a, AABody b) {
-    Vec3 delta = a.position - b.position;
-    Vec3 range = a.half_size + b.half_size;
+RayHit collision_aabb(AABody *a, AABody *b) {
+    Vec3 delta = a->position - b->position;
+    Vec3 range = a->half_size + b->half_size;
     Vec3 depths = range - abs(delta);
 
-    Collision col = {};
-    col.normal = Vec3(0, 0, 0);
+    RayHit col = {};
+    col.point = (a->position + b->position) / 2.0;
 
     if (depths.x < depths.y && depths.x < depths.z) {
         col.normal.x = Math::sign(delta.x);
@@ -122,9 +122,7 @@ RayHit check_collision(AABody *a, AABody *b, real delta) {
     Vec3 total_movement = (a->velocity - b->velocity) * delta;
     RayHit hit = collision_line_box(a->position, total_movement, extended_box);
     if (hit.depth) {
-        Collision col = collision_aabb(*a, *b);
-        hit.normal = col.normal;
-        hit.depth = col.depth;
+        hit = collision_aabb(a, b);
     }
     hit.a = a;
     hit.b = b;
@@ -211,3 +209,4 @@ void PhysicsEngine::draw() {
     for (AABody &a : bodies) {
         draw_aabody(a, Vec4(1.0, 0.0, 1.0, 1.0));
     }
+}

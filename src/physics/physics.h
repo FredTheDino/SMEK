@@ -43,7 +43,7 @@ struct RayHit {
     operator bool() const {
         // We include 0, since collisions when the origin
         // is inside the box exists.
-        return t >= 0 && t <= 1;
+        return (t > 0 && t <= 1) || (depth >= 0 && t >= 0);
     }
 };
 
@@ -78,7 +78,7 @@ void draw_ray_hit(RayHit a, Vec4 color);
 
 ///* collision_aabb
 // Check the collisions between two bodies.
-Collision collision_aabb(AABody a, AABody b);
+RayHit collision_aabb(AABody *a, AABody *b);
 
 ///* collision_line_box
 // Check the collisions between a line and a box.
@@ -87,49 +87,49 @@ RayHit collision_line_box(Vec3 start, Vec3 dir, AABody a);
 #include "../test.h"
 
 TEST_CASE("collision test simple", {
-    Box a;
+    AABody a;
     a.position = Vec3(1, 0, 0);
     a.half_size = Vec3(1, 1, 1);
 
-    Box b;
+    AABody b;
     b.position = Vec3(0, 0, 0);
     b.half_size = Vec3(1, 1, 1);
 
-    return collision_aabb(a, b);
+    return collision_aabb(&a, &b);
 });
 
 TEST_CASE("collision test simple", {
-    Box a;
+    AABody a;
     a.position = Vec3(1, 0, 0);
     a.half_size = Vec3(0, 0, 0);
 
-    Box b;
+    AABody b;
     b.position = Vec3(0, 0, 0);
     b.half_size = Vec3(0, 0, 0);
 
-    return !collision_aabb(a, b);
+    return !collision_aabb(&a, &b);
 });
 
 TEST_CASE("collision test simple", {
-    Box a;
+    AABody a;
     a.position = Vec3(0, 0, 0);
     a.half_size = Vec3(1, 1, 1);
 
-    Box b;
+    AABody b;
     b.position = Vec3(0, 0, 0);
     b.half_size = Vec3(0, 1, 1);
 
-    return collision_aabb(a, b);
+    return collision_aabb(&a, &b);
 });
 
 TEST_CASE("collision test simple", {
-    Box a;
+    AABody a;
     a.position = Vec3(0, 0, 0);
     a.half_size = Vec3(1, 1, 1);
 
-    Box b;
+    AABody b;
     b.position = Vec3(1, 0, 0);
     b.half_size = Vec3(1, 1, 1);
 
-    return !_close_enough_vec(collision_aabb(b, a).normal, collision_aabb(a, b).normal, 0.1);
+    return !_close_enough_vec(collision_aabb(&b, &a).normal, collision_aabb(&a, &b).normal, 0.1);
 });
