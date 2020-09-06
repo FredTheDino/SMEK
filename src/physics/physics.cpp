@@ -1,5 +1,6 @@
 #include "physics.h"
 #include "../renderer/renderer.h"
+#include "imgui/imgui.h"
 
 i32 format(char *buffer, u32 size, FormatHint args, Collision c) {
     return snprintf(buffer, size, "%0*.*f, (%0*.*f, %0*.*f, %0*.*f)",
@@ -27,8 +28,18 @@ void draw_box(Box a, Vec4 color) {
         for (u32 j = i + 1; j < LEN(points); j++) {
             Vec3 a = points[i];
             Vec3 b = points[j];
-            GFX::push_line(a, b, color);
+            // Lower to 2 to not get the crosses on the sides
+            if ((a.x != b.x) + (a.y != b.y) + (a.z != b.z) < 2)
+                GFX::push_line(a, b, color, 0.01);
         }
+    }
+}
+
+void draw_ray_hit(RayHit a, Vec4 color) {
+    if (a) {
+        GFX::push_point(a.point, color, 0.04);
+        GFX::push_line(a.point, a.point + a.normal, color, 0.005);
+        GFX::push_line(a.point, a.point + a.normal * a.t, color, 0.01);
     }
 }
 
@@ -38,8 +49,6 @@ Collision collision_check(Box a, Box b) {
     Vec3 depths = range - abs(delta);
 
     Collision col = {};
-    col.a = a;
-    col.b = b;
     col.normal = Vec3(0, 0, 0);
 
     if (depths.x < depths.y && depths.x < depths.z) {
@@ -54,4 +63,161 @@ Collision collision_check(Box a, Box b) {
     }
 
     return col;
+}
+
+RayHit collision_line_box(Vec3 origin, Vec3 dir, Box a) {
+    bool inside = true;
+    Vec3 min = a.position - a.half_size;
+    Vec3 max = a.position + a.half_size;
+    Vec3 point;
+    Vec3 max_t = Vec3(-1, -1, -1);
+
+    // Find candidate planes.
+    for (int i = 0; i < 3; i++) {
+        if (origin._[i] < min._[i])
+            point._[i] = min._[i];
+        else if (origin._[i] > max._[i])
+            point._[i] = max._[i];
+        else
+            continue;
+        if (dir._[i])
+            max_t._[i] = (point._[i] - origin._[i]) / dir._[i];
+        inside = false;
+    }
+
+    // Ray origin inside bounding box
+    //
+    // NOTE(ed): Not returning a normal here
+    // makes things more numerically unstable.
+    // I didn't mange to think of a way to do this,
+    // but there might be a smart way to do it here.
+    // Otherwise we fall back on the "collision_check"
+    // function for the "t" since we know they are overlapping.
+    if (inside)
+        return { 0, 1.0, origin };
+
+    // Find Max T
+    int plane = 0;
+    if (max_t._[1] > max_t._[plane]) plane = 1;
+    if (max_t._[2] > max_t._[plane]) plane = 2;
+
+    // Check final candidate actually inside box
+    if (max_t._[plane] < 0)
+        return { -1 };
+    point = origin + max_t._[plane] * dir;
+    for (int i = 0; i < 3; i++) {
+        if (i == plane) continue;
+        if (point._[i] < min._[i] || point._[i] > max._[i])
+            return { -1 };
+    }
+
+    Vec3 normal = {};
+    normal._[plane] = Math::sign(origin._[plane] - point._[plane]);
+    return { max_t._[plane], 0.0, point, normal };
+}
+
+RayHit check_collision(Box *a, Box *b, real delta) {
+    Box extended_box = b->extend(a->half_size);
+
+    Vec3 total_movement = (a->velocity - b->velocity) * delta;
+    RayHit hit = collision_line_box(a->position, total_movement, extended_box);
+    if (hit.depth) {
+        Collision col = collision_check(*a, *b);
+        hit.normal = col.normal;
+        hit.depth = col.depth;
+    }
+    hit.a = a;
+    hit.b = b;
+    return hit;
+}
+
+const real MARGIN = 0.001;
+void solve_collision(RayHit hit, real delta) {
+    Box *a, *b;
+    a = hit.a;
+    b = hit.b;
+
+    // Update velocities
+    const real BOUNCE = 0.0;
+    real vel_rel_norm = (1.0 + BOUNCE) * (dot(a->velocity, hit.normal) - dot(b->velocity, hit.normal));
+    real total_mass = a->mass + b->mass;
+    if (total_mass != 0 && vel_rel_norm < 0) {
+        a->velocity += hit.normal * (-vel_rel_norm * a->mass / total_mass);
+        b->velocity += hit.normal * (+vel_rel_norm * b->mass / total_mass);
+    }
+
+    // Position resolution
+    if (hit.depth) {
+        Vec3 movement = hit.normal * hit.depth;
+        a->position += movement * a->mass / total_mass;
+        b->position -= movement * b->mass / total_mass;
+    }
+}
+
+bool check_and_solve_collision(Box *a, Box *b, real delta) {
+    RayHit hit = check_collision(a, b, delta);
+
+    if (!hit || hit.t < MARGIN)
+        return false;
+
+    draw_ray_hit(hit, Vec4(0.5, 0.2, 0.3, 1.0));
+
+    solve_collision(hit, delta);
+    return true;
+}
+
+void PhysicsEngine::add_box(Box b) {
+    boxes.push_back(b);
+}
+
+void PhysicsEngine::update(real delta) {
+    real passed_t = 0;
+    const int MAX_COLLISIONS = 100;
+
+    // Find at max MAX_COLLISIONS and solve them in order.
+    //
+    // TODO(ed): If we reach the end of our checking with there
+    // potentially being more collisions. We should solve _ALL_
+    // collisions so we don't fall through the floor forexample.
+    for (int loop_breaker = 0; loop_breaker < MAX_COLLISIONS; loop_breaker++) {
+        // Invalid collision that is past the current timestep.
+        real t_left = 1.0 - passed_t;
+        RayHit closest_hit = { .t = 2 };
+        for (u32 outer = 0; outer < boxes.size(); outer++) {
+            Box *a = &boxes[outer];
+            for (u32 inner = outer + 1; inner < boxes.size(); inner++) {
+                Box *b = &boxes[inner];
+                if (a->mass == 0 && b->mass == 0) continue;
+                RayHit hit_candidate = check_collision(a, b, delta);
+                if (hit_candidate.depth) {
+                    solve_collision(hit_candidate, delta);
+                } else if (MARGIN < hit_candidate.t
+                           && hit_candidate.t < t_left
+                           && hit_candidate.t < closest_hit.t) {
+                    closest_hit = hit_candidate;
+                }
+            }
+        }
+
+        if (closest_hit.t < 1.0) {
+            for (Box &a : boxes) {
+                a.integrate_part(closest_hit.t, delta);
+            }
+            solve_collision(closest_hit, delta);
+            passed_t += closest_hit.t;
+        } else {
+            break;
+        }
+    }
+
+    // Move the bodies to the end of the step.
+    for (Box &a : boxes) {
+        a.integrate(delta);
+    }
+}
+
+void PhysicsEngine::draw() {
+    for (Box &a : boxes) {
+        draw_box(a, Vec4(1.0, 0.0, 1.0, 1.0));
+    }
 }

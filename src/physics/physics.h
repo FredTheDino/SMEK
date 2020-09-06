@@ -1,13 +1,50 @@
 #pragma once
 #include "../math/smek_vec.h"
+#include <vector>
 
 struct Box {
     Vec3 position;
+    Vec3 velocity;
+
     Vec3 half_size;
+
+    real mass;
+    real curr_t;
+
+    void integrate_part(real t, real delta) {
+        position += velocity * t * delta;
+        curr_t += t;
+        ASSERT_LT(curr_t, 1.0);
+    }
+
+    void integrate(real delta) {
+        position += velocity * (1 - curr_t) * delta;
+        curr_t = 0;
+    }
+
+    Box extend(const Vec3 &ext) const {
+        Box copy = *this;
+        copy.half_size += ext;
+        return copy;
+    }
+};
+
+struct RayHit {
+    real t;
+    real depth;
+    Vec3 point;
+    Vec3 normal;
+
+    Box *a, *b;
+
+    operator bool() const {
+        // We include 0, since collisions when the origin
+        // is inside the box exists.
+        return t >= 0 && t <= 1;
+    }
 };
 
 struct Collision {
-    Box a, b;
     Vec3 normal;
     f32 depth;
 
@@ -16,8 +53,23 @@ struct Collision {
     }
 };
 
+struct PhysicsEngine {
+    std::vector<Box> boxes;
+
+    void add_box(Box b);
+    void update(real delta);
+    void draw();
+};
+
 void draw_box(Box a, Vec4 color);
+
+void draw_ray_hit(RayHit a, Vec4 color);
+
 Collision collision_check(Box a, Box b);
+
+RayHit collision_line_box(Vec3 start, Vec3 dir, Box a);
+
+bool check_and_solve_collision(Box *a, Box *b, real delta);
 
 #include "../test.h"
 

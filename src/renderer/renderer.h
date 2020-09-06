@@ -56,6 +56,8 @@ struct Camera {
     void move(Vec3 movement);
     void move_relative(Vec3 movement);
 
+    Vec3 get_forward();
+
     template <typename S>
     void upload(const S &s);
 };
