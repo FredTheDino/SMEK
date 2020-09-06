@@ -43,7 +43,7 @@ void draw_ray_hit(RayHit a, Vec4 color) {
     }
 }
 
-Collision collision_check(AABody a, AABody b) {
+Collision collision_aabb(AABody a, AABody b) {
     Vec3 delta = a.position - b.position;
     Vec3 range = a.half_size + b.half_size;
     Vec3 depths = range - abs(delta);
@@ -91,7 +91,7 @@ RayHit collision_line_box(Vec3 origin, Vec3 dir, AABody a) {
     // makes things more numerically unstable.
     // I didn't mange to think of a way to do this,
     // but there might be a smart way to do it here.
-    // Otherwise we fall back on the "collision_check"
+    // Otherwise we fall back on the "collision_aabb"
     // function for the "t" since we know they are overlapping.
     if (inside)
         return { 0, 1.0, origin };
@@ -122,7 +122,7 @@ RayHit check_collision(AABody *a, AABody *b, real delta) {
     Vec3 total_movement = (a->velocity - b->velocity) * delta;
     RayHit hit = collision_line_box(a->position, total_movement, extended_box);
     if (hit.depth) {
-        Collision col = collision_check(*a, *b);
+        Collision col = collision_aabb(*a, *b);
         hit.normal = col.normal;
         hit.depth = col.depth;
     }
@@ -154,18 +154,6 @@ void solve_collision(RayHit hit, real delta) {
     }
 }
 
-bool check_and_solve_collision(AABody *a, AABody *b, real delta) {
-    RayHit hit = check_collision(a, b, delta);
-
-    if (!hit || hit.t < MARGIN)
-        return false;
-
-    draw_ray_hit(hit, Vec4(0.5, 0.2, 0.3, 1.0));
-
-    solve_collision(hit, delta);
-    return true;
-}
-
 void PhysicsEngine::add_box(AABody b) {
     bodies.push_back(b);
 }
@@ -179,6 +167,9 @@ void PhysicsEngine::update(real delta) {
     // TODO(ed): If we reach the end of our checking with there
     // potentially being more collisions. We should solve _ALL_
     // collisions so we don't fall through the floor forexample.
+    //
+    // NOTE(ed): This is also a huge performance hog and it
+    // will probably need to be fixed on a later date.
     for (int loop_breaker = 0; loop_breaker < MAX_COLLISIONS; loop_breaker++) {
         // Invalid collision that is past the current timestep.
         real t_left = 1.0 - passed_t;
@@ -220,4 +211,3 @@ void PhysicsEngine::draw() {
     for (AABody &a : bodies) {
         draw_aabody(a, Vec4(1.0, 0.0, 1.0, 1.0));
     }
-}

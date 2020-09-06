@@ -2,6 +2,9 @@
 #include "../math/smek_vec.h"
 #include <vector>
 
+///* AABody
+// An axis aligned body that
+// is always shaped like a box.
 struct AABody {
     Vec3 position;
     Vec3 velocity;
@@ -53,6 +56,9 @@ struct Collision {
     }
 };
 
+///* PhysicsEngine
+// A struct that handles all the collisions and
+// the bodies of a world.
 struct PhysicsEngine {
     std::vector<AABody> bodies;
 
@@ -61,15 +67,22 @@ struct PhysicsEngine {
     void draw();
 };
 
-void draw_box(AABody a, Vec4 color);
+///* draw_aabody
+// Draws a body as a box.
+void draw_aabody(AABody a, Vec4 color);
 
+///* draw_ray_hit
+// Draws a ray hit as a position and a normal.
+// Position might not match "real" position.
 void draw_ray_hit(RayHit a, Vec4 color);
 
-Collision collision_check(AABody a, AABody b);
+///* collision_aabb
+// Check the collisions between two bodies.
+Collision collision_aabb(AABody a, AABody b);
 
+///* collision_line_box
+// Check the collisions between a line and a box.
 RayHit collision_line_box(Vec3 start, Vec3 dir, AABody a);
-
-bool check_and_solve_collision(AABody *a, AABody *b, real delta);
 
 #include "../test.h"
 
@@ -82,7 +95,7 @@ TEST_CASE("collision test simple", {
     b.position = Vec3(0, 0, 0);
     b.half_size = Vec3(1, 1, 1);
 
-    return collision_check(a, b);
+    return collision_aabb(a, b);
 });
 
 TEST_CASE("collision test simple", {
@@ -94,7 +107,7 @@ TEST_CASE("collision test simple", {
     b.position = Vec3(0, 0, 0);
     b.half_size = Vec3(0, 0, 0);
 
-    return !collision_check(a, b);
+    return !collision_aabb(a, b);
 });
 
 TEST_CASE("collision test simple", {
@@ -106,7 +119,7 @@ TEST_CASE("collision test simple", {
     b.position = Vec3(0, 0, 0);
     b.half_size = Vec3(0, 1, 1);
 
-    return collision_check(a, b);
+    return collision_aabb(a, b);
 });
 
 TEST_CASE("collision test simple", {
@@ -118,5 +131,5 @@ TEST_CASE("collision test simple", {
     b.position = Vec3(1, 0, 0);
     b.half_size = Vec3(1, 1, 1);
 
-    return !_close_enough_vec(collision_check(b, a).normal, collision_check(a, b).normal, 0.1);
+    return !_close_enough_vec(collision_aabb(b, a).normal, collision_aabb(a, b).normal, 0.1);
 });
