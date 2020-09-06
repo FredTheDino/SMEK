@@ -31,6 +31,7 @@ struct Box {
 
 struct RayHit {
     real t;
+    real depth;
     Vec3 point;
     Vec3 normal;
 

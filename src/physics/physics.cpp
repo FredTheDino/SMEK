@@ -95,7 +95,7 @@ RayHit collision_line_box(Vec3 origin, Vec3 dir, Box a) {
     // Otherwise we fall back on the "collision_check"
     // function for the "t" we know they are overlapping.
     if (inside)
-        return { 0, origin };
+        return { 0, 1.0, origin };
 
     // Find Max T
     int plane = 0;
@@ -104,17 +104,17 @@ RayHit collision_line_box(Vec3 origin, Vec3 dir, Box a) {
 
     // Check final candidate actually inside box
     if (max_t._[plane] < 0)
-        return { -1, origin };
+        return { -1 };
     point = origin + max_t._[plane] * dir;
     for (int i = 0; i < 3; i++) {
         if (i == plane) continue;
         if (point._[i] < min._[i] || point._[i] > max._[i])
-            return { -1, origin };
+            return { -1 };
     }
 
     Vec3 normal = {};
     normal._[plane] = Math::sign(origin._[plane] - point._[plane]);
-    return { max_t._[plane], point, normal };
+    return { max_t._[plane], 0.0, point, normal };
 }
 
 RayHit check_collision(Box *a, Box *b, real delta) {
@@ -123,6 +123,11 @@ RayHit check_collision(Box *a, Box *b, real delta) {
 
     Vec3 total_movement = (a->velocity - b->velocity) * delta;
     RayHit hit = collision_line_box(a->position, total_movement, extended_box);
+    if (hit.depth) {
+        Collision col = collision_check(*a, *b);
+        hit.normal = col.normal;
+        hit.depth = col.depth;
+    }
     hit.a = a;
     hit.b = b;
     return hit;
@@ -141,6 +146,13 @@ void solve_collision(RayHit hit, real delta) {
     if (total_mass != 0 && vel_rel_norm < 0) {
         a->velocity += hit.normal * (-vel_rel_norm * a->mass / total_mass);
         b->velocity += hit.normal * (+vel_rel_norm * b->mass / total_mass);
+    }
+
+    // Position resolution
+    if (hit.depth) {
+        Vec3 movement = hit.normal * hit.depth;
+        a->position += movement * a->mass / total_mass;
+        b->position -= movement * b->mass / total_mass;
     }
 }
 
@@ -179,8 +191,11 @@ void PhysicsEngine::update(real delta) {
                 Box *b = &boxes[inner];
                 if (a->mass == 0 && b->mass == 0) continue;
                 RayHit hit_candidate = check_collision(a, b, delta);
-                if (MARGIN < hit_candidate.t && hit_candidate.t < t_left
-                    && hit_candidate.t < closest_hit.t) {
+                if (hit_candidate.depth) {
+                    solve_collision(hit_candidate, delta);
+                } else if (MARGIN < hit_candidate.t
+                           && hit_candidate.t < t_left
+                           && hit_candidate.t < closest_hit.t) {
                     closest_hit = hit_candidate;
                 }
             }
