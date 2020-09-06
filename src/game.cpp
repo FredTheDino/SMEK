@@ -65,6 +65,13 @@ void init_game(GameState *gamestate, int width, int height) {
     Light l = Light();
     GAMESTATE()->lights[0] = GAMESTATE()->entity_system.add(l);
     GAMESTATE()->lights[1] = GAMESTATE()->entity_system.add(l);
+
+    GAMESTATE()->physics_engine = {};
+    Box b;
+    b.position = { 0, 0, 0 };
+    b.half_size = { 5, 1, 5 };
+    b.mass = 0.0;
+    GAMESTATE()->physics_engine.add_box(b);
 }
 
 void reload_game(GameState *game) {
@@ -96,50 +103,29 @@ void update() {
             Vec3(0, Input::value(Ac::MoveY) * delta(), 0));
     }
     GAMESTATE()->entity_system.update();
+    GAMESTATE()->physics_engine.update(delta());
 }
-
-Box a = {
-    .position = Vec3(0, +3, 0),
-    .velocity = Vec3(0, -1, 0),
-    .half_size = Vec3(1, 1, 1),
-    .mass = 1.0,
-};
-Box b = {
-    .position = Vec3(0, 0, 0),
-    .velocity = Vec3(0, 0, 0),
-    .half_size = Vec3(1, 1, 1),
-    .mass = 0,
-};
 
 void draw() {
     target.use();
 
     static f32 t = 0;
-    {
-        // Velocity is derivative of position.
-
-        Vec4 color = Vec4(0.6, 0.2, 0.5, 1.0);
-        draw_box(a, color);
-        draw_box(b, color);
-
-        if (ImGui::Button("Restart")) {
-            a.position.y = 3;
-            a.velocity.y = -1000;
-        }
-
-        int hit = check_and_solve_collision(&a, &b, delta());
-        a.integrate(delta());
-        b.integrate(delta());
-
 #ifndef IMGUI_DISABLE
-        ImGui::InputFloat3("A", a.position._, 3);
-        ImGui::InputFloat3("Vel", a.velocity._, 3);
+    static f32 mass = 0.0;
+    static f32 speed = 5.0;
 
-        ImGui::InputFloat3("B", b.position._, 3);
-        ImGui::InputFloat3("Vel", b.velocity._, 3);
-        ImGui::InputInt("HIT", &hit);
-#endif
+    ImGui::DragFloat("Mass", &mass, 0, 100);
+    ImGui::DragFloat("Speed", &speed, 0, 100);
+    if (ImGui::Button("Send Box!")) {
+        Box b;
+        b.position = GFX::debug_camera()->position;
+        b.velocity = GFX::debug_camera()->get_forward() * speed;
+        b.half_size = { 1, 1, 1 };
+        b.mass = mass;
+        GAMESTATE()->physics_engine.add_box(b);
     }
+#endif
+    GAMESTATE()->physics_engine.draw();
 
 #ifndef IMGUI_DISABLE
     if (ImGui::BeginMainMenuBar()) {

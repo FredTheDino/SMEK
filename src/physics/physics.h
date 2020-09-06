@@ -1,17 +1,6 @@
 #pragma once
 #include "../math/smek_vec.h"
-
-struct RayHit {
-    real t;
-    Vec3 point;
-    Vec3 normal;
-
-    operator bool() const {
-        // We include 0, since collisions when the origin
-        // is inside the box exists.
-        return t >= 0 && t <= 1;
-    }
-};
+#include <vector>
 
 struct Box {
     Vec3 position;
@@ -40,6 +29,20 @@ struct Box {
     }
 };
 
+struct RayHit {
+    real t;
+    real depth;
+    Vec3 point;
+    Vec3 normal;
+
+    Box *a, *b;
+
+    operator bool() const {
+        // We include 0, since collisions when the origin
+        // is inside the box exists.
+        return t >= 0 && t <= 1;
+    }
+};
 struct Collision {
     Box a, b;
     Vec3 normal;
@@ -48,6 +51,14 @@ struct Collision {
     operator bool() const {
         return depth > 0;
     }
+};
+
+struct PhysicsEngine {
+    std::vector<Box> boxes;
+
+    void add_box(Box b);
+    void update(real delta);
+    void draw();
 };
 
 void draw_box(Box a, Vec4 color);

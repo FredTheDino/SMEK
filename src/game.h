@@ -5,6 +5,7 @@
 #include "renderer/renderer.h"
 #include "input.h"
 #include "audio.h"
+#include "physics/physics.h"
 #include "entity/entity.h"
 #include "network/network.h"
 
@@ -25,6 +26,7 @@ struct GameState {
     Input::Input input = {};
     Audio::AudioStruct *audio_struct;
     EntitySystem entity_system;
+    PhysicsEngine physics_engine;
     std::queue<Event> event_queue;
     Network network = {};
 
