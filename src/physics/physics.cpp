@@ -27,7 +27,7 @@ void draw_box(Box a, Vec4 color) {
         for (u32 j = i + 1; j < LEN(points); j++) {
             Vec3 a = points[i];
             Vec3 b = points[j];
-            // Lower to 2 to dnot get the crosses on the sides
+            // Lower to 2 to not get the crosses on the sides
             if ((a.x != b.x) + (a.y != b.y) + (a.z != b.z) < 2)
                 GFX::push_line(a, b, color, 0.01);
         }
@@ -93,7 +93,7 @@ RayHit collision_line_box(Vec3 origin, Vec3 dir, Box a) {
     // I didn't mange to think of a way to do this,
     // but there might be a smart way to do it here.
     // Otherwise we fall back on the "collision_check"
-    // function for the "t" we know they are overlapping.
+    // function for the "t" since we know they are overlapping.
     if (inside)
         return { 0, 1.0, origin };
 
