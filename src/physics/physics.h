@@ -43,8 +43,8 @@ struct RayHit {
         return t >= 0 && t <= 1;
     }
 };
+
 struct Collision {
-    Box a, b;
     Vec3 normal;
     f32 depth;
 

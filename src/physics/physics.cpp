@@ -1,5 +1,6 @@
 #include "physics.h"
 #include "../renderer/renderer.h"
+#include "imgui/imgui.h"
 
 i32 format(char *buffer, u32 size, FormatHint args, Collision c) {
     return snprintf(buffer, size, "%0*.*f, (%0*.*f, %0*.*f, %0*.*f)",
@@ -48,8 +49,6 @@ Collision collision_check(Box a, Box b) {
     Vec3 depths = range - abs(delta);
 
     Collision col = {};
-    col.a = a;
-    col.b = b;
     col.normal = Vec3(0, 0, 0);
 
     if (depths.x < depths.y && depths.x < depths.z) {
@@ -118,7 +117,6 @@ RayHit collision_line_box(Vec3 origin, Vec3 dir, Box a) {
 }
 
 RayHit check_collision(Box *a, Box *b, real delta) {
-    // Check
     Box extended_box = b->extend(a->half_size);
 
     Vec3 total_movement = (a->velocity - b->velocity) * delta;
@@ -181,13 +179,13 @@ void PhysicsEngine::update(real delta) {
     // TODO(ed): If we reach the end of our checking with there
     // potentially being more collisions. We should solve _ALL_
     // collisions so we don't fall through the floor forexample.
-    for (int collision_counter = 0; collision_counter < MAX_COLLISIONS; collision_counter++) {
+    for (int loop_breaker = 0; loop_breaker < MAX_COLLISIONS; loop_breaker++) {
         // Invalid collision that is past the current timestep.
         real t_left = 1.0 - passed_t;
         RayHit closest_hit = { .t = 2 };
-        for (int outer = 0; outer < boxes.size(); outer++) {
+        for (u32 outer = 0; outer < boxes.size(); outer++) {
             Box *a = &boxes[outer];
-            for (int inner = outer + 1; inner < boxes.size(); inner++) {
+            for (u32 inner = outer + 1; inner < boxes.size(); inner++) {
                 Box *b = &boxes[inner];
                 if (a->mass == 0 && b->mass == 0) continue;
                 RayHit hit_candidate = check_collision(a, b, delta);

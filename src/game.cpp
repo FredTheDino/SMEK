@@ -66,7 +66,6 @@ void init_game(GameState *gamestate, int width, int height) {
     GAMESTATE()->lights[0] = GAMESTATE()->entity_system.add(l);
     GAMESTATE()->lights[1] = GAMESTATE()->entity_system.add(l);
 
-    GAMESTATE()->physics_engine = {};
     Box b;
     b.position = { 0, 0, 0 };
     b.half_size = { 5, 1, 5 };
@@ -111,11 +110,11 @@ void draw() {
 
     static f32 t = 0;
 #ifndef IMGUI_DISABLE
-    static f32 mass = 0.0;
+    static f32 mass = 2.0;
     static f32 speed = 5.0;
 
-    ImGui::DragFloat("Mass", &mass, 0, 100);
-    ImGui::DragFloat("Speed", &speed, 0, 100);
+    ImGui::SliderFloat("Mass", &mass, 0, 100);
+    ImGui::SliderFloat("Speed", &speed, 2, 100);
     if (ImGui::Button("Send Box!")) {
         Box b;
         b.position = GFX::debug_camera()->position;
