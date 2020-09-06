@@ -2,6 +2,8 @@
 #include "../math/smek_vec.h"
 #include <vector>
 
+namespace Phy {
+
 ///* AABody
 // An axis aligned body that
 // is always shaped like a box.
@@ -124,3 +126,5 @@ TEST_CASE("collision test simple", {
 
     return !_close_enough_vec(collision_aabb(&b, &a).normal, collision_aabb(&a, &b).normal, 0.1);
 });
+
+}

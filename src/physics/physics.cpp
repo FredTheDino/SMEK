@@ -2,6 +2,8 @@
 #include "../renderer/renderer.h"
 #include "imgui/imgui.h"
 
+namespace Phy {
+
 void draw_aabody(AABody a, Vec4 color) {
     Vec3 p = a.position;
     Vec3 r = a.half_size;
@@ -201,4 +203,6 @@ void PhysicsEngine::draw() {
     for (AABody &a : bodies) {
         draw_aabody(a, Vec4(1.0, 0.0, 1.0, 1.0));
     }
+}
+
 }

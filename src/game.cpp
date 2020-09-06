@@ -66,7 +66,7 @@ void init_game(GameState *gamestate, int width, int height) {
     GAMESTATE()->lights[0] = GAMESTATE()->entity_system.add(l);
     GAMESTATE()->lights[1] = GAMESTATE()->entity_system.add(l);
 
-    AABody b;
+    Phy::AABody b;
     b.position = { 0, 0, 0 };
     b.half_size = { 5, 1, 5 };
     b.mass = 0.0;
@@ -116,7 +116,7 @@ void draw() {
     ImGui::SliderFloat("Mass", &mass, 0, 100);
     ImGui::SliderFloat("Speed", &speed, 2, 100);
     if (ImGui::Button("Send Box!")) {
-        AABody b;
+        Phy::AABody b;
         b.position = GFX::debug_camera()->position;
         b.velocity = GFX::debug_camera()->get_forward() * speed;
         b.half_size = { 1, 1, 1 };
