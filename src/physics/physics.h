@@ -2,7 +2,7 @@
 #include "../math/smek_vec.h"
 #include <vector>
 
-struct Box {
+struct AABody {
     Vec3 position;
     Vec3 velocity;
 
@@ -22,8 +22,8 @@ struct Box {
         curr_t = 0;
     }
 
-    Box extend(const Vec3 &ext) const {
-        Box copy = *this;
+    AABody extend(const Vec3 &ext) const {
+        AABody copy = *this;
         copy.half_size += ext;
         return copy;
     }
@@ -35,7 +35,7 @@ struct RayHit {
     Vec3 point;
     Vec3 normal;
 
-    Box *a, *b;
+    AABody *a, *b;
 
     operator bool() const {
         // We include 0, since collisions when the origin
@@ -54,22 +54,22 @@ struct Collision {
 };
 
 struct PhysicsEngine {
-    std::vector<Box> boxes;
+    std::vector<AABody> bodies;
 
-    void add_box(Box b);
+    void add_box(AABody b);
     void update(real delta);
     void draw();
 };
 
-void draw_box(Box a, Vec4 color);
+void draw_box(AABody a, Vec4 color);
 
 void draw_ray_hit(RayHit a, Vec4 color);
 
-Collision collision_check(Box a, Box b);
+Collision collision_check(AABody a, AABody b);
 
-RayHit collision_line_box(Vec3 start, Vec3 dir, Box a);
+RayHit collision_line_box(Vec3 start, Vec3 dir, AABody a);
 
-bool check_and_solve_collision(Box *a, Box *b, real delta);
+bool check_and_solve_collision(AABody *a, AABody *b, real delta);
 
 #include "../test.h"
 
