@@ -16,30 +16,36 @@ struct AABody {
     real mass;
     real curr_t;
 
-    ///* integrate_part
-    // Integrates part of a whole step.
-    void integrate_part(real t, real delta) {
-        position += velocity * t * delta;
-        curr_t += t;
-        ASSERT_LT(curr_t, 1.0);
-    }
+    void integrate_part(real t, real delta);
 
-    ///* integrate
-    // Integrates the rest of the time step.
-    void integrate(real delta) {
-        position += velocity * (1 - curr_t) * delta;
-        curr_t = 0;
-    }
+    void integrate(real delta);
 
-    ///* extend
-    // Extends the domain of this AABody
-    // with the vector passed in.
-    AABody extend(const Vec3 &ext) const {
-        AABody copy = *this;
-        copy.half_size += ext;
-        return copy;
-    }
+    AABody extend(const Vec3 &ext) const;
 };
+
+///* integrate_part
+// Integrates part of a whole step.
+void AABody::integrate_part(real t, real delta) {
+    position += velocity * t * delta;
+    curr_t += t;
+    ASSERT_LT(curr_t, 1.0);
+}
+
+///* integrate
+// Integrates the rest of the time step.
+void AABody::integrate(real delta) {
+    position += velocity * (1 - curr_t) * delta;
+    curr_t = 0;
+}
+
+///* extend
+// Extends the domain of this AABody
+// with the vector passed in.
+AABody AABody::extend(const Vec3 &ext) const {
+    AABody copy = *this;
+    copy.half_size += ext;
+    return copy;
+}
 
 ///* Manifold
 // An object with information about the collision.
