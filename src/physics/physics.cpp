@@ -2,15 +2,9 @@
 #include "../renderer/renderer.h"
 #include "imgui/imgui.h"
 
-i32 format(char *buffer, u32 size, FormatHint args, Collision c) {
-    return snprintf(buffer, size, "%0*.*f, (%0*.*f, %0*.*f, %0*.*f)",
-                    args.num_zero_pad, args.num_decimals, c.depth,
-                    args.num_zero_pad, args.num_decimals, c.normal.x,
-                    args.num_zero_pad, args.num_decimals, c.normal.y,
-                    args.num_zero_pad, args.num_decimals, c.normal.z);
-}
+namespace Physics {
 
-void draw_box(Box a, Vec4 color) {
+void draw_aabody(AABody a, Vec4 color) {
     Vec3 p = a.position;
     Vec3 r = a.half_size;
     Vec3 points[] = {
@@ -35,7 +29,7 @@ void draw_box(Box a, Vec4 color) {
     }
 }
 
-void draw_ray_hit(RayHit a, Vec4 color) {
+void draw_manifold(Manifold a, Vec4 color) {
     if (a) {
         GFX::push_point(a.point, color, 0.04);
         GFX::push_line(a.point, a.point + a.normal, color, 0.005);
@@ -43,13 +37,13 @@ void draw_ray_hit(RayHit a, Vec4 color) {
     }
 }
 
-Collision collision_check(Box a, Box b) {
-    Vec3 delta = a.position - b.position;
-    Vec3 range = a.half_size + b.half_size;
+Manifold collision_aabb(AABody *a, AABody *b) {
+    Vec3 delta = a->position - b->position;
+    Vec3 range = a->half_size + b->half_size;
     Vec3 depths = range - abs(delta);
 
-    Collision col = {};
-    col.normal = Vec3(0, 0, 0);
+    Manifold col = {};
+    col.point = (a->position + b->position) / 2.0;
 
     if (depths.x < depths.y && depths.x < depths.z) {
         col.normal.x = Math::sign(delta.x);
@@ -65,10 +59,10 @@ Collision collision_check(Box a, Box b) {
     return col;
 }
 
-RayHit collision_line_box(Vec3 origin, Vec3 dir, Box a) {
+Manifold collision_line_aabody(Vec3 origin, Vec3 dir, AABody *a) {
     bool inside = true;
-    Vec3 min = a.position - a.half_size;
-    Vec3 max = a.position + a.half_size;
+    Vec3 min = a->position - a->half_size;
+    Vec3 max = a->position + a->half_size;
     Vec3 point;
     Vec3 max_t = Vec3(-1, -1, -1);
 
@@ -91,7 +85,7 @@ RayHit collision_line_box(Vec3 origin, Vec3 dir, Box a) {
     // makes things more numerically unstable.
     // I didn't mange to think of a way to do this,
     // but there might be a smart way to do it here.
-    // Otherwise we fall back on the "collision_check"
+    // Otherwise we fall back on the "collision_aabb"
     // function for the "t" since we know they are overlapping.
     if (inside)
         return { 0, 1.0, origin };
@@ -116,15 +110,13 @@ RayHit collision_line_box(Vec3 origin, Vec3 dir, Box a) {
     return { max_t._[plane], 0.0, point, normal };
 }
 
-RayHit check_collision(Box *a, Box *b, real delta) {
-    Box extended_box = b->extend(a->half_size);
+Manifold check_collision(AABody *a, AABody *b, real delta) {
+    AABody extended_box = b->extend(a->half_size);
 
     Vec3 total_movement = (a->velocity - b->velocity) * delta;
-    RayHit hit = collision_line_box(a->position, total_movement, extended_box);
+    Manifold hit = collision_line_aabody(a->position, total_movement, &extended_box);
     if (hit.depth) {
-        Collision col = collision_check(*a, *b);
-        hit.normal = col.normal;
-        hit.depth = col.depth;
+        hit = collision_aabb(a, b);
     }
     hit.a = a;
     hit.b = b;
@@ -132,8 +124,8 @@ RayHit check_collision(Box *a, Box *b, real delta) {
 }
 
 const real MARGIN = 0.001;
-void solve_collision(RayHit hit, real delta) {
-    Box *a, *b;
+void solve_collision(Manifold hit, real delta) {
+    AABody *a, *b;
     a = hit.a;
     b = hit.b;
 
@@ -154,20 +146,8 @@ void solve_collision(RayHit hit, real delta) {
     }
 }
 
-bool check_and_solve_collision(Box *a, Box *b, real delta) {
-    RayHit hit = check_collision(a, b, delta);
-
-    if (!hit || hit.t < MARGIN)
-        return false;
-
-    draw_ray_hit(hit, Vec4(0.5, 0.2, 0.3, 1.0));
-
-    solve_collision(hit, delta);
-    return true;
-}
-
-void PhysicsEngine::add_box(Box b) {
-    boxes.push_back(b);
+void PhysicsEngine::add_box(AABody b) {
+    bodies.push_back(b);
 }
 
 void PhysicsEngine::update(real delta) {
@@ -179,16 +159,19 @@ void PhysicsEngine::update(real delta) {
     // TODO(ed): If we reach the end of our checking with there
     // potentially being more collisions. We should solve _ALL_
     // collisions so we don't fall through the floor forexample.
+    //
+    // NOTE(ed): This is also a huge performance hog and it
+    // will probably need to be fixed on a later date.
     for (int loop_breaker = 0; loop_breaker < MAX_COLLISIONS; loop_breaker++) {
         // Invalid collision that is past the current timestep.
         real t_left = 1.0 - passed_t;
-        RayHit closest_hit = { .t = 2 };
-        for (u32 outer = 0; outer < boxes.size(); outer++) {
-            Box *a = &boxes[outer];
-            for (u32 inner = outer + 1; inner < boxes.size(); inner++) {
-                Box *b = &boxes[inner];
+        Manifold closest_hit = { .t = 2 };
+        for (u32 outer = 0; outer < bodies.size(); outer++) {
+            AABody *a = &bodies[outer];
+            for (u32 inner = outer + 1; inner < bodies.size(); inner++) {
+                AABody *b = &bodies[inner];
                 if (a->mass == 0 && b->mass == 0) continue;
-                RayHit hit_candidate = check_collision(a, b, delta);
+                Manifold hit_candidate = check_collision(a, b, delta);
                 if (hit_candidate.depth) {
                     solve_collision(hit_candidate, delta);
                 } else if (MARGIN < hit_candidate.t
@@ -200,7 +183,7 @@ void PhysicsEngine::update(real delta) {
         }
 
         if (closest_hit.t < 1.0) {
-            for (Box &a : boxes) {
+            for (AABody &a : bodies) {
                 a.integrate_part(closest_hit.t, delta);
             }
             solve_collision(closest_hit, delta);
@@ -211,13 +194,15 @@ void PhysicsEngine::update(real delta) {
     }
 
     // Move the bodies to the end of the step.
-    for (Box &a : boxes) {
+    for (AABody &a : bodies) {
         a.integrate(delta);
     }
 }
 
 void PhysicsEngine::draw() {
-    for (Box &a : boxes) {
-        draw_box(a, Vec4(1.0, 0.0, 1.0, 1.0));
+    for (AABody &a : bodies) {
+        draw_aabody(a, Vec4(1.0, 0.0, 1.0, 1.0));
     }
+}
+
 }
