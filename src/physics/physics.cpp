@@ -2,7 +2,7 @@
 #include "../renderer/renderer.h"
 #include "imgui/imgui.h"
 
-namespace Phy {
+namespace Physics {
 
 void draw_aabody(AABody a, Vec4 color) {
     Vec3 p = a.position;

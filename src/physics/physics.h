@@ -2,7 +2,7 @@
 #include "../math/smek_vec.h"
 #include <vector>
 
-namespace Phy {
+namespace Physics {
 
 ///* AABody
 // An axis aligned body that
@@ -91,11 +91,11 @@ Manifold collision_line_aabody(Vec3 start, Vec3 dir, AABody *a);
 #include "../test.h"
 
 TEST_CASE("collision simple", {
-    Phy::AABody a;
+    Physics::AABody a;
     a.position = Vec3(1, 0, 0);
     a.half_size = Vec3(1, 1, 1);
 
-    Phy::AABody b;
+    Physics::AABody b;
     b.position = Vec3(0, 0, 0);
     b.half_size = Vec3(1, 1, 1);
 
@@ -103,11 +103,11 @@ TEST_CASE("collision simple", {
 });
 
 TEST_CASE("collision simple", {
-    Phy::AABody a;
+    Physics::AABody a;
     a.position = Vec3(1, 0, 0);
     a.half_size = Vec3(0, 0, 0);
 
-    Phy::AABody b;
+    Physics::AABody b;
     b.position = Vec3(0, 0, 0);
     b.half_size = Vec3(0, 0, 0);
 
@@ -115,11 +115,11 @@ TEST_CASE("collision simple", {
 });
 
 TEST_CASE("collision simple", {
-    Phy::AABody a;
+    Physics::AABody a;
     a.position = Vec3(0, 0, 0);
     a.half_size = Vec3(1, 1, 1);
 
-    Phy::AABody b;
+    Physics::AABody b;
     b.position = Vec3(0, 0, 0);
     b.half_size = Vec3(0, 1, 1);
 
@@ -127,11 +127,11 @@ TEST_CASE("collision simple", {
 });
 
 TEST_CASE("collision simple", {
-    Phy::AABody a;
+    Physics::AABody a;
     a.position = Vec3(0, 0, 0);
     a.half_size = Vec3(1, 1, 1);
 
-    Phy::AABody b;
+    Physics::AABody b;
     b.position = Vec3(1, 0, 0);
     b.half_size = Vec3(1, 1, 1);
 
@@ -139,13 +139,13 @@ TEST_CASE("collision simple", {
 });
 
 TEST_CASE("collision cast simple", {
-    Phy::AABody a;
+    Physics::AABody a;
     a.position = Vec3(0, 0, 0);
     a.half_size = Vec3(1, 1, 1);
 
     Vec3 start = Vec3(0, -2, 0);
     Vec3 dir = Vec3(0, 1, 0);
 
-    Phy::Manifold m = collision_line_aabody(start, dir, &a);
+    Physics::Manifold m = collision_line_aabody(start, dir, &a);
     return 0.9 < m.t && m.t < 1.1;
 });
