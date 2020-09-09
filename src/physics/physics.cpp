@@ -37,6 +37,23 @@ void draw_manifold(Manifold a, Vec4 color) {
     }
 }
 
+void AABody::integrate_part(real t, real delta) {
+    position += velocity * t * delta;
+    curr_t += t;
+    ASSERT_LT(curr_t, 1.0);
+}
+
+void AABody::integrate(real delta) {
+    position += velocity * (1 - curr_t) * delta;
+    curr_t = 0;
+}
+
+AABody AABody::extend(const Vec3 &ext) const {
+    AABody copy = *this;
+    copy.half_size += ext;
+    return copy;
+}
+
 Manifold collision_aabb(AABody *a, AABody *b) {
     Vec3 delta = a->position - b->position;
     Vec3 range = a->half_size + b->half_size;
