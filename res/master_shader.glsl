@@ -74,7 +74,6 @@ in vec3 pass_pos;
 void main() {
     float sun_lightness = max(0, dot(sun_dir, pass_norm));
     vec4 albedo = texture(tex, pass_uv);
-    albedo = vec4(1.0, 1.0, 1.0, 1.0);
     vec4 light_color = sun_lightness * (sun_lightness * vec4(sun_color, 1.0) + vec4(ambient_color, 1.0));
 
     for (int i = 0; i < MAX_LIGHTS; i++) {
