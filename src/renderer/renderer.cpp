@@ -724,6 +724,16 @@ void set_screen_resolution(i32 width, i32 height) {
     r->gameplay_camera.set_aspect_ratio();
 }
 
+void push_mesh(AssetID mesh, AssetID texture, Vec3 position, Quat rotation, Vec3 scale) {
+    MasterShader shader = master_shader();
+    Asset::fetch_texture(texture)->bind(1);
+    shader.upload_tex(1);
+
+    Mat model = Mat::translate(position) * Mat::from(rotation) * Mat::scale(scale);
+    shader.upload_model(model);
+    Asset::fetch_mesh(mesh)->draw();
+}
+
 void set_camera_mode(bool debug_mode) {
     GAMESTATE()->renderer.use_debug_cam = debug_mode;
 }

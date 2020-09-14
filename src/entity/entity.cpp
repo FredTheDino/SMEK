@@ -130,12 +130,7 @@ IMPL_IMGUI(Player, ([&]() {
            }))
 
 void Player::draw() {
-
-    GFX::MasterShader shader = GFX::master_shader();
-    GFX::Mesh mesh = *Asset::fetch_mesh("MONKEY");
-    Mat model_matrix = Mat::translate(position) * Mat::scale(0.2);
-    shader.upload_model(model_matrix);
-    mesh.draw();
+    GFX::push_mesh("MONKEY", "TILES", position, H(), Vec3(0.2, 0.2, 0.2));
 }
 
 void SoundEntity::update() {
