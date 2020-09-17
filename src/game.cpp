@@ -258,7 +258,7 @@ void draw() {
         if (ImGui::Button("Set width to height")) {
             ImGui::SetWindowSize(Vec2(ImGui::GetWindowHeight() - (36 + ImGui::GetFrameHeightWithSpacing()), ImGui::GetWindowHeight()));
         }
-        ImGui::Image((void *)target.color, (Vec2)ImGui::GetWindowSize() - Vec2(0, 36 + ImGui::GetFrameHeightWithSpacing()), ImVec2(0, 1), ImVec2(1, 0));
+        ImGui::Image((void *)(u64)target.color, (Vec2)ImGui::GetWindowSize() - Vec2(0, 36 + ImGui::GetFrameHeightWithSpacing()), ImVec2(0, 1), ImVec2(1, 0));
     }
     ImGui::End();
 
@@ -272,7 +272,7 @@ void draw() {
             if (ImGui::Button("Set width to height")) {
                 ImGui::SetWindowSize(Vec2(ImGui::GetWindowHeight() - (36 + ImGui::GetFrameHeightWithSpacing()), ImGui::GetWindowHeight()));
             }
-            ImGui::Image((void *)target.depth_output, (Vec2)ImGui::GetWindowSize() - Vec2(0, 36 + ImGui::GetFrameHeightWithSpacing()), ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::Image((void *)(u64)target.depth_output, (Vec2)ImGui::GetWindowSize() - Vec2(0, 36 + ImGui::GetFrameHeightWithSpacing()), ImVec2(0, 1), ImVec2(1, 0));
         }
         ImGui::End();
     }
