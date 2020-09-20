@@ -115,6 +115,9 @@ T operator-=(T &a, const T &b);
 template <VectorType T>
 T hadamard(const T &a, const T &b);
 
+template <VectorType T>
+T component_div(const T &a, const T &b);
+
 ///*
 template <VectorType T>
 real dot(const T &a, const T &b);
@@ -206,6 +209,13 @@ template <VectorType T>
 T hadamard(const T &a, const T &b) {
     T result;
     for (i32 i = 0; i < DIM<T>(); i++) result._[i] = a._[i] * b._[i];
+    return result;
+}
+
+template <VectorType T>
+T component_div(const T &a, const T &b) {
+    T result;
+    for (i32 i = 0; i < DIM<T>(); i++) result._[i] = a._[i] / b._[i];
     return result;
 }
 

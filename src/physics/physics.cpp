@@ -13,6 +13,18 @@ Vec3 sphere_support_func(Vec3 d) {
     return normalized(d);
 }
 
+using SupportFunc = Vec3 (*)(Vec3 d);
+SupportFunc SUPPORT_FUNCS[] = {
+    [ShapeKind::BOX] = box_support_func,
+    [ShapeKind::SPHERE] = sphere_support_func,
+};
+
+Vec3 PhysicsShape::support(Vec3 d) {
+    Vec3 object_space = component_div((-rotation) * d, scale);
+    Vec3 projected = SUPPORT_FUNCS[kind](object_space);
+    return rotation * hadamard(scale, projected);
+}
+
 void draw_aabody(AABody a, Vec4 color) {
     Vec3 p = a.position;
     Vec3 r = a.half_size;
@@ -230,5 +242,4 @@ void PhysicsEngine::draw() {
         draw_aabody(a, Vec4(1.0, 0.0, 1.0, 1.0));
     }
 }
-
 }

@@ -5,10 +5,6 @@
 
 namespace Physics {
 
-Vec3 box_support_func(Vec3 d);
-
-Vec3 sphere_support_func(Vec3 d);
-
 enum ShapeKind {
     BOX,
     SPHERE,
@@ -16,14 +12,14 @@ enum ShapeKind {
     NUM_SUPPORT_FUNC,
 };
 
-using SupportFunc = Vec3 (*)(Vec3 d);
-
 struct PhysicsShape {
     Vec3 position;
     Vec3 scale;
     Quat rotation;
 
     ShapeKind kind;
+
+    Vec3 support(Vec3 d);
 };
 
 ///* AABody

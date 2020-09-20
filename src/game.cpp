@@ -126,6 +126,27 @@ void draw() {
 #endif
     GAMESTATE()->physics_engine.draw();
 
+    Physics::PhysicsShape s = {};
+    s.scale = { 1, 1, 1 };
+    s.rotation = Quat::from(time(), time(), 0);
+    s.kind = Physics::ShapeKind::BOX;
+
+    Physics::PhysicsShape p = {};
+    p.scale = { 1, 0.2, 1 };
+    p.rotation = Quat::from(0, 0, 0);
+    p.kind = Physics::ShapeKind::SPHERE;
+    for (f32 a = 0; a < 2 * PI; a += 0.1) {
+        for (f32 b = 0; b < 2 * PI; b += 0.1) {
+            Vec3 d = Mat::rotate(0, a, b) * Vec3(1, 0, 0);
+            Vec3 res = s.support(d) + p.support(d);
+            Vec4 color = Vec4(sin(res.x) * 0.5 + 0.5, cos(res.y) * 0.5 + 0.5, 0.3, 1.0);
+            GFX::push_point(res, color, 0.1);
+
+            GFX::push_point(s.support(d), Vec4(1.0, 0.0, 0.0, 1.0), 0.1);
+            GFX::push_point(p.support(d), Vec4(0.0, 1.0, 0.0, 1.0), 0.1);
+        }
+    }
+
 #ifdef IMGUI_ENABLE
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
