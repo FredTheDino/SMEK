@@ -33,3 +33,6 @@ __pycache__/
 
 # Temporary worktree
 tmp
+
+# ALE
+*.plist

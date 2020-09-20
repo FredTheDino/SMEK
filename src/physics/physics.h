@@ -48,6 +48,14 @@ struct AABody {
     AABody extend(const Vec3 &ext) const;
 };
 
+struct MinSumResult {
+    Vec3 normal;
+    Vec3 point;
+    f32 t;
+};
+
+MinSumResult minsum_ray(PhysicsShape *a, PhysicsShape *b, Vec3 dir);
+
 ///* Manifold
 // An object with information about the collision.
 struct Manifold {

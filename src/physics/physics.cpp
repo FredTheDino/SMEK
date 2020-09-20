@@ -25,6 +25,106 @@ Vec3 PhysicsShape::support(Vec3 d) {
     return rotation * hadamard(scale, projected);
 }
 
+struct Simplex {
+    u32 num_points;
+    Vec3 points[3];
+
+    void add(Vec3 p, Vec3 origin, Vec3 dir) {
+        i32 worst = num_points;
+        if (num_points == LEN(points) - 1) {
+            f32 worst_cost = 0;
+            for (int i = 0; i < num_points; i++) {
+                // We want to find points which are closest to
+                // the source and the line. This is just some form
+                // of heuristic for it, which should work pretty decent.
+                f32 t = dot(points[i] - origin, dir);
+                f32 cost = length_squared(t * dir + origin - points[i]) + t;
+                if (cost > worst_cost || worst == -1) {
+                    worst = i;
+                    worst_cost = cost;
+                }
+            }
+        }
+        points[worst] = p;
+    }
+
+    Vec3 next_search_dir(Vec3 d, Vec3 origin) {
+        if (num_points == 1)
+            return -d;
+        ....
+    }
+};
+
+f32 triangle_ray_hit(Vec3 a, Vec3 b, Vec3 c, Vec3 origin, Vec3 dir) {
+    const f32 EPSILON = 0.0001;
+    const f32 NO_HIT = 1000;
+    Vec3 edge_ab = b - a;
+    Vec3 edge_ac = c - a;
+
+    // Möller-Trumbore intersection.
+    //  - Move to triangle coordinate space to check for collisons.
+
+    Vec3 h = cross(dir, edge_ac);
+    f32 q = dot(edge_ab, h);
+    if (q > EPSILON && q < EPSILON)
+        return NO_HIT;
+
+    Vec3 j = origin - a;
+    f32 r = 1.0 / q;
+    f32 s = r * dot(j, h);
+    if (s < 0.0 || s > 1.0)
+        return NO_HIT;
+
+    Vec3 k = cross(j, edge_ab);
+    f32 u = r * dot(dir, k);
+    if (u < 0.0 || s + u > 1.0)
+        return NO_HIT;
+
+    return r * dot(edge_ac, k);
+}
+
+MinSumResult minsum_ray(PhysicsShape *a, PhysicsShape *b, Vec3 dir) {
+    MinSumResult result = {};
+
+    Vec3 origin = b->position;
+    Vec3 position = a->position;
+
+    auto query = [&position, a, b](Vec3 d) -> Vec3 {
+        return position + a->support(d) + b->support(d);
+    };
+
+    Simplex simplex;
+    simplex.add(query(dir), origin, dir);
+    simplex.add(query(-dir), origin, dir);
+
+    if (0) {
+        GFX::push_point(dir, Vec4(0.5, 0.5, 0.5, 1.0));
+
+        // Draws what the computer can see...
+        f32 resolution = 0.1;
+        for (f32 ad = 0; ad < 2 * PI; ad += resolution) {
+            for (f32 bd = 0; bd < 2 * PI; bd += resolution) {
+                using Math::cos;
+                using Math::sin;
+                Vec3 d = Mat::rotate(0, ad, bd) * Vec3(1, 0, 0);
+                Vec3 res = a->support(d) + b->support(d);
+                Vec4 color = Vec4(sin(res.x) * 0.5 + 0.5, cos(res.y) * 0.5 + 0.5, 0.3, 1.0);
+                GFX::push_point(res + a->position, color, 0.05);
+            }
+        }
+    }
+
+    f32 min_t = dot(closest_p - origin, dir);
+    result.t = min_t;
+    if (result.t > 1.0) {
+        return result;
+    }
+
+    GFX::push_line(origin, origin + min_t * dir, Vec4(0, 0, 0, 1.0), 0.03);
+
+    return result;
+}
+
 void draw_aabody(AABody a, Vec4 color) {
     Vec3 p = a.position;
     Vec3 r = a.half_size;

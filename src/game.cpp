@@ -127,16 +127,23 @@ void draw() {
     GAMESTATE()->physics_engine.draw();
 
     Physics::PhysicsShape s = {};
+    static Vec3 s_pos = {}, d_dir = { 1, 0, 0 };
+#ifdef IMGUI_ENABLE
+    ImGui::InputFloat3("A pos", s_pos._, 3);
+    ImGui::InputFloat3("D dir", d_dir._, 3);
+#endif
+
+    s.position = s_pos;
     s.scale = { 1, 1, 1 };
-    s.rotation = Quat::from(time(), time(), 0);
+    s.rotation = Quat::from(t, t, 0);
     s.kind = Physics::ShapeKind::BOX;
 
     Physics::PhysicsShape p = {};
     p.scale = { 1, 0.2, 1 };
     p.rotation = Quat::from(0, 0, 0);
     p.kind = Physics::ShapeKind::SPHERE;
-    for (f32 a = 0; a < 2 * PI; a += 0.1) {
-        for (f32 b = 0; b < 2 * PI; b += 0.1) {
+    for (f32 a = 100; a < 2 * PI; a += 0.8) {
+        for (f32 b = 0; b < 2 * PI; b += 0.8) {
             Vec3 d = Mat::rotate(0, a, b) * Vec3(1, 0, 0);
             Vec3 res = s.support(d) + p.support(d);
             Vec4 color = Vec4(sin(res.x) * 0.5 + 0.5, cos(res.y) * 0.5 + 0.5, 0.3, 1.0);
@@ -146,6 +153,8 @@ void draw() {
             GFX::push_point(p.support(d), Vec4(0.0, 1.0, 0.0, 1.0), 0.1);
         }
     }
+
+    Physics::minsum_ray(&s, &p, d_dir);
 
 #ifdef IMGUI_ENABLE
     if (ImGui::BeginMainMenuBar()) {
@@ -231,7 +240,6 @@ void draw() {
     const f32 width = 0.005;
     const Vec4 color = GFX::color(7) * 0.4;
     for (f32 x = 0; x <= grid_size; x += 0.5) {
-        GFX::push_point(Vec3(x, 0, x), GFX::color(2), width * 10);
         GFX::push_line(Vec3(x, 0, grid_size), Vec3(x, 0, -grid_size), color, width);
         GFX::push_line(Vec3(-x, 0, grid_size), Vec3(-x, 0, -grid_size), color, width);
         GFX::push_line(Vec3(grid_size, 0, x), Vec3(-grid_size, 0, x), color, width);
