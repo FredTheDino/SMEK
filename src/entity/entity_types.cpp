@@ -114,35 +114,35 @@ void EventCreateEntity::callback() {
         LOG("unpacking BaseEntity");
         BaseEntity entity;
         std::memcpy(((u8 *)&entity) + sizeof(u8 *), BASEENTITY, sizeof(BaseEntity) - sizeof(u8 *));
-        GAMESTATE()->entity_system.add(entity);
+        GAMESTATE()->entity_system.add_with_id(entity, entity.entity_id);
         break;
     }
     case EntityType::ENTITY: {
         LOG("unpacking Entity");
         Entity entity;
         std::memcpy(((u8 *)&entity) + sizeof(u8 *), ENTITY, sizeof(Entity) - sizeof(u8 *));
-        GAMESTATE()->entity_system.add(entity);
+        GAMESTATE()->entity_system.add_with_id(entity, entity.entity_id);
         break;
     }
     case EntityType::LIGHT: {
         LOG("unpacking Light");
         Light entity;
         std::memcpy(((u8 *)&entity) + sizeof(u8 *), LIGHT, sizeof(Light) - sizeof(u8 *));
-        GAMESTATE()->entity_system.add(entity);
+        GAMESTATE()->entity_system.add_with_id(entity, entity.entity_id);
         break;
     }
     case EntityType::PLAYER: {
         LOG("unpacking Player");
         Player entity;
         std::memcpy(((u8 *)&entity) + sizeof(u8 *), PLAYER, sizeof(Player) - sizeof(u8 *));
-        GAMESTATE()->entity_system.add(entity);
+        GAMESTATE()->entity_system.add_with_id(entity, entity.entity_id);
         break;
     }
     case EntityType::SOUNDENTITY: {
         LOG("unpacking SoundEntity");
         SoundEntity entity;
         std::memcpy(((u8 *)&entity) + sizeof(u8 *), SOUNDENTITY, sizeof(SoundEntity) - sizeof(u8 *));
-        GAMESTATE()->entity_system.add(entity);
+        GAMESTATE()->entity_system.add_with_id(entity, entity.entity_id);
         break;
     }
 
