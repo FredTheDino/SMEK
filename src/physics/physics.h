@@ -1,8 +1,30 @@
 #pragma once
 #include "../math/smek_vec.h"
+#include "../math/smek_quat.h"
 #include <vector>
 
 namespace Physics {
+
+Vec3 box_support_func(Vec3 d);
+
+Vec3 sphere_support_func(Vec3 d);
+
+enum ShapeKind {
+    BOX,
+    SPHERE,
+
+    NUM_SUPPORT_FUNC,
+};
+
+using SupportFunc = Vec3 (*)(Vec3 d);
+
+struct PhysicsShape {
+    Vec3 position;
+    Vec3 scale;
+    Quat rotation;
+
+    ShapeKind kind;
+};
 
 ///* AABody
 // An axis aligned body that

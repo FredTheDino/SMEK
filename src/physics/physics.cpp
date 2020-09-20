@@ -4,6 +4,15 @@
 
 namespace Physics {
 
+Vec3 box_support_func(Vec3 d) {
+    using Math::sign;
+    return Vec3(sign(d.x), sign(d.y), sign(d.z)) * 0.5;
+}
+
+Vec3 sphere_support_func(Vec3 d) {
+    return normalized(d);
+}
+
 void draw_aabody(AABody a, Vec4 color) {
     Vec3 p = a.position;
     Vec3 r = a.half_size;
