@@ -141,7 +141,7 @@ void draw() {
     Physics::PhysicsShape p = {};
     p.scale = { 1, 0.2, 1 };
     p.rotation = Quat::from(0, 0, 0);
-    p.kind = Physics::ShapeKind::SPHERE;
+    p.kind = Physics::ShapeKind::BOX;
     for (f32 a = 100; a < 2 * PI; a += 0.8) {
         for (f32 b = 0; b < 2 * PI; b += 0.8) {
             Vec3 d = Mat::rotate(0, a, b) * Vec3(1, 0, 0);

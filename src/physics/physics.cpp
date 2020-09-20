@@ -25,39 +25,10 @@ Vec3 PhysicsShape::support(Vec3 d) {
     return rotation * hadamard(scale, projected);
 }
 
-struct Simplex {
-    u32 num_points;
-    Vec3 points[3];
-
-    void add(Vec3 p, Vec3 origin, Vec3 dir) {
-        i32 worst = num_points;
-        if (num_points == LEN(points) - 1) {
-            f32 worst_cost = 0;
-            for (int i = 0; i < num_points; i++) {
-                // We want to find points which are closest to
-                // the source and the line. This is just some form
-                // of heuristic for it, which should work pretty decent.
-                f32 t = dot(points[i] - origin, dir);
-                f32 cost = length_squared(t * dir + origin - points[i]) + t;
-                if (cost > worst_cost || worst == -1) {
-                    worst = i;
-                    worst_cost = cost;
-                }
-            }
-        }
-        points[worst] = p;
-    }
-
-    Vec3 next_search_dir(Vec3 d, Vec3 origin) {
-        if (num_points == 1)
-            return -d;
-        ....
-    }
-};
-
-f32 triangle_ray_hit(Vec3 a, Vec3 b, Vec3 c, Vec3 origin, Vec3 dir) {
+f32 triangle_ray_hit(bool *hit, Vec3 a, Vec3 b, Vec3 c, Vec3 origin, Vec3 dir) {
+    *hit = false;
     const f32 EPSILON = 0.0001;
-    const f32 NO_HIT = 1000;
+    const f32 NO_HIT = -1;
     Vec3 edge_ab = b - a;
     Vec3 edge_ac = c - a;
 
@@ -80,8 +51,74 @@ f32 triangle_ray_hit(Vec3 a, Vec3 b, Vec3 c, Vec3 origin, Vec3 dir) {
     if (u < 0.0 || s + u > 1.0)
         return NO_HIT;
 
+    *hit = true;
     return r * dot(edge_ac, k);
 }
+
+struct Simplex {
+    u32 num_points = 0;
+    Vec3 points[3];
+
+    void add(Vec3 p, Vec3 origin, Vec3 dir) {
+        u32 worst = num_points;
+        if (num_points == LEN(points) - 1) {
+            worst = 10;
+            f32 worst_cost = 0;
+            for (u32 i = 0; i < num_points; i++) {
+                // We want to find points which are closest to
+                // the source and the line. This is just some form
+                // of heuristic for it, which should work pretty decent.
+                f32 cost = dot(points[i] - origin, dir);
+                // f32 cost = length_squared(t * dir + origin - points[i]) + t;
+                if (cost > worst_cost || worst == 10) {
+                    worst = i;
+                    worst_cost = cost;
+                }
+            }
+        } else {
+            num_points++;
+        }
+        points[worst] = p;
+    }
+
+    bool possible(Vec3 origin, Vec3 dir) {
+        for (u32 i = 0; i < num_points; i++) {
+            f32 t = dot(points[i] - origin, dir);
+            LOG("{} = ({} - {}) * {}", t, points[i], origin, dir);
+            if (0.0 < t && t < 1.0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    Vec3 next_search_dir(Vec3 dir, Vec3 origin) {
+        if (num_points == 0)
+            return -dir;
+
+        if (num_points == 1)
+            return origin - points[0];
+
+        if (num_points == 2)
+            return origin - points[0] + points[1];
+
+        if (num_points == 3) {
+            Vec3 normal = cross(points[1] - points[0], points[2] - points[0]);
+            if (dot(dir, normal) < 0.0) {
+                return normal;
+            } else {
+                return -normal;
+            }
+        }
+        return dir;
+    }
+
+    f32 hit(bool *hit, Vec3 dir, Vec3 origin) {
+        *hit = false;
+        if (num_points != 3) return 0;
+        return triangle_ray_hit(hit, points[0], points[1], points[2], origin, dir);
+    }
+};
 
 MinSumResult minsum_ray(PhysicsShape *a, PhysicsShape *b, Vec3 dir) {
     MinSumResult result = {};
@@ -94,14 +131,27 @@ MinSumResult minsum_ray(PhysicsShape *a, PhysicsShape *b, Vec3 dir) {
     };
 
     Simplex simplex;
-    simplex.add(query(dir), origin, dir);
-    simplex.add(query(-dir), origin, dir);
+    for (i32 loops = 0; loops < 10; loops++) {
+        LOG("{}", loops);
+        Vec3 search_dir = simplex.next_search_dir(origin, dir);
+        Vec3 p = query(search_dir);
+        GFX::push_point(p, Vec4(0.3, 0.7, 0.3, 1.0), 0.07);
+        simplex.add(p, origin, dir);
+        if (!simplex.possible(origin, dir)) {
+            LOG("Not possible!");
+            break;
+        }
+        bool hit = false;
+        result.t = simplex.hit(&hit, origin, dir);
+        if (hit) {
+            LOG("hit: {}", result.t);
+            break;
+        }
+    }
 
-    if (0) {
-        GFX::push_point(dir, Vec4(0.5, 0.5, 0.5, 1.0));
-
+    {
         // Draws what the computer can see...
-        f32 resolution = 0.1;
+        f32 resolution = 0.03;
         for (f32 ad = 0; ad < 2 * PI; ad += resolution) {
             for (f32 bd = 0; bd < 2 * PI; bd += resolution) {
                 using Math::cos;
@@ -113,14 +163,6 @@ MinSumResult minsum_ray(PhysicsShape *a, PhysicsShape *b, Vec3 dir) {
             }
         }
     }
-
-    f32 min_t = dot(closest_p - origin, dir);
-    result.t = min_t;
-    if (result.t > 1.0) {
-        return result;
-    }
-
-    GFX::push_line(origin, origin + min_t * dir, Vec4(0, 0, 0, 1.0), 0.03);
 
     return result;
 }
