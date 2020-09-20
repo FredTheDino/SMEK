@@ -62,15 +62,10 @@ struct Entity : public BaseEntity {
 ///* Light
 // A light source in the world. Interfaces with the
 // renderer under the hood and abstracts away the interface.
-//
-// NOTE(ed): It might be more practical if
-// "Light" is an "Entity"
-struct Light : public BaseEntity {
+struct Light : public Entity {
     static const int NONE = -1;
 
     i32 light_id = NONE;
-
-    Vec3 position;
     Vec3 color;
 
     void update() override;
@@ -91,6 +86,7 @@ struct Player : public Entity {
     void draw() override;
 };
 
+struct ClientHandle;
 ///*
 struct EntitySystem {
     static const u64 ID_MASK = 0x00FFFFFFFFFFFFFF;
@@ -113,6 +109,7 @@ struct EntitySystem {
 
     void draw();
     void send_state();
+    void send_initial_state(ClientHandle *handle);
     void update();
 
     template <typename E>

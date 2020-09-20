@@ -2,6 +2,7 @@
 #include "entity_types.h"
 #include "../asset/asset.h"
 #include "../renderer/renderer.h"
+#include "../network/network.h"
 #include "../game.h"
 #include "../test.h"
 #include "imgui/imgui.h"
@@ -155,6 +156,14 @@ void EntitySystem::remove(EntityID id) {
     entities.erase(id);
 }
 
+void EntitySystem::remove_all() {
+    for (auto [_, e] : entities) {
+        e->on_remove();
+        delete e;
+    }
+    entities.clear();
+}
+
 void EntitySystem::update() {
     for (auto [_, e] : entities) {
         e->update();
@@ -173,8 +182,22 @@ void EntitySystem::update() {
 
 void EntitySystem::send_state() {}
 
-void EntitySystem::remove_all() {
-    entities.clear();
+void EntitySystem::send_initial_state(ClientHandle *handle) {
+    LOG("Sending lights");
+    Package entity_package;
+    entity_package.header.type = PackageType::EVENT;
+    if (is_valid(GAMESTATE()->lights[0])) {
+        entity_package.EVENT.event = entity_event(GAMESTATE()->entity_system.fetch<Light>(GAMESTATE()->lights[0]));
+        handle->send(&entity_package);
+    } else {
+        WARN("Not sending invalid light 0");
+    }
+    if (is_valid(GAMESTATE()->lights[1])) {
+        entity_package.EVENT.event = entity_event(GAMESTATE()->entity_system.fetch<Light>(GAMESTATE()->lights[1]));
+        handle->send(&entity_package);
+    } else {
+        WARN("Not sending invalid light 1");
+    }
 }
 
 void EntitySystem::draw() {

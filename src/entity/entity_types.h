@@ -88,7 +88,12 @@ struct EventCreateEntity {
 struct Event;
 
 Event entity_event(BaseEntity);
+Event entity_event(BaseEntity *);
 Event entity_event(Entity);
+Event entity_event(Entity *);
 Event entity_event(Light);
+Event entity_event(Light *);
 Event entity_event(Player);
+Event entity_event(Player *);
 Event entity_event(SoundEntity);
+Event entity_event(SoundEntity *);

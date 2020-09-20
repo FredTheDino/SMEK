@@ -28,7 +28,7 @@ Package unpack(u8 *from) {
 i32 format(char *buffer, u32 size, FormatHint args, Package pkg) {
     switch (pkg.header.type) {
     case PackageType::SET_CLIENT_ID:
-        return snprintf(buffer, size, "SetClientID: id=%0*u",
+        return snprintf(buffer, size, "SetClientID: id=%0*lu",
                         args.num_zero_pad, pkg.SET_CLIENT_ID.client_id);
     case PackageType::EVENT:
         return snprintf(buffer, size, "Event: type=%0*u",
@@ -42,7 +42,7 @@ i32 format(char *buffer, u32 size, FormatHint args, Package pkg) {
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, PackageHeader header) {
-    return snprintf(buffer, size, "client=%0*u id=%0*u",
+    return snprintf(buffer, size, "client=%0*lu id=%0*u",
                     args.num_zero_pad, header.client,
                     args.num_zero_pad, header.id);
 }

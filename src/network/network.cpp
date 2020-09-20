@@ -1,6 +1,7 @@
 #include "network.h"
 #include "../util/util.h"
 #include "../game.h"
+#include "../entity/entity_types.h"
 #include "../test.h"
 
 #include <errno.h>
@@ -51,7 +52,7 @@ bool NetworkHandle::recv(u8 *buf, u32 data_len, Package *package) {
 }
 
 void NetworkHandle::handle_package(Package *package) {
-    //LOG("{} ({}): {}", thread_name, package_log.front().header, package_log.front());
+    LOG("{} ({}): {}", thread_name, package_log.front().header, package_log.front());
     switch (package->header.type) {
     case PackageType::EVENT:
         GAMESTATE()->event_queue.push(package->EVENT.event);
@@ -257,6 +258,7 @@ bool Network::new_client_handle(int newsockfd) {
         id_package.header.type = PackageType::SET_CLIENT_ID;
         id_package.SET_CLIENT_ID.client_id = handle->client_id;
         handle->send(&id_package);
+        GAMESTATE()->entity_system.send_initial_state(handle);
         return true;
     }
     WARN("No available client handles, ignoring");
