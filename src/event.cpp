@@ -12,6 +12,7 @@ void handle_events() {
         state->event_queue.pop();
         switch (e.type) {
             HANDLE(CREATE_ENTITY);
+            HANDLE(LIGHT_UPDATE);
         default:
             ERR("Unkown event type {}", e.type);
         }

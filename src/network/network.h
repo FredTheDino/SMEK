@@ -83,6 +83,9 @@ struct Network {
 
     bool new_client_handle(int newsockfd);
 
+    void send_state_to_server();
+    void send_state_to_clients();
+
 #ifdef IMGUI_ENABLE
     void imgui_draw();
 #endif

@@ -77,6 +77,13 @@ struct Light : public Entity {
 #endif
 };
 
+struct LightUpdate {
+    EntityID entity_id;
+    real position[3];
+    real color[3];
+    void callback();
+};
+
 ///*
 // A playable character
 struct Player : public Entity {
@@ -86,6 +93,7 @@ struct Player : public Entity {
     void draw() override;
 };
 
+struct ServerHandle;
 struct ClientHandle;
 ///*
 struct EntitySystem {
@@ -97,6 +105,7 @@ struct EntitySystem {
     std::unordered_map<EntityID, BaseEntity *> entities;
 
     bool is_valid(EntityID id);
+    bool have_ownership(EntityID id);
 
     template <typename E>
     EntityID add(E entity) { return add_with_id(entity, next_id()); }
@@ -108,7 +117,8 @@ struct EntitySystem {
     void remove_all();
 
     void draw();
-    void send_state();
+    void send_state(ServerHandle *handle);
+    void send_state(ClientHandle *handle);
     void send_initial_state(ClientHandle *handle);
     void update();
 

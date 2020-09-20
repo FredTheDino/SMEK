@@ -19,6 +19,8 @@ struct H {
         , z(z)
         , w(w) {}
 
+    void to(real *arr);
+
     H operator-();
 
     H operator+(H h);

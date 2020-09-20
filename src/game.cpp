@@ -188,16 +188,20 @@ void draw() {
     {
         if (GAMESTATE()->entity_system.is_valid(GAMESTATE()->lights[0])) {
             Light *l = GAMESTATE()->entity_system.fetch<Light>(GAMESTATE()->lights[0]);
-            l->position = position + Vec3(0.5, 1.0 + sin(time()), 0.0);
-            l->color = Vec3(sin(time()) * 0.5 + 0.5, cos(time()) * 0.5 + 0.5, 0.2);
+            if (GAMESTATE()->entity_system.have_ownership(l->entity_id)) {
+                l->position = position + Vec3(0.5, 1.0 + sin(time()), 0.0);
+                l->color = Vec3(sin(time()) * 0.5 + 0.5, cos(time()) * 0.5 + 0.5, 0.2);
+            }
         }
     }
 
     {
         if (GAMESTATE()->entity_system.is_valid(GAMESTATE()->lights[0])) {
             Light *l = GAMESTATE()->entity_system.fetch<Light>(GAMESTATE()->lights[1]);
-            l->position = position + Vec3(1.0 + cos(time()), 1.0, sin(time()));
-            l->color = Vec3(0.5, 0.5, 0.9);
+            if (GAMESTATE()->entity_system.have_ownership(l->entity_id)) {
+                l->position = position + Vec3(1.0 + cos(time()), 1.0, sin(time()));
+                l->color = Vec3(0.5, 0.5, 0.9);
+            }
         }
     }
 
@@ -286,8 +290,10 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
         update();
     if (mode.draw)
         draw();
-    if (mode.send)
-        GAMESTATE()->entity_system.send_state();
+    if (mode.send) {
+        GAMESTATE()->network.send_state_to_server();
+        GAMESTATE()->network.send_state_to_clients();
+    }
     return *game;
 }
 

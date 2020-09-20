@@ -265,6 +265,17 @@ bool Network::new_client_handle(int newsockfd) {
     return false;
 }
 
+void Network::send_state_to_server() {}
+
+void Network::send_state_to_clients() {
+    for (u32 i = 0; i < MAX_CLIENTS; i++) {
+        ClientHandle *handle = client_handles + i;
+        if (handle->active) {
+            GAMESTATE()->entity_system.send_state(handle);
+        }
+    }
+}
+
 #ifdef IMGUI_ENABLE
 void Network::imgui_draw() {
     ImGui::Begin("Networking");
