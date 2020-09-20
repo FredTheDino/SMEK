@@ -108,10 +108,10 @@ struct EntitySystem {
     bool have_ownership(EntityID id);
 
     template <typename E>
-    EntityID add(E entity) { return add_with_id(entity, next_id()); }
+    EntityID add_with_id(E entity, EntityID id);
 
     template <typename E>
-    EntityID add_with_id(E entity, EntityID id);
+    EntityID add(E entity) { return add_with_id(entity, next_id()); }
 
     void remove(EntityID entity);
     void remove_all();

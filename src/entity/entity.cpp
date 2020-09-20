@@ -224,13 +224,13 @@ void EntitySystem::send_initial_state(ClientHandle *handle) {
     Package entity_package;
     entity_package.header.type = PackageType::EVENT;
     if (is_valid(GAMESTATE()->lights[0])) {
-        entity_package.EVENT.event = entity_event(GAMESTATE()->entity_system.fetch<Light>(GAMESTATE()->lights[0]));
+        entity_package.EVENT.event = entity_event(fetch<Light>(GAMESTATE()->lights[0]));
         handle->send(&entity_package);
     } else {
         WARN("Not sending invalid light 0");
     }
     if (is_valid(GAMESTATE()->lights[1])) {
-        entity_package.EVENT.event = entity_event(GAMESTATE()->entity_system.fetch<Light>(GAMESTATE()->lights[1]));
+        entity_package.EVENT.event = entity_event(fetch<Light>(GAMESTATE()->lights[1]));
         handle->send(&entity_package);
     } else {
         WARN("Not sending invalid light 1");
