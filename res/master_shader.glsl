@@ -5,6 +5,7 @@ uniform float t;
 uniform mat4 proj;
 uniform mat4 view;
 uniform mat4 model;
+uniform mat4 model_norm;
 uniform sampler2D tex;
 
 uniform int num_bones;
@@ -58,7 +59,7 @@ void main() {
     }
 
     gl_Position = proj * view * model * final_pos;
-    pass_norm = normalize((model * final_norm).xyz);
+    pass_norm = (model_norm * final_norm).xyz;
     pass_pos = (model * final_pos).xyz;
     pass_uv = uv;
 }

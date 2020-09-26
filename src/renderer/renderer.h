@@ -213,6 +213,7 @@ struct MasterShader : public Shader {
     MAT_SHADER_PROP(proj);
     MAT_SHADER_PROP(view);
     MAT_SHADER_PROP(model);
+    MAT_SHADER_PROP(model_norm);
 
     V3_SHADER_PROP(sun_dir);
     V3_SHADER_PROP(sun_color);
@@ -239,6 +240,7 @@ struct DebugShader : public Shader {
     MAT_SHADER_PROP(proj);
     MAT_SHADER_PROP(view);
     MAT_SHADER_PROP(model);
+    MAT_SHADER_PROP(model_norm);
 
     static DebugShader init();
 };
