@@ -257,6 +257,7 @@ bool Network::new_client_handle(int newsockfd) {
 
 #ifdef IMGUI_ENABLE
 void Network::imgui_draw() {
+    if (!GAMESTATE()->imgui.networking_enabled) return;
     ImGui::Begin("Networking");
     {
         static int serverport = 8888;

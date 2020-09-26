@@ -76,7 +76,6 @@ void imgui_event_create(Event *event, WipEntities *wip_entities) {
         wip_entities->type = (EntityType)entity_type_current_id;
         switch (wip_entities->type) {
         case EntityType::LIGHT:
-            wip_entities->light->imgui_create();
             *event = entity_event(*wip_entities->light);
             break;
         default:
