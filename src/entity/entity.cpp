@@ -6,26 +6,26 @@
 #include "../test.h"
 #include "imgui/imgui.h"
 
+// These helper functions make it easier to
+// create the ClassName::imgui() functions, where
+// it's needed. The code will be stubbed if imgui
+// and make sure each id is unique to avoid duplicate
+// editing.
 #ifdef IMGUI_ENABLE
 
-#define START_IMGUI(ClassName) \
-    void ClassName ::imgui() { \
-        ImGui::PushID(this);   \
-        ImGui::Text(STR(ClassName));
-
-#define END_IMGUI() \
-    ImGui::PopID(); \
+#define IMPL_IMGUI(ClassName, f)     \
+    void ClassName ::imgui() {       \
+        ImGui::PushID(this);         \
+        ImGui::Text(STR(ClassName)); \
+        auto f_inst = f;             \
+        f_inst();                    \
+        ImGui::PopID();              \
     }
 
 #else
 
-#define START_IMGUI(ClassName) \
-    void ClassName ::imgui() { \
-        constexpr if (0) {
-
-#define END_IMGUI() \
-    }               \
-    }
+#define IMPL_IMGUI(ClassName, f) \
+    void ClassName ::imgui() {}
 
 #endif
 
@@ -52,13 +52,13 @@ void Light::update() {
     }
 }
 
-START_IMGUI(Light)
-i32 copy_id = light_id;
-ImGui::InputInt("#Light ID:", &copy_id);
-ImGui::InputFloat3("Position", position._);
-ImGui::ColorEdit3("Color", color._);
-ImGui::Checkbox("Show All Lights", &draw_as_point);
-END_IMGUI()
+IMPL_IMGUI(Light, ([&] {
+               i32 copy_id = light_id;
+               ImGui::InputInt("#Light ID:", &copy_id);
+               ImGui::InputFloat3("Position", position._);
+               ImGui::ColorEdit3("Color", color._);
+               ImGui::Checkbox("Show All Lights", &draw_as_point);
+           }))
 
 void Light::draw() {
     if (draw_as_point) {
@@ -114,15 +114,20 @@ void Player::update() {
     GFX::gameplay_camera()->rotation = rotation;
 }
 
-START_IMGUI(Player)
-ImGui::Text("Player");
-ImGui::SliderFloat("Jump speed",
-                   &GAMESTATE()->player_jump_speed, 0.0, 10.0, "%.2f");
-ImGui::SliderFloat("Movement speed",
-                   &GAMESTATE()->player_movement_speed, 0.0, 10.0, "%.2f");
-ImGui::SliderFloat("Mouse sensitivity",
-                   &GAMESTATE()->player_mouse_sensitivity, 0.0, 2.0, "%.2f");
-END_IMGUI()
+IMPL_IMGUI(Player, ([&]() {
+               ImGui::SliderFloat("Jump speed",
+                                  &GAMESTATE()->player_jump_speed,
+                                  0.0, 10.0,
+                                  "%.2f");
+               ImGui::SliderFloat("Movement speed",
+                                  &GAMESTATE()->player_movement_speed,
+                                  0.0, 10.0,
+                                  "%.2f");
+               ImGui::SliderFloat("Mouse sensitivity",
+                                  &GAMESTATE()->player_mouse_sensitivity,
+                                  0.0, 2.0,
+                                  "%.2f");
+           }))
 
 void Player::draw() {
 
@@ -377,3 +382,5 @@ TEST_CASE("entity on_remove", {
     ASSERT_EQ(a_ptr->value, 2);
     return true;
 });
+
+#undef IMPL_IMGUI
