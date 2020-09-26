@@ -38,7 +38,8 @@ Field gen_Light[] = {
     { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(Light, type) },
     { typeid(i32), "light_id", sizeof(i32), (int)offsetof(Light, light_id) },
     { typeid(Vec3), "position", sizeof(Vec3), (int)offsetof(Light, position) },
-    { typeid(Vec3), "color", sizeof(Vec3), (int)offsetof(Light, color) }
+    { typeid(Vec3), "color", sizeof(Vec3), (int)offsetof(Light, color) },
+    { typeid(bool), "draw_as_point", sizeof(bool), (int)offsetof(Light, draw_as_point) }
 };
 Field gen_Player[] = {
     { typeid(bool), "remove", sizeof(bool), (int)offsetof(Player, remove) },

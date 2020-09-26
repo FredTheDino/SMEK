@@ -29,6 +29,8 @@ f32 delta() { return GAMESTATE()->delta; }
 f32 time() { return GAMESTATE()->time; }
 u32 frame() { return GAMESTATE()->frame; }
 
+void do_imgui_stuff();
+
 GFX::RenderTexture target;
 
 void init_game(GameState *gamestate, int width, int height) {
@@ -107,26 +109,54 @@ void update() {
 
 void draw() {
     target.use();
+    glClearColor(0.2, 0.1, 0.3, 1); // We don't need to do this...
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    static f32 t = 0;
-#ifdef IMGUI_ENABLE
-    static f32 mass = 2.0;
-    static f32 speed = 5.0;
+    // NOTE(ed): Note that this function has sideeffects,
+    // it can set the camera and do things like that.
+    do_imgui_stuff();
 
-    ImGui::SliderFloat("Mass", &mass, 0, 100);
-    ImGui::SliderFloat("Speed", &speed, 2, 100);
-    if (ImGui::Button("Send Box!")) {
-        Physics::AABody b;
-        b.position = GFX::debug_camera()->position;
-        b.velocity = GFX::debug_camera()->get_forward() * speed;
-        b.half_size = { 1, 1, 1 };
-        b.mass = mass;
-        GAMESTATE()->physics_engine.add_box(b);
+    GFX::MasterShader shader = GFX::master_shader();
+    shader.use();
+    shader.upload_t(time());
+
+    GFX::current_camera()->upload(shader);
+    shader.upload_bones(0, nullptr);
+
+    shader.upload_sun_dir(GFX::lighting()->sun_direction);
+    shader.upload_sun_color(GFX::lighting()->sun_color);
+    shader.upload_ambient_color(GFX::lighting()->ambient_color);
+
+    Vec3 position = Vec3(3, 0.5, 3);
+    {
+        Light *l = GAMESTATE()->entity_system.fetch<Light>(GAMESTATE()->lights[0]);
+        l->position = position + Vec3(0.5, 1.0 + sin(time()), 0.0);
+        // l->color = Vec3(sin(time()) * 0.5 + 0.5, cos(time()) * 0.5 + 0.5, 0.2);
     }
-#endif
-    GAMESTATE()->physics_engine.draw();
+
+    {
+        Light *l = GAMESTATE()->entity_system.fetch<Light>(GAMESTATE()->lights[1]);
+        l->position = position + Vec3(1.0 + cos(time()), 1.0, sin(time()));
+        // l->color = Vec3(0.5, 0.5, 0.9);
+    }
+
+    shader.upload_lights(GFX::lighting()->light_positions,
+                         GFX::lighting()->light_colors);
+
+    Asset::fetch_texture("RGBA")->bind(0);
+    shader.upload_tex(0);
+
+    GAMESTATE()->entity_system.draw();
+
+    GFX::debug_shader().use();
+    GFX::current_camera()->upload(GFX::debug_shader());
+    GFX::draw_primitivs();
+
+    GFX::resolve_to_screen(target);
+}
 
 #ifdef IMGUI_ENABLE
+void do_imgui_stuff() {
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("Reload")) {
@@ -145,7 +175,14 @@ void draw() {
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("View")) {
-            ImGui::MenuItem("Show depth map", "", &GAMESTATE()->imgui.depth_map_enabled);
+            ImGui::MenuItem("Show Networking", "",
+                            &GAMESTATE()->imgui.networking_enabled);
+            ImGui::MenuItem("Show Rendered Target", "",
+                            &GAMESTATE()->imgui.render_target_enabled);
+            ImGui::MenuItem("Show Depth Map", "",
+                            &GAMESTATE()->imgui.depth_map_enabled);
+            ImGui::MenuItem("Show Entities", "",
+                            &GAMESTATE()->imgui.entities_enabled);
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Help")) {
@@ -155,132 +192,77 @@ void draw() {
         ImGui::EndMainMenuBar();
     }
 
-    ImGui::SliderFloat("Time", &t, 0.0, 16.0, "%.2f");
+    ImGui::SliderFloat("Time",
+                       &GAMESTATE()->imgui.t,
+                       GAMESTATE()->imgui.min_t,
+                       GAMESTATE()->imgui.max_t, "%.2f");
 
-    static bool use_debug_camera = GFX::current_camera() == GFX::debug_camera();
-    ImGui::Checkbox("Debug camera", &use_debug_camera);
-    GFX::set_camera_mode(use_debug_camera);
+    ImGui::Checkbox("Debug Draw Physics", &GAMESTATE()->imgui.debug_draw_physics);
+    if (GAMESTATE()->imgui.debug_draw_physics) {
+        GAMESTATE()->physics_engine.draw();
+    }
 
+    ImGui::Checkbox("Debug Camera", &GAMESTATE()->imgui.use_debug_camera);
+    GFX::set_camera_mode(GAMESTATE()->imgui.use_debug_camera);
+
+    ImGui::Checkbox("Show Grid", &GAMESTATE()->imgui.show_grid);
+    if (GAMESTATE()->imgui.show_grid) {
+        const i32 grid_size = 10;
+        const f32 width = 0.005;
+        const Vec4 color = GFX::color(7) * 0.4;
+        for (f32 x = 0; x <= grid_size; x += 0.5) {
+            GFX::push_line(Vec3(x, 0, grid_size), Vec3(x, 0, -grid_size), color, width);
+            GFX::push_line(Vec3(-x, 0, grid_size), Vec3(-x, 0, -grid_size), color, width);
+            GFX::push_line(Vec3(grid_size, 0, x), Vec3(-grid_size, 0, x), color, width);
+            GFX::push_line(Vec3(grid_size, 0, -x), Vec3(-grid_size, 0, -x), color, width);
+        }
+    }
+
+    // TODO(ed): The lighting should have better default values.
     GFX::Lighting *lighting = GFX::lighting();
     ImGui::InputFloat3("Sun Color", lighting->sun_color._, 3);
     ImGui::InputFloat3("Sun Direction", lighting->sun_direction._, 3);
     lighting->sun_direction = normalized(lighting->sun_direction);
     ImGui::InputFloat3("Ambient Color", lighting->ambient_color._, 3);
 
-    if (ImGui::Button("Add Light")) {
-        static int i = 0;
-        Light l;
-        l.position.x = i++;
-        l.color = Vec3(1.0, 1.0, 0.0);
-        GAMESTATE()->entity_system.add(l);
-    }
-#endif
-
-    glClearColor(0.2, 0.1, 0.3, 1); // We don't need to do this...
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    GFX::MasterShader shader = GFX::master_shader();
-    shader.use();
-    shader.upload_t(time());
-
-    GFX::current_camera()->upload(shader);
-    shader.upload_bones(0, nullptr);
-
-    shader.upload_sun_dir(GFX::lighting()->sun_direction);
-    shader.upload_sun_color(GFX::lighting()->sun_color);
-    shader.upload_ambient_color(GFX::lighting()->ambient_color);
-
-    Vec3 position = Vec3(3, 0.5, 3);
-    {
-        Light *l = GAMESTATE()->entity_system.fetch<Light>(GAMESTATE()->lights[0]);
-        l->position = position + Vec3(0.5, 1.0 + sin(time()), 0.0);
-        l->color = Vec3(sin(time()) * 0.5 + 0.5, cos(time()) * 0.5 + 0.5, 0.2);
-    }
-
-    {
-        Light *l = GAMESTATE()->entity_system.fetch<Light>(GAMESTATE()->lights[1]);
-        l->position = position + Vec3(1.0 + cos(time()), 1.0, sin(time()));
-        l->color = Vec3(0.5, 0.5, 0.9);
-    }
-
-    shader.upload_lights(GFX::lighting()->light_positions,
-                         GFX::lighting()->light_colors);
-
-    const i32 grid_size = 10;
-    const f32 width = 0.005;
-    const Vec4 color = GFX::color(7) * 0.4;
-    for (f32 x = 0; x <= grid_size; x += 0.5) {
-        GFX::push_point(Vec3(x, 0, x), GFX::color(2), width * 10);
-        GFX::push_line(Vec3(x, 0, grid_size), Vec3(x, 0, -grid_size), color, width);
-        GFX::push_line(Vec3(-x, 0, grid_size), Vec3(-x, 0, -grid_size), color, width);
-        GFX::push_line(Vec3(grid_size, 0, x), Vec3(-grid_size, 0, x), color, width);
-        GFX::push_line(Vec3(grid_size, 0, -x), Vec3(-grid_size, 0, -x), color, width);
-    }
-
-    Asset::fetch_texture("RGBA")->bind(0);
-    shader.upload_tex(0);
-
-    GAMESTATE()->entity_system.draw();
-
-#if 0
-    GFX::Skin *mesh = Asset::fetch_skin("SKIN_SWINGING_CUBE");
-    Mat model_matrix = Mat::translate(Math::cos(time()) * 0.2, Math::sin(time()) * 0.2, -0.5) * Mat::scale(1.0);
-    shader.upload_model(model_matrix);
-    shader.upload_t(time());
-    mesh->draw();
-
-    Vec3 p(Math::cos(time()) * 0.2, Math::sin(time()) * 0.2, -0.5);
-    GFX::push_point(Vec3(p.x, p.y, p.z));
-#endif
-
-    AssetID skin, skel, anim;
-    skin = "SKIN_UNTITLED";
-    // TODO(ed): Not drawing...
-    // Asset::fetch_skin(skin)->draw();
-    skel = "SKEL_UNTITLED";
-    // anim = "ANIM_SKINNEDMESHACTION_RIGGED_SIMPLE_CHARACTER";
-    anim = "ANIM_ARMATUREACTION_001_UNTITLED";
-    // GFX::AnimatedMesh::init(skin, skel, anim).draw_at(t * 60);
-
-    //Asset::fetch_skeleton(skel)->draw();
-
-    GFX::debug_shader().use();
-    GFX::current_camera()->upload(GFX::debug_shader());
-    GFX::draw_primitivs();
-
-#ifdef IMGUI_ENABLE
-    ImGui::Begin("Game View");
-    {
+    // Draws what is drawn to the internal buffers.
+    auto draw_render_target = [](i32 tex, i32 width, i32 height) {
+        const Vec2 window_size = ImGui::GetWindowSize();
+        const i32 height_with_spacing = ImGui::GetFrameHeightWithSpacing();
+        const i32 frame_height = ImGui::GetFrameHeightWithSpacing();
         if (ImGui::Button("Default width/height")) {
-            ImGui::SetWindowSize(Vec2(target.width, target.height + 36 + ImGui::GetFrameHeightWithSpacing()));
+            ImGui::SetWindowSize(Vec2(width, height + 36 + frame_height));
         }
         ImGui::SameLine();
         if (ImGui::Button("Set width to height")) {
-            ImGui::SetWindowSize(Vec2(ImGui::GetWindowHeight() - (36 + ImGui::GetFrameHeightWithSpacing()), ImGui::GetWindowHeight()));
+            ImGui::SetWindowSize(Vec2(window_size.y - (36 + height_with_spacing),
+                                      window_size.y));
         }
-        ImGui::Image((void *)(u64)target.color, (Vec2)ImGui::GetWindowSize() - Vec2(0, 36 + ImGui::GetFrameHeightWithSpacing()), ImVec2(0, 1), ImVec2(1, 0));
+        void *tex_as_ptr = (void *)(u64)tex;
+        ImGui::Image(tex_as_ptr,
+                     window_size - Vec2(0, 36 + height_with_spacing),
+                     ImVec2(0, 1),
+                     ImVec2(1, 0));
+    };
+
+    if (GAMESTATE()->imgui.render_target_enabled) {
+
+        ImGui::Begin("Game View");
+        draw_render_target(target.color, target.width, target.height);
+        ImGui::End();
     }
-    ImGui::End();
 
     if (GAMESTATE()->imgui.depth_map_enabled) {
         ImGui::Begin("Depth");
-        {
-            if (ImGui::Button("Default width/height")) {
-                ImGui::SetWindowSize(Vec2(target.width, target.height + 36 + ImGui::GetFrameHeightWithSpacing()));
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Set width to height")) {
-                ImGui::SetWindowSize(Vec2(ImGui::GetWindowHeight() - (36 + ImGui::GetFrameHeightWithSpacing()), ImGui::GetWindowHeight()));
-            }
-            ImGui::Image((void *)(u64)target.depth_output, (Vec2)ImGui::GetWindowSize() - Vec2(0, 36 + ImGui::GetFrameHeightWithSpacing()), ImVec2(0, 1), ImVec2(1, 0));
-        }
+        draw_render_target(target.depth_output, target.width, target.height);
         ImGui::End();
     }
 
     GAMESTATE()->network.imgui_draw();
-#endif
-    GFX::resolve_to_screen(target);
 }
+#else
+void do_imgui_stuff() {}
+#endif
 
 GameState update_game(GameState *game, GSUM mode) { // Game entry point
     _global_gs = game;

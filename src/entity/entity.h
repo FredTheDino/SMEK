@@ -20,15 +20,13 @@ enum class EntityType;
 struct BaseEntity {
     bool remove = false;
 
+    virtual void imgui() {};
+
     virtual ~BaseEntity() {};
     virtual void update() {};
     virtual void draw() {};
     virtual void on_create() {};
     virtual void on_remove() {};
-
-#ifdef IMGUI_ENABLE
-    virtual void imgui_create() {};
-#endif
 
     EntityType type;
 };
@@ -42,6 +40,8 @@ struct SoundEntity : public BaseEntity {
     Audio::SoundSourceSettings sound_source_settings;
 
     AudioID audio_id;
+
+    void imgui() override;
 
     void update() override;
     void draw() override;
@@ -72,19 +72,21 @@ struct Light : public BaseEntity {
     Vec3 position;
     Vec3 color;
 
+    bool draw_as_point;
+
+    void imgui() override;
+
     void update() override;
     void draw() override;
     void on_remove() override;
-
-#ifdef IMGUI_ENABLE
-    void imgui_create() override;
-#endif
 };
 
 ///* Player
 // A playable character
 struct Player : public Entity {
     Vec3 velocity;
+
+    void imgui() override;
 
     void update() override;
     void draw() override;
