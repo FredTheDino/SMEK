@@ -131,13 +131,13 @@ void draw() {
     {
         Light *l = GAMESTATE()->entity_system.fetch<Light>(GAMESTATE()->lights[0]);
         l->position = position + Vec3(0.5, 1.0 + sin(time()), 0.0);
-        l->color = Vec3(sin(time()) * 0.5 + 0.5, cos(time()) * 0.5 + 0.5, 0.2);
+        // l->color = Vec3(sin(time()) * 0.5 + 0.5, cos(time()) * 0.5 + 0.5, 0.2);
     }
 
     {
         Light *l = GAMESTATE()->entity_system.fetch<Light>(GAMESTATE()->lights[1]);
         l->position = position + Vec3(1.0 + cos(time()), 1.0, sin(time()));
-        l->color = Vec3(0.5, 0.5, 0.9);
+        // l->color = Vec3(0.5, 0.5, 0.9);
     }
 
     shader.upload_lights(GFX::lighting()->light_positions,

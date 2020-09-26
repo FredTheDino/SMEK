@@ -6,6 +6,29 @@
 #include "../test.h"
 #include "imgui/imgui.h"
 
+#ifdef IMGUI_ENABLE
+
+#define START_IMGUI(ClassName) \
+    void ClassName ::imgui() { \
+        ImGui::PushID(this);   \
+        ImGui::Text(STR(ClassName));
+
+#define END_IMGUI() \
+    ImGui::PopID(); \
+    }
+
+#else
+
+#define START_IMGUI(ClassName) \
+    void ClassName ::imgui() { \
+        constexpr if (0) {
+
+#define END_IMGUI() \
+    }               \
+    }
+
+#endif
+
 EntitySystem *entity_system() {
     return &GAMESTATE()->entity_system;
 }
@@ -29,18 +52,16 @@ void Light::update() {
     }
 }
 
-static bool DRAW_LIGHTS_AS_POINTS = true;
-void Light::imgui() {
-#ifdef IMGUI_ENABLE
-    ImGui::Text("Light");
+START_IMGUI(Light)
+i32 copy_id = light_id;
+ImGui::InputInt("#Light ID:", &copy_id);
+ImGui::InputFloat3("Position", position._);
+ImGui::ColorEdit3("Color", color._);
+ImGui::Checkbox("Show All Lights", &draw_as_point);
+END_IMGUI()
 
-    i32 copy_id = light_id;
-    ImGui::InputInt("#Light ID:", &copy_id);
-    ImGui::InputFloat3("Position", position._);
-    ImGui::ColorEdit3("Color", color._);
-    ImGui::Checkbox("Show All Lights", &DRAW_LIGHTS_AS_POINTS);
-
-    if (DRAW_LIGHTS_AS_POINTS) {
+void Light::draw() {
+    if (draw_as_point) {
         if (light_id == NONE) {
             GFX::push_point(position + Vec3(0.01, 0.0, 0.0), Vec4(1.0, 0.0, 0.0, 1.0), 0.07);
             GFX::push_point(position, Vec4(color.x, color.y, color.z, 0.2), 0.05);
@@ -48,10 +69,7 @@ void Light::imgui() {
             GFX::push_point(position, Vec4(color.x, color.y, color.z, 1.0), 0.1);
         }
     }
-#endif
 }
-
-void Light::draw() {}
 
 void Light::on_remove() {
     // Black means the color isn't used.
@@ -96,14 +114,15 @@ void Player::update() {
     GFX::gameplay_camera()->rotation = rotation;
 }
 
-void Player::imgui() {
-#ifdef IMGUI_ENABLE
-    ImGui::Text("Player");
-    ImGui::SliderFloat("Jump speed", &GAMESTATE()->player_jump_speed, 0.0, 10.0, "%.2f");
-    ImGui::SliderFloat("Movement speed", &GAMESTATE()->player_movement_speed, 0.0, 10.0, "%.2f");
-    ImGui::SliderFloat("Mouse sensitivity", &GAMESTATE()->player_mouse_sensitivity, 0.0, 2.0, "%.2f");
-#endif
-}
+START_IMGUI(Player)
+ImGui::Text("Player");
+ImGui::SliderFloat("Jump speed",
+                   &GAMESTATE()->player_jump_speed, 0.0, 10.0, "%.2f");
+ImGui::SliderFloat("Movement speed",
+                   &GAMESTATE()->player_movement_speed, 0.0, 10.0, "%.2f");
+ImGui::SliderFloat("Mouse sensitivity",
+                   &GAMESTATE()->player_mouse_sensitivity, 0.0, 2.0, "%.2f");
+END_IMGUI()
 
 void Player::draw() {
 

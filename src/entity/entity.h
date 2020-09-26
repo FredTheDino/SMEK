@@ -72,15 +72,13 @@ struct Light : public BaseEntity {
     Vec3 position;
     Vec3 color;
 
+    bool draw_as_point;
+
     void imgui() override;
 
     void update() override;
     void draw() override;
     void on_remove() override;
-
-#ifdef IMGUI_ENABLE
-    bool draw_as_point = true;
-#endif
 };
 
 ///* Player
