@@ -110,7 +110,7 @@ void Player::update() {
         position += velocity * delta();
     }
 
-    GFX::gameplay_camera()->position = position + Vec3(0.0, 0.3, 0.0);
+    GFX::gameplay_camera()->position = position + Vec3(0.0, 0.5, 0.0);
     GFX::gameplay_camera()->rotation = rotation;
 }
 
@@ -130,7 +130,8 @@ IMPL_IMGUI(Player, ([&]() {
            }))
 
 void Player::draw() {
-    GFX::push_mesh("MONKEY", "TILES", position, H(), Vec3(0.2, 0.2, 0.2));
+    scale = Vec3(1., 2., 3.) * 0.3;
+    GFX::push_mesh("MONKEY", "TILES", position, rotation, scale);
 }
 
 void SoundEntity::update() {

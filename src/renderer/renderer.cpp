@@ -734,6 +734,9 @@ void push_mesh(AssetID mesh, AssetID texture, Vec3 position, Quat rotation, Vec3
     Mat model = Mat::translate(position) * Mat::from(rotation) * Mat::scale(scale);
     shader.upload_model(model);
     Mat model_norm = model.invert().transpose();
+    model_norm.gfx_dump();
+    LOG("pos: {}, scale: {}", position, scale);
+    LOG("{}", model_norm);
     shader.upload_model_norm(model_norm);
     Asset::fetch_mesh(mesh)->draw();
 }
