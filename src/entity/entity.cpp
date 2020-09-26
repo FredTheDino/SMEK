@@ -57,7 +57,7 @@ IMPL_IMGUI(Light, ([&] {
                ImGui::InputInt("#Light ID:", &copy_id);
                ImGui::InputFloat3("Position", position._);
                ImGui::ColorEdit3("Color", color._);
-               ImGui::Checkbox("Show All Lights", &draw_as_point);
+               ImGui::Checkbox("Draw As Point", &draw_as_point);
            }))
 
 void Light::draw() {
