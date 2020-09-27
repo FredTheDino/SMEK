@@ -262,7 +262,7 @@ def write_documentation(path, documentation):
         documented_code = {}
         f.write("<nav>\n<div class='container'>\n<img id='logo' src='SMEK_logo.svg'>\n<h2>Content</h2>\n")
         f.write("<ul id=\"nav\">\n")
-        for region, headings in documentation:
+        for region, headings in sorted(documentation):
             if not has_content(headings): continue
             f.write(tag("li", link(region.capitalize(), "#" + region), "hide hideable"))
             f.write("\n<li><ul>\n")
