@@ -199,6 +199,14 @@ void do_imgui_stuff() {
                        GAMESTATE()->imgui.min_t,
                        GAMESTATE()->imgui.max_t, "%.2f");
 
+    {
+        static int dim[2] = { 100, 100 };
+        ImGui::SliderInt2("Screen size", dim, 100, 1600);
+        if (ImGui::Button("Resize window")) {
+            GFX::set_screen_resolution(dim[0], dim[1]);
+        }
+    }
+
     ImGui::Checkbox("Debug Draw Physics", &GAMESTATE()->imgui.debug_draw_physics);
     if (GAMESTATE()->imgui.debug_draw_physics) {
         GAMESTATE()->physics_engine.draw();
