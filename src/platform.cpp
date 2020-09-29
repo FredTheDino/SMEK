@@ -83,7 +83,6 @@ bool load_gamelib() {
         }
     }
 
-    GameLibrary next_library = {};
     dlerror(); // Clear all errors.
     void *tmp = dlopen(game_lib_path, RTLD_NOW);
     if (!tmp) {
@@ -295,7 +294,6 @@ int main(int argc, char **argv) { // Game entrypoint
         }
 
         while (next_update < SDL_GetTicks() && game_state.running) {
-            // Check for reloading of library
             game_state.time = next_update / 1000.0;
             game_state.delta = MS_PER_FRAME / 1000.0;
             game_state.frame++;
