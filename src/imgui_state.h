@@ -19,4 +19,10 @@ struct ImGuiState {
     bool use_debug_camera = true;
     bool debug_draw_physics = false;
     bool show_grid = true;
+
+    // Settings
+    struct {
+        int width;
+        int height;
+    } screen_resolution = {};
 };
