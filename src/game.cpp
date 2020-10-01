@@ -31,14 +31,15 @@ u32 frame() { return GAMESTATE()->frame; }
 
 void do_imgui_stuff();
 
-GFX::RenderTexture target;
-
 void init_game(GameState *gamestate, int width, int height) {
     _global_gs = gamestate;
     GAMESTATE()->main_thread = SDL_GetThreadID(NULL);
 
     Asset::load("assets.bin");
 
+#if IMGUI_ENABLE
+    GAMESTATE()->imgui.screen_resolution = { width, height };
+#endif
     GFX::init(GAMESTATE(), width, height);
 
     GFX::lighting()->sun_direction = Vec3(0.0, 1.0, 0.0);
@@ -82,7 +83,7 @@ void reload_game(GameState *game) {
 #ifdef IMGUI_ENABLE
     ImGui::SetCurrentContext((ImGuiContext *)game->imgui.context);
 #endif
-    target = GFX::RenderTexture::create(GAMESTATE()->renderer.width, GAMESTATE()->renderer.height, true, true);
+    GFX::remake_render_target();
 }
 
 void update() {
@@ -108,6 +109,7 @@ void update() {
 }
 
 void draw() {
+    GFX::RenderTexture target = GFX::render_target();
     target.use();
     glClearColor(0.2, 0.1, 0.3, 1); // We don't need to do this...
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -197,6 +199,14 @@ void do_imgui_stuff() {
                        GAMESTATE()->imgui.min_t,
                        GAMESTATE()->imgui.max_t, "%.2f");
 
+    {
+        static int dim[2] = { 100, 100 };
+        ImGui::SliderInt2("Screen size", dim, 100, 1600);
+        if (ImGui::Button("Resize window")) {
+            GFX::set_screen_resolution(dim[0], dim[1]);
+        }
+    }
+
     ImGui::Checkbox("Debug Draw Physics", &GAMESTATE()->imgui.debug_draw_physics);
     if (GAMESTATE()->imgui.debug_draw_physics) {
         GAMESTATE()->physics_engine.draw();
@@ -245,8 +255,8 @@ void do_imgui_stuff() {
                      ImVec2(1, 0));
     };
 
+    GFX::RenderTexture target = GFX::render_target();
     if (GAMESTATE()->imgui.render_target_enabled) {
-
         ImGui::Begin("Game View");
         draw_render_target(target.color, target.width, target.height);
         ImGui::End();

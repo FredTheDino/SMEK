@@ -9,7 +9,7 @@ namespace GFX {
 Camera Camera::init(f32 fov) {
     Camera cam = {};
     cam.set_fov(fov);
-    cam.set_aspect_ratio(f32(GAMESTATE()->renderer.width) / GAMESTATE()->renderer.height);
+    cam.set_aspect_ratio();
     cam.up = Vec3(0, 1, 0);
     cam.rotation = H::from(Vec3(1.0, 0.0, 0.0), 0.0);
     cam.position = Vec3(0, 0, 0);
@@ -19,6 +19,10 @@ Camera Camera::init(f32 fov) {
 void Camera::set_fov(f32 fov) {
     dirty_perspective = true;
     this->fov = fov;
+}
+
+void Camera::set_aspect_ratio() {
+    set_aspect_ratio(f32(GAMESTATE()->renderer.width) / f32(GAMESTATE()->renderer.height));
 }
 
 void Camera::set_aspect_ratio(f32 aspect_ratio) {
@@ -46,7 +50,7 @@ Vec3 Camera::get_forward() {
 template <>
 void Camera::upload(const MasterShader &shader) {
     if (dirty_perspective) {
-        perspective = Mat::perspective(fov, aspect_ratio, 0.01, 10.0);
+        perspective = Mat::perspective(fov, aspect_ratio, 0.01, 100.0);
         dirty_perspective = false;
     }
     shader.upload_proj(perspective);
@@ -61,14 +65,14 @@ void Camera::upload(const DebugShader &shader) {
     shader.upload_view(view);
 }
 
-RenderTexture RenderTexture::create(int width, int height, bool use_depth, bool use_color) {
+RenderTexture RenderTexture::create(int width, int height) {
     RenderTexture t = {};
-    t.width = height;
+    t.width = width;
     t.height = height;
     glGenFramebuffers(1, &t.fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, t.fbo);
 
-    if (use_color) {
+    {
         glGenTextures(1, &t.color);
         glBindTexture(GL_TEXTURE_2D, t.color);
 
@@ -92,7 +96,7 @@ RenderTexture RenderTexture::create(int width, int height, bool use_depth, bool 
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, t.depth_output, 0);
     }
 
-    if (use_depth) {
+    {
         glGenRenderbuffers(1, &t.depth);
         glBindRenderbuffer(GL_RENDERBUFFER, t.depth);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
@@ -114,13 +118,13 @@ RenderTexture RenderTexture::create(int width, int height, bool use_depth, bool 
 }
 
 void RenderTexture::destroy() {
-    ASSERT(width, "Trying to destroy uninitalized RenderTexture");
-    width = 0;
-    glDeleteFramebuffers(1, &fbo);
-    if (color)
+    if (width) {
+        width = 0;
+        glDeleteFramebuffers(1, &fbo);
         glDeleteTextures(1, &color);
-    if (depth)
-        glDeleteTextures(1, &depth);
+        glDeleteTextures(1, &depth_output);
+        glDeleteRenderbuffers(1, &depth);
+    }
 }
 
 void RenderTexture::use() {
@@ -697,6 +701,27 @@ bool init(GameState *gs, i32 width, i32 height) {
 
     gs->renderer.primitives.push_back(DebugPrimitive::init());
     return true;
+}
+
+RenderTexture render_target() {
+    return GAMESTATE()->renderer.target;
+}
+
+void remake_render_target() {
+    GAMESTATE()->renderer.target.destroy();
+    GAMESTATE()->renderer.target = GFX::RenderTexture::create(GAMESTATE()->renderer.width,
+                                                              GAMESTATE()->renderer.height);
+}
+
+void set_screen_resolution(i32 width, i32 height) {
+    Renderer *r = &GAMESTATE()->renderer;
+    r->width = width;
+    r->height = height;
+    SDL_SetWindowSize(GAMESTATE()->window, r->width, r->height);
+    remake_render_target();
+
+    r->debug_camera.set_aspect_ratio();
+    r->gameplay_camera.set_aspect_ratio();
 }
 
 void set_camera_mode(bool debug_mode) {
