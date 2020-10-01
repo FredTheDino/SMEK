@@ -36,3 +36,4 @@ tmp
 
 # No idea, but it needs to go
 *.plist
+.ccls-cache/
