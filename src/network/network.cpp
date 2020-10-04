@@ -55,7 +55,9 @@ void NetworkHandle::handle_package(Package *package) {
     //LOG("{} ({}): {}", thread_name, package_log.front().header, package_log.front());
     switch (package->header.type) {
     case PackageType::EVENT:
+        ASSERT(SDL_LockMutex(GAMESTATE()->m_event_queue) == 0, "Failed to aquire lock");
         GAMESTATE()->event_queue.push(package->EVENT.event);
+        SDL_UnlockMutex(GAMESTATE()->m_event_queue);
         break;
     default:
         break;

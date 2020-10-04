@@ -27,6 +27,7 @@ struct GameState {
     Audio::AudioStruct *audio_struct;
     EntitySystem entity_system;
     Physics::PhysicsEngine physics_engine;
+    SDL_mutex *m_event_queue;
     std::queue<Event> event_queue;
     Network network = {};
 

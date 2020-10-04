@@ -28,6 +28,7 @@ void init_game(GameState *gamestate, int width, int height) {
     GAMESTATE()->main_thread = SDL_GetThreadID(NULL);
 
     GAMESTATE()->entity_system.m_client_id = SDL_CreateMutex();
+    GAMESTATE()->m_event_queue = SDL_CreateMutex();
 
     Asset::load("assets.bin");
 
@@ -294,6 +295,7 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
         GAMESTATE()->network.send_state_to_server();
         GAMESTATE()->network.send_state_to_clients();
     }
+    SDL_LockMutex(game->m_event_queue);
     return *game;
 }
 
