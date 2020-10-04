@@ -24,6 +24,8 @@ struct H {
         , z(arr[2])
         , w(arr[3]) {}
 
+    void to(real *arr);
+
     H operator-();
 
     H operator+(H h);

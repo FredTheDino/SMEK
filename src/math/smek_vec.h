@@ -25,9 +25,8 @@ struct Vec2 {
         };
     };
 
+    void to(real *arr) const;
     real &operator[](std::size_t idx) { return _[idx]; }
-
-    static Vec2 from(real *arr) { return { arr[0], arr[1] }; }
 };
 
 struct Vec3 {
@@ -50,6 +49,7 @@ struct Vec3 {
         };
     };
 
+    void to(real *arr) const;
     real &operator[](std::size_t idx) { return _[idx]; }
 
     static Vec3 from(real *arr) { return { arr[0], arr[1], arr[2] }; }
@@ -77,6 +77,7 @@ struct Vec4 {
         };
     };
 
+    void to(real *arr) const;
     real &operator[](std::size_t idx) { return _[idx]; }
 
     static Vec4 from(real *arr) { return { arr[0], arr[1], arr[2], arr[3] }; }
