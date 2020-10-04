@@ -7,6 +7,9 @@ from subprocess import Popen, PIPE
 from collections import defaultdict
 from itertools import chain
 
+#
+# Meta build information, and flaggs
+#
 
 DEBUG_FLAGS = ["-ggdb", "-O0", "-DDEBUG"]
 RELEASE_FLAGS = ["-O2", "-DRELEASE"]
@@ -102,6 +105,9 @@ AddOption("--no-env",
           action="store_true",
           help="Don't copy the entire environment when setting up sconstruct")
 
+#
+# Enviroment setup
+#
 
 if GetOption("windows") and PLATFORMS["windows"]:
     print("It look's like you're currently using Windows.\nTherefore, --windows isn't needed.")
@@ -152,14 +158,6 @@ env.Append(CPPDEFINES="IMGUI_IMPL_OPENGL_LOADER_GLAD")
 env.Append(CPPDEFINES={"SMEK_GAME_LIB": smek_game_lib})
 env.Replace(SHLIBPREFIX="lib")
 
-# Generate a compilation database, has to be placed above all source files
-# Requires scons 4.
-if GetOption("gen_compilation_db"):
-    print("Generating compilation DB")
-    EnsureSConsVersion(4, 0)
-    env.Tool("compilation_db")
-    compd = env.CompilationDatabase("compile_commands.json")
-
 if GetOption("verbose"):
     env.Append(CPPDEFINES="VERBOSE")
     env.Append(ASSETS_VERBOSE="--verbose")
@@ -180,6 +178,10 @@ else:
 if GetOption("windows"):
     smek_dir += "-windows"
 smek_dir += "/"
+
+#
+# Compilation steps
+#
 
 VariantDir(smek_dir, "src", duplicate=0)
 VariantDir(tests_dir, "src", duplicate=0)
@@ -208,48 +210,82 @@ env.Alias("assets", assets)
 if native and PLATFORMS["linux"]:
     AddPostAction(assets, reload_action)
 
+#
+# Build tests
+#
+
 #TODO(gu) don't execute on clean
 Execute("./tools/typesystem-gen.py")  # creates `src/entity/entity_types.{cpp,h}` so has to be run before the glob
-
 source = glob("src/**/*.c*", recursive=True)
 
-imgui = env.Object(smek_dir + "imgui.cpp")
-if GetOption("no_imgui"):
-    env.Append(CPPDEFINES="IMGUI_DISABLE")
-else:
-    env.Append(CPPDEFINES="IMGUI_ENABLE")
+def create_test_target():
+    """ Build the tests, note that this function depends on global state. """
+    tests_env = env.Clone()
+    tests_env.Append(CPPDEFINES="TESTS")
+    tests_env.Append(CPPDEFINES="IMGUI_DISABLE")
+    if GetOption("jumbo"):
+        tests_env.Append(CXXFLAGS=list(chain(("-include", s) for s in source if "imgui" not in s and "test" not in s)))
+        tests_objs = [tests_env.Object(tests_dir + "test.cpp")]
+        Depends(tests_objs[0], Command("inc/imgui/imgui.h", "vendor/imgui/imgui.h", Copy("inc/imgui/imgui.h", "vendor/imgui/imgui.h")))
+    else:
+        tests_objs = [tests_env.Object(re.sub("^src/", tests_dir, f)) for f in source]
+    return tests_env.Program(target=tests_dir + "tests", source=tests_objs)
 
-imgui_files_dest = [f"inc/imgui/{os.path.basename(f)}" for f in IMGUI_FILES_SRC]
-for src, dest in zip(IMGUI_FILES_SRC, imgui_files_dest):
-    Command(dest, src, Copy(dest, src))
-    Depends(imgui, dest)
+tests = create_test_target()
 
-glad = env.Object(smek_dir + "glad.cpp")
-if GetOption("jumbo"):
-    jumbo_source = source.copy()
-    jumbo_source.remove("src/test.cpp")
-    jumbo_source.remove("src/platform.cpp")
-    jumbo_source.remove("src/game.cpp")
+# Generate a compilation database, has to be placed above all source files and
+# is placed bellow the test files, to generate the compilation commands with
+# ImGui in them.
+#
+# (Requires scons 4.)
+if GetOption("gen_compilation_db"):
+    print("Generating compilation DB")
+    EnsureSConsVersion(4, 0)
+    env.Tool("compilation_db")
+    compd = env.CompilationDatabase("compile_commands.json")
 
-    jumbo_env = env.Clone()
-    jumbo_env.Append(CXXFLAGS=list(chain(("-include", source) for source in jumbo_source)))
-    libsmek = jumbo_env.SharedLibrary(smek_dir + smek_game_lib, [smek_dir + "game.cpp"])
+def create_smek_target():
+    """ Build the game, the platform layer and the assets for it. """
+    imgui = env.Object(smek_dir + "imgui.cpp")
+    if GetOption("no_imgui"):
+        env.Append(CPPDEFINES="IMGUI_DISABLE")
+    else:
+        env.Append(CPPDEFINES="IMGUI_ENABLE")
 
-    plt_env = env.Clone()
-    plt_env.Append(CXXFLAGS=["-include", "src/util/tprint.cpp"])
-    platform_source = plt_env.Object(smek_dir + "platform.cpp")
-    smek = env.Program(smek_dir + "SMEK", [platform_source, glad, imgui])
-else:
-    smek_source = [re.sub("^src/", smek_dir, f) for f in source]
-    smek_source.remove(smek_dir + "test.cpp")
-    smek_source.remove(smek_dir + "platform.cpp")
-    libsmek = env.SharedLibrary(smek_dir + smek_game_lib, [*smek_source])
+    imgui_files_dest = [f"inc/imgui/{os.path.basename(f)}" for f in IMGUI_FILES_SRC]
+    for src, dest in zip(IMGUI_FILES_SRC, imgui_files_dest):
+        Command(dest, src, Copy(dest, src))
+        Depends(imgui, dest)
 
-    platform_source = [smek_dir + "platform.cpp", smek_dir + "util/tprint.cpp"]
-    smek = env.Program(smek_dir + "SMEK", [*platform_source, glad, imgui])
+    glad = env.Object(smek_dir + "glad.cpp")
+    if GetOption("jumbo"):
+        jumbo_source = source.copy()
+        jumbo_source.remove("src/test.cpp")
+        jumbo_source.remove("src/platform.cpp")
+        jumbo_source.remove("src/game.cpp")
 
-if native and PLATFORMS["linux"]:
-    AddPostAction(libsmek, reload_action)
+        jumbo_env = env.Clone()
+        jumbo_env.Append(CXXFLAGS=list(chain(("-include", source) for source in jumbo_source)))
+        libsmek = jumbo_env.SharedLibrary(smek_dir + smek_game_lib, [smek_dir + "game.cpp"])
+
+        plt_env = env.Clone()
+        plt_env.Append(CXXFLAGS=["-include", "src/util/tprint.cpp"])
+        platform_source = plt_env.Object(smek_dir + "platform.cpp")
+        smek = env.Program(smek_dir + "SMEK", [platform_source, glad, imgui])
+    else:
+        smek_source = [re.sub("^src/", smek_dir, f) for f in source]
+        smek_source.remove(smek_dir + "test.cpp")
+        smek_source.remove(smek_dir + "platform.cpp")
+        libsmek = env.SharedLibrary(smek_dir + smek_game_lib, [*smek_source])
+
+        platform_source = [smek_dir + "platform.cpp", smek_dir + "util/tprint.cpp"]
+        smek = env.Program(smek_dir + "SMEK", [*platform_source, glad, imgui])
+
+    if native and PLATFORMS["linux"]:
+        AddPostAction(libsmek, reload_action)
+    return smek, assets, libsmek
+
+smek, assets, libsmek = create_smek_target()
 smek_target = env.Alias("smek", smek)
 Depends(smek_target, assets)
 Depends(smek_target, libsmek)
@@ -259,24 +295,25 @@ Default(smek_target)
 if GetOption("gen_compilation_db"):
     Depends(smek_target, compd)
 
-tests_runtime_flags = []
-if GetOption("ci"):
-    tests_runtime_flags.append("--ci")
+if native:
+    AlwaysBuild(env.Alias("run", smek_target, "cd " + smek_dir + "; " + smek[0].abspath))
+    AlwaysBuild(env.Alias("debug", smek_target, "cd " + smek_dir + "; " + "gdb " + smek[0].abspath))
 
-if GetOption("report"):
-    tests_runtime_flags.append("--report")
+    tests_runtime_flags = []
+    if GetOption("ci"):
+        tests_runtime_flags.append("--ci")
 
-tests_env = env.Clone()
-tests_env.Append(CPPDEFINES="TESTS")
-tests_env.Append(CPPDEFINES="IMGUI_DISABLE")
-if GetOption("jumbo"):
-    tests_env.Append(CXXFLAGS=list(chain(("-include", s) for s in source if "imgui" not in s and "test" not in s)))
-    tests_objs = [tests_env.Object(tests_dir + "test.cpp")]
-    Depends(tests_objs[0], Command("inc/imgui/imgui.h", "vendor/imgui/imgui.h", Copy("inc/imgui/imgui.h", "vendor/imgui/imgui.h")))
-else:
-    tests_objs = [tests_env.Object(re.sub("^src/", tests_dir, f)) for f in source]
-tests = tests_env.Program(target=tests_dir + "tests", source=tests_objs)
+    if GetOption("report"):
+        tests_runtime_flags.append("--report")
 
+    tests_target = env.Alias("tests", tests, "cd " + tests_dir + "; " + tests[0].abspath + " " + " ".join(tests_runtime_flags))
+
+    Depends(tests_target, tests_assets)
+    Depends(tests_target, tests)
+    AlwaysBuild(tests_target)
+
+
+# Zip file distribution
 zip_name = "smek"
 if GetOption("windows") or PLATFORMS["windows"]:
     files = "bin/debug-windows/libSMEK.dll bin/debug-windows/SMEK.exe bin/debug-windows/assets.bin lib/dll/*"
@@ -293,20 +330,18 @@ package_target = env.Alias("package", "", f"rm -f {zip_name}.zip; zip -j {zip_na
 Depends(package_target, smek_target)
 AlwaysBuild(package_target)
 
-if native:
-    AlwaysBuild(env.Alias("run", smek_target, "cd " + smek_dir + "; " + smek[0].abspath))
-    AlwaysBuild(env.Alias("debug", smek_target, "cd " + smek_dir + "; " + "gdb " + smek[0].abspath))
-    tests_target = env.Alias("tests", tests, "cd " + tests_dir + "; " + tests[0].abspath + " " + " ".join(tests_runtime_flags))
-    Depends(tests_target, tests_assets)
-    Depends(tests_target, tests)
-    AlwaysBuild(tests_target)
 
+# Generate documentation
 docs = env.Alias("docs", "", "docs/doc-builder.py")
 AlwaysBuild(docs)
 
+
+# Generate tags file
 if GetOption("tags"):
     shell(["ctags", "-R", "src"])
 
+
+# Cleaning
 env.Clean(smek_target, glob("bin/**/*.*", recursive=True))
 env.Clean(tests, glob("bin/**/*.*", recursive=True))
 env.Clean(docs, "docs/index.html")
