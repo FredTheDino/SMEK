@@ -139,6 +139,31 @@ EntityID EntitySystem::add(E entity) {
 // given name, note that this name has to be a FieldName::.
 // TODO(ed): FieldName:: should be enforced via a typecheck.
 bool has_field_by_name(BaseEntity *e, const char *);
+
+///*
+// Helper function for fetching the field, it is returned without type,
+// so this function can be used inside templates.
+void *_fetch_field_by_name_helper(BaseEntity *e, const char *name, const std::type_info &info);
+
+///*
+// Returns the name of the entitys type.
+const char *type_name(BaseEntity *e);
+
+///*
+// Returns a field value if it has the named field and the
+// named type.
+template <typename F>
+F *get_field_by_name(BaseEntity *e, const char *name) {
+    void *data = _fetch_field_by_name_helper(e, name, typeid(F));
+    if (!data) {
+        WARN("EntityType {} doesn't have '{}':'{}'.",
+             type_name(e),
+             name,
+             typeid(F).name());
+    }
+    return (F *)data;
+}
+
 ///*
 // A global getter for the entity_system.
 EntitySystem *entity_system();

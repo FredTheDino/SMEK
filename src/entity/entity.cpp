@@ -269,6 +269,13 @@ void EntitySystem::draw() {
         };
         for (auto [_, e] : entities) {
             Physics::AABody box;
+            Vec3 *p = get_field_by_name<Vec3>(e, FieldName::position);
+            if (has_field_by_name(e, FieldName::position)) {
+                LOG("{} has {}", entity_type_names[(int)e->type], FieldName::position);
+            } else {
+                LOG("{}", entity_type_names[(int)e->type]);
+            }
+#if 0
             // TODO(ed): meta type check if it has a position.
             Entity *e_ptr = (Entity *)e;
             box.position = e_ptr->position;
@@ -277,6 +284,7 @@ void EntitySystem::draw() {
                 box.half_size._[i] = abs_and_min(box.half_size._[i]);
             }
             Physics::draw_aabody(box, Vec4(0, 1.0, 0, 1.0));
+#endif
         }
 
         ImGui::End();
@@ -294,6 +302,21 @@ bool has_field_by_name(BaseEntity *e, const char *name) {
             return true;
     }
     return false;
+}
+
+void *_fetch_field_by_name_helper(BaseEntity *e, const char *name, const std::type_info &info) {
+    FieldList types = get_fields_for(e->type);
+    for (u32 i = 0; i < types.num_fields; i++) {
+        Field field = types.list[i];
+        if (field.name == name && field.typeinfo == info) {
+            return ((u8 *)e) + field.offset;
+        }
+    }
+    return nullptr;
+}
+
+const char *type_name(BaseEntity *e) {
+    return entity_type_names[(u32)e->type];
 }
 
 TEST_CASE("entity_adding", {
