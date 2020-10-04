@@ -109,6 +109,7 @@ struct EntitySystem {
     EntityID add_with_id(E entity, EntityID id);
 
     void remove(EntityID entity);
+    void remove_all();
 
     void draw();
     void send_state();

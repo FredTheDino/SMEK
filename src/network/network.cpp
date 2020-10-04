@@ -214,6 +214,7 @@ bool Network::connect_to_server(char *hostname, int portno) {
     }
     LOG("Connected");
     server_handle.wip_entities.alloc();
+    GAMESTATE()->entity_system.remove_all();
     sntprint(server_handle.thread_name, sizeof(server_handle.thread_name), "ServerHandle");
     server_handle.thread = SDL_CreateThread(start_server_handle, "ServerHandle", (void *)&server_handle);
     if (!server_handle.thread) {

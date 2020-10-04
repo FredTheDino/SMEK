@@ -173,6 +173,10 @@ void EntitySystem::update() {
 
 void EntitySystem::send_state() {}
 
+void EntitySystem::remove_all() {
+    entities.clear();
+}
+
 void EntitySystem::draw() {
 #ifdef IMGUI_ENABLE
     ImGui::Begin("Entities");
