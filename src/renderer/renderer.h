@@ -375,6 +375,10 @@ void remake_render_target();
 void set_screen_resolution(i32 width, i32 height);
 
 ///*
+// A convenience function for drawing meshes.
+void push_mesh(AssetID mesh, AssetID texture, Vec3 position, Quat rotation, Vec3 scale);
+
+///*
 // Returns the lighting struct.
 Lighting *lighting();
 
