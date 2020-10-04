@@ -54,12 +54,12 @@ void init_game(GameState *gamestate, int width, int height) {
     Input::bind(Ac::MouseToggle, 0, SDLK_m);
     Input::bind(Ac::Rebind, 1, SDLK_r);
 
-    Player player;
-    GAMESTATE()->event_queue.push(entity_event(player));
-
     Light l = Light();
     GAMESTATE()->lights[0] = GAMESTATE()->entity_system.add(l);
     GAMESTATE()->lights[1] = GAMESTATE()->entity_system.add(l);
+
+    Player player = {};
+    GAMESTATE()->entity_system.add(player);
 
     Physics::AABody b;
     b.position = { 0, 0, 0 };
