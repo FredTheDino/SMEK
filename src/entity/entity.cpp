@@ -295,18 +295,18 @@ void EntitySystem::draw() {
     }
 }
 
-bool has_field_by_name(BaseEntity *e, const char *name) {
+bool has_field_by_name(BaseEntity *e, FieldNameType name) {
     FieldList types = get_fields_for(e->type);
-    for (u32 i = 0; i < types.num_fields; i++) {
+    for (i32 i = 0; i < types.num_fields; i++) {
         if (types.list[i].name == name)
             return true;
     }
     return false;
 }
 
-void *_fetch_field_by_name_helper(BaseEntity *e, const char *name, const std::type_info &info) {
+void *_fetch_field_by_name_helper(BaseEntity *e, FieldNameType name, const std::type_info &info) {
     FieldList types = get_fields_for(e->type);
-    for (u32 i = 0; i < types.num_fields; i++) {
+    for (i32 i = 0; i < types.num_fields; i++) {
         Field field = types.list[i];
         if (field.name == name && field.typeinfo == info) {
             return ((u8 *)e) + field.offset;

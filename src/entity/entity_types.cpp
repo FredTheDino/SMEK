@@ -23,18 +23,18 @@ i32 format(char *buffer, u32 size, FormatHint args, EntityType type) {
 }
 
 namespace FieldName {
-const char *asset_id = "asset_id";
-const char *audio_id = "audio_id";
-const char *color = "color";
-const char *draw_as_point = "draw_as_point";
-const char *light_id = "light_id";
-const char *position = "position";
-const char *remove = "remove";
-const char *rotation = "rotation";
-const char *scale = "scale";
-const char *sound_source_settings = "sound_source_settings";
-const char *type = "type";
-const char *velocity = "velocity";
+FieldNameType asset_id = "asset_id";
+FieldNameType audio_id = "audio_id";
+FieldNameType color = "color";
+FieldNameType draw_as_point = "draw_as_point";
+FieldNameType light_id = "light_id";
+FieldNameType position = "position";
+FieldNameType remove = "remove";
+FieldNameType rotation = "rotation";
+FieldNameType scale = "scale";
+FieldNameType sound_source_settings = "sound_source_settings";
+FieldNameType type = "type";
+FieldNameType velocity = "velocity";
 };
 
 Field gen_BaseEntity[] = {

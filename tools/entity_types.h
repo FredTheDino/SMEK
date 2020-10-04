@@ -19,6 +19,7 @@ $types
     NUM_ENTITY_TYPES,
 };
 
+using FieldNameType = const char *;
 namespace FieldName {
 $all_field_names
 };

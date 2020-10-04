@@ -240,7 +240,7 @@ if __name__ == "__main__":
                     for name, struct in entity_structs.items() }
 
     template_kwords_h = {
-            "all_field_names": "\n".join([f"extern const char *{name};" for name in all_field_names]),
+            "all_field_names": "\n".join([f"extern FieldNameType {name};" for name in all_field_names]),
             "types": "\n".join([f"    {to_enum(t)}," for t in entity_structs.keys()]),
             "type_names": ",\n".join([f"{' '*4}\"{t}\"" for t in entity_structs.keys()]),
             "type_ofs": "\n".join([template_type_of_h.substitute(entity_type=t) for t in entity_structs.keys()]),
@@ -271,7 +271,7 @@ if __name__ == "__main__":
                      for name in entity_structs.keys()]
 
     template_kwords_cpp = {
-            "all_field_names_impl": "\n".join([f"const char *{name} = \"{name}\";" for name in all_field_names]),
+            "all_field_names_impl": "\n".join([f"FieldNameType {name} = \"{name}\";" for name in all_field_names]),
             "type_ofs": "\n".join([template_type_of_cpp.substitute(entity_type=t, entity_type_enum=to_enum(t)) for t in entity_structs.keys()]),
             "type_formats": "\n".join([f"{' '*4}case EntityType::{to_enum(t)}: return snprintf(buffer, size, \"{t}\");" for t in entity_structs.keys()]),
             "fields_data": "\n".join(fields_data),
