@@ -110,7 +110,7 @@ void Player::update() {
         position += velocity * delta();
     }
 
-    GFX::gameplay_camera()->position = position + Vec3(0.0, 0.5, 0.0);
+    GFX::gameplay_camera()->position = position + Vec3(0.0, 0.9, 0.0);
     GFX::gameplay_camera()->rotation = rotation;
 }
 
