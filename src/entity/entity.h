@@ -103,6 +103,7 @@ struct EntitySystem {
     void remove(EntityID entity);
 
     void draw();
+    void send_state();
     void update();
 
     template <typename E>

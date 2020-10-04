@@ -276,8 +276,12 @@ void draw() {
 
 GameState update_game(GameState *game, GSUM mode) { // Game entry point
     _global_gs = game;
-    if (should_update(mode)) { update(); }
-    if (should_draw(mode)) { draw(); }
+    if (mode.update)
+        update();
+    if (mode.draw)
+        draw();
+    if (mode.send)
+        GAMESTATE()->entity_system.send_state();
     return *game;
 }
 

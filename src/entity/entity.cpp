@@ -171,6 +171,8 @@ void EntitySystem::update() {
     }
 }
 
+void EntitySystem::send_state() {}
+
 void EntitySystem::draw() {
 #ifdef IMGUI_ENABLE
     ImGui::Begin("Entities");
