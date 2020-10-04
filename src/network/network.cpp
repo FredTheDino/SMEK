@@ -44,7 +44,7 @@ bool NetworkHandle::recv(u8 *buf, u32 data_len, Package *package) {
         WARN("{}: Did not read entire buffer, connection closed?", thread_name);
     } else {
         unpack(package, buf);
-        package_log.push_front(*package);
+        //package_log.push_front(*package);
         handle_package(package);
         return true;
     }
