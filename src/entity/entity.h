@@ -96,7 +96,7 @@ struct Player : public Entity {
 // The core
 struct EntitySystem {
     EntityID next_id;
-    std::unordered_map<u64, BaseEntity *> entities;
+    std::unordered_map<EntityID, BaseEntity *> entities;
 
     bool is_valid(EntityID id);
 
