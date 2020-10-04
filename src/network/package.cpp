@@ -37,7 +37,7 @@ i32 format(char *buffer, u32 size, FormatHint args, Package pkg) {
         return snprintf(buffer, size, "Heartbeat: id=%0*u",
                         args.num_zero_pad, pkg.HEARTBEAT.id);
     default:
-        return snprintf(buffer, size, "Not implemented for package type %u", (u32)pkg.header.type);
+        return snprintf(buffer, size, "Format not implemented for package type %u", (u32)pkg.header.type);
     }
 }
 
@@ -60,7 +60,7 @@ void imgui_package_create(Package *package, WipEntities *wip_entities) {
         ImGui::InputInt("id", (int *)&package->HEARTBEAT.id);
         break;
     default:
-        ImGui::Text("Not implemented for package type %u", (u32)package->header.type);
+        ImGui::Text("package_create not implemented for package type %u", (u32)package->header.type);
         break;
     }
 }
@@ -80,13 +80,13 @@ void imgui_event_create(Event *event, WipEntities *wip_entities) {
             *event = entity_event(*wip_entities->light);
             break;
         default:
-            ImGui::Text("Not implemented for entity type %u", (u32)wip_entities->type);
+            ImGui::Text("Create entity not implemented for entity type %u", (u32)wip_entities->type);
             break;
         }
         break;
     }
     default:
-        ImGui::Text("Not implemented for event type %u", (u32)event->type);
+        ImGui::Text("event_create not implemented for event type %u", (u32)event->type);
         break;
     }
 }
@@ -94,7 +94,7 @@ void imgui_event_create(Event *event, WipEntities *wip_entities) {
 void imgui_package_show(Package *package) {
     switch (package->header.type) {
     default:
-        ImGui::Text("Not implemented for package type %u", (u32)package->header.type);
+        ImGui::Text("package_show not implemented for package type %u", (u32)package->header.type);
         break;
     }
 }

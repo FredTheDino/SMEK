@@ -287,8 +287,6 @@ GameState update_game(GameState *game, GSUM mode) { // Game entry point
 
 void shutdown_game(GameState *game) {
     _global_gs = game;
-    LOG("Disconnecting from server");
     GAMESTATE()->network.disconnect_from_server();
-    LOG("Stopping server");
     GAMESTATE()->network.stop_server();
 }
