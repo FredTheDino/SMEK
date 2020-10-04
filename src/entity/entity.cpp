@@ -263,6 +263,22 @@ void EntitySystem::draw() {
         for (auto [_, e] : entities) {
             e->imgui();
         }
+
+        auto abs_and_min = [](real x) {
+            return Math::max<real>(Math::abs(x), 0.1);
+        };
+        for (auto [_, e] : entities) {
+            Physics::AABody box;
+            // TODO(ed): meta type check if it has a position.
+            Entity *e_ptr = (Entity *)e;
+            box.position = e_ptr->position;
+            box.half_size = (e_ptr->rotation * e_ptr->scale) / 2.0;
+            for (u32 i = 0; i < 3; i++) {
+                box.half_size._[i] = abs_and_min(box.half_size._[i]);
+            }
+            Physics::draw_aabody(box, Vec4(0, 1.0, 0, 1.0));
+        }
+
         ImGui::End();
     }
 #endif
