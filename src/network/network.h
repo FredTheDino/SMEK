@@ -71,7 +71,7 @@ struct Network {
     Package prev_package;
     SDL_mutex *m_prev_package;
 
-    u32 next_handle_id = 0;
+    u32 next_handle_id = 1;
     ServerHandle server_handle;
     ClientHandle client_handles[MAX_CLIENTS];
 
