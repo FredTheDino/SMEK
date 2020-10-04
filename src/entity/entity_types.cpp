@@ -22,39 +22,54 @@ i32 format(char *buffer, u32 size, FormatHint args, EntityType type) {
     return 0;
 }
 
+namespace FieldName {
+const char *asset_id = "asset_id";
+const char *audio_id = "audio_id";
+const char *color = "color";
+const char *draw_as_point = "draw_as_point";
+const char *light_id = "light_id";
+const char *position = "position";
+const char *remove = "remove";
+const char *rotation = "rotation";
+const char *scale = "scale";
+const char *sound_source_settings = "sound_source_settings";
+const char *type = "type";
+const char *velocity = "velocity";
+};
+
 Field gen_BaseEntity[] = {
-    { typeid(bool), "remove", sizeof(bool), (int)offsetof(BaseEntity, remove) },
-    { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(BaseEntity, type) }
+    { typeid(bool), FieldName::remove, sizeof(bool), (int)offsetof(BaseEntity, remove) },
+    { typeid(EntityType), FieldName::type, sizeof(EntityType), (int)offsetof(BaseEntity, type) }
 };
 Field gen_Entity[] = {
-    { typeid(bool), "remove", sizeof(bool), (int)offsetof(Entity, remove) },
-    { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(Entity, type) },
-    { typeid(Vec3), "position", sizeof(Vec3), (int)offsetof(Entity, position) },
-    { typeid(Vec3), "scale", sizeof(Vec3), (int)offsetof(Entity, scale) },
-    { typeid(Quat), "rotation", sizeof(Quat), (int)offsetof(Entity, rotation) }
+    { typeid(bool), FieldName::remove, sizeof(bool), (int)offsetof(Entity, remove) },
+    { typeid(EntityType), FieldName::type, sizeof(EntityType), (int)offsetof(Entity, type) },
+    { typeid(Vec3), FieldName::position, sizeof(Vec3), (int)offsetof(Entity, position) },
+    { typeid(Vec3), FieldName::scale, sizeof(Vec3), (int)offsetof(Entity, scale) },
+    { typeid(Quat), FieldName::rotation, sizeof(Quat), (int)offsetof(Entity, rotation) }
 };
 Field gen_Light[] = {
-    { typeid(bool), "remove", sizeof(bool), (int)offsetof(Light, remove) },
-    { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(Light, type) },
-    { typeid(i32), "light_id", sizeof(i32), (int)offsetof(Light, light_id) },
-    { typeid(Vec3), "position", sizeof(Vec3), (int)offsetof(Light, position) },
-    { typeid(Vec3), "color", sizeof(Vec3), (int)offsetof(Light, color) },
-    { typeid(bool), "draw_as_point", sizeof(bool), (int)offsetof(Light, draw_as_point) }
+    { typeid(bool), FieldName::remove, sizeof(bool), (int)offsetof(Light, remove) },
+    { typeid(EntityType), FieldName::type, sizeof(EntityType), (int)offsetof(Light, type) },
+    { typeid(i32), FieldName::light_id, sizeof(i32), (int)offsetof(Light, light_id) },
+    { typeid(Vec3), FieldName::position, sizeof(Vec3), (int)offsetof(Light, position) },
+    { typeid(Vec3), FieldName::color, sizeof(Vec3), (int)offsetof(Light, color) },
+    { typeid(bool), FieldName::draw_as_point, sizeof(bool), (int)offsetof(Light, draw_as_point) }
 };
 Field gen_Player[] = {
-    { typeid(bool), "remove", sizeof(bool), (int)offsetof(Player, remove) },
-    { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(Player, type) },
-    { typeid(Vec3), "position", sizeof(Vec3), (int)offsetof(Player, position) },
-    { typeid(Vec3), "scale", sizeof(Vec3), (int)offsetof(Player, scale) },
-    { typeid(Quat), "rotation", sizeof(Quat), (int)offsetof(Player, rotation) },
-    { typeid(Vec3), "velocity", sizeof(Vec3), (int)offsetof(Player, velocity) }
+    { typeid(bool), FieldName::remove, sizeof(bool), (int)offsetof(Player, remove) },
+    { typeid(EntityType), FieldName::type, sizeof(EntityType), (int)offsetof(Player, type) },
+    { typeid(Vec3), FieldName::position, sizeof(Vec3), (int)offsetof(Player, position) },
+    { typeid(Vec3), FieldName::scale, sizeof(Vec3), (int)offsetof(Player, scale) },
+    { typeid(Quat), FieldName::rotation, sizeof(Quat), (int)offsetof(Player, rotation) },
+    { typeid(Vec3), FieldName::velocity, sizeof(Vec3), (int)offsetof(Player, velocity) }
 };
 Field gen_SoundEntity[] = {
-    { typeid(bool), "remove", sizeof(bool), (int)offsetof(SoundEntity, remove) },
-    { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(SoundEntity, type) },
-    { typeid(AssetID), "asset_id", sizeof(AssetID), (int)offsetof(SoundEntity, asset_id) },
-    { typeid(Audio::SoundSourceSettings), "sound_source_settings", sizeof(Audio::SoundSourceSettings), (int)offsetof(SoundEntity, sound_source_settings) },
-    { typeid(AudioID), "audio_id", sizeof(AudioID), (int)offsetof(SoundEntity, audio_id) }
+    { typeid(bool), FieldName::remove, sizeof(bool), (int)offsetof(SoundEntity, remove) },
+    { typeid(EntityType), FieldName::type, sizeof(EntityType), (int)offsetof(SoundEntity, type) },
+    { typeid(AssetID), FieldName::asset_id, sizeof(AssetID), (int)offsetof(SoundEntity, asset_id) },
+    { typeid(Audio::SoundSourceSettings), FieldName::sound_source_settings, sizeof(Audio::SoundSourceSettings), (int)offsetof(SoundEntity, sound_source_settings) },
+    { typeid(AudioID), FieldName::audio_id, sizeof(AudioID), (int)offsetof(SoundEntity, audio_id) }
 };
 
 FieldList get_fields_for(EntityType type) {

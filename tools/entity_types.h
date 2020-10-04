@@ -19,6 +19,10 @@ $types
     NUM_ENTITY_TYPES,
 };
 
+namespace FieldName {
+$all_field_names
+};
+
 static const char *entity_type_names[] = {
 $type_names
 };

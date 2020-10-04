@@ -23,6 +23,21 @@ enum class EntityType {
     NUM_ENTITY_TYPES,
 };
 
+namespace FieldName {
+extern const char *asset_id;
+extern const char *audio_id;
+extern const char *color;
+extern const char *draw_as_point;
+extern const char *light_id;
+extern const char *position;
+extern const char *remove;
+extern const char *rotation;
+extern const char *scale;
+extern const char *sound_source_settings;
+extern const char *type;
+extern const char *velocity;
+};
+
 static const char *entity_type_names[] = {
     "BaseEntity",
     "Entity",

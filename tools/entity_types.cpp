@@ -18,6 +18,10 @@ $type_formats
     return 0;
 }
 
+namespace FieldName {
+$all_field_names_impl
+};
+
 $fields_data
 
 FieldList get_fields_for(EntityType type) {
