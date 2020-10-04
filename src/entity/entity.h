@@ -135,5 +135,10 @@ EntityID EntitySystem::add(E entity) {
 }
 
 ///*
+// Returns true if the given entity type has a field with the
+// given name, note that this name has to be a FieldName::.
+// TODO(ed): FieldName:: should be enforced via a typecheck.
+bool has_field_by_name(BaseEntity *e, const char *);
+///*
 // A global getter for the entity_system.
 EntitySystem *entity_system();

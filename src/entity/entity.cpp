@@ -287,6 +287,15 @@ void EntitySystem::draw() {
     }
 }
 
+bool has_field_by_name(BaseEntity *e, const char *name) {
+    FieldList types = get_fields_for(e->type);
+    for (u32 i = 0; i < types.num_fields; i++) {
+        if (types.list[i].name == name)
+            return true;
+    }
+    return false;
+}
+
 TEST_CASE("entity_adding", {
     int calls;
     struct TestEnt : public Entity {
