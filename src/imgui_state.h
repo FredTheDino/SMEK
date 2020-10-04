@@ -6,7 +6,7 @@ struct ImGuiState {
 
     // Toggleable views
     bool networking_enabled = false;
-    bool entities_enabled = false;
+    bool entities_enabled = true;
     bool depth_map_enabled = false;
     bool render_target_enabled = false;
 
