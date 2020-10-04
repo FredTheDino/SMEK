@@ -150,19 +150,24 @@ void *_fetch_field_by_name_helper(BaseEntity *e, FieldNameType name, const std::
 // Returns the name of the entitys type.
 const char *type_name(BaseEntity *e);
 
+template <typename F>
+F *get_field_by_name_no_warn(BaseEntity *e, FieldNameType name) {
+    return (F *)_fetch_field_by_name_helper(e, name, typeid(F));
+}
+
 ///*
 // Returns a field value if it has the named field and the
 // named type.
 template <typename F>
 F *get_field_by_name(BaseEntity *e, FieldNameType name) {
-    void *data = _fetch_field_by_name_helper(e, name, typeid(F));
+    F *data = get_field_by_name_no_warn<F>(e, name);
     if (!data) {
         WARN("EntityType {} doesn't have '{}':'{}'.",
              type_name(e),
              name,
              typeid(F).name());
     }
-    return (F *)data;
+    return data;
 }
 
 ///*

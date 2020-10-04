@@ -266,13 +266,13 @@ void EntitySystem::draw() {
 
         for (auto [_, e] : entities) {
             Physics::AABody box = {};
-            if (Vec3 *p = get_field_by_name<Vec3>(e, FieldName::position)) {
+            if (Vec3 *p = get_field_by_name_no_warn<Vec3>(e, FieldName::position)) {
                 box.position = *p;
             }
 
             // Size for boxes that doesn't have a scale.
             box.half_size = Vec3(1.0, 1.0, 1.0) * 0.2;
-            if (Vec3 *s = get_field_by_name<Vec3>(e, FieldName::scale)) {
+            if (Vec3 *s = get_field_by_name_no_warn<Vec3>(e, FieldName::scale)) {
                 box.half_size = (*s) * 0.5;
             }
 
