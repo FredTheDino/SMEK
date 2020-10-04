@@ -36,7 +36,7 @@ struct PackageEvent {
 };
 
 struct PackageSetClientID {
-    u32 client_id;
+    u64 client_id;
 };
 
 struct PackageHeartbeat {
@@ -45,7 +45,7 @@ struct PackageHeartbeat {
 
 ///*
 struct PackageHeader {
-    u32 client;
+    u64 client;
     u32 id;
     PackageType type;
 };

@@ -92,6 +92,12 @@ int start_server_handle(void *data) {
             case PackageType::SET_CLIENT_ID:
                 handle->client_id = package.SET_CLIENT_ID.client_id;
                 handle->wip_package.header.client = handle->client_id;
+                if (SDL_LockMutex(GAMESTATE()->entity_system.m_client_id) != 0) {
+                    ERR("Unable to lock mutex: {}", SDL_GetError());
+                } else {
+                    GAMESTATE()->entity_system.client_id = handle->client_id;
+                    SDL_UnlockMutex(GAMESTATE()->entity_system.m_client_id);
+                }
                 break;
             case PackageType::HEARTBEAT:
                 handle->recv_heartbeat(package.HEARTBEAT.id);
@@ -236,7 +242,8 @@ bool Network::new_client_handle(int newsockfd) {
         LOG("Found client handle");
         *handle = {};
         handle->sockfd = newsockfd;
-        handle->client_id = next_handle_id++;
+        handle->client_id = next_handle_id;
+        next_handle_id += HANDLE_ID_FIRST_BIT;
         handle->wip_package.header.client = handle->client_id;
         handle->wip_entities.alloc();
         sntprint(handle->thread_name, sizeof(handle->thread_name), "ClientHandle {}", handle->client_id);

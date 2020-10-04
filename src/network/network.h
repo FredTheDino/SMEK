@@ -27,7 +27,7 @@ struct NetworkHandle {
     char thread_name[32] = {};
     int sockfd;
 
-    u32 client_id;
+    u64 client_id;
     u32 next_package_id = 0;
 
     bool creating_package_to_send = false;
@@ -59,6 +59,7 @@ struct ClientHandle : public NetworkHandle {};
 int start_client_handle(void *data); // thread entry point, takes a (ClientHandle *)
 
 struct Network {
+    static const u64 HANDLE_ID_FIRST_BIT = 0x0100000000000000;
     static const u32 MAX_CLIENTS = 2;
 
     bool server_listening = false;
@@ -70,8 +71,8 @@ struct Network {
     socklen_t cli_len;
     Package prev_package;
     SDL_mutex *m_prev_package;
+    u64 next_handle_id = HANDLE_ID_FIRST_BIT;
 
-    u32 next_handle_id = 1;
     ServerHandle server_handle;
     ClientHandle client_handles[MAX_CLIENTS];
 

@@ -24,10 +24,12 @@ i32 format(char *buffer, u32 size, FormatHint args, EntityType type) {
 
 Field gen_BaseEntity[] = {
     { typeid(bool), "remove", sizeof(bool), (int)offsetof(BaseEntity, remove) },
+    { typeid(EntityID), "entity_id", sizeof(EntityID), (int)offsetof(BaseEntity, entity_id) },
     { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(BaseEntity, type) }
 };
 Field gen_Entity[] = {
     { typeid(bool), "remove", sizeof(bool), (int)offsetof(Entity, remove) },
+    { typeid(EntityID), "entity_id", sizeof(EntityID), (int)offsetof(Entity, entity_id) },
     { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(Entity, type) },
     { typeid(Vec3), "position", sizeof(Vec3), (int)offsetof(Entity, position) },
     { typeid(Vec3), "scale", sizeof(Vec3), (int)offsetof(Entity, scale) },
@@ -35,6 +37,7 @@ Field gen_Entity[] = {
 };
 Field gen_Light[] = {
     { typeid(bool), "remove", sizeof(bool), (int)offsetof(Light, remove) },
+    { typeid(EntityID), "entity_id", sizeof(EntityID), (int)offsetof(Light, entity_id) },
     { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(Light, type) },
     { typeid(i32), "light_id", sizeof(i32), (int)offsetof(Light, light_id) },
     { typeid(Vec3), "position", sizeof(Vec3), (int)offsetof(Light, position) },
@@ -42,6 +45,7 @@ Field gen_Light[] = {
 };
 Field gen_Player[] = {
     { typeid(bool), "remove", sizeof(bool), (int)offsetof(Player, remove) },
+    { typeid(EntityID), "entity_id", sizeof(EntityID), (int)offsetof(Player, entity_id) },
     { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(Player, type) },
     { typeid(Vec3), "position", sizeof(Vec3), (int)offsetof(Player, position) },
     { typeid(Vec3), "scale", sizeof(Vec3), (int)offsetof(Player, scale) },
@@ -50,6 +54,7 @@ Field gen_Player[] = {
 };
 Field gen_SoundEntity[] = {
     { typeid(bool), "remove", sizeof(bool), (int)offsetof(SoundEntity, remove) },
+    { typeid(EntityID), "entity_id", sizeof(EntityID), (int)offsetof(SoundEntity, entity_id) },
     { typeid(EntityType), "type", sizeof(EntityType), (int)offsetof(SoundEntity, type) },
     { typeid(AssetID), "asset_id", sizeof(AssetID), (int)offsetof(SoundEntity, asset_id) },
     { typeid(Audio::SoundSourceSettings), "sound_source_settings", sizeof(Audio::SoundSourceSettings), (int)offsetof(SoundEntity, sound_source_settings) },

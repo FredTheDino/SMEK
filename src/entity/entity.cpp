@@ -242,6 +242,16 @@ void EntitySystem::draw() {
 #endif
 }
 
+EntityID EntitySystem::next_id() {
+    int lock_success = SDL_LockMutex(m_client_id);
+    ASSERT(lock_success == 0, "Unable to lock mutex: {}", SDL_GetError());
+    defer { SDL_UnlockMutex(m_client_id); };
+    u64 id = id_counter++;
+    id &= ID_MASK;
+    id |= client_id;
+    return id;
+}
+
 TEST_CASE("entity_adding", {
     int calls;
     struct TestEnt : public Entity {

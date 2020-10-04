@@ -27,6 +27,8 @@ void init_game(GameState *gamestate, int width, int height) {
     _global_gs = gamestate;
     GAMESTATE()->main_thread = SDL_GetThreadID(NULL);
 
+    GAMESTATE()->entity_system.m_client_id = SDL_CreateMutex();
+
     Asset::load("assets.bin");
 
     GFX::init(GAMESTATE(), width, height);
