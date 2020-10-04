@@ -1,5 +1,6 @@
 #pragma once
 #include <unordered_map>
+#include <set>
 #include "../math/smek_math.h"
 #include "../math/smek_vec.h"
 #include "../math/smek_quat.h"
@@ -97,6 +98,7 @@ struct Player : public Entity {
 struct EntitySystem {
     EntityID next_id;
     std::unordered_map<EntityID, BaseEntity *> entities;
+    std::set<EntityID> selected;
 
     bool is_valid(EntityID id);
 
