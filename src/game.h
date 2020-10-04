@@ -85,6 +85,7 @@ bool should_draw(GSUM gsmu);
 extern "C" void reload_game(GameState *gamestate);
 typedef void (*GameReloadFunc)(GameState *);
 
+#pragma clang diagnostic ignored "-Wreturn-type-c-linkage"
 ///*
 // Steps the game one frame forward. Doesn't have side-effects
 // outside of the GameState object, but the new one is returned.
