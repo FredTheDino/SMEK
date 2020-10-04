@@ -264,27 +264,19 @@ void EntitySystem::draw() {
             e->imgui();
         }
 
-        auto abs_and_min = [](real x) {
-            return Math::max<real>(Math::abs(x), 0.1);
-        };
         for (auto [_, e] : entities) {
-            Physics::AABody box;
-            Vec3 *p = get_field_by_name<Vec3>(e, FieldName::position);
-            if (has_field_by_name(e, FieldName::position)) {
-                LOG("{} has {}", entity_type_names[(int)e->type], FieldName::position);
-            } else {
-                LOG("{}", entity_type_names[(int)e->type]);
+            Physics::AABody box = {};
+            if (Vec3 *p = get_field_by_name<Vec3>(e, FieldName::position)) {
+                box.position = *p;
             }
-#if 0
-            // TODO(ed): meta type check if it has a position.
-            Entity *e_ptr = (Entity *)e;
-            box.position = e_ptr->position;
-            box.half_size = (e_ptr->rotation * e_ptr->scale) / 2.0;
-            for (u32 i = 0; i < 3; i++) {
-                box.half_size._[i] = abs_and_min(box.half_size._[i]);
+
+            // Size for boxes that doesn't have a scale.
+            box.half_size = Vec3(1.0, 1.0, 1.0) * 0.2;
+            if (Vec3 *s = get_field_by_name<Vec3>(e, FieldName::scale)) {
+                box.half_size = (*s) * 0.5;
             }
+
             Physics::draw_aabody(box, Vec4(0, 1.0, 0, 1.0));
-#endif
         }
 
         ImGui::End();
