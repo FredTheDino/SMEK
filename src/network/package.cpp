@@ -80,7 +80,7 @@ void imgui_event_create(Event *event, WipEntities *wip_entities) {
             *event = entity_event(*wip_entities->light);
             break;
         default:
-            ImGui::Text("Create entity not implemented for entity type %u", (u32)wip_entities->type);
+            ImGui::Text("create_entity not implemented for entity type %u", (u32)wip_entities->type);
             break;
         }
         break;
