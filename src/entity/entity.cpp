@@ -157,7 +157,10 @@ void SoundEntity::on_remove() {
     GAMESTATE()->audio_struct->stop_sound(audio_id);
 }
 
-bool EntitySystem::is_valid(EntityID id) { return entities.contains(id); }
+bool EntitySystem::is_valid(EntityID id) {
+    return entities.contains(id);
+}
+
 bool EntitySystem::have_ownership(EntityID id) {
     int lock_success = SDL_LockMutex(m_client_id);
     ASSERT(lock_success == 0, "Unable to lock mutex: {}", SDL_GetError());

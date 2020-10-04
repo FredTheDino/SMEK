@@ -7,24 +7,6 @@ Vec3 cross(const Vec3 &a, const Vec3 &b) {
                 a.x * b.y - b.x * a.y);
 }
 
-void Vec2::to(real *arr) const {
-    arr[0] = _[0];
-    arr[1] = _[1];
-}
-
-void Vec3::to(real *arr) const {
-    arr[0] = _[0];
-    arr[1] = _[1];
-    arr[2] = _[2];
-}
-
-void Vec4::to(real *arr) const {
-    arr[0] = _[0];
-    arr[1] = _[1];
-    arr[2] = _[2];
-    arr[3] = _[3];
-}
-
 i32 format(char *buffer, u32 size, FormatHint args, Vec2 v) {
     return snprintf(buffer, size, "(%0*.*f, %0*.*f)",
                     args.num_zero_pad, args.num_decimals, v.x,

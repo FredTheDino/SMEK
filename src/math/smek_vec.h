@@ -11,6 +11,9 @@ struct Vec2 {
     Vec2(real x = 0.0, real y = 0.0)
         : x(x)
         , y(y) {}
+    Vec2(real *arr)
+        : x(arr[0])
+        , y(arr[1]) {}
 
     union {
         real _[2];
@@ -22,7 +25,6 @@ struct Vec2 {
         };
     };
 
-    void to(real *arr) const;
     real &operator[](std::size_t idx) { return _[idx]; }
 
     static Vec2 from(real *arr) { return { arr[0], arr[1] }; }
@@ -33,6 +35,10 @@ struct Vec3 {
         : x(x)
         , y(y)
         , z(z) {}
+    Vec3(real *arr)
+        : x(arr[0])
+        , y(arr[1])
+        , z(arr[2]) {}
 
     union {
         real _[3];
@@ -44,7 +50,6 @@ struct Vec3 {
         };
     };
 
-    void to(real *arr) const;
     real &operator[](std::size_t idx) { return _[idx]; }
 
     static Vec3 from(real *arr) { return { arr[0], arr[1], arr[2] }; }
@@ -56,6 +61,11 @@ struct Vec4 {
         , y(y)
         , z(z)
         , w(w) {}
+    Vec4(real *arr)
+        : x(arr[0])
+        , y(arr[1])
+        , z(arr[2])
+        , w(arr[3]) {}
 
     union {
         real _[4];
@@ -67,7 +77,6 @@ struct Vec4 {
         };
     };
 
-    void to(real *arr) const;
     real &operator[](std::size_t idx) { return _[idx]; }
 
     static Vec4 from(real *arr) { return { arr[0], arr[1], arr[2], arr[3] }; }

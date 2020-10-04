@@ -18,8 +18,11 @@ struct H {
         , y(y)
         , z(z)
         , w(w) {}
-
-    void to(real *arr);
+    H(real *arr)
+        : x(arr[0])
+        , y(arr[1])
+        , z(arr[2])
+        , w(arr[3]) {}
 
     H operator-();
 
