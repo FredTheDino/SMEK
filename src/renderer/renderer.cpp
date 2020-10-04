@@ -423,6 +423,7 @@ MasterShader MasterShader::init() {
     FETCH_SHADER_PROP(proj);
     FETCH_SHADER_PROP(view);
     FETCH_SHADER_PROP(model);
+    FETCH_SHADER_PROP(model_norm);
     FETCH_SHADER_PROP(tex);
 
     FETCH_SHADER_PROP_FOR_LIST(bones);
@@ -463,6 +464,7 @@ U32_SHADER_PROP(MasterShader, tex);
 MAT_SHADER_PROP(MasterShader, proj);
 MAT_SHADER_PROP(MasterShader, view);
 MAT_SHADER_PROP(MasterShader, model);
+MAT_SHADER_PROP(MasterShader, model_norm);
 
 V3_SHADER_PROP(MasterShader, sun_dir);
 V3_SHADER_PROP(MasterShader, sun_color);
@@ -731,6 +733,9 @@ void push_mesh(AssetID mesh, AssetID texture, Vec3 position, Quat rotation, Vec3
 
     Mat model = Mat::translate(position) * Mat::from(rotation) * Mat::scale(scale);
     shader.upload_model(model);
+    Mat model_norm = model.invert().transpose();
+    model_norm.gfx_dump();
+    shader.upload_model_norm(model_norm);
     Asset::fetch_mesh(mesh)->draw();
 }
 

@@ -57,7 +57,7 @@ IMPL_IMGUI(Light, ([&] {
                ImGui::InputInt("#Light ID:", &copy_id);
                ImGui::InputFloat3("Position", position._);
                ImGui::ColorEdit3("Color", color._);
-               ImGui::Checkbox("Show All Lights", &draw_as_point);
+               ImGui::Checkbox("Draw As Point", &draw_as_point);
            }))
 
 void Light::draw() {
@@ -110,7 +110,7 @@ void Player::update() {
         position += velocity * delta();
     }
 
-    GFX::gameplay_camera()->position = position + Vec3(0.0, 0.3, 0.0);
+    GFX::gameplay_camera()->position = position + Vec3(0.0, 0.9, 0.0);
     GFX::gameplay_camera()->rotation = rotation;
 }
 
@@ -130,7 +130,8 @@ IMPL_IMGUI(Player, ([&]() {
            }))
 
 void Player::draw() {
-    GFX::push_mesh("MONKEY", "TILES", position, H(), Vec3(0.2, 0.2, 0.2));
+    scale = Vec3(1., 2., 3.) * 0.3;
+    GFX::push_mesh("MONKEY", "TILES", position, rotation, scale);
 }
 
 void SoundEntity::update() {

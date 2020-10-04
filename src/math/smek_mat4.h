@@ -57,6 +57,7 @@ struct Mat {
     void gfx_dump(Vec4 color = Vec4(1.0, 1.0, 1.0, 1.0));
 
     Mat invert();
+    Mat transpose();
 };
 
 ///*
@@ -69,16 +70,34 @@ i32 format(char *buffer, u32 size, FormatHint args, Mat &m);
 Mat Mat::scale(real scale);
 
 ///*
+Mat Mat::scale(Vec3 scale);
+
+///*
 Mat Mat::translate(real dx, real dy, real dz);
 
 ///*
 Mat Mat::translate(Vec3 delta);
 
 ///*
+Mat Mat::rotate_x(real d);
+
+///*
+Mat Mat::rotate_y(real d);
+
+///*
+Mat Mat::rotate_z(real d);
+
+///*
+Mat Mat::rotate(real dx, real dy, real dz);
+
+///*
+Mat Mat::rotate(Vec3 delta);
+
+///*
 Mat Mat::look_at(Vec3 from, Vec3 to, Vec3 up);
 
 ///*
-Mat Mat::perspective(real fov, real near, real far);
+Mat Mat::perspective(real fov, real aspect_ratio, real near, real far);
 
 #endif
 
