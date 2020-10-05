@@ -49,7 +49,7 @@ void Light::on_remove() {
 
 void LightUpdate::callback() {
     if (!GAMESTATE()->entity_system.is_valid(entity_id)) {
-        WARN("Received event position update for invalid entity");
+        WARN("Received event position update for invalid entity id {}", entity_id);
         return;
     }
     Light *l = GAMESTATE()->entity_system.fetch<Light>(entity_id);
@@ -169,7 +169,7 @@ bool EntitySystem::have_ownership(EntityID id) {
 }
 
 void EntitySystem::remove(EntityID id) {
-    ASSERT(is_valid(id), "Cannot remove entity that doesn't exist");
+    ASSERT(is_valid(id), "Removing invalid entity id {}", id);
     entities[id]->on_remove();
     delete entities[id];
     entities.erase(id);
@@ -223,7 +223,7 @@ void EntitySystem::send_state(ClientHandle *handle) {
 }
 
 void EntitySystem::send_initial_state(ClientHandle *handle) {
-    LOG("Sending lights");
+    LOG("Sending initial state to client");
     Package entity_package;
     entity_package.header.type = PackageType::EVENT;
     if (is_valid(GAMESTATE()->lights[0])) {

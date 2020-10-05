@@ -130,7 +130,7 @@ struct EntitySystem {
 // Fetches an entity of the given type.
 template <typename E>
 E *EntitySystem::fetch(EntityID id) {
-    ASSERT(is_valid(id), "Cannot fetch entity that doesn't exist");
+    ASSERT(is_valid(id), "Fetching invalid entity id {}", id);
     return dynamic_cast<E *>(entities[id]);
 }
 
@@ -138,7 +138,7 @@ E *EntitySystem::fetch(EntityID id) {
 // Adds a new entity to the entity system.
 template <typename E>
 EntityID EntitySystem::add_with_id(E entity, EntityID id) {
-    ASSERT(!is_valid(id), "Adding multiple entity ids for one id");
+    ASSERT(!is_valid(id), "Adding multiple entities for id {}", id);
     LOG("Adding with id {}", id);
     E *e = new E();
     *e = entity;
