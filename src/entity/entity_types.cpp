@@ -113,31 +113,51 @@ void EventCreateEntity::callback() {
     case EntityType::BASEENTITY: {
         BaseEntity entity;
         std::memcpy(((u8 *)&entity) + sizeof(u8 *), BASEENTITY, sizeof(BaseEntity) - sizeof(u8 *));
-        GAMESTATE()->entity_system.add_with_id(entity, entity.entity_id);
+        if (generate_id) {
+            GAMESTATE()->entity_system.add(entity);
+        } else {
+            GAMESTATE()->entity_system.add_with_id(entity, entity.entity_id);
+        }
         break;
     }
     case EntityType::ENTITY: {
         Entity entity;
         std::memcpy(((u8 *)&entity) + sizeof(u8 *), ENTITY, sizeof(Entity) - sizeof(u8 *));
-        GAMESTATE()->entity_system.add_with_id(entity, entity.entity_id);
+        if (generate_id) {
+            GAMESTATE()->entity_system.add(entity);
+        } else {
+            GAMESTATE()->entity_system.add_with_id(entity, entity.entity_id);
+        }
         break;
     }
     case EntityType::LIGHT: {
         Light entity;
         std::memcpy(((u8 *)&entity) + sizeof(u8 *), LIGHT, sizeof(Light) - sizeof(u8 *));
-        GAMESTATE()->entity_system.add_with_id(entity, entity.entity_id);
+        if (generate_id) {
+            GAMESTATE()->entity_system.add(entity);
+        } else {
+            GAMESTATE()->entity_system.add_with_id(entity, entity.entity_id);
+        }
         break;
     }
     case EntityType::PLAYER: {
         Player entity;
         std::memcpy(((u8 *)&entity) + sizeof(u8 *), PLAYER, sizeof(Player) - sizeof(u8 *));
-        GAMESTATE()->entity_system.add_with_id(entity, entity.entity_id);
+        if (generate_id) {
+            GAMESTATE()->entity_system.add(entity);
+        } else {
+            GAMESTATE()->entity_system.add_with_id(entity, entity.entity_id);
+        }
         break;
     }
     case EntityType::SOUNDENTITY: {
         SoundEntity entity;
         std::memcpy(((u8 *)&entity) + sizeof(u8 *), SOUNDENTITY, sizeof(SoundEntity) - sizeof(u8 *));
-        GAMESTATE()->entity_system.add_with_id(entity, entity.entity_id);
+        if (generate_id) {
+            GAMESTATE()->entity_system.add(entity);
+        } else {
+            GAMESTATE()->entity_system.add_with_id(entity, entity.entity_id);
+        }
         break;
     }
 
