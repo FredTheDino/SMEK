@@ -155,66 +155,81 @@ void EventCreateEntity::callback() {
  * Included from `tools/entity_types_event.cpp`
  */
 
-Event entity_event(BaseEntity entity) {
-    return entity_event(&entity);
+Event entity_event(BaseEntity entity, bool generate_id) {
+    return entity_event(&entity, generate_id);
 }
 
-Event entity_event(BaseEntity *entity) {
+Event entity_event(BaseEntity *entity, bool generate_id) {
     Event event = {
         .type = EventType::CREATE_ENTITY,
-        .CREATE_ENTITY = { .type = EntityType::BASEENTITY }
+        .CREATE_ENTITY = {
+            .generate_id = generate_id,
+            .type = EntityType::BASEENTITY
+        }
     };
     std::memcpy(event.CREATE_ENTITY.BASEENTITY, ((u8 *)entity) + sizeof(u8 *), sizeof(BaseEntity) - sizeof(u8 *));
     return event;
 }
 
-Event entity_event(Entity entity) {
-    return entity_event(&entity);
+Event entity_event(Entity entity, bool generate_id) {
+    return entity_event(&entity, generate_id);
 }
 
-Event entity_event(Entity *entity) {
+Event entity_event(Entity *entity, bool generate_id) {
     Event event = {
         .type = EventType::CREATE_ENTITY,
-        .CREATE_ENTITY = { .type = EntityType::ENTITY }
+        .CREATE_ENTITY = {
+            .generate_id = generate_id,
+            .type = EntityType::ENTITY
+        }
     };
     std::memcpy(event.CREATE_ENTITY.ENTITY, ((u8 *)entity) + sizeof(u8 *), sizeof(Entity) - sizeof(u8 *));
     return event;
 }
 
-Event entity_event(Light entity) {
-    return entity_event(&entity);
+Event entity_event(Light entity, bool generate_id) {
+    return entity_event(&entity, generate_id);
 }
 
-Event entity_event(Light *entity) {
+Event entity_event(Light *entity, bool generate_id) {
     Event event = {
         .type = EventType::CREATE_ENTITY,
-        .CREATE_ENTITY = { .type = EntityType::LIGHT }
+        .CREATE_ENTITY = {
+            .generate_id = generate_id,
+            .type = EntityType::LIGHT
+        }
     };
     std::memcpy(event.CREATE_ENTITY.LIGHT, ((u8 *)entity) + sizeof(u8 *), sizeof(Light) - sizeof(u8 *));
     return event;
 }
 
-Event entity_event(Player entity) {
-    return entity_event(&entity);
+Event entity_event(Player entity, bool generate_id) {
+    return entity_event(&entity, generate_id);
 }
 
-Event entity_event(Player *entity) {
+Event entity_event(Player *entity, bool generate_id) {
     Event event = {
         .type = EventType::CREATE_ENTITY,
-        .CREATE_ENTITY = { .type = EntityType::PLAYER }
+        .CREATE_ENTITY = {
+            .generate_id = generate_id,
+            .type = EntityType::PLAYER
+        }
     };
     std::memcpy(event.CREATE_ENTITY.PLAYER, ((u8 *)entity) + sizeof(u8 *), sizeof(Player) - sizeof(u8 *));
     return event;
 }
 
-Event entity_event(SoundEntity entity) {
-    return entity_event(&entity);
+Event entity_event(SoundEntity entity, bool generate_id) {
+    return entity_event(&entity, generate_id);
 }
 
-Event entity_event(SoundEntity *entity) {
+Event entity_event(SoundEntity *entity, bool generate_id) {
     Event event = {
         .type = EventType::CREATE_ENTITY,
-        .CREATE_ENTITY = { .type = EntityType::SOUNDENTITY }
+        .CREATE_ENTITY = {
+            .generate_id = generate_id,
+            .type = EntityType::SOUNDENTITY
+        }
     };
     std::memcpy(event.CREATE_ENTITY.SOUNDENTITY, ((u8 *)entity) + sizeof(u8 *), sizeof(SoundEntity) - sizeof(u8 *));
     return event;
