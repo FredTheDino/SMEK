@@ -26,6 +26,7 @@ struct H {
         , w(arr[3]) {}
 
     void to(real *arr) const;
+    real &operator[](std::size_t idx);
 
     H operator-();
 

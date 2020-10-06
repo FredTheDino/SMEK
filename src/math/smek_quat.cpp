@@ -17,6 +17,11 @@ void H::to(real *arr) const {
     arr[3] = _[3];
 }
 
+real &H::operator[](std::size_t idx) {
+    ASSERT_LT(idx, 4);
+    return _[idx];
+}
+
 H H::operator-() {
     return { -x, -y, -z, w };
 }

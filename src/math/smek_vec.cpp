@@ -19,6 +19,20 @@ void Vec4::to(real *arr) const {
     arr[3] = w;
 }
 
+
+real &Vec2::operator[](std::size_t idx) {
+    ASSERT_LT(idx, 2);
+    return _[idx];
+}
+real &Vec3::operator[](std::size_t idx) {
+    ASSERT_LT(idx, 3);
+    return _[idx];
+}
+real &Vec4::operator[](std::size_t idx) {
+    ASSERT_LT(idx, 4);
+    return _[idx];
+}
+
 Vec3 cross(const Vec3 &a, const Vec3 &b) {
     return Vec3(a.y * b.z - b.y * a.z,
                 a.z * b.x - b.z * a.x,

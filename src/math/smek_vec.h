@@ -17,6 +17,7 @@ struct Vec2 {
         , y(arr[1]) {}
 
     void to(real *arr) const;
+    real &operator[](std::size_t idx);
 
     union {
         real _[2];
@@ -40,6 +41,7 @@ struct Vec3 {
         , z(arr[2]) {}
 
     void to(real *arr) const;
+    real &operator[](std::size_t idx);
 
     union {
         real _[3];
@@ -66,6 +68,7 @@ struct Vec4 {
         , w(arr[3]) {}
 
     void to(real *arr) const;
+    real &operator[](std::size_t idx);
 
     union {
         real _[4];
