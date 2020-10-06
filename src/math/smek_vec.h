@@ -12,6 +12,12 @@ struct Vec2 {
         : x(x)
         , y(y) {}
 
+    Vec2(real *arr)
+        : x(arr[0])
+        , y(arr[1]) {}
+
+    void to(real *arr) const;
+
     union {
         real _[2];
         struct {
@@ -27,6 +33,13 @@ struct Vec3 {
         : x(x)
         , y(y)
         , z(z) {}
+
+    Vec3(real *arr)
+        : x(arr[0])
+        , y(arr[1])
+        , z(arr[2]) {}
+
+    void to(real *arr) const;
 
     union {
         real _[3];
@@ -45,6 +58,14 @@ struct Vec4 {
         , y(y)
         , z(z)
         , w(w) {}
+
+    Vec4(real *arr)
+        : x(arr[0])
+        , y(arr[1])
+        , z(arr[2])
+        , w(arr[3]) {}
+
+    void to(real *arr) const;
 
     union {
         real _[4];

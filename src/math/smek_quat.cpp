@@ -10,6 +10,13 @@ i32 format(char *buffer, u32 size, FormatHint args, H q) {
                     args.num_zero_pad, args.num_decimals, q.z);
 }
 
+void H::to(real *arr) const {
+    arr[0] = _[0];
+    arr[1] = _[1];
+    arr[2] = _[2];
+    arr[3] = _[3];
+}
+
 H H::operator-() {
     return { -x, -y, -z, w };
 }

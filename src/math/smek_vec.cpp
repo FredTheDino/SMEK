@@ -1,6 +1,24 @@
 #include "smek_vec.h"
 #include "../test.h"
 
+void Vec2::to(real *arr) const {
+    arr[0] = x;
+    arr[1] = y;
+}
+
+void Vec3::to(real *arr) const {
+    arr[0] = x;
+    arr[1] = y;
+    arr[2] = z;
+}
+
+void Vec4::to(real *arr) const {
+    arr[0] = x;
+    arr[1] = y;
+    arr[2] = z;
+    arr[3] = w;
+}
+
 Vec3 cross(const Vec3 &a, const Vec3 &b) {
     return Vec3(a.y * b.z - b.y * a.z,
                 a.z * b.x - b.z * a.x,
