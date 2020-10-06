@@ -152,3 +152,16 @@ TEST_CASE("Vec4 to", {
     v.to(arr);
     return arr[0] == 1 && arr[1] == 2 && arr[2] == 3 && arr[3] == 4;
 });
+
+TEST_CASE("Vec2 from array", {
+    Vec2 v({ 1, 2 });
+    return v[0] == 1 && v[1] == 2;
+});
+TEST_CASE("Vec3 from array", {
+    Vec3 v({ 1, 2, 3 });
+    return v[0] == 1 && v[1] == 2 && v[2] == 3;
+});
+TEST_CASE("Vec2 from array", {
+    Vec4 v({ 1, 2, 3, 4});
+    return v[0] == 1 && v[1] == 2 && v[2] == 3 && v[3] == 4;
+});
