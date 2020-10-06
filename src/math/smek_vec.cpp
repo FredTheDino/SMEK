@@ -133,3 +133,22 @@ TEST_CASE("Vec4[] assign", {
     v[3] = 4;
     return close_enough(v, Vec4(1, 2, 3, 4));
 });
+
+TEST_CASE("Vec2 to", {
+    Vec2 v(1, 2);
+    real arr[2];
+    v.to(arr);
+    return arr[0] == 1 && arr[1] == 2;
+});
+TEST_CASE("Vec3 to", {
+    Vec3 v(1, 2, 3);
+    real arr[3];
+    v.to(arr);
+    return arr[0] == 1 && arr[1] == 2 && arr[2] == 3;
+});
+TEST_CASE("Vec4 to", {
+    Vec4 v(1, 2, 3, 4);
+    real arr[4];
+    v.to(arr);
+    return arr[0] == 1 && arr[1] == 2 && arr[2] == 3 && arr[3] == 4;
+});

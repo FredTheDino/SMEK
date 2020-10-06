@@ -197,3 +197,9 @@ TEST_CASE("H[]_assign", {
     h[3] = 4;
     return h[0] == 1 && h[1] == 2 && h[2] == 3 && h[3] == 4;
 });
+TEST_CASE("H to", {
+    H h(1, 2, 3, 4);
+    real arr[4];
+    h.to(arr);
+    return arr[0] == 1 && arr[1] == 2 && arr[2] == 3 && arr[3] == 4;
+});
