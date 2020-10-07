@@ -1,28 +1,42 @@
 #include "smek_vec.h"
 #include "../test.h"
 
+void Vec2::to(real *arr) const {
+    arr[0] = x;
+    arr[1] = y;
+}
+
+void Vec3::to(real *arr) const {
+    arr[0] = x;
+    arr[1] = y;
+    arr[2] = z;
+}
+
+void Vec4::to(real *arr) const {
+    arr[0] = x;
+    arr[1] = y;
+    arr[2] = z;
+    arr[3] = w;
+}
+
+
+real &Vec2::operator[](std::size_t idx) {
+    ASSERT_LT(idx, 2);
+    return _[idx];
+}
+real &Vec3::operator[](std::size_t idx) {
+    ASSERT_LT(idx, 3);
+    return _[idx];
+}
+real &Vec4::operator[](std::size_t idx) {
+    ASSERT_LT(idx, 4);
+    return _[idx];
+}
+
 Vec3 cross(const Vec3 &a, const Vec3 &b) {
     return Vec3(a.y * b.z - b.y * a.z,
                 a.z * b.x - b.z * a.x,
                 a.x * b.y - b.x * a.y);
-}
-
-void Vec2::to(real *arr) const {
-    arr[0] = _[0];
-    arr[1] = _[1];
-}
-
-void Vec3::to(real *arr) const {
-    arr[0] = _[0];
-    arr[1] = _[1];
-    arr[2] = _[2];
-}
-
-void Vec4::to(real *arr) const {
-    arr[0] = _[0];
-    arr[1] = _[1];
-    arr[2] = _[2];
-    arr[3] = _[3];
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, Vec2 v) {
@@ -119,3 +133,69 @@ TEST_FORMAT(Vec3(1.000, 1.4, 2.511), "(1.00, 1.40, 2.51)", .num_decimals = 2);
 TEST_FORMAT(Vec3(-1.0, -2.56, -10.0005), "(-1.0, -2.6, -10.0)", .num_decimals = 1);
 TEST_FORMAT(Vec4(-1, -2, 3, 2), "(-1, -2, 3, 2)", .num_decimals = 0);
 TEST_FORMAT(Vec4(-1.1, -2.1, 3.8, 2.8), "(-1, -2, 4, 3)", .num_decimals = 0);
+
+TEST_CASE("Vec2[] read", {
+    Vec2 v(1, 2);
+    return v[0] == 1 && v[1] == 2;
+});
+TEST_CASE("Vec2[] assign", {
+    Vec2 v(0, 0);
+    v[0] = 1;
+    v[1] = 2;
+    return close_enough(v, Vec2(1, 2));
+});
+TEST_CASE("Vec3[] read", {
+    Vec3 v(1, 2, 3);
+    return v[0] == 1 && v[1] == 2 && v[2] == 3;
+});
+TEST_CASE("Vec3[] assign", {
+    Vec3 v(0, 0, 0);
+    v[0] = 1;
+    v[1] = 2;
+    v[2] = 3;
+    return close_enough(v, Vec3(1, 2, 3));
+});
+TEST_CASE("Vec4[] read", {
+    Vec4 v(1, 2, 3, 4);
+    return v[0] == 1 && v[1] == 2 && v[2] == 3 && v[3] == 4;
+});
+TEST_CASE("Vec4[] assign", {
+    Vec4 v(0, 0, 0, 0);
+    v[0] = 1;
+    v[1] = 2;
+    v[2] = 3;
+    v[3] = 4;
+    return close_enough(v, Vec4(1, 2, 3, 4));
+});
+
+TEST_CASE("Vec2 to", {
+    Vec2 v(1, 2);
+    real arr[2];
+    v.to(arr);
+    return arr[0] == 1 && arr[1] == 2;
+});
+TEST_CASE("Vec3 to", {
+    Vec3 v(1, 2, 3);
+    real arr[3];
+    v.to(arr);
+    return arr[0] == 1 && arr[1] == 2 && arr[2] == 3;
+});
+TEST_CASE("Vec4 to", {
+    Vec4 v(1, 2, 3, 4);
+    real arr[4];
+    v.to(arr);
+    return arr[0] == 1 && arr[1] == 2 && arr[2] == 3 && arr[3] == 4;
+});
+
+TEST_CASE("Vec2 from array", {
+    Vec2 v({ 1, 2 });
+    return v[0] == 1 && v[1] == 2;
+});
+TEST_CASE("Vec3 from array", {
+    Vec3 v({ 1, 2, 3 });
+    return v[0] == 1 && v[1] == 2 && v[2] == 3;
+});
+TEST_CASE("Vec2 from array", {
+    Vec4 v({ 1, 2, 3, 4});
+    return v[0] == 1 && v[1] == 2 && v[2] == 3 && v[3] == 4;
+});

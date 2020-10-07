@@ -10,11 +10,16 @@ i32 format(char *buffer, u32 size, FormatHint args, H q) {
                     args.num_zero_pad, args.num_decimals, q.z);
 }
 
-void H::to(real *arr) {
+void H::to(real *arr) const {
     arr[0] = _[0];
     arr[1] = _[1];
     arr[2] = _[2];
     arr[3] = _[3];
+}
+
+real &H::operator[](std::size_t idx) {
+    ASSERT_LT(idx, 4);
+    return _[idx];
 }
 
 H H::operator-() {
@@ -179,3 +184,26 @@ Mat Mat::from(H q) {
         0.0f,
         1.0f);
 };
+
+TEST_CASE("H[]_read", {
+    H h(1, 2, 3, 4);
+    return h[0] == 1 && h[1] == 2 && h[2] == 3 && h[3] == 4;
+});
+TEST_CASE("H[]_assign", {
+    H h(0, 0, 0, 0);
+    h[0] = 1;
+    h[1] = 2;
+    h[2] = 3;
+    h[3] = 4;
+    return h[0] == 1 && h[1] == 2 && h[2] == 3 && h[3] == 4;
+});
+TEST_CASE("H to", {
+    H h(1, 2, 3, 4);
+    real arr[4];
+    h.to(arr);
+    return arr[0] == 1 && arr[1] == 2 && arr[2] == 3 && arr[3] == 4;
+});
+TEST_CASE("H from array", {
+    H h({ 1, 2, 3, 4 });
+    return h[0] == 1 && h[1] == 2 && h[2] == 3 && h[3] == 4;
+});
