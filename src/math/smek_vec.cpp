@@ -91,7 +91,7 @@ TEST_CASE("vec2[]_assign", {
 });
 TEST_CASE("vec3[]_read", {
     Vec3 v(1, 2, 3);
-    return v[0] == 1 && v[1] == 2 && v[2] = 3;
+    return v[0] == 1 && v[1] == 2 && v[2] == 3;
 });
 TEST_CASE("vec3[]_assign", {
     Vec3 v(0, 0, 0);
