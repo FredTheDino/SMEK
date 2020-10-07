@@ -61,6 +61,10 @@ int main(int argc, char **argv) { // Test entry point
     return _global_tests.run(ci, write_report, report_path);
 }
 
+void init_tests_state(GameState *tests_state ) {
+    tests_state->entity_system.m_client_id = SDL_CreateMutex();
+}
+
 #define STREAM stderr
 
 unsigned int TestSuite::run(bool ci, bool write_report, const char *path) {
@@ -93,7 +97,9 @@ unsigned int TestSuite::run(bool ci, bool write_report, const char *path) {
 
     for (unsigned int i = 0; i < num_tests; i++) {
         GameState state = {};
+        init_tests_state(&state);
         _test_gs = &state;
+        // remember to increase the 03 here if we pass 999 tests
         ftprint(STREAM, "{}{03}: {}{}", PRE, i + 1, tests[i].name, POST);
         LOG_TESTS("{03}: {}", i + 1, tests[i].name);
         bool success = false;

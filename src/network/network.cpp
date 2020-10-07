@@ -1,6 +1,7 @@
 #include "network.h"
 #include "../util/util.h"
 #include "../game.h"
+#include "../entity/entity_types.h"
 #include "../test.h"
 
 #include <errno.h>
@@ -43,7 +44,7 @@ bool NetworkHandle::recv(u8 *buf, u32 data_len, Package *package) {
         WARN("{}: Did not read entire buffer, connection closed?", thread_name);
     } else {
         unpack(package, buf);
-        package_log.push_front(*package);
+        //package_log.push_front(*package);
         handle_package(package);
         return true;
     }
@@ -51,10 +52,11 @@ bool NetworkHandle::recv(u8 *buf, u32 data_len, Package *package) {
 }
 
 void NetworkHandle::handle_package(Package *package) {
-    LOG("{} ({}): {}", thread_name, package_log.front().header, package_log.front());
     switch (package->header.type) {
     case PackageType::EVENT:
+        ASSERT(SDL_LockMutex(GAMESTATE()->m_event_queue) == 0, "Failed to aquire lock");
         GAMESTATE()->event_queue.push(package->EVENT.event);
+        SDL_UnlockMutex(GAMESTATE()->m_event_queue);
         break;
     default:
         break;
@@ -92,6 +94,12 @@ int start_server_handle(void *data) {
             case PackageType::SET_CLIENT_ID:
                 handle->client_id = package.SET_CLIENT_ID.client_id;
                 handle->wip_package.header.client = handle->client_id;
+                if (SDL_LockMutex(GAMESTATE()->entity_system.m_client_id) != 0) {
+                    ERR("Unable to lock mutex: {}", SDL_GetError());
+                } else {
+                    GAMESTATE()->entity_system.client_id = handle->client_id;
+                    SDL_UnlockMutex(GAMESTATE()->entity_system.m_client_id);
+                }
                 break;
             case PackageType::HEARTBEAT:
                 handle->recv_heartbeat(package.HEARTBEAT.id);
@@ -208,6 +216,7 @@ bool Network::connect_to_server(char *hostname, int portno) {
     }
     LOG("Connected");
     server_handle.wip_entities.alloc();
+    GAMESTATE()->entity_system.remove_all();
     sntprint(server_handle.thread_name, sizeof(server_handle.thread_name), "ServerHandle");
     server_handle.thread = SDL_CreateThread(start_server_handle, "ServerHandle", (void *)&server_handle);
     if (!server_handle.thread) {
@@ -236,7 +245,8 @@ bool Network::new_client_handle(int newsockfd) {
         LOG("Found client handle");
         *handle = {};
         handle->sockfd = newsockfd;
-        handle->client_id = next_handle_id++;
+        handle->client_id = next_handle_id;
+        next_handle_id += HANDLE_ID_FIRST_BIT;
         handle->wip_package.header.client = handle->client_id;
         handle->wip_entities.alloc();
         sntprint(handle->thread_name, sizeof(handle->thread_name), "ClientHandle {}", handle->client_id);
@@ -249,10 +259,22 @@ bool Network::new_client_handle(int newsockfd) {
         id_package.header.type = PackageType::SET_CLIENT_ID;
         id_package.SET_CLIENT_ID.client_id = handle->client_id;
         handle->send(&id_package);
+        GAMESTATE()->entity_system.send_initial_state(handle);
         return true;
     }
     WARN("No available client handles, ignoring");
     return false;
+}
+
+void Network::send_state_to_server() {}
+
+void Network::send_state_to_clients() {
+    for (u32 i = 0; i < MAX_CLIENTS; i++) {
+        ClientHandle *handle = client_handles + i;
+        if (handle->active) {
+            GAMESTATE()->entity_system.send_state(handle);
+        }
+    }
 }
 
 #ifdef IMGUI_ENABLE

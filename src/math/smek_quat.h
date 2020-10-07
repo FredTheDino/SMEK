@@ -18,7 +18,6 @@ struct H {
         , y(y)
         , z(z)
         , w(w) {}
-
     H(real *arr)
         : x(arr[0])
         , y(arr[1])
