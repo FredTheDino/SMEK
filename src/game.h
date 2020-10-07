@@ -27,6 +27,7 @@ struct GameState {
     Audio::AudioStruct *audio_struct;
     EntitySystem entity_system;
     Physics::PhysicsEngine physics_engine;
+    SDL_mutex *m_event_queue;
     std::queue<Event> event_queue;
     Network network = {};
 
@@ -64,19 +65,16 @@ GameState *GAMESTATE();
 extern "C" void init_game(GameState *gamestate, int width, int height);
 typedef void (*GameInitFunc)(GameState *, int, int);
 
-enum class GameStateUpdateMode {
-    RENDER,
-    UPDATE,
-    UPDATE_AND_RENDER,
+struct GameStateUpdateMode {
+    bool draw = false;
+    bool update = false;
+    bool send = false;
 };
 using GSUM = GameStateUpdateMode;
 
 f32 delta();
 f32 time();
 u32 frame();
-
-bool should_update(GSUM gsmu);
-bool should_draw(GSUM gsmu);
 
 ///*
 // Reloads eventual global state. If you can get away with storing
@@ -92,7 +90,7 @@ typedef void (*GameReloadFunc)(GameState *);
 ///*
 // Steps the game one frame forward. Doesn't have side-effects
 // outside of the GameState object, but the new one is returned.
-extern "C" GameState update_game(GameState *gamestate, GSUM mode = GSUM::UPDATE_AND_RENDER);
+extern "C" GameState update_game(GameState *gamestate, GSUM mode);
 typedef GameState (*GameUpdateFunc)(GameState *, GSUM);
 
 ///*

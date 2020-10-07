@@ -19,6 +19,7 @@ enum class EntityType;
 // The base entity all other entities inherit from.
 struct BaseEntity {
     bool remove = false;
+    EntityID entity_id;
 
     virtual void imgui() {};
 
@@ -61,15 +62,10 @@ struct Entity : public BaseEntity {
 ///* Light
 // A light source in the world. Interfaces with the
 // renderer under the hood and abstracts away the interface.
-//
-// NOTE(ed): It might be more practical if
-// "Light" is an "Entity"
-struct Light : public BaseEntity {
+struct Light : public Entity {
     static const int NONE = -1;
 
     i32 light_id = NONE;
-
-    Vec3 position;
     Vec3 color;
 
     bool draw_as_point;
@@ -81,7 +77,15 @@ struct Light : public BaseEntity {
     void on_remove() override;
 };
 
-///* Player
+struct LightUpdate {
+    EntityID entity_id;
+    real position[3];
+    real color[3];
+    bool draw_as_point;
+    void callback();
+};
+
+///*
 // A playable character
 struct Player : public Entity {
     Vec3 velocity;
@@ -92,20 +96,33 @@ struct Player : public Entity {
     void draw() override;
 };
 
-///* EntitySystem
-// The core
+struct ServerHandle;
+struct ClientHandle;
+///*
 struct EntitySystem {
-    EntityID next_id;
-    std::unordered_map<u64, BaseEntity *> entities;
+    static const u64 ID_MASK = 0x00FFFFFFFFFFFFFF;
+    SDL_mutex *m_client_id;
+    u64 client_id = 0;
+    u64 id_counter = 0;
+    u64 next_id();
+    std::unordered_map<EntityID, BaseEntity *> entities;
 
     bool is_valid(EntityID id);
+    bool have_ownership(EntityID id);
 
     template <typename E>
-    EntityID add(E entity);
+    EntityID add_with_id(E entity, EntityID id);
+
+    template <typename E>
+    EntityID add(E entity) { return add_with_id(entity, next_id()); }
 
     void remove(EntityID entity);
+    void remove_all();
 
     void draw();
+    void send_state(ServerHandle *handle);
+    void send_state(ClientHandle *handle);
+    void send_initial_state(ClientHandle *handle);
     void update();
 
     template <typename E>
@@ -116,19 +133,20 @@ struct EntitySystem {
 // Fetches an entity of the given type.
 template <typename E>
 E *EntitySystem::fetch(EntityID id) {
-    ASSERT(is_valid(id), "Cannot fetch entity that doesn't exist");
+    ASSERT(is_valid(id), "Fetching invalid entity id {}", id);
     return dynamic_cast<E *>(entities[id]);
 }
 
 ///*
 // Adds a new entity to the entity system.
 template <typename E>
-EntityID EntitySystem::add(E entity) {
-    EntityID id = next_id++;
-    ASSERT(!is_valid(id), "Adding multiple entity ids for one id");
+EntityID EntitySystem::add_with_id(E entity, EntityID id) {
+    ASSERT(!is_valid(id), "Adding multiple entities for id {}", id);
+    LOG("Adding with id {}", id);
     E *e = new E();
     *e = entity;
     e->type = type_of(e);
+    e->entity_id = id;
     entities[id] = (BaseEntity *)e;
     e->on_create();
     return id;

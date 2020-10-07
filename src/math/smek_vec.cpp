@@ -7,6 +7,24 @@ Vec3 cross(const Vec3 &a, const Vec3 &b) {
                 a.x * b.y - b.x * a.y);
 }
 
+void Vec2::to(real *arr) const {
+    arr[0] = _[0];
+    arr[1] = _[1];
+}
+
+void Vec3::to(real *arr) const {
+    arr[0] = _[0];
+    arr[1] = _[1];
+    arr[2] = _[2];
+}
+
+void Vec4::to(real *arr) const {
+    arr[0] = _[0];
+    arr[1] = _[1];
+    arr[2] = _[2];
+    arr[3] = _[3];
+}
+
 i32 format(char *buffer, u32 size, FormatHint args, Vec2 v) {
     return snprintf(buffer, size, "(%0*.*f, %0*.*f)",
                     args.num_zero_pad, args.num_decimals, v.x,
@@ -60,6 +78,40 @@ TEST_STMT("vec_mul", close_enough(Vec2(1, 1) * 3, Vec2(3, 3)));
 TEST_STMT("vec_normalized", close_enough(normalized(Vec4(1, 1, 1, 1)), Vec4(0.5, 0.5, 0.5, 0.5), 0.001));
 TEST_STMT("vec_sub", close_enough(Vec2(3, 4) - Vec2(1, -2), Vec2(2, 6)));
 TEST_STMT("vec_sub", close_enough(Vec4() - Vec4(1, 1, 1), Vec4(-1, -1, -1)));
+
+TEST_CASE("vec2[]_read", {
+    Vec2 v(1, 2);
+    return v[0] == 1 && v[1] == 2;
+});
+TEST_CASE("vec2[]_assign", {
+    Vec2 v(0, 0);
+    v[0] = 1;
+    v[1] = 2;
+    return close_enough(v, Vec2(1, 2));
+});
+TEST_CASE("vec3[]_read", {
+    Vec3 v(1, 2, 3);
+    return v[0] == 1 && v[1] == 2 && v[2] == 3;
+});
+TEST_CASE("vec3[]_assign", {
+    Vec3 v(0, 0, 0);
+    v[0] = 1;
+    v[1] = 2;
+    v[2] = 3;
+    return close_enough(v, Vec3(1, 2, 3));
+});
+TEST_CASE("vec4[]_read", {
+    Vec4 v(1, 2, 3, 4);
+    return v[0] == 1 && v[1] == 2 && v[2] == 3 && v[3] == 4;
+});
+TEST_CASE("vec4[]_assign", {
+    Vec4 v(0, 0, 0, 0);
+    v[0] = 1;
+    v[1] = 2;
+    v[2] = 3;
+    v[3] = 4;
+    return close_enough(v, Vec4(1, 2, 3, 4));
+});
 
 TEST_FORMAT(Vec2(1, 1.5), "(1.00, 1.50)", .num_decimals = 2);
 TEST_FORMAT(Vec2(1.04, -1.5), "(1.0, -1.5)", .num_decimals = 1);

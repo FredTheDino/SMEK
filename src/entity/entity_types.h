@@ -73,6 +73,7 @@ EntityType type_of(SoundEntity *);
  */
 
 struct EventCreateEntity {
+    bool generate_id;
     EntityType type;
     union {
         u8 BASEENTITY[sizeof(BaseEntity) - sizeof(void *)];
@@ -87,8 +88,13 @@ struct EventCreateEntity {
 
 struct Event;
 
-Event entity_event(BaseEntity);
-Event entity_event(Entity);
-Event entity_event(Light);
-Event entity_event(Player);
-Event entity_event(SoundEntity);
+Event entity_event(BaseEntity entity, bool generate_id = false);
+Event entity_event(BaseEntity *entity, bool generate_id = false);
+Event entity_event(Entity entity, bool generate_id = false);
+Event entity_event(Entity *entity, bool generate_id = false);
+Event entity_event(Light entity, bool generate_id = false);
+Event entity_event(Light *entity, bool generate_id = false);
+Event entity_event(Player entity, bool generate_id = false);
+Event entity_event(Player *entity, bool generate_id = false);
+Event entity_event(SoundEntity entity, bool generate_id = false);
+Event entity_event(SoundEntity *entity, bool generate_id = false);

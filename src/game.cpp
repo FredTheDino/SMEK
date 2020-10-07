@@ -17,14 +17,6 @@ GameState *_global_gs;
 GameState *GAMESTATE() { return _global_gs; }
 #endif
 
-bool should_update(GSUM gsmu) {
-    return gsmu == GSUM::UPDATE || gsmu == GSUM::UPDATE_AND_RENDER;
-}
-
-bool should_draw(GSUM gsmu) {
-    return gsmu == GSUM::RENDER || gsmu == GSUM::UPDATE_AND_RENDER;
-}
-
 f32 delta() { return GAMESTATE()->delta; }
 f32 time() { return GAMESTATE()->time; }
 u32 frame() { return GAMESTATE()->frame; }
@@ -34,6 +26,9 @@ void do_imgui_stuff();
 void init_game(GameState *gamestate, int width, int height) {
     _global_gs = gamestate;
     GAMESTATE()->main_thread = SDL_GetThreadID(NULL);
+
+    GAMESTATE()->entity_system.m_client_id = SDL_CreateMutex();
+    GAMESTATE()->m_event_queue = SDL_CreateMutex();
 
     Asset::load("assets.bin");
 
@@ -62,12 +57,12 @@ void init_game(GameState *gamestate, int width, int height) {
     Input::bind(Ac::MouseToggle, 0, SDLK_m);
     Input::bind(Ac::Rebind, 1, SDLK_r);
 
-    Player player;
-    GAMESTATE()->event_queue.push(entity_event(player));
-
     Light l = Light();
     GAMESTATE()->lights[0] = GAMESTATE()->entity_system.add(l);
     GAMESTATE()->lights[1] = GAMESTATE()->entity_system.add(l);
+
+    Player player = {};
+    GAMESTATE()->entity_system.add(player);
 
     Physics::AABody b;
     b.position = { 0, 0, 0 };
@@ -130,16 +125,20 @@ void draw() {
     shader.upload_ambient_color(GFX::lighting()->ambient_color);
 
     Vec3 position = Vec3(3, 0.5, 3);
-    {
+    if (GAMESTATE()->entity_system.is_valid(GAMESTATE()->lights[0])) {
         Light *l = GAMESTATE()->entity_system.fetch<Light>(GAMESTATE()->lights[0]);
-        l->position = position + Vec3(0.5, 1.0 + sin(time()), 0.0);
-        // l->color = Vec3(sin(time()) * 0.5 + 0.5, cos(time()) * 0.5 + 0.5, 0.2);
+        if (GAMESTATE()->entity_system.have_ownership(l->entity_id)) {
+            l->position = position + Vec3(0.5, 1.0 + sin(time()), 0.0);
+            // l->color = Vec3(sin(time()) * 0.5 + 0.5, cos(time()) * 0.5 + 0.5, 0.2);
+        }
     }
 
-    {
+    if (GAMESTATE()->entity_system.is_valid(GAMESTATE()->lights[1])) {
         Light *l = GAMESTATE()->entity_system.fetch<Light>(GAMESTATE()->lights[1]);
-        l->position = position + Vec3(1.0 + cos(time()), 1.0, sin(time()));
-        // l->color = Vec3(0.5, 0.5, 0.9);
+        if (GAMESTATE()->entity_system.have_ownership(l->entity_id)) {
+            l->position = position + Vec3(1.0 + cos(time()), 1.0, sin(time()));
+            // l->color = Vec3(0.5, 0.5, 0.9);
+        }
     }
 
     shader.upload_lights(GFX::lighting()->light_positions,
@@ -276,15 +275,20 @@ void do_imgui_stuff() {}
 
 GameState update_game(GameState *game, GSUM mode) { // Game entry point
     _global_gs = game;
-    if (should_update(mode)) { update(); }
-    if (should_draw(mode)) { draw(); }
+    if (mode.update)
+        update();
+    if (mode.draw)
+        draw();
+    if (mode.send) {
+        GAMESTATE()->network.send_state_to_server();
+        GAMESTATE()->network.send_state_to_clients();
+    }
+    SDL_LockMutex(game->m_event_queue);
     return *game;
 }
 
 void shutdown_game(GameState *game) {
     _global_gs = game;
-    LOG("Disconnecting from server");
     GAMESTATE()->network.disconnect_from_server();
-    LOG("Stopping server");
     GAMESTATE()->network.stop_server();
 }
