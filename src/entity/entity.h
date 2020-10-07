@@ -81,6 +81,7 @@ struct LightUpdate {
     EntityID entity_id;
     real position[3];
     real color[3];
+    bool draw_as_point;
     void callback();
 };
 

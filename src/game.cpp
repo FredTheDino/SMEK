@@ -125,16 +125,20 @@ void draw() {
     shader.upload_ambient_color(GFX::lighting()->ambient_color);
 
     Vec3 position = Vec3(3, 0.5, 3);
-    {
+    if (GAMESTATE()->entity_system.is_valid(GAMESTATE()->lights[0])) {
         Light *l = GAMESTATE()->entity_system.fetch<Light>(GAMESTATE()->lights[0]);
-        l->position = position + Vec3(0.5, 1.0 + sin(time()), 0.0);
-        // l->color = Vec3(sin(time()) * 0.5 + 0.5, cos(time()) * 0.5 + 0.5, 0.2);
+        if (GAMESTATE()->entity_system.have_ownership(l->entity_id)) {
+            l->position = position + Vec3(0.5, 1.0 + sin(time()), 0.0);
+            // l->color = Vec3(sin(time()) * 0.5 + 0.5, cos(time()) * 0.5 + 0.5, 0.2);
+        }
     }
 
-    {
+    if (GAMESTATE()->entity_system.is_valid(GAMESTATE()->lights[1])) {
         Light *l = GAMESTATE()->entity_system.fetch<Light>(GAMESTATE()->lights[1]);
-        l->position = position + Vec3(1.0 + cos(time()), 1.0, sin(time()));
-        // l->color = Vec3(0.5, 0.5, 0.9);
+        if (GAMESTATE()->entity_system.have_ownership(l->entity_id)) {
+            l->position = position + Vec3(1.0 + cos(time()), 1.0, sin(time()));
+            // l->color = Vec3(0.5, 0.5, 0.9);
+        }
     }
 
     shader.upload_lights(GFX::lighting()->light_positions,

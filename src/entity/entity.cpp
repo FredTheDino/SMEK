@@ -88,6 +88,7 @@ void LightUpdate::callback() {
     Light *l = GAMESTATE()->entity_system.fetch<Light>(entity_id);
     l->position = Vec3::from(position);
     l->color = Vec3::from(color);
+    l->draw_as_point = draw_as_point;
 }
 
 void Player::update() {
@@ -241,6 +242,7 @@ void EntitySystem::send_state(ClientHandle *handle) {
         event.entity_id = light->entity_id;
         light->position.to(event.position);
         light->color.to(event.color);
+        event.draw_as_point = light->draw_as_point;
         pkg.EVENT.event.LIGHT_UPDATE = event;
         handle->send(&pkg);
     }
@@ -249,6 +251,7 @@ void EntitySystem::send_state(ClientHandle *handle) {
         event.entity_id = light->entity_id;
         light->position.to(event.position);
         light->color.to(event.color);
+        event.draw_as_point = light->draw_as_point;
         pkg.EVENT.event.LIGHT_UPDATE = event;
         handle->send(&pkg);
     }
