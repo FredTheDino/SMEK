@@ -20,6 +20,10 @@ jobs:
       - name: requirements.txt
         run: |
           python3 -m pip install --user -r requirements.txt
+      - name: Check that typesystem-gen.py has been run
+        run: |
+          python3 tools/typesystem-gen.py
+          git diff --exit-code
       - name: Run tests
         run: |
           scons -Q tests --ci --report --jumbo --no-imgui
