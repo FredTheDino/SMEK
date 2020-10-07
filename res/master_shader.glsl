@@ -5,6 +5,7 @@ uniform float t;
 uniform mat4 proj;
 uniform mat4 view;
 uniform mat4 model;
+uniform mat4 model_norm;
 uniform sampler2D tex;
 
 uniform int num_bones;
@@ -58,7 +59,7 @@ void main() {
     }
 
     gl_Position = proj * view * model * final_pos;
-    pass_norm = normalize((model * final_norm).xyz);
+    pass_norm = (model_norm * final_norm).xyz;
     pass_pos = (model * final_pos).xyz;
     pass_uv = uv;
 }
@@ -74,7 +75,6 @@ in vec3 pass_pos;
 void main() {
     float sun_lightness = max(0, dot(sun_dir, pass_norm));
     vec4 albedo = texture(tex, pass_uv);
-    albedo = vec4(1.0, 1.0, 1.0, 1.0);
     vec4 light_color = sun_lightness * (sun_lightness * vec4(sun_color, 1.0) + vec4(ambient_color, 1.0));
 
     for (int i = 0; i < MAX_LIGHTS; i++) {

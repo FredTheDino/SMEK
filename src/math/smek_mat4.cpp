@@ -214,6 +214,16 @@ TEST_STMT("mat_scale",
                                                 0, 0, 1, 0,
                                                 0, 0, 0, 1)));
 
+Mat Mat::transpose() {
+    Mat result = {};
+    for (i32 x = 0; x < 3; x++) {
+        for (i32 y = 0; y < 3; y++) {
+            result._[x][y] = _[y][x];
+        }
+    }
+    return result;
+}
+
 // clang-format off
 Mat Mat::invert() {
 	Mat inv = {};

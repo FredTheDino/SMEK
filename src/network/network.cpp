@@ -280,6 +280,7 @@ void Network::send_state_to_clients() {
 
 #ifdef IMGUI_ENABLE
 void Network::imgui_draw() {
+    if (!GAMESTATE()->imgui.networking_enabled) return;
     ImGui::Begin("Networking");
     {
         static int serverport = 8888;

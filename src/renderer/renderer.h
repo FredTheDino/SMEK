@@ -44,11 +44,12 @@ struct Camera {
     bool dirty_perspective;
 
     // NOTE(ed): Given in radians.
-    static Camera init(f32 fov = PI / 4);
+    static Camera init(f32 fov = PI / 3);
 
     // NOTE(ed): Given in radians.
     void set_fov(f32 fov);
 
+    void set_aspect_ratio();
     void set_aspect_ratio(f32 aspect_ratio);
 
     void turn(f32 jaw, f32 pitch);
@@ -212,6 +213,7 @@ struct MasterShader : public Shader {
     MAT_SHADER_PROP(proj);
     MAT_SHADER_PROP(view);
     MAT_SHADER_PROP(model);
+    MAT_SHADER_PROP(model_norm);
 
     V3_SHADER_PROP(sun_dir);
     V3_SHADER_PROP(sun_color);
@@ -238,6 +240,7 @@ struct DebugShader : public Shader {
     MAT_SHADER_PROP(proj);
     MAT_SHADER_PROP(view);
     MAT_SHADER_PROP(model);
+    MAT_SHADER_PROP(model_norm);
 
     static DebugShader init();
 };
@@ -277,7 +280,7 @@ struct RenderTexture {
     void use();
     void destroy();
 
-    static RenderTexture create(int width, int height, bool use_depth, bool use_color);
+    static RenderTexture create(int width, int height);
 };
 
 ///*
@@ -343,6 +346,7 @@ struct Renderer {
     u32 width;
     u32 height;
 
+    RenderTexture target;
     Mesh quad;
     Lighting lighting;
 
@@ -361,6 +365,20 @@ struct Renderer {
 ///*
 // Initalize the graphics pipeline.
 bool init(GameState *gs, i32 width = 680, i32 height = 480);
+
+///*
+RenderTexture render_target();
+
+///*
+void remake_render_target();
+
+///*
+// Sets the screen resolution.
+void set_screen_resolution(i32 width, i32 height);
+
+///*
+// A convenience function for drawing meshes.
+void push_mesh(AssetID mesh, AssetID texture, Vec3 position, Quat rotation, Vec3 scale);
 
 ///*
 // Returns the lighting struct.

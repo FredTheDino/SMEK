@@ -83,7 +83,6 @@ bool load_gamelib() {
         }
     }
 
-    GameLibrary next_library = {};
     dlerror(); // Clear all errors.
     void *tmp = dlopen(game_lib_path, RTLD_NOW);
     if (!tmp) {
@@ -230,7 +229,7 @@ static void imgui_end_frame() {}
 int main(int argc, char **argv) { // Game entrypoint
 #define ARGUMENT(LONG, SHORT) (std::strcmp((LONG), argv[index]) == 0 || std::strcmp((SHORT), argv[index]) == 0)
     int width = 500;
-    int height = 500;
+    int height = 1000;
     for (int index = 1; index < argc; index++) {
         if ARGUMENT ("--help", "-h") {
             std::printf("Usage: SMEK [--help] [--resolution <width> <height>]\n"
@@ -295,7 +294,6 @@ int main(int argc, char **argv) { // Game entrypoint
         }
 
         while (next_update < SDL_GetTicks() && game_state.running) {
-            // Check for reloading of library
             game_state.time = next_update / 1000.0;
             game_state.delta = MS_PER_FRAME / 1000.0;
             game_state.frame++;
