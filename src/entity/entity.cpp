@@ -210,6 +210,7 @@ void EntitySystem::update() {
         Vec4 nothing_color = { 0., 0., 0., 1. };
         Vec4 hovering_color = { 0., 0.5, 0.5, 1. };
         Vec4 selected_color = { 0., 0.5, 0., 1. };
+        Vec4 selected_and_hover_color = { 0., 0.5, 0.25, 1. };
 
         if (hovering && Input::pressed(Ac::ESelect)) {
             if (selected.contains(id))
@@ -218,10 +219,14 @@ void EntitySystem::update() {
                 selected.insert(id);
         }
 
-        if (selected.contains(id)) {
+        if (hovering) {
+            if (selected.contains(id)) {
+                Physics::draw_aabody(box, selected_and_hover_color);
+            } else {
+                Physics::draw_aabody(box, hovering_color);
+            }
+        } else if (selected.contains(id)) {
             Physics::draw_aabody(box, selected_color);
-        } else if (hovering) {
-            Physics::draw_aabody(box, hovering_color);
         } else {
             Physics::draw_aabody(box, nothing_color);
         }
