@@ -139,8 +139,7 @@ EntityID EntitySystem::add(E entity) {
 using FieldNameType = const char *;
 ///*
 // Returns true if the given entity type has a field with the
-// given name, note that this name has to be a FieldName::.
-// TODO(ed): FieldName:: should be enforced via a typecheck.
+// given name. Note that this name has to be a <code>FieldName::*</code>.
 bool has_field_by_name(BaseEntity *e, FieldNameType name);
 
 ///*
@@ -149,7 +148,7 @@ bool has_field_by_name(BaseEntity *e, FieldNameType name);
 void *_fetch_field_by_name_helper(BaseEntity *e, FieldNameType name, const std::type_info &info);
 
 ///*
-// Returns the name of the entitys type.
+// Returns the name of the entity's type.
 const char *type_name(BaseEntity *e);
 
 template <typename F>
