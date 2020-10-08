@@ -8,7 +8,10 @@ void WipEntities::alloc() {
 }
 
 void WipEntities::free() {
-    delete light;
+    if (light) {
+        delete light;
+        light = nullptr;
+    }
 }
 
 void pack(u8 *into, Package *from) {
