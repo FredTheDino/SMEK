@@ -121,6 +121,7 @@ struct EntitySystem {
     void remove(EntityID entity);
     void remove_all();
 
+    void draw_imgui();
     void draw();
     void send_state(ServerHandle *handle);
     void send_state(ClientHandle *handle);
