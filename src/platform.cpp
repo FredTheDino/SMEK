@@ -249,11 +249,13 @@ int main(int argc, char **argv) { // Game entrypoint
     int width = 500;
     int height = 500;
     bool passed_resolution = false;
+    bool allow_resize = false;
 #define ARGUMENT(LONG, SHORT) (std::strcmp((LONG), argv[index]) == 0 || std::strcmp((SHORT), argv[index]) == 0)
     for (int index = 1; index < argc; index++) {
         if ARGUMENT ("--help", "-h") {
             std::printf("Usage: SMEK [--help] [--resolution <width> <height>]\n"
-                        "            [--no-reload]\n");
+                        "            [--no-reload]\n"
+                        "            [--allow-resize]\n");
             return 0;
         } else if ARGUMENT ("--resolution", "-r") {
             width = std::atoi(argv[++index]);
@@ -261,6 +263,8 @@ int main(int argc, char **argv) { // Game entrypoint
             passed_resolution = true;
         } else if ARGUMENT ("--no-reload", "-R") {
             hot_reload_active = false;
+        } else if ARGUMENT ("--allow-resize", "-a") {
+            allow_resize = true;
         } else {
             ERR("Unknown command line argument '{}'", argv[index]);
         }
@@ -283,6 +287,7 @@ int main(int argc, char **argv) { // Game entrypoint
     }
 
     game_state = {};
+    game_state.allow_user_resize_window = allow_resize;
     game_state.input.mouse_capture = false;
     game_state.input.rebind_func = platform_rebind;
     game_state.input.bind_func = platform_bind;

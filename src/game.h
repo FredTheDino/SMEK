@@ -47,6 +47,7 @@ struct GameState {
 
     bool running;
     bool resized_window;
+    bool allow_user_resize_window;
 
 #ifdef IMGUI_ENABLE
     ImGuiState imgui = {};
