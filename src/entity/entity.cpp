@@ -217,6 +217,51 @@ void EntitySystem::remove_all() {
 }
 
 void EntitySystem::update() {
+#if IMGUI_ENABLE
+    for (auto [id, e] : entities) {
+        Physics::AABody box = {};
+        if (Vec3 *p = get_field_by_name_no_warn<Vec3>(e, FieldName::position)) {
+            box.position = *p;
+        }
+
+        // Size for boxes that doesn't have a scale.
+        box.half_size = Vec3(1.0, 1.0, 1.0) * 0.2;
+        if (Vec3 *s = get_field_by_name_no_warn<Vec3>(e, FieldName::scale)) {
+            box.half_size = (*s) * 0.5;
+        }
+
+        Vec3 start = GFX::current_camera()->position;
+        Vec3 dir = GFX::current_camera()->get_forward();
+        Physics::Manifold manifold = Physics::collision_line_aabody(start, dir, &box);
+        // TODO(ed): Only select the closest.
+        bool hovering = manifold.t > 0;
+
+        Vec4 nothing_color = { 0., 0., 0., 1. };
+        Vec4 hovering_color = { 0., 0.5, 0.5, 1. };
+        Vec4 selected_color = { 0., 0.5, 0., 1. };
+        Vec4 selected_and_hover_color = { 0., 0.5, 0.8, 1. };
+
+        if (hovering && Input::pressed(Ac::ESelect)) {
+            if (selected.contains(id))
+                selected.erase(id);
+            else
+                selected.insert(id);
+        }
+
+        if (hovering) {
+            if (selected.contains(id)) {
+                Physics::draw_aabody(box, selected_and_hover_color);
+            } else {
+                Physics::draw_aabody(box, hovering_color);
+            }
+        } else if (selected.contains(id)) {
+            Physics::draw_aabody(box, selected_color);
+        } else {
+            Physics::draw_aabody(box, nothing_color);
+        }
+    }
+#endif
+
     for (auto [_, e] : entities) {
         e->update();
     }
@@ -335,12 +380,37 @@ void EntitySystem::draw() {
         for (auto [_, e] : entities) {
             e->imgui();
         }
+
         ImGui::End();
     }
 #endif
     for (auto [_, e] : entities) {
         e->draw();
     }
+}
+
+bool has_field_by_name(BaseEntity *e, FieldNameType name) {
+    FieldList types = get_fields_for(e->type);
+    for (i32 i = 0; i < types.num_fields; i++) {
+        if (types.list[i].name == name)
+            return true;
+    }
+    return false;
+}
+
+void *_fetch_field_by_name_helper(BaseEntity *e, FieldNameType name, const std::type_info &info) {
+    FieldList types = get_fields_for(e->type);
+    for (i32 i = 0; i < types.num_fields; i++) {
+        Field field = types.list[i];
+        if (field.name == name && field.typeinfo == info) {
+            return ((u8 *)e) + field.offset;
+        }
+    }
+    return nullptr;
+}
+
+const char *type_name(BaseEntity *e) {
+    return entity_type_names[(u32)e->type];
 }
 
 EntityID EntitySystem::next_id() {

@@ -1,5 +1,6 @@
 #pragma once
 #include <unordered_map>
+#include <set>
 #include "../math/smek_math.h"
 #include "../math/smek_vec.h"
 #include "../math/smek_quat.h"
@@ -106,6 +107,7 @@ struct EntitySystem {
     u64 id_counter = 0;
     u64 next_id();
     std::unordered_map<EntityID, BaseEntity *> entities;
+    std::set<EntityID> selected;
 
     bool is_valid(EntityID id);
     bool have_ownership(EntityID id);
@@ -150,6 +152,41 @@ EntityID EntitySystem::add_with_id(E entity, EntityID id) {
     entities[id] = (BaseEntity *)e;
     e->on_create();
     return id;
+}
+
+using FieldNameType = const char *;
+///*
+// Returns true if the given entity type has a field with the
+// given name. Note that this name has to be a <code>FieldName::*</code>.
+bool has_field_by_name(BaseEntity *e, FieldNameType name);
+
+///*
+// Helper function for fetching the field, it is returned without type,
+// so this function can be used inside templates.
+void *_fetch_field_by_name_helper(BaseEntity *e, FieldNameType name, const std::type_info &info);
+
+///*
+// Returns the name of the entity's type.
+const char *type_name(BaseEntity *e);
+
+template <typename F>
+F *get_field_by_name_no_warn(BaseEntity *e, FieldNameType name) {
+    return (F *)_fetch_field_by_name_helper(e, name, typeid(F));
+}
+
+///*
+// Returns a field value if it has the named field and the
+// named type.
+template <typename F>
+F *get_field_by_name(BaseEntity *e, FieldNameType name) {
+    F *data = get_field_by_name_no_warn<F>(e, name);
+    if (!data) {
+        WARN("EntityType {} doesn't have '{}':'{}'.",
+             type_name(e),
+             name,
+             typeid(F).name());
+    }
+    return data;
 }
 
 ///*

@@ -56,6 +56,7 @@ void init_game(GameState *gamestate, int width, int height) {
     Input::bind(Ac::Shoot, 0, SDLK_f, 1.0);
     Input::bind(Ac::MouseToggle, 0, SDLK_m);
     Input::bind(Ac::Rebind, 1, SDLK_r);
+    Input::bind(Ac::ESelect, 1, SDLK_y);
 
     Light l = Light();
     GAMESTATE()->lights[0] = GAMESTATE()->entity_system.add(l);

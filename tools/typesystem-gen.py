@@ -211,7 +211,7 @@ if __name__ == "__main__":
         def gen():
             out = []
             for field in fields:
-                out.append(f"{{ typeid({field['TYPE']}), \"{field['NAME']}\", sizeof({field['TYPE']}), (int)offsetof({name}, {field['NAME']}) }}")
+                out.append(f"{{ typeid({field['TYPE']}), FieldName::{field['NAME']}, sizeof({field['TYPE']}), (int)offsetof({name}, {field['NAME']}) }}")
             return ",\n    ".join(out)
         return f"Field gen_{name}[] = {{\n    {gen()}\n}};"
 
@@ -224,6 +224,12 @@ if __name__ == "__main__":
     fields_data = [gen_fields_data(name, struct.fields) for name, struct in entity_structs.items()]
     fields_switch = gen_fields_switch(entity_structs.keys())
 
+    all_field_names = set()
+    for struct in entity_structs.values():
+        for field in struct.fields:
+            all_field_names.add(field['NAME'])
+    all_field_names = sorted(all_field_names)
+
     with open("tools/entity_types_type_of.h", "r") as template_file:
         template_type_of_h = Template(template_file.read())
 
@@ -234,6 +240,7 @@ if __name__ == "__main__":
                     for name, struct in entity_structs.items() }
 
     template_kwords_h = {
+            "all_field_names": "\n".join([f"extern FieldNameType {name};" for name in all_field_names]),
             "types": "\n".join([f"    {to_enum(t)}," for t in entity_structs.keys()]),
             "type_names": ",\n".join([f"{' '*4}\"{t}\"" for t in entity_structs.keys()]),
             "type_ofs": "\n".join([template_type_of_h.substitute(entity_type=t) for t in entity_structs.keys()]),
@@ -266,6 +273,7 @@ if __name__ == "__main__":
                      for name in entity_structs.keys()]
 
     template_kwords_cpp = {
+            "all_field_names_impl": "\n".join([f"FieldNameType {name} = \"{name}\";" for name in all_field_names]),
             "type_ofs": "\n".join([template_type_of_cpp.substitute(entity_type=t, entity_type_enum=to_enum(t)) for t in entity_structs.keys()]),
             "type_formats": "\n".join([f"{' '*4}case EntityType::{to_enum(t)}: return snprintf(buffer, size, \"{t}\");" for t in entity_structs.keys()]),
             "fields_data": "\n".join(fields_data),

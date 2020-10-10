@@ -21,6 +21,8 @@ enum class Action {
     MouseToggle,
     Rebind,
 
+    ESelect,
+
     NUM_ACTIONS
 };
 
