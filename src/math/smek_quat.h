@@ -18,6 +18,14 @@ struct H {
         , y(y)
         , z(z)
         , w(w) {}
+    H(real *arr)
+        : x(arr[0])
+        , y(arr[1])
+        , z(arr[2])
+        , w(arr[3]) {}
+
+    void to(real *arr) const;
+    real &operator[](std::size_t idx);
 
     H operator-();
 

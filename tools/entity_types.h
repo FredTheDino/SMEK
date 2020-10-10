@@ -56,6 +56,7 @@ $type_ofs
  */
 
 struct EventCreateEntity {
+    bool generate_id;
     EntityType type;
     union {
 $event_entity_bytes_union

@@ -2,6 +2,7 @@
 #include "entity_types.h"
 #include "../asset/asset.h"
 #include "../renderer/renderer.h"
+#include "../network/network.h"
 #include "../game.h"
 #include "../test.h"
 #include "imgui/imgui.h"
@@ -77,6 +78,17 @@ void Light::on_remove() {
         GFX::lighting()->light_colors[light_id] = Vec3();
         light_id = NONE;
     }
+}
+
+void LightUpdate::callback() {
+    if (!GAMESTATE()->entity_system.is_valid(entity_id)) {
+        WARN("Received event position update for invalid entity id {}", entity_id);
+        return;
+    }
+    Light *l = GAMESTATE()->entity_system.fetch<Light>(entity_id);
+    l->position = Vec3::from(position);
+    l->color = Vec3::from(color);
+    l->draw_as_point = draw_as_point;
 }
 
 void Player::update() {
@@ -178,13 +190,30 @@ void SoundEntity::on_remove() {
     GAMESTATE()->audio_struct->stop_sound(audio_id);
 }
 
-bool EntitySystem::is_valid(EntityID id) { return entities.contains(id); }
+bool EntitySystem::is_valid(EntityID id) {
+    return entities.contains(id);
+}
+
+bool EntitySystem::have_ownership(EntityID id) {
+    int lock_success = SDL_LockMutex(m_client_id);
+    ASSERT(lock_success == 0, "Unable to lock mutex: {}", SDL_GetError());
+    defer { SDL_UnlockMutex(m_client_id); };
+    return client_id == (id & 0xFF00000000000000);
+}
 
 void EntitySystem::remove(EntityID id) {
-    ASSERT(is_valid(id), "Cannot remove entity that doesn't exist");
+    ASSERT(is_valid(id), "Removing invalid entity id {}", id);
     entities[id]->on_remove();
     delete entities[id];
     entities.erase(id);
+}
+
+void EntitySystem::remove_all() {
+    for (auto [_, e] : entities) {
+        e->on_remove();
+        delete e;
+    }
+    entities.clear();
 }
 
 void EntitySystem::update() {
@@ -245,6 +274,49 @@ void EntitySystem::update() {
         } else {
             i++;
         }
+    }
+}
+
+void EntitySystem::send_state(ClientHandle *handle) {
+    Package pkg;
+    pkg.header.type = PackageType::EVENT;
+    pkg.EVENT.event.type = EventType::LIGHT_UPDATE;
+    LightUpdate event;
+    if (is_valid(GAMESTATE()->lights[0])) {
+        Light *light = fetch<Light>(GAMESTATE()->lights[0]);
+        event.entity_id = light->entity_id;
+        light->position.to(event.position);
+        light->color.to(event.color);
+        event.draw_as_point = light->draw_as_point;
+        pkg.EVENT.event.LIGHT_UPDATE = event;
+        handle->send(&pkg);
+    }
+    if (is_valid(GAMESTATE()->lights[1])) {
+        Light *light = fetch<Light>(GAMESTATE()->lights[1]);
+        event.entity_id = light->entity_id;
+        light->position.to(event.position);
+        light->color.to(event.color);
+        event.draw_as_point = light->draw_as_point;
+        pkg.EVENT.event.LIGHT_UPDATE = event;
+        handle->send(&pkg);
+    }
+}
+
+void EntitySystem::send_initial_state(ClientHandle *handle) {
+    LOG("Sending initial state to client");
+    Package entity_package;
+    entity_package.header.type = PackageType::EVENT;
+    if (is_valid(GAMESTATE()->lights[0])) {
+        entity_package.EVENT.event = entity_event(fetch<Light>(GAMESTATE()->lights[0]));
+        handle->send(&entity_package);
+    } else {
+        WARN("Not sending invalid light 0");
+    }
+    if (is_valid(GAMESTATE()->lights[1])) {
+        entity_package.EVENT.event = entity_event(fetch<Light>(GAMESTATE()->lights[1]));
+        handle->send(&entity_package);
+    } else {
+        WARN("Not sending invalid light 1");
     }
 }
 
@@ -339,6 +411,16 @@ void *_fetch_field_by_name_helper(BaseEntity *e, FieldNameType name, const std::
 
 const char *type_name(BaseEntity *e) {
     return entity_type_names[(u32)e->type];
+}
+
+EntityID EntitySystem::next_id() {
+    int lock_success = SDL_LockMutex(m_client_id);
+    ASSERT(lock_success == 0, "Unable to lock mutex: {}", SDL_GetError());
+    defer { SDL_UnlockMutex(m_client_id); };
+    u64 id = id_counter++;
+    id &= ID_MASK;
+    id |= client_id;
+    return id;
 }
 
 TEST_CASE("entity_adding", {
