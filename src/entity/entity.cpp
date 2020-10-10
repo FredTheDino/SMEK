@@ -210,7 +210,7 @@ void EntitySystem::update() {
         Vec4 nothing_color = { 0., 0., 0., 1. };
         Vec4 hovering_color = { 0., 0.5, 0.5, 1. };
         Vec4 selected_color = { 0., 0.5, 0., 1. };
-        Vec4 selected_and_hover_color = { 0., 0.5, 0.25, 1. };
+        Vec4 selected_and_hover_color = { 0., 0.5, 0.8, 1. };
 
         if (hovering && Input::pressed(Ac::ESelect)) {
             if (selected.contains(id))
