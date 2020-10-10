@@ -46,6 +46,7 @@ struct GameState {
     EntityID lights[2];
 
     bool running;
+    bool resized_window;
 
 #ifdef IMGUI_ENABLE
     ImGuiState imgui = {};

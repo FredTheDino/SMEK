@@ -105,6 +105,17 @@ void update() {
 }
 
 void draw() {
+    if (GAMESTATE()->resized_window) {
+        GAMESTATE()->resized_window = false;
+        GFX::set_screen_resolution();
+        // TODO(ed): Is there a better set to check for the "first" screen
+        // resolution? Initalize SDL beforehand?
+        if (frame() < 10) {
+            SDL_SetWindowPosition(GAMESTATE()->window,
+                                  SDL_WINDOWPOS_CENTERED,
+                                  SDL_WINDOWPOS_CENTERED);
+        }
+    }
     GFX::RenderTexture target = GFX::render_target();
     target.use();
     glClearColor(0.2, 0.1, 0.3, 1); // We don't need to do this...

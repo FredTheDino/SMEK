@@ -715,15 +715,25 @@ void remake_render_target() {
                                                               GAMESTATE()->renderer.height);
 }
 
-void set_screen_resolution(i32 width, i32 height) {
-    Renderer *r = &GAMESTATE()->renderer;
-    r->width = width;
-    r->height = height;
-    SDL_SetWindowSize(GAMESTATE()->window, r->width, r->height);
+void Renderer::set_screen_resolution(i32 new_width, i32 new_height) {
+    width = new_width;
+    height = new_height;
+
+    SDL_SetWindowSize(GAMESTATE()->window, width, height);
     remake_render_target();
 
-    r->debug_camera.set_aspect_ratio();
-    r->gameplay_camera.set_aspect_ratio();
+    debug_camera.set_aspect_ratio();
+    gameplay_camera.set_aspect_ratio();
+}
+
+void set_screen_resolution() {
+    i32 width = GAMESTATE()->renderer.width;
+    i32 height = GAMESTATE()->renderer.height;
+    GAMESTATE()->renderer.set_screen_resolution(width, height);
+}
+
+void set_screen_resolution(i32 width, i32 height) {
+    GAMESTATE()->renderer.set_screen_resolution(width, height);
 }
 
 void push_mesh(AssetID mesh, AssetID texture, Vec3 position, Quat rotation, Vec3 scale) {
