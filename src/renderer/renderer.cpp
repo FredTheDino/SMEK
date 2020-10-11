@@ -659,16 +659,16 @@ bool init(GameState *gs, i32 width, i32 height) {
     gs->renderer.width = width;
     gs->renderer.height = height;
 
-    int window_flaggs = SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN;
+    int window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN;
     if (gs->allow_user_resize_window) {
-        window_flaggs |= SDL_WINDOW_RESIZABLE;
+        window_flags |= SDL_WINDOW_RESIZABLE;
     }
     gs->window = SDL_CreateWindow("SMEK - The new begining",
                                   SDL_WINDOWPOS_UNDEFINED,
                                   SDL_WINDOWPOS_UNDEFINED,
                                   width,
                                   height,
-                                  window_flaggs);
+                                  window_flags);
 
     if (gs->window == NULL) {
         ERR("Failed to create OpenGL window \"{}\"", SDL_GetError());

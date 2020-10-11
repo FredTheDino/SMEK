@@ -345,7 +345,7 @@ struct Lighting {
 struct Renderer {
     u32 width;
     u32 height;
-    /// Callback for platformlayer to change resolution.
+    /// Callback for platform layer to change resolution.
     void set_screen_resolution(i32 width, i32 height);
 
     RenderTexture target;
