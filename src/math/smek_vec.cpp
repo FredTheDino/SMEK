@@ -19,6 +19,18 @@ void Vec4::to(real *arr) const {
     arr[3] = w;
 }
 
+void Color3::to(real *arr) const {
+    arr[0] = x;
+    arr[1] = y;
+    arr[2] = z;
+}
+
+void Color4::to(real *arr) const {
+    arr[0] = x;
+    arr[1] = y;
+    arr[2] = z;
+    arr[3] = w;
+}
 
 real &Vec2::operator[](std::size_t idx) {
     ASSERT_LT(idx, 2);

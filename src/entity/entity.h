@@ -67,7 +67,7 @@ struct Light : public Entity {
     static const int NONE = -1;
 
     i32 light_id = NONE;
-    Vec3 color;
+    Color3 color = Color3(0, 0, 0);
 
     bool draw_as_point;
 

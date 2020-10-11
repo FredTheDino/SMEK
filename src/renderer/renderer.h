@@ -222,7 +222,7 @@ struct MasterShader : public Shader {
     // Light prop, since we should only have one.
     u32 loc_pos_lights;
     u32 loc_col_lights;
-    void upload_lights(Vec3 *, Vec3 *) const;
+    void upload_lights(Vec3 *, Color3 *) const;
 
     MATS_SHADER_PROP(bones);
 
@@ -339,7 +339,7 @@ struct Lighting {
 
     Vec3 light_positions[MAX_LIGHTS];
     // Has to be initalized to zero to mark as not being used.
-    Vec3 light_colors[MAX_LIGHTS] = {};
+    Color3 light_colors[MAX_LIGHTS] = {};
 };
 
 struct Renderer {

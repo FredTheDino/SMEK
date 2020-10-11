@@ -59,7 +59,7 @@ Field gen_Light[] = {
     { typeid(Vec3), FieldName::scale, sizeof(Vec3), (int)offsetof(Light, scale) },
     { typeid(Quat), FieldName::rotation, sizeof(Quat), (int)offsetof(Light, rotation) },
     { typeid(i32), FieldName::light_id, sizeof(i32), (int)offsetof(Light, light_id) },
-    { typeid(Vec3), FieldName::color, sizeof(Vec3), (int)offsetof(Light, color) },
+    { typeid(Color3), FieldName::color, sizeof(Color3), (int)offsetof(Light, color) },
     { typeid(bool), FieldName::draw_as_point, sizeof(bool), (int)offsetof(Light, draw_as_point) }
 };
 Field gen_Player[] = {

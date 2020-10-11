@@ -75,7 +75,7 @@ void Light::draw() {
 void Light::on_remove() {
     // Black means the color isn't used.
     if (light_id != NONE) {
-        GFX::lighting()->light_colors[light_id] = Vec3();
+        GFX::lighting()->light_colors[light_id] = Color3();
         light_id = NONE;
     }
 }
@@ -87,7 +87,7 @@ void LightUpdate::callback() {
     }
     Light *l = GAMESTATE()->entity_system.fetch<Light>(entity_id);
     l->position = Vec3::from(position);
-    l->color = Vec3::from(color);
+    l->color = Color3::from(color);
     l->draw_as_point = draw_as_point;
 }
 
