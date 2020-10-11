@@ -18,7 +18,7 @@ void NetworkHandle::send(u8 *data, u32 data_len) {
 }
 
 void NetworkHandle::send(Package *package) {
-    u8 buf[sizeof(Package)];
+    u8 buf[sizeof(Package)] = {};
     package->header.client = client_id;
     package->header.id = next_package_id++;
     pack(buf, package);
@@ -100,6 +100,7 @@ int start_server_handle(void *data) {
                     GAMESTATE()->entity_system.client_id = handle->client_id;
                     SDL_UnlockMutex(GAMESTATE()->entity_system.m_client_id);
                 }
+                on_connect();
                 break;
             case PackageType::HEARTBEAT:
                 handle->recv_heartbeat(package.HEARTBEAT.id);

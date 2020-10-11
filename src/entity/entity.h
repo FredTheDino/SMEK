@@ -86,9 +86,19 @@ struct LightUpdate {
     void callback();
 };
 
+struct PlayerInput {
+    EntityID entity_id;
+    f32 mouse_axis[2]; // mouse sensitivity included
+    f32 move_axis[3];
+    bool jump;
+    bool shot;
+    void callback();
+};
+
 ///*
 // A playable character
 struct Player : public Entity {
+    PlayerInput last_input;
     Vec3 velocity;
 
     void imgui() override;

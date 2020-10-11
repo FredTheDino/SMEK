@@ -18,6 +18,7 @@ void handle_events() {
         switch (e.type) {
             HANDLE(CREATE_ENTITY);
             HANDLE(LIGHT_UPDATE);
+            HANDLE(PLAYER_INPUT);
         default:
             ERR("Unkown event type {}", e.type);
         }

@@ -82,6 +82,15 @@ void reload_game(GameState *game) {
     GFX::remake_render_target();
 }
 
+void on_connect() {
+    Player player = {};
+    player.entity_id = GAMESTATE()->entity_system.add(player);
+    Package player_package;
+    player_package.header.type = PackageType::EVENT;
+    player_package.EVENT.event = entity_event(player);
+    GAMESTATE()->network.server_handle.send(&player_package);
+}
+
 void update() {
     if (Input::released(Ac::MouseToggle)) {
         GAMESTATE()->input.mouse_capture ^= 1;

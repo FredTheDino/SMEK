@@ -28,6 +28,7 @@ FieldNameType audio_id = "audio_id";
 FieldNameType color = "color";
 FieldNameType draw_as_point = "draw_as_point";
 FieldNameType entity_id = "entity_id";
+FieldNameType last_input = "last_input";
 FieldNameType light_id = "light_id";
 FieldNameType position = "position";
 FieldNameType remove = "remove";
@@ -69,6 +70,7 @@ Field gen_Player[] = {
     { typeid(Vec3), FieldName::position, sizeof(Vec3), (int)offsetof(Player, position) },
     { typeid(Vec3), FieldName::scale, sizeof(Vec3), (int)offsetof(Player, scale) },
     { typeid(Quat), FieldName::rotation, sizeof(Quat), (int)offsetof(Player, rotation) },
+    { typeid(PlayerInput), FieldName::last_input, sizeof(PlayerInput), (int)offsetof(Player, last_input) },
     { typeid(Vec3), FieldName::velocity, sizeof(Vec3), (int)offsetof(Player, velocity) }
 };
 Field gen_SoundEntity[] = {

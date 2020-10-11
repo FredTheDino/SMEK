@@ -9,13 +9,15 @@
 enum EventType {
     CREATE_ENTITY,
     LIGHT_UPDATE,
+    PLAYER_INPUT,
 
     _NUM_TYPES,
 };
 
 static const char *event_type_names[] = {
     "CreateEntity",
-    "Update light"
+    "Update light",
+    "Player input"
 };
 
 static_assert(!(LEN(event_type_names) < (u64)EventType::_NUM_TYPES), "Too few event type names");
@@ -26,6 +28,7 @@ struct Event {
     union {
         EventCreateEntity CREATE_ENTITY;
         LightUpdate LIGHT_UPDATE;
+        PlayerInput PLAYER_INPUT;
     };
 };
 
