@@ -345,6 +345,8 @@ struct Lighting {
 struct Renderer {
     u32 width;
     u32 height;
+    /// Callback for platform layer to change resolution.
+    void set_screen_resolution(i32 width, i32 height);
 
     RenderTexture target;
     Mesh quad;
@@ -374,6 +376,9 @@ void remake_render_target();
 
 ///*
 // Sets the screen resolution.
+// If not arguments are passed, the currently set
+// values are reloaded.
+void set_screen_resolution();
 void set_screen_resolution(i32 width, i32 height);
 
 ///*

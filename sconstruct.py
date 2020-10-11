@@ -105,6 +105,11 @@ AddOption("--no-env",
           action="store_true",
           help="Don't copy the entire environment when setting up sconstruct")
 
+AddOption("--allow-resize",
+          dest="allow_resize",
+          action="store_true",
+          help="Allow resizing of the game window")
+
 #
 # Enviroment setup
 #
@@ -296,8 +301,15 @@ if GetOption("gen_compilation_db"):
     Depends(smek_target, compd)
 
 if native:
-    AlwaysBuild(env.Alias("run", smek_target, "cd " + smek_dir + "; " + smek[0].abspath))
-    AlwaysBuild(env.Alias("debug", smek_target, "cd " + smek_dir + "; " + "gdb " + smek[0].abspath))
+    move_to_dir = "cd " + smek_dir + ";"
+
+    run_command = [move_to_dir, smek[0].abspath]
+    if GetOption("allow_resize"):
+        run_command.append("--allow-resize")
+    AlwaysBuild(env.Alias("run", smek_target,  " ".join(run_command)))
+
+    debug_command = [move_to_dir, "gdb", smek[0].abspath]
+    AlwaysBuild(env.Alias("debug", smek_target, " ".join(debug_command)))
 
     tests_runtime_flags = []
     if GetOption("ci"):

@@ -225,26 +225,60 @@ static void imgui_end_frame() {}
 #endif
 
 #ifndef TESTS
+bool update_to_default_window_size(int *width, int *height) {
+    f32 screen_percent = 0.75;
+    SDL_DisplayMode dm;
+    // TODO(ed): First argument is display, maybe try multiple?
+    if (SDL_GetDesktopDisplayMode(0, &dm) == 0) {
+        *width = dm.w * screen_percent;
+        *height = dm.h * screen_percent;
+        return true;
+    }
+    WARN("Failed to read Desktop Display Mode");
+    if (SDL_GetCurrentDisplayMode(0, &dm) == 0) {
+        *width = dm.w * screen_percent;
+        *height = dm.h * screen_percent;
+        return true;
+    }
+    WARN("Failed to read Current Display Mode");
+    return false;
+}
+
 #include "util/log.cpp"           // I know, just meh.
 int main(int argc, char **argv) { // Game entrypoint
-#define ARGUMENT(LONG, SHORT) (std::strcmp((LONG), argv[index]) == 0 || std::strcmp((SHORT), argv[index]) == 0)
     int width = 500;
     int height = 500;
+    bool passed_resolution = false;
+    bool allow_resize = false;
+#define ARGUMENT(LONG, SHORT) (std::strcmp((LONG), argv[index]) == 0 || std::strcmp((SHORT), argv[index]) == 0)
     for (int index = 1; index < argc; index++) {
         if ARGUMENT ("--help", "-h") {
             std::printf("Usage: SMEK [--help] [--resolution <width> <height>]\n"
-                        "            [--no-reload]\n");
+                        "            [--no-reload]\n"
+                        "            [--allow-resize]\n");
             return 0;
         } else if ARGUMENT ("--resolution", "-r") {
             width = std::atoi(argv[++index]);
             height = std::atoi(argv[++index]);
+            passed_resolution = true;
         } else if ARGUMENT ("--no-reload", "-R") {
             hot_reload_active = false;
+        } else if ARGUMENT ("--allow-resize", "-a") {
+            allow_resize = true;
         } else {
             ERR("Unknown command line argument '{}'", argv[index]);
         }
     }
 #undef ARGUMENT
+
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+        ERR("Failed to initalize SDL \"{}\"", SDL_GetError());
+        return false;
+    }
+
+    if (!passed_resolution) {
+        update_to_default_window_size(&width, &height);
+    }
 
     if (hot_reload_active) {
         m_reload_lib = SDL_CreateMutex();
@@ -262,6 +296,7 @@ int main(int argc, char **argv) { // Game entrypoint
     }
 
     game_state = {};
+    game_state.allow_user_resize_window = allow_resize;
     game_state.input.mouse_capture = false;
     game_state.input.rebind_func = platform_rebind;
     game_state.input.bind_func = platform_bind;
@@ -273,6 +308,7 @@ int main(int argc, char **argv) { // Game entrypoint
     game_lib.init(&game_state, width, height);
     platform_audio_init();
     game_state.audio_struct = &platform_audio_struct;
+
 
     // IMGUI
     if (gladLoadGL() == 0) {
@@ -312,6 +348,11 @@ int main(int argc, char **argv) { // Game entrypoint
                 if (event.type == SDL_WINDOWEVENT) {
                     if (event.window.event == SDL_WINDOWEVENT_CLOSE)
                         game_state.running = false;
+                    if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+                        game_state.renderer.width = event.window.data1;
+                        game_state.renderer.height = event.window.data2;
+                        game_state.resized_window = true;
+                    }
                 }
                 if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
                     SDL_KeyboardEvent key = event.key;

@@ -105,6 +105,10 @@ void update() {
 }
 
 void draw() {
+    if (GAMESTATE()->resized_window) {
+        GAMESTATE()->resized_window = false;
+        GFX::set_screen_resolution();
+    }
     GFX::RenderTexture target = GFX::render_target();
     target.use();
     glClearColor(0.2, 0.1, 0.3, 1); // We don't need to do this...

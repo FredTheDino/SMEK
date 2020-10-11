@@ -652,11 +652,6 @@ void Texture::destroy() {
 }
 
 bool init(GameState *gs, i32 width, i32 height) {
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-        ERR("Failed to initalize SDL \"{}\"", SDL_GetError());
-        return false;
-    }
-
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -664,12 +659,16 @@ bool init(GameState *gs, i32 width, i32 height) {
     gs->renderer.width = width;
     gs->renderer.height = height;
 
+    int window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN;
+    if (gs->allow_user_resize_window) {
+        window_flags |= SDL_WINDOW_RESIZABLE;
+    }
     gs->window = SDL_CreateWindow("SMEK - The new begining",
                                   SDL_WINDOWPOS_UNDEFINED,
                                   SDL_WINDOWPOS_UNDEFINED,
                                   width,
                                   height,
-                                  SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
+                                  window_flags);
 
     if (gs->window == NULL) {
         ERR("Failed to create OpenGL window \"{}\"", SDL_GetError());
@@ -715,15 +714,25 @@ void remake_render_target() {
                                                               GAMESTATE()->renderer.height);
 }
 
-void set_screen_resolution(i32 width, i32 height) {
-    Renderer *r = &GAMESTATE()->renderer;
-    r->width = width;
-    r->height = height;
-    SDL_SetWindowSize(GAMESTATE()->window, r->width, r->height);
+void Renderer::set_screen_resolution(i32 new_width, i32 new_height) {
+    width = new_width;
+    height = new_height;
+
+    SDL_SetWindowSize(GAMESTATE()->window, width, height);
     remake_render_target();
 
-    r->debug_camera.set_aspect_ratio();
-    r->gameplay_camera.set_aspect_ratio();
+    debug_camera.set_aspect_ratio();
+    gameplay_camera.set_aspect_ratio();
+}
+
+void set_screen_resolution() {
+    i32 width = GAMESTATE()->renderer.width;
+    i32 height = GAMESTATE()->renderer.height;
+    GAMESTATE()->renderer.set_screen_resolution(width, height);
+}
+
+void set_screen_resolution(i32 width, i32 height) {
+    GAMESTATE()->renderer.set_screen_resolution(width, height);
 }
 
 void push_mesh(AssetID mesh, AssetID texture, Vec3 position, Quat rotation, Vec3 scale) {
