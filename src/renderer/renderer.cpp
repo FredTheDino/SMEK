@@ -652,11 +652,6 @@ void Texture::destroy() {
 }
 
 bool init(GameState *gs, i32 width, i32 height) {
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-        ERR("Failed to initalize SDL \"{}\"", SDL_GetError());
-        return false;
-    }
-
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);

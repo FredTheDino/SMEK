@@ -271,6 +271,15 @@ int main(int argc, char **argv) { // Game entrypoint
     }
 #undef ARGUMENT
 
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+        ERR("Failed to initalize SDL \"{}\"", SDL_GetError());
+        return false;
+    }
+
+    if (!passed_resolution) {
+        update_to_default_window_size(&width, &height);
+    }
+
     if (hot_reload_active) {
         m_reload_lib = SDL_CreateMutex();
         ASSERT(m_reload_lib, "Unable to create mutex");
@@ -300,11 +309,6 @@ int main(int argc, char **argv) { // Game entrypoint
     platform_audio_init();
     game_state.audio_struct = &platform_audio_struct;
 
-    if (!passed_resolution && update_to_default_window_size(&width, &height)) {
-        game_state.renderer.width = width;
-        game_state.renderer.height = height;
-        game_state.resized_window = true;
-    }
 
     // IMGUI
     if (gladLoadGL() == 0) {
