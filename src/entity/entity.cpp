@@ -7,6 +7,7 @@
 #include "../test.h"
 #include "imgui/imgui.h"
 
+#include <cxxabi.h>
 #include <functional>
 
 // These helper functions make it easier to
@@ -322,21 +323,20 @@ void EntitySystem::send_initial_state(ClientHandle *handle) {
     }
 }
 
-
 #ifdef IMGUI_ENABLE
 using ImGuiDisplayFunc = std::function<void(const char *, void *)>;
 static std::unordered_map<std::size_t, ImGuiDisplayFunc> func_map;
 
 namespace ImGuiFuncs {
-    void empty_f(const char *name, void *) {}
+void empty_f(const char *name, void *) {}
 
-    void bool_t(const char *name, void * v) {
-        ImGui::Checkbox(name, (bool *) v);
-    }
+void bool_t(const char *name, void *v) {
+    ImGui::Checkbox(name, (bool *)v);
+}
 
-    void vec3_t(const char *name, void * v) {
-        ImGui::ColorEdit3(name, (f32 *) v);
-    }
+void vec3_t(const char *name, void *v) {
+    ImGui::ColorEdit3(name, (f32 *)v);
+}
 }
 
 void EntitySystem::draw_imgui() {
@@ -364,11 +364,16 @@ void EntitySystem::draw_imgui() {
                     Field f = fields.list[i];
                     std::size_t hash = f.typeinfo.hash_code();
                     if (func_map.contains(hash)) {
-                        void *data = ((void *) e) + f.offset;
+                        void *data = (void *)((u8 *)e + f.offset);
                         func_map[hash](f.name, data);
                     } else {
-                        LOG("Trying to draw unkown type {}", f.typeinfo.name());
+                        const char *name = f.typeinfo.name();
+                        int status;
+                        char *demangled = abi::__cxa_demangle(name, 0, 0, &status);
+                        ASSERT_EQ(status, 0);
+                        LOG("Failed to 'ImGui show' field '{}' with unsupported type '{}'", f.name, demangled);
                         func_map[hash] = ImGuiFuncs::empty_f;
+                        delete[] demangled;
                     }
                     // Do stuff for all the fields,
                     // like drawing them, map of type to functions.
