@@ -83,6 +83,60 @@ struct Vec4 {
     static Vec4 from(real *arr) { return { arr[0], arr[1], arr[2], arr[3] }; }
 };
 
+struct Color3 {
+    Color3(real r = 0.0, real g = 0.0, real b = 0.0)
+        : r(r)
+        , g(g)
+        , b(b) {}
+    Color3(real *arr)
+        : r(arr[0])
+        , g(arr[1])
+        , b(arr[2]) {}
+
+    union {
+        real _[3];
+        struct {
+            real r, g, b;
+        };
+        struct {
+            real x, y, z;
+        };
+    };
+
+    void to(real *arr) const;
+    real &operator[](std::size_t idx);
+
+    static Color3 from(real *arr) { return { arr[0], arr[1], arr[2] }; };
+};
+
+struct Color4 {
+    Color4(real r = 0.0, real g = 0.0, real b = 0.0, real a = 0.0)
+        : r(r)
+        , g(g)
+        , b(b)
+        , a(a) {}
+    Color4(real *arr)
+        : r(arr[0])
+        , g(arr[1])
+        , b(arr[2])
+        , a(arr[3]) {}
+
+    union {
+        real _[4];
+        struct {
+            real r, g, b, a;
+        };
+        struct {
+            real x, y, z, w;
+        };
+    };
+
+    void to(real *arr) const;
+    real &operator[](std::size_t idx);
+
+    static Color4 from(real *arr) { return { arr[0], arr[1], arr[2], arr[3] }; }
+};
+
 ///*
 // Formats a vector to readable output.
 i32 format(char *buffer, u32 size, FormatHint args, Vec2 v);
@@ -110,8 +164,14 @@ struct Vec4 {
 
 #endif
 
+// clang-format off
 template <typename T>
-concept VectorType = std::same_as<T, Vec2> || std::same_as<T, Vec3> || std::same_as<T, Vec4>;
+concept VectorType = std::same_as<T, Vec2>
+                  || std::same_as<T, Vec3>
+                  || std::same_as<T, Vec4>
+                  || std::same_as<T, Color3>
+                  || std::same_as<T, Color4>;
+// clang-format on
 
 template <VectorType T>
 constexpr int DIM();

@@ -472,7 +472,7 @@ V3_SHADER_PROP(MasterShader, ambient_color);
 
 MATS_SHADER_PROP(MasterShader, bones);
 
-void MasterShader::upload_lights(Vec3 *positions, Vec3 *colors) const {
+void MasterShader::upload_lights(Vec3 *positions, Color3 *colors) const {
     glUniform3fv(loc_col_lights, MAX_LIGHTS, colors->_);
     glUniform3fv(loc_pos_lights, MAX_LIGHTS, positions->_);
 }
