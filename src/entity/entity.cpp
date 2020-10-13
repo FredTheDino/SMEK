@@ -107,9 +107,6 @@ void Player::update() {
         const f32 floor = 0.2;
 
         Vec2 turn(last_input.mouse_axis);
-        if (length_squared(turn) > 1.0) {
-            turn = turn / length(turn); //TODO /=
-        }
         turn = turn * delta(); //TODO *=
         rotation = normalized(H::from(0.0, -turn.x, 0.0)
                               * rotation
