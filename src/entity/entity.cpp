@@ -330,12 +330,16 @@ static std::unordered_map<std::size_t, ImGuiDisplayFunc> func_map;
 namespace ImGuiFuncs {
 void empty_f(const char *name, void *) {}
 
-void bool_t(const char *name, void *v) {
+void show_bool(const char *name, void *v) {
     ImGui::Checkbox(name, (bool *)v);
 }
 
-void vec3_t(const char *name, void *v) {
+void show_Color3(const char *name, void *v) {
     ImGui::ColorEdit3(name, (f32 *)v);
+}
+
+void show_Vec3(const char *name, void *v) {
+    ImGui::InputFloat3(name, (f32 *)v);
 }
 }
 
@@ -345,9 +349,10 @@ void EntitySystem::draw_imgui() {
         ImGui::Text("Current number of entities: %ld", entities.size());
         static bool initalize_func_map = true;
         if (initalize_func_map) {
-#define F(T) func_map[typeid(T).hash_code()]
-            F(Vec3) = ImGuiFuncs::vec3_t;
-            F(bool) = ImGuiFuncs::bool_t;
+#define F(T) func_map[typeid(T).hash_code()] = ImGuiFuncs::show_##T
+            F(Color3);
+            F(Vec3);
+            F(bool);
             initalize_func_map = false;
         }
 
