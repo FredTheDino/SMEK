@@ -169,6 +169,17 @@ void Player::update() {
 }
 
 IMPL_IMGUI(Player, ([&]() {
+               ImGui::VSliderFloat("Mouse x",
+                                   Vec2(18, 160),
+                                   &last_input.mouse_axis[0],
+                                   -10.0,
+                                   +10.0);
+               ImGui::SameLine(0, 10);
+               ImGui::VSliderFloat("Mouse y",
+                                   Vec2(18, 160),
+                                   &last_input.mouse_axis[1],
+                                   -10.0,
+                                   +10.0);
                ImGui::SliderFloat("Jump speed",
                                   &GAMESTATE()->player_jump_speed,
                                   0.0, 10.0,
