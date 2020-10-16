@@ -188,6 +188,16 @@ void Player::draw() {
     GFX::push_mesh("MONKEY", "TILES", position, rotation, scale);
 }
 
+void PlayerUpdate::callback() {
+    if (!GAMESTATE()->entity_system.is_valid(entity_id)) {
+        WARN("Received player update for invalid entity id {}", entity_id);
+        return;
+    }
+    Player *p = GAMESTATE()->entity_system.fetch<Player>(entity_id);
+    p->position = Vec3(position);
+    p->rotation = H(rotation);
+}
+
 void SoundEntity::update() {
     remove |= !GAMESTATE()->audio_struct->is_valid(audio_id);
 }
@@ -341,6 +351,21 @@ void EntitySystem::send_state(ClientHandle *handle) {
         event.draw_as_point = light->draw_as_point;
         pkg.EVENT.event.LIGHT_UPDATE = event;
         handle->send(&pkg);
+    }
+
+    for (const auto &[entity_id, entity] : entities) {
+        if (entity->type == EntityType::PLAYER) {
+            Player *player = static_cast<Player *>(entity);
+            Package pkg;
+            pkg.header.type = PackageType::EVENT;
+            pkg.EVENT.event.type = EventType::PLAYER_UPDATE;
+            PlayerUpdate event;
+            event.entity_id = entity_id;
+            player->position.to(event.position);
+            player->rotation.to(event.rotation);
+            pkg.EVENT.event.PLAYER_UPDATE = event;
+            handle->send(&pkg);
+        }
     }
 }
 

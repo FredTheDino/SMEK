@@ -107,6 +107,13 @@ struct Player : public Entity {
     void draw() override;
 };
 
+struct PlayerUpdate {
+    EntityID entity_id;
+    real position[3];
+    real rotation[4];
+    void callback();
+};
+
 struct ServerHandle;
 struct ClientHandle;
 ///*

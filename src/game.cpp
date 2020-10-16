@@ -63,7 +63,7 @@ void init_game(GameState *gamestate, int width, int height) {
     GAMESTATE()->lights[1] = GAMESTATE()->entity_system.add(l);
 
     Player player = {};
-    GAMESTATE()->entity_system.add(player);
+    //GAMESTATE()->entity_system.add(player);
 
     Physics::AABody b;
     b.position = { 0, 0, 0 };
