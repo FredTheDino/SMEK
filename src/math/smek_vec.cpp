@@ -20,16 +20,16 @@ void Vec4::to(real *arr) const {
 }
 
 void Color3::to(real *arr) const {
-    arr[0] = x;
-    arr[1] = y;
-    arr[2] = z;
+    arr[0] = r;
+    arr[1] = g;
+    arr[2] = b;
 }
 
 void Color4::to(real *arr) const {
-    arr[0] = x;
-    arr[1] = y;
-    arr[2] = z;
-    arr[3] = w;
+    arr[0] = r;
+    arr[1] = g;
+    arr[2] = b;
+    arr[3] = a;
 }
 
 real &Vec2::operator[](std::size_t idx) {
@@ -208,6 +208,6 @@ TEST_CASE("Vec3 from array", {
     return v[0] == 1 && v[1] == 2 && v[2] == 3;
 });
 TEST_CASE("Vec2 from array", {
-    Vec4 v({ 1, 2, 3, 4});
+    Vec4 v({ 1, 2, 3, 4 });
     return v[0] == 1 && v[1] == 2 && v[2] == 3 && v[3] == 4;
 });

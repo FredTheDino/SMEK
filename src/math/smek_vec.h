@@ -20,9 +20,6 @@ struct Vec2 {
         struct {
             real x, y;
         };
-        struct {
-            real r, g;
-        };
     };
 
     void to(real *arr) const;
@@ -43,9 +40,6 @@ struct Vec3 {
         real _[3];
         struct {
             real x, y, z;
-        };
-        struct {
-            real r, g, b;
         };
     };
 
@@ -72,9 +66,6 @@ struct Vec4 {
         struct {
             real x, y, z, w;
         };
-        struct {
-            real r, g, b, a;
-        };
     };
 
     void to(real *arr) const;
@@ -97,9 +88,6 @@ struct Color3 {
         real _[3];
         struct {
             real r, g, b;
-        };
-        struct {
-            real x, y, z;
         };
     };
 
@@ -125,9 +113,6 @@ struct Color4 {
         real _[4];
         struct {
             real r, g, b, a;
-        };
-        struct {
-            real x, y, z, w;
         };
     };
 

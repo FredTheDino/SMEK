@@ -68,9 +68,9 @@ void Light::draw() {
     if (draw_as_point) {
         if (light_id == NONE) {
             GFX::push_point(position + Vec3(0.01, 0.0, 0.0), Vec4(1.0, 0.0, 0.0, 1.0), 0.07);
-            GFX::push_point(position, Vec4(color.x, color.y, color.z, 0.2), 0.05);
+            GFX::push_point(position, Vec4(color.r, color.g, color.b, 0.2), 0.05);
         } else {
-            GFX::push_point(position, Vec4(color.x, color.y, color.z, 1.0), 0.1);
+            GFX::push_point(position, Vec4(color.r, color.g, color.b, 1.0), 0.1);
         }
     }
 }
