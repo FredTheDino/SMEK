@@ -310,7 +310,7 @@ Camera *gameplay_camera();
 struct DebugPrimitive {
     struct Vertex {
         Vec3 position;
-        Vec4 color;
+        Color4 color;
     };
     static const u32 VERTS_PER_BUFFER = 300;
 
@@ -407,21 +407,21 @@ void deinit(GameState *gs);
 ///*
 // Returns a nice color, garanteed to match other
 // colors returned from here.
-Vec4 color(u32 index = 0);
+Color4 color(u32 index = 0);
 
 ///*
 // Draws a point in a with color c.
-void push_point(Vec3 a, Vec4 c = color(), f32 width = 0.1);
+void push_point(Vec3 a, Color4 c = color(), f32 width = 0.1);
 
 ///*
 // Draws a line form A to B, in the given color.
-void push_line(Vec3 a, Vec3 b, Vec4 c = color(), f32 width = 0.1);
-void push_line(Vec3 a, Vec3 b, Vec4 a_color, Vec4 b_color, f32 width = 0.1);
+void push_line(Vec3 a, Vec3 b, Color4 c = color(), f32 width = 0.1);
+void push_line(Vec3 a, Vec3 b, Color4 a_color, Color4 b_color, f32 width = 0.1);
 
 ///*
 // Adds one triangle to be drawn during
 // the debug render call.
-void push_debug_triangle(Vec3 p1, Vec4 c1, Vec3 p2, Vec4 c2, Vec3 p3, Vec4 c3);
+void push_debug_triangle(Vec3 p1, Color4 c1, Vec3 p2, Color4 c2, Vec3 p3, Color4 c3);
 
 ///*
 // Renders the debug primitivs to the screen.

@@ -223,7 +223,7 @@ void do_imgui_stuff() {
     if (GAMESTATE()->imgui.show_grid) {
         const i32 grid_size = 10;
         const f32 width = 0.005;
-        const Vec4 color = GFX::color(7) * 0.4;
+        const Color4 color = GFX::color(7) * 0.4;
         for (f32 x = 0; x <= grid_size; x += 0.5) {
             GFX::push_line(Vec3(x, 0, grid_size), Vec3(x, 0, -grid_size), color, width);
             GFX::push_line(Vec3(-x, 0, grid_size), Vec3(-x, 0, -grid_size), color, width);

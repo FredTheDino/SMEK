@@ -67,10 +67,10 @@ IMPL_IMGUI(Light, ([&] {
 void Light::draw() {
     if (draw_as_point) {
         if (light_id == NONE) {
-            GFX::push_point(position + Vec3(0.01, 0.0, 0.0), Vec4(1.0, 0.0, 0.0, 1.0), 0.07);
-            GFX::push_point(position, Vec4(color.r, color.g, color.b, 0.2), 0.05);
+            GFX::push_point(position + Vec3(0.01, 0.0, 0.0), Color4(1.0, 0.0, 0.0, 1.0), 0.07);
+            GFX::push_point(position, Color4(color.r, color.g, color.b, 0.2), 0.05);
         } else {
-            GFX::push_point(position, Vec4(color.r, color.g, color.b, 1.0), 0.1);
+            GFX::push_point(position, Color4(color.r, color.g, color.b, 1.0), 0.1);
         }
     }
 }
@@ -239,10 +239,10 @@ void EntitySystem::update() {
         // TODO(ed): Only select the closest.
         bool hovering = manifold.t > 0;
 
-        Vec4 nothing_color = { 0., 0., 0., 1. };
-        Vec4 hovering_color = { 0., 0.5, 0.5, 1. };
-        Vec4 selected_color = { 0., 0.5, 0., 1. };
-        Vec4 selected_and_hover_color = { 0., 0.5, 0.8, 1. };
+        Color4 nothing_color = { 0., 0., 0., 1. };
+        Color4 hovering_color = { 0., 0.5, 0.5, 1. };
+        Color4 selected_color = { 0., 0.5, 0., 1. };
+        Color4 selected_and_hover_color = { 0., 0.5, 0.8, 1. };
 
         if (hovering && Input::pressed(Ac::ESelect)) {
             if (selected.contains(id))
