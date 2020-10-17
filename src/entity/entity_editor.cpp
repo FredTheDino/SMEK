@@ -29,7 +29,7 @@ void show_Vec3(const char *name, void *v) {
 void show_EntityType(const char *name, void *v) {
     EntityType *e = (EntityType *)v;
     char buffer[20];
-    format(buffer, LEN(buffer), {}, *e);
+    sntprint(buffer, LEN(buffer), "{}", *e);
     ImGui::Text("Type: %s", buffer);
 }
 
