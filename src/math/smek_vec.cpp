@@ -227,3 +227,15 @@ TEST_CASE("Vec2 from array", {
     Vec4 v({ 1, 2, 3, 4 });
     return v[0] == 1 && v[1] == 2 && v[2] == 3 && v[3] == 4;
 });
+
+TEST_CASE("Color3 -> Color4", {
+    Color3 a(1, 1, 1);
+    Color4 b = a;
+    return b[0] == 1 && b[1] == 1 && b[2] == 1 && b[3] == 1;
+});
+
+TEST_CASE("Color4 -> Color3", {
+    Color4 a(1, 1, 1, 0);
+    Color3 b = (Color3)a;
+    return b[0] == 1 && b[1] == 1 && b[2] == 1;
+});
