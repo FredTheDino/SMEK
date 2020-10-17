@@ -20,16 +20,22 @@ void Vec4::to(real *arr) const {
 }
 
 void Color3::to(real *arr) const {
-    arr[0] = x;
-    arr[1] = y;
-    arr[2] = z;
+    arr[0] = r;
+    arr[1] = g;
+    arr[2] = b;
 }
 
 void Color4::to(real *arr) const {
-    arr[0] = x;
-    arr[1] = y;
-    arr[2] = z;
-    arr[3] = w;
+    arr[0] = r;
+    arr[1] = g;
+    arr[2] = b;
+    arr[3] = a;
+}
+
+// Since Color4 is defined _after_ Color3, we cannot access Color4s constructor
+// without it being defined.
+Color3::operator Color4() const {
+    return Color4(r, g, b, 1.0);
 }
 
 real &Vec2::operator[](std::size_t idx) {
@@ -41,6 +47,16 @@ real &Vec3::operator[](std::size_t idx) {
     return _[idx];
 }
 real &Vec4::operator[](std::size_t idx) {
+    ASSERT_LT(idx, 4);
+    return _[idx];
+}
+
+real &Color3::operator[](std::size_t idx) {
+    ASSERT_LT(idx, 3);
+    return _[idx];
+}
+
+real &Color4::operator[](std::size_t idx) {
     ASSERT_LT(idx, 4);
     return _[idx];
 }
@@ -208,6 +224,18 @@ TEST_CASE("Vec3 from array", {
     return v[0] == 1 && v[1] == 2 && v[2] == 3;
 });
 TEST_CASE("Vec2 from array", {
-    Vec4 v({ 1, 2, 3, 4});
+    Vec4 v({ 1, 2, 3, 4 });
     return v[0] == 1 && v[1] == 2 && v[2] == 3 && v[3] == 4;
+});
+
+TEST_CASE("Color3 -> Color4", {
+    Color3 a(1, 1, 1);
+    Color4 b = a;
+    return b[0] == 1 && b[1] == 1 && b[2] == 1 && b[3] == 1;
+});
+
+TEST_CASE("Color4 -> Color3", {
+    Color4 a(1, 1, 1, 0);
+    Color3 b = (Color3)a;
+    return b[0] == 1 && b[1] == 1 && b[2] == 1;
 });

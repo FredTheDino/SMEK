@@ -132,34 +132,34 @@ void RenderTexture::use() {
     glViewport(0, 0, width, height);
 }
 
-const Vec4 color_list[] = {
+const Color4 color_list[] = {
 #if 0
-    Vec4(1.0, 0.0, 1.0, 1.0),
-    Vec4(115, 63, 155, 255) / 255.0,
-    Vec4(68, 73, 163, 255) / 255.0,
-    Vec4(61, 120, 157, 255) / 255.0,
-    Vec4(51, 102, 97, 255) / 255.0,
-    Vec4(155, 126, 63, 255) / 255.0,
-    Vec4(163, 74, 68, 255) / 255.0,
-    Vec4(158, 61, 109, 255) / 255.0,
-    Vec4(102, 51, 101, 255) / 255.0,
+    Color4(1.0, 0.0, 1.0, 1.0),
+    Color4(115, 63, 155, 255) / 255.0,
+    Color4(68, 73, 163, 255) / 255.0,
+    Color4(61, 120, 157, 255) / 255.0,
+    Color4(51, 102, 97, 255) / 255.0,
+    Color4(155, 126, 63, 255) / 255.0,
+    Color4(163, 74, 68, 255) / 255.0,
+    Color4(158, 61, 109, 255) / 255.0,
+    Color4(102, 51, 101, 255) / 255.0,
 #else
-    Vec4(0.0, 0.0, 0.0, 1.0),
-    Vec4(1.0, 0.0, 0.0, 1.0),
-    Vec4(0.0, 1.0, 0.0, 1.0),
-    Vec4(0.0, 0.0, 1.0, 1.0),
-    Vec4(1.0, 1.0, 0.0, 1.0),
-    Vec4(0.0, 1.0, 1.0, 1.0),
-    Vec4(1.0, 0.0, 1.0, 1.0),
-    Vec4(1.0, 0.0, 1.0, 1.0),
+    Color4(0.0, 0.0, 0.0, 1.0),
+    Color4(1.0, 0.0, 0.0, 1.0),
+    Color4(0.0, 1.0, 0.0, 1.0),
+    Color4(0.0, 0.0, 1.0, 1.0),
+    Color4(1.0, 1.0, 0.0, 1.0),
+    Color4(0.0, 1.0, 1.0, 1.0),
+    Color4(1.0, 0.0, 1.0, 1.0),
+    Color4(1.0, 0.0, 1.0, 1.0),
 #endif
 };
 
-Vec4 color(u32 index) {
+Color4 color(u32 index) {
     return color_list[index % LEN(color_list)];
 }
 
-void push_point(Vec3 a, Vec4 c, f32 width) {
+void push_point(Vec3 a, Color4 c, f32 width) {
     Vec3 z = normalized(current_camera()->position - a);
     Vec3 x = Vec3(0.0, 1.0, 0.0);
     Vec3 y = cross(x, z);
@@ -178,11 +178,11 @@ void push_point(Vec3 a, Vec4 c, f32 width) {
     push_debug_triangle(p1, c, p3, c, p4, c);
 }
 
-void push_line(Vec3 a, Vec3 b, Vec4 color, f32 width) {
+void push_line(Vec3 a, Vec3 b, Color4 color, f32 width) {
     push_line(a, b, color, color, width);
 }
 
-void push_line(Vec3 a, Vec3 b, Vec4 a_color, Vec4 b_color, f32 width) {
+void push_line(Vec3 a, Vec3 b, Color4 a_color, Color4 b_color, f32 width) {
     Vec3 z = current_camera()->position - a;
     Vec3 x = a - b;
     Vec3 y = normalized(cross(x, z));
@@ -298,7 +298,7 @@ void Skeleton::draw() {
     // TODO(ed): This can be made better since the order 0...n will allways result
     // in correct updated animations.
     for (i32 i = 0; i < (i32)num_bones; i++) {
-        Vec4 color = i == 0 ? Vec4(0, 0, 0, 1) : Vec4(1, 1, 1, 1);
+        Color4 color = i == 0 ? Color4(0, 0, 0, 1) : Color4(1, 1, 1, 1);
         matrix(i).gfx_dump(color);
     }
 }
@@ -831,7 +831,7 @@ void DebugPrimitive::clear() {
     size = 0;
 }
 
-void push_debug_triangle(Vec3 p1, Vec4 c1, Vec3 p2, Vec4 c2, Vec3 p3, Vec4 c3) {
+void push_debug_triangle(Vec3 p1, Color4 c1, Vec3 p2, Color4 c2, Vec3 p3, Color4 c3) {
     Renderer *renderer = &GAMESTATE()->renderer;
     while (!renderer->primitives[renderer->first_empty].push_triangle({ p1, c1 }, { p2, c2 }, { p3, c3 })) {
         if (++renderer->first_empty == renderer->primitives.size())

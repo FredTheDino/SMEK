@@ -24,14 +24,14 @@ i32 format(char *buffer, u32 size, FormatHint args, Mat &m) {
                     p, m._[3][0], p, m._[3][1], p, m._[3][2], p, m._[3][3]);
 }
 
-void Mat::gfx_dump(Vec4 color) {
+void Mat::gfx_dump(Color4 color) {
     Vec3 o = *this * Vec3(0, 0, 0);
     Vec3 x = *this * Vec3(1, 0, 0);
     Vec3 y = *this * Vec3(0, 1, 0);
     Vec3 z = *this * Vec3(0, 0, 1);
-    GFX::push_line(o, x, color, Vec4(1, 0, 0, 1), 0.01);
-    GFX::push_line(o, y, color, Vec4(0, 1, 0, 1), 0.01);
-    GFX::push_line(o, z, color, Vec4(0, 0, 1, 1), 0.01);
+    GFX::push_line(o, x, color, Color4(1, 0, 0, 1), 0.01);
+    GFX::push_line(o, y, color, Color4(0, 1, 0, 1), 0.01);
+    GFX::push_line(o, z, color, Color4(0, 0, 1, 1), 0.01);
 }
 
 Mat operator*(const Mat &a, const Mat &b) {

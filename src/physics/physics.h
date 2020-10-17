@@ -60,12 +60,12 @@ struct PhysicsEngine {
 
 ///* draw_aabody
 // Draws a body as a box.
-void draw_aabody(AABody a, Vec4 color);
+void draw_aabody(AABody a, Color4 color);
 
 ///* draw_manifold
 // Draws a collision manifold as a position and a normal.
 // Position might not match "real" position.
-void draw_manifold(Manifold a, Vec4 color);
+void draw_manifold(Manifold a, Color4 color);
 
 ///* collision_aabb
 // Check the collisions between two bodies.

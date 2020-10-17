@@ -4,7 +4,7 @@
 
 namespace Physics {
 
-void draw_aabody(AABody a, Vec4 color) {
+void draw_aabody(AABody a, Color4 color) {
     Vec3 p = a.position;
     Vec3 r = a.half_size;
     Vec3 points[] = {
@@ -29,7 +29,7 @@ void draw_aabody(AABody a, Vec4 color) {
     }
 }
 
-void draw_manifold(Manifold a, Vec4 color) {
+void draw_manifold(Manifold a, Color4 color) {
     if (a) {
         GFX::push_point(a.point, color, 0.04);
         GFX::push_line(a.point, a.point + a.normal, color, 0.005);
@@ -218,7 +218,7 @@ void PhysicsEngine::update(real delta) {
 
 void PhysicsEngine::draw() {
     for (AABody &a : bodies) {
-        draw_aabody(a, Vec4(1.0, 0.0, 1.0, 1.0));
+        draw_aabody(a, Color4(1.0, 0.0, 1.0, 1.0));
     }
 }
 

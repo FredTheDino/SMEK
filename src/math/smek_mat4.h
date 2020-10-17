@@ -54,7 +54,7 @@ struct Mat {
 
     static Mat from(H h);
 
-    void gfx_dump(Vec4 color = Vec4(1.0, 1.0, 1.0, 1.0));
+    void gfx_dump(Color4 color = Color4(1.0, 1.0, 1.0, 1.0));
 
     Mat invert();
     Mat transpose();
