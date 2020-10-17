@@ -32,6 +32,12 @@ void Color4::to(real *arr) const {
     arr[3] = a;
 }
 
+// Since Color4 is defined _after_ Color3, we cannot access Color4s constructor
+// without it being defined.
+Color3::operator Color4() const {
+    return Color4(r, g, b, 1.0);
+}
+
 real &Vec2::operator[](std::size_t idx) {
     ASSERT_LT(idx, 2);
     return _[idx];
@@ -41,6 +47,16 @@ real &Vec3::operator[](std::size_t idx) {
     return _[idx];
 }
 real &Vec4::operator[](std::size_t idx) {
+    ASSERT_LT(idx, 4);
+    return _[idx];
+}
+
+real &Color3::operator[](std::size_t idx) {
+    ASSERT_LT(idx, 3);
+    return _[idx];
+}
+
+real &Color4::operator[](std::size_t idx) {
     ASSERT_LT(idx, 4);
     return _[idx];
 }

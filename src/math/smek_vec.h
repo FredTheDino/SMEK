@@ -74,11 +74,16 @@ struct Vec4 {
     static Vec4 from(real *arr) { return { arr[0], arr[1], arr[2], arr[3] }; }
 };
 
+struct Color4;
 struct Color3 {
     Color3(real r = 0.0, real g = 0.0, real b = 0.0)
         : r(r)
         , g(g)
         , b(b) {}
+    Color3(Vec3 source)
+        : r(source.x)
+        , g(source.y)
+        , b(source.z) {}
     Color3(real *arr)
         : r(arr[0])
         , g(arr[1])
@@ -90,6 +95,8 @@ struct Color3 {
             real r, g, b;
         };
     };
+
+    operator Color4() const;
 
     void to(real *arr) const;
     real &operator[](std::size_t idx);
@@ -103,18 +110,27 @@ struct Color4 {
         , g(g)
         , b(b)
         , a(a) {}
+    Color4(Vec4 source)
+        : r(source.x)
+        , g(source.y)
+        , b(source.z)
+        , a(source.w) {}
     Color4(real *arr)
         : r(arr[0])
         , g(arr[1])
         , b(arr[2])
         , a(arr[3]) {}
-
     union {
         real _[4];
         struct {
             real r, g, b, a;
         };
     };
+
+    // Explicit since the alpha channel is destroyed.
+    explicit operator Color3() const {
+        return Color3(r, g, b);
+    }
 
     void to(real *arr) const;
     real &operator[](std::size_t idx);
