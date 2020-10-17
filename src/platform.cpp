@@ -40,7 +40,7 @@ struct GameLibrary {
     int reload_frame_delay;
 } game_lib = {};
 
-GameState game_state;
+GameState game_state = {};
 Audio::AudioStruct platform_audio_struct = {};
 
 SDL_mutex *m_reload_lib;
@@ -225,8 +225,7 @@ static void imgui_end_frame() {}
 #endif
 
 #ifndef TESTS
-bool update_to_default_window_size(int *width, int *height) {
-    f32 screen_percent = 0.75;
+bool update_to_default_window_size(int *width, int *height, f32 screen_percent) {
     SDL_DisplayMode dm;
     // TODO(ed): First argument is display, maybe try multiple?
     if (SDL_GetDesktopDisplayMode(0, &dm) == 0) {
@@ -250,6 +249,7 @@ int main(int argc, char **argv) { // Game entrypoint
     int height = 500;
     bool passed_resolution = false;
     bool allow_resize = false;
+    bool full_screen = false;
 #define ARGUMENT(LONG, SHORT) (std::strcmp((LONG), argv[index]) == 0 || std::strcmp((SHORT), argv[index]) == 0)
     for (int index = 1; index < argc; index++) {
         if ARGUMENT ("--help", "-h") {
@@ -265,6 +265,8 @@ int main(int argc, char **argv) { // Game entrypoint
             hot_reload_active = false;
         } else if ARGUMENT ("--allow-resize", "-a") {
             allow_resize = true;
+        } else if ARGUMENT ("--full-screen", "-m") {
+            full_screen = true;
         } else {
             ERR("Unknown command line argument '{}'", argv[index]);
         }
@@ -277,7 +279,14 @@ int main(int argc, char **argv) { // Game entrypoint
     }
 
     if (!passed_resolution) {
-        update_to_default_window_size(&width, &height);
+        f32 screen_percent = 0.75;
+        update_to_default_window_size(&width, &height, screen_percent);
+    }
+
+    if (full_screen) {
+        update_to_default_window_size(&width, &height, 1.0);
+        game_state.full_screen_window = true;
+        game_state.resized_window = true;
     }
 
     if (hot_reload_active) {
@@ -295,7 +304,6 @@ int main(int argc, char **argv) { // Game entrypoint
         UNREACHABLE("Failed to load the linked library the first time!");
     }
 
-    game_state = {};
     game_state.allow_user_resize_window = allow_resize;
     game_state.input.mouse_capture = false;
     game_state.input.rebind_func = platform_rebind;
