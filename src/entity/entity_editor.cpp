@@ -97,15 +97,15 @@ void EntitySystem::draw_imgui() {
             initalize_func_map = false;
         }
 
-        static bool show_everything = true;
-        ImGui::Checkbox("Show Raw Entity Data", &show_everything);
-        if (show_everything) {
+        ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 0.0f);
+        if (ImGui::TreeNode("Raw Entity Data")) {
             // Imgui for each entity
             for (auto [id, e] : entities) {
-                ImGui::PushID(e);
                 //if (!selected.contains(id)) continue;
+
+                if (!ImGui::TreeNode(e, "%lu - %s", e->entity_id, type_name(e))) continue;
                 FieldList fields = get_fields_for(e->type);
-                ImGui::Text("Entity");
+
                 for (int i = 0; i < fields.num_fields; i++) {
                     Field f = fields.list[i];
                     std::size_t hash = f.typeinfo.hash_code();
@@ -124,9 +124,9 @@ void EntitySystem::draw_imgui() {
                     // Do stuff for all the fields,
                     // like drawing them, map of type to functions.
                 }
-                ImGui::PopID();
+                ImGui::TreePop();
             }
-
+            ImGui::TreePop();
         } else {
             //TODO(gu) filter for sound entities
             //TODO(gu) formatting, spacing, the whole lot
@@ -184,7 +184,7 @@ void EntitySystem::draw_imgui() {
                 e->imgui();
             }
         }
-
+        ImGui::PopStyleVar();
         ImGui::End();
     }
 }
