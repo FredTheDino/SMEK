@@ -25,6 +25,53 @@ void show_Color3(const char *name, void *v) {
 void show_Vec3(const char *name, void *v) {
     ImGui::InputFloat3(name, (f32 *)v);
 }
+
+void show_EntityType(const char *name, void *v) {
+    EntityType *e = (EntityType *)v;
+    char buffer[20];
+    format(buffer, LEN(buffer), {}, *e);
+    ImGui::Text("Type: %s", buffer);
+}
+
+void show_u64(const char *name, void *v) {
+    ImGui::InputScalar(name, ImGuiDataType_U64, v);
+}
+
+void show_u32(const char *name, void *v) {
+    ImGui::InputScalar(name, ImGuiDataType_U32, v);
+}
+
+void show_u16(const char *name, void *v) {
+    ImGui::InputScalar(name, ImGuiDataType_U16, v);
+}
+
+void show_u8(const char *name, void *v) {
+    ImGui::InputScalar(name, ImGuiDataType_U8, v);
+}
+
+void show_i64(const char *name, void *v) {
+    ImGui::InputScalar(name, ImGuiDataType_S64, v);
+}
+
+void show_i32(const char *name, void *v) {
+    ImGui::InputScalar(name, ImGuiDataType_S32, v);
+}
+
+void show_i16(const char *name, void *v) {
+    ImGui::InputScalar(name, ImGuiDataType_S16, v);
+}
+
+void show_i8(const char *name, void *v) {
+    ImGui::InputScalar(name, ImGuiDataType_S8, v);
+}
+
+void show_H(const char *name, void *v) {
+    H *quat = (H *)v;
+    Vec3 euler = to_euler(*quat);
+    if (ImGui::InputFloat3(name, euler._)) {
+        *quat = H::from(euler.x, euler.y, euler.z);
+    }
+}
 }
 
 void EntitySystem::draw_imgui() {
@@ -37,6 +84,16 @@ void EntitySystem::draw_imgui() {
             F(Color3);
             F(Vec3);
             F(bool);
+            F(EntityType);
+            F(i64);
+            F(i32);
+            F(i16);
+            F(i8);
+            F(u64);
+            F(u32);
+            F(u16);
+            F(u8);
+            F(H);
             initalize_func_map = false;
         }
 
