@@ -250,6 +250,10 @@ int main(int argc, char **argv) { // Game entrypoint
     int height = 500;
     bool passed_resolution = false;
     bool allow_resize = false;
+    bool network_start_server = false;
+    bool network_start_client = false;
+    char *network_client_server_addr;
+    int network_port = 8888;
 #define ARGUMENT(LONG, SHORT) (std::strcmp((LONG), argv[index]) == 0 || std::strcmp((SHORT), argv[index]) == 0)
     for (int index = 1; index < argc; index++) {
         if ARGUMENT ("--help", "-h") {
@@ -265,6 +269,13 @@ int main(int argc, char **argv) { // Game entrypoint
             hot_reload_active = false;
         } else if ARGUMENT ("--allow-resize", "-a") {
             allow_resize = true;
+        } else if ARGUMENT("--server", "-s") {
+            network_start_server = true;
+        } else if ARGUMENT("--client", "-c") {
+            network_start_client = true;
+            network_client_server_addr = argv[++index];
+        } else if ARGUMENT("--port", "-p") {
+            network_port = std::atoi(argv[++index]);
         } else {
             ERR("Unknown command line argument '{}'", argv[index]);
         }
@@ -305,6 +316,14 @@ int main(int argc, char **argv) { // Game entrypoint
     game_state.m_reload_lib = m_reload_lib;
     game_state.reload_lib = &reload_lib;
 
+    if (network_start_server) {
+        game_state.network.autostart_server = true;
+        game_state.network.autostart_port = network_port;
+    } else if (network_start_client) {
+        game_state.network.autostart_client = true;
+        game_state.network.client_server_addr = network_client_server_addr;
+        game_state.network.autostart_port = network_port;
+    }
     game_lib.init(&game_state, width, height);
     platform_audio_init();
     game_state.audio_struct = &platform_audio_struct;

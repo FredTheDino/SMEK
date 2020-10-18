@@ -62,6 +62,11 @@ struct Network {
     static const u64 HANDLE_ID_FIRST_BIT = 0x0100000000000000;
     static const u32 MAX_CLIENTS = 2;
 
+    bool autostart_server = false;
+    bool autostart_client = false;
+    char *client_server_addr;
+    int autostart_port = 8888;
+
     bool server_listening = false;
     SDL_Thread *listener_thread;
 

@@ -30,6 +30,13 @@ void init_game(GameState *gamestate, int width, int height) {
     GAMESTATE()->entity_system.m_client_id = SDL_CreateMutex();
     GAMESTATE()->m_event_queue = SDL_CreateMutex();
 
+    Network *n = &GAMESTATE()->network;
+    if (n->autostart_server) {
+        n->setup_server(n->autostart_port);
+    } else if (n->autostart_client) {
+        n->connect_to_server(n->client_server_addr, n->autostart_port);
+    }
+
     Asset::load("assets.bin");
 
 #if IMGUI_ENABLE
