@@ -2,3 +2,6 @@
 	path = vendor/imgui
 	url = https://github.com/ocornut/imgui.git
 	branch = docking
+[submodule "vendor/implot"]
+	path = vendor/implot
+	url = git@github.com:epezent/implot.git
