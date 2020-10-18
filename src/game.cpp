@@ -11,8 +11,10 @@
 #include "math/smek_mat4.h"
 #include "math/smek_math.h"
 
+#ifdef IMGUI_ENABLE
 #include "imgui/imgui.h"
 #include "imgui/implot.h"
+#endif
 
 GameState *_global_gs;
 #ifndef TESTS
