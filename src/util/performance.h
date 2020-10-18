@@ -19,8 +19,8 @@ struct PerformanceCounter {
     u32 num_calls;
     u32 total_nano_seconds; // This is around 4 seconds, should be enough.
 
-    u32 total_hist[HISTORY_LENGTH];
-    u32 time_per_hist[HISTORY_LENGTH];
+    f32 total_hist[HISTORY_LENGTH];
+    f32 time_per_hist[HISTORY_LENGTH];
 
     TimePoint start;
 };
