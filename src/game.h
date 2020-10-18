@@ -46,6 +46,8 @@ struct GameState {
     EntityID lights[2];
 
     bool running;
+    bool auto_scale_window;
+    bool center_window;
     bool resized_window;
     bool full_screen_window;
     bool allow_user_resize_window;

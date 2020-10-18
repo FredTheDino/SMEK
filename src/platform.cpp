@@ -225,21 +225,6 @@ static void imgui_end_frame() {}
 #endif
 
 #ifndef TESTS
-bool update_to_default_window_size(int *width, int *height, f32 screen_percent) {
-    SDL_DisplayMode dm;
-    // TODO(ed): First argument is display, maybe try multiple?
-    if (SDL_GetDesktopDisplayMode(0, &dm) != 0) {
-        WARN("Failed to read Desktop Display Mode");
-        if (SDL_GetCurrentDisplayMode(0, &dm) != 0) {
-            WARN("Failed to read Current Display Mode");
-            return false;
-        }
-    }
-    *width = dm.w * screen_percent;
-    *height = dm.h * screen_percent;
-    return true;
-}
-
 #include "util/log.cpp"           // I know, just meh.
 int main(int argc, char **argv) { // Game entrypoint
     int width = 500;
@@ -272,16 +257,17 @@ int main(int argc, char **argv) { // Game entrypoint
 
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         ERR("Failed to initalize SDL \"{}\"", SDL_GetError());
-        return false;
+        return 1;
     }
 
     if (!passed_resolution) {
-        f32 screen_percent = 0.75;
-        update_to_default_window_size(&width, &height, screen_percent);
+        game_state.full_screen_window = false;
+        game_state.resized_window = true;
+        game_state.auto_scale_window = true;
+        game_state.center_window = true;
     }
 
     if (full_screen) {
-        update_to_default_window_size(&width, &height, 1.0);
         game_state.full_screen_window = true;
         game_state.resized_window = true;
     }

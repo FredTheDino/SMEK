@@ -50,6 +50,23 @@ void toggle_full_screen() {
     GAMESTATE()->full_screen_window = should_be_full_screen;
 }
 
+void auto_scale_window() {
+    SDL_DisplayMode dm;
+    int index = SDL_GetWindowDisplayIndex(GAMESTATE()->window);
+    if (SDL_GetCurrentDisplayMode(index, &dm) != 0) {
+        if (SDL_GetWindowDisplayMode(GAMESTATE()->window, &dm) != 0) {
+            WARN("Failed to get desktop dimensions for full screen");
+            return;
+        }
+    }
+
+    f32 screen_percent = 0.75;
+    GAMESTATE()->renderer.width = dm.w;
+    GAMESTATE()->renderer.height = dm.h;
+    GAMESTATE()->renderer.width *= screen_percent;
+    GAMESTATE()->renderer.height *= screen_percent;
+}
+
 void init_game(GameState *gamestate, int width, int height) {
     _global_gs = gamestate;
     GAMESTATE()->main_thread = SDL_GetThreadID(NULL);
@@ -133,12 +150,25 @@ void update() {
 
 void draw() {
     if (GAMESTATE()->resized_window) {
+        if (GAMESTATE()->auto_scale_window) {
+            GAMESTATE()->auto_scale_window = false;
+            auto_scale_window();
+        }
+
         GAMESTATE()->resized_window = false;
         GFX::set_screen_resolution();
         if (GAMESTATE()->full_screen_window) {
             SDL_SetWindowFullscreen(GAMESTATE()->window, SDL_WINDOW_FULLSCREEN_DESKTOP);
         } else {
             SDL_SetWindowFullscreen(GAMESTATE()->window, 0);
+        }
+
+        if (GAMESTATE()->center_window) {
+            GAMESTATE()->center_window = false;
+            int index = SDL_GetWindowDisplayIndex(GAMESTATE()->window);
+            SDL_SetWindowPosition(GAMESTATE()->window,
+                                  SDL_WINDOWPOS_CENTERED_DISPLAY(index),
+                                  SDL_WINDOWPOS_CENTERED_DISPLAY(index));
         }
     }
     GFX::RenderTexture target = GFX::render_target();
