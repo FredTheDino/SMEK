@@ -102,70 +102,95 @@ void PlayerInput::callback() {
 }
 
 void Player::update() {
+    bool own = GAMESTATE()->entity_system.have_ownership(entity_id);
+    bool debug_camera = GFX::current_camera() == GFX::debug_camera();
     if (GAMESTATE()->network.server_listening) {
-        // We're the server, so parse last_input
-        const f32 floor = 0.2;
-
-        Vec2 turn(last_input.mouse_axis);
-        turn = turn * delta(); //TODO *=
-        rotation = normalized(H::from(0.0, -turn.x, 0.0)
-                              * rotation
-                              * H::from(-turn.y, 0.0, 0.0));
-
-        Vec3 move(last_input.move_axis);
-        if (length_squared(move) > 1.0) {
-            move = move / length(move); //TODO /=
+        if (own && !debug_camera) {
+            update_input();
         }
-        f32 drag_coef = Math::pow(0.05, delta());
-        velocity.x = velocity.x * drag_coef;
-        velocity.y = -4.82 * delta(); // temp gravity
-        velocity.z = velocity.z * drag_coef;
-        velocity += rotation
-            * Vec3(move.x, 0.0, move.z)
-            * GAMESTATE()->player_movement_speed
-            * delta();
-        // Plane collision
-        if (position.y <= floor) {
-            position.y = floor;
-            velocity.y = 0.0;
-
-            // If grounded
-            if (last_input.jump && velocity.y == 0.0) {
-                velocity.y = GAMESTATE()->player_jump_speed;
+        update_position();
+        if (own && !debug_camera) {
+            update_camera();
+        }
+    } else if (GAMESTATE()->network.server_handle.active) {
+        if (own) {
+            if (!debug_camera) {
+                update_input();
+                update_camera();
             }
         }
-        if (last_input.shot) {
-            LOG("Pew!");
-        }
-        position += velocity * delta();
-    } else if (GAMESTATE()->entity_system.have_ownership(entity_id)) {
-        // we're a client updating our own player, so send our current inputs
-        Package pkg;
-        pkg.header.type = PackageType::EVENT;
-        pkg.EVENT.event.type = EventType::PLAYER_INPUT;
-        PlayerInput player_input;
-        player_input.entity_id = this->entity_id;
-        Vec2 v_mouse_turn = Input::mouse_move()
-            * GAMESTATE()->player_mouse_sensitivity;
-        v_mouse_turn.to(player_input.mouse_axis);
-        Vec3 v_move = {
-            Input::value(Ac::MoveX),
-            Input::value(Ac::MoveY),
-            Input::value(Ac::MoveZ),
-        };
-        v_move = v_move * GAMESTATE()->player_movement_speed; //TODO *=
-        v_move.to(player_input.move_axis);
-        player_input.jump = Input::pressed(Ac::Jump);
-        player_input.shot = Input::pressed(Ac::Shoot);
-        pkg.EVENT.event.PLAYER_INPUT = player_input;
-
-        if (GAMESTATE()->network.server_handle.active) {
-            GAMESTATE()->network.server_handle.send(&pkg);
-        }
-
-        GFX::gameplay_camera()->position = position + Vec3(0.0, 0.9, 0.0);
-        GFX::gameplay_camera()->rotation = rotation;
+    } else if (!debug_camera) {
+        update_input();
+        update_position();
+        update_camera();
     }
+}
+
+void Player::update_input() {
+    Package pkg;
+    pkg.header.type = PackageType::EVENT;
+    pkg.EVENT.event.type = EventType::PLAYER_INPUT;
+    PlayerInput player_input;
+    player_input.entity_id = this->entity_id;
+    Vec2 v_mouse_turn = Input::mouse_move()
+        * GAMESTATE()->player_mouse_sensitivity;
+    v_mouse_turn.to(player_input.mouse_axis);
+    Vec3 v_move = {
+        Input::value(Ac::MoveX),
+        Input::value(Ac::MoveY),
+        Input::value(Ac::MoveZ),
+    };
+    v_move = v_move * GAMESTATE()->player_movement_speed; //TODO *=
+    v_move.to(player_input.move_axis);
+    player_input.jump = Input::pressed(Ac::Jump);
+    player_input.shot = Input::pressed(Ac::Shoot);
+    pkg.EVENT.event.PLAYER_INPUT = player_input;
+
+    if (GAMESTATE()->network.server_handle.active) {
+        GAMESTATE()->network.server_handle.send(&pkg);
+    } else {
+        last_input = player_input;
+    }
+}
+
+void Player::update_position() {
+    Vec2 turn(last_input.mouse_axis);
+    turn = turn * delta(); //TODO *=
+    rotation = normalized(H::from(0.0, -turn.x, 0.0)
+                            * rotation
+                            * H::from(-turn.y, 0.0, 0.0));
+
+    Vec3 move(last_input.move_axis);
+    if (length_squared(move) > 1.0) {
+        move = move / length(move); //TODO /=
+    }
+    f32 drag_coef = Math::pow(0.05, delta());
+    velocity.x = velocity.x * drag_coef;
+    velocity.y = -4.82 * delta(); // temp gravity
+    velocity.z = velocity.z * drag_coef;
+    velocity += rotation
+        * Vec3(move.x, 0.0, move.z)
+        * GAMESTATE()->player_movement_speed
+        * delta();
+    // Plane collision
+    if (position.y <= FLOOR) {
+        position.y = FLOOR;
+        velocity.y = 0.0;
+
+        // If grounded
+        if (last_input.jump && velocity.y == 0.0) {
+            velocity.y = GAMESTATE()->player_jump_speed;
+        }
+    }
+    if (last_input.shot) {
+        LOG("Pew!");
+    }
+    position += velocity * delta();
+}
+
+void Player::update_camera() {
+    GFX::gameplay_camera()->position = position + Vec3(0.0, 0.9, 0.0);
+    GFX::gameplay_camera()->rotation = rotation;
 }
 
 IMPL_IMGUI(Player, ([&]() {

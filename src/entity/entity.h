@@ -98,12 +98,16 @@ struct PlayerInput {
 ///*
 // A playable character
 struct Player : public Entity {
+    static constexpr f32 FLOOR = 0.2;
     PlayerInput last_input;
     Vec3 velocity;
 
     void imgui() override;
 
     void update() override;
+    void update_camera();
+    void update_input();
+    void update_position();
     void draw() override;
 };
 
