@@ -89,7 +89,7 @@ void reload_game(GameState *game) {
     GFX::remake_render_target();
 }
 
-void on_connect() {
+void on_connect_to_server() {
     Player player = {};
     player.entity_id = GAMESTATE()->entity_system.add(player);
     Package player_package;

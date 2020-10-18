@@ -67,7 +67,7 @@ GameState *GAMESTATE();
 extern "C" void init_game(GameState *gamestate, int width, int height);
 typedef void (*GameInitFunc)(GameState *, int, int);
 
-void on_connect();
+void on_connect_to_server();
 
 struct GameStateUpdateMode {
     bool draw = false;

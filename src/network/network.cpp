@@ -100,7 +100,7 @@ int start_server_handle(void *data) {
                     GAMESTATE()->entity_system.client_id = handle->client_id;
                     SDL_UnlockMutex(GAMESTATE()->entity_system.m_client_id);
                 }
-                on_connect();
+                on_connect_to_server();
                 break;
             case PackageType::HEARTBEAT:
                 handle->recv_heartbeat(package.HEARTBEAT.id);
