@@ -30,6 +30,9 @@ void init_game(GameState *gamestate, int width, int height) {
     GAMESTATE()->entity_system.m_client_id = SDL_CreateMutex();
     GAMESTATE()->m_event_queue = SDL_CreateMutex();
 
+    Player player = {};
+    GAMESTATE()->entity_system.add(player);
+
     Network *n = &GAMESTATE()->network;
     if (n->autostart_server) {
         n->setup_server(n->autostart_port);
@@ -68,9 +71,6 @@ void init_game(GameState *gamestate, int width, int height) {
     Light l = Light();
     GAMESTATE()->lights[0] = GAMESTATE()->entity_system.add(l);
     GAMESTATE()->lights[1] = GAMESTATE()->entity_system.add(l);
-
-    Player player = {};
-    //GAMESTATE()->entity_system.add(player);
 
     Physics::AABody b;
     b.position = { 0, 0, 0 };
