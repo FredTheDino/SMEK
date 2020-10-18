@@ -5,15 +5,6 @@
 #include "asset.h"
 #include "../game.h"
 
-static u64 hash(const char *string) {
-    u64 hash = 5351;
-    while (*string) {
-        char c = (*string++);
-        hash = hash * c + c;
-    }
-    return hash;
-}
-
 AssetID::AssetID(const char *str) {
     id = hash(str);
 }

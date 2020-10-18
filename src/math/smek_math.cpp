@@ -2,6 +2,15 @@
 #include "smek_math.h"
 #include "../test.h"
 
+u64 hash(const char *string) {
+    u64 hash = 5351;
+    while (*string) {
+        char c = (*string++);
+        hash = hash * c + c;
+    }
+    return hash;
+}
+
 namespace Math {
 
 TEST_STMT("abs", abs<i32>(-1) == 1);

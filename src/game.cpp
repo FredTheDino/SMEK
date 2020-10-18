@@ -6,6 +6,7 @@
 #include "renderer/renderer.h"
 #include "asset/asset.h"
 #include "physics/physics.h"
+#include "util/performance.h"
 
 #include "math/smek_mat4.h"
 #include "math/smek_math.h"
@@ -110,6 +111,7 @@ void reload_game(GameState *game) {
 }
 
 void update() {
+    PERFORMACE("Update");
     if (Input::released(Ac::MouseToggle)) {
         GAMESTATE()->input.mouse_capture ^= 1;
     }
@@ -132,6 +134,8 @@ void update() {
 }
 
 void draw() {
+    Performance::report();
+    PERFORMACE("Draw");
     if (GAMESTATE()->resized_window) {
         GAMESTATE()->resized_window = false;
         GFX::set_screen_resolution();
