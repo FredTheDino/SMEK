@@ -2,11 +2,17 @@
 #include "log.h"
 #include <unordered_map>
 
+#ifdef IMGUI_ENABLE
+#include "imgui/implot.h"
+#endif
+
 namespace Performance {
 
+#ifdef PERFORMANCE_ENABLE
 struct PerformanceMetrics {
     // TODO(ed): Locks and working with different threads.
     std::unordered_map<u64, PerformanceCounter> metrics;
+    u32 frame = 0;
 } gpc;
 
 const TimePoint null_time = {};
@@ -54,5 +60,14 @@ void report() {
         counter.total_nano_seconds = 0;
     }
 }
+#else
+u64 begin_time_block(const char *name,
+                     u64 hash_uuid,
+                     const char *func,
+                     const char *file,
+                     u32 line) {}
+void end_time_block(u64 hash_uuid) {}
+void report() {}
+#endif
 
 }

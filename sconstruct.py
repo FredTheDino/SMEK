@@ -123,6 +123,11 @@ AddOption("--full-screen",
           action="store_true",
           help="Defaults the game to be in full screen")
 
+AddOption("--no-performance",
+          dest="no_performance",
+          action="store_true",
+          help="Disables the performance counters")
+
 
 #
 # Enviroment setup
@@ -270,6 +275,11 @@ def create_smek_target():
         env.Append(CPPDEFINES="IMGUI_DISABLE")
     else:
         env.Append(CPPDEFINES="IMGUI_ENABLE")
+
+    if GetOption("no_performance"):
+        env.Append(CPPDEFINES="PERFORMANCE_DISABLE")
+    else:
+        env.Append(CPPDEFINES="PERFORMANCE_ENABLE")
 
     imgui_files_dest = [f"inc/imgui/{os.path.basename(f)}" for f in IMGUI_FILES_SRC]
     for src, dest in zip(IMGUI_FILES_SRC, imgui_files_dest):
