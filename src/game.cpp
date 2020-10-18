@@ -23,6 +23,33 @@ u32 frame() { return GAMESTATE()->frame; }
 
 void do_imgui_stuff();
 
+void toggle_full_screen() {
+    bool should_be_full_screen = !GAMESTATE()->full_screen_window;
+
+    // TODO(ed): Maybe we want to remember the resolution before
+    // we change to fullscreen and use that when we turn back?
+    SDL_DisplayMode dm;
+    if (SDL_GetDesktopDisplayMode(0, &dm) == 0) {
+        GAMESTATE()->renderer.width = dm.w;
+        GAMESTATE()->renderer.height = dm.h;
+    } else if (SDL_GetCurrentDisplayMode(0, &dm) == 0) {
+        GAMESTATE()->renderer.width = dm.w;
+        GAMESTATE()->renderer.height = dm.h;
+    } else {
+        WARN("Failed to get desktop dimensions for full screen");
+        return;
+    }
+
+    if (!GAMESTATE()->full_screen_window) {
+        f32 screen_percent = 0.75;
+        GAMESTATE()->renderer.width *= screen_percent;
+        GAMESTATE()->renderer.height *= screen_percent;
+    }
+
+    GAMESTATE()->resized_window = true;
+    GAMESTATE()->full_screen_window = should_be_full_screen;
+}
+
 void init_game(GameState *gamestate, int width, int height) {
     _global_gs = gamestate;
     GAMESTATE()->main_thread = SDL_GetThreadID(NULL);
@@ -108,6 +135,11 @@ void draw() {
     if (GAMESTATE()->resized_window) {
         GAMESTATE()->resized_window = false;
         GFX::set_screen_resolution();
+        if (GAMESTATE()->full_screen_window) {
+            SDL_SetWindowFullscreen(GAMESTATE()->window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+        } else {
+            SDL_SetWindowFullscreen(GAMESTATE()->window, 0);
+        }
     }
     GFX::RenderTexture target = GFX::render_target();
     target.use();
@@ -189,6 +221,10 @@ void do_imgui_stuff() {
                             &GAMESTATE()->imgui.depth_map_enabled);
             ImGui::MenuItem("Show Entities", "",
                             &GAMESTATE()->imgui.entities_enabled);
+            static bool full_screen = GAMESTATE()->full_screen_window;
+            if (ImGui::MenuItem("Fullscreen", "", &full_screen)) {
+                toggle_full_screen();
+            }
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Help")) {

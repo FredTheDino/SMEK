@@ -110,6 +110,12 @@ AddOption("--allow-resize",
           action="store_true",
           help="Allow resizing of the game window")
 
+AddOption("--full-screen",
+          dest="full_screen",
+          action="store_true",
+          help="Defaults the game to be in full screen")
+
+
 #
 # Enviroment setup
 #
@@ -306,6 +312,8 @@ if native:
     run_command = [move_to_dir, smek[0].abspath]
     if GetOption("allow_resize"):
         run_command.append("--allow-resize")
+    if GetOption("full_screen"):
+        run_command.append("--full-screen")
     AlwaysBuild(env.Alias("run", smek_target,  " ".join(run_command)))
 
     debug_command = [move_to_dir, "gdb", smek[0].abspath]
