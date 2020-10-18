@@ -283,13 +283,10 @@ void Network::imgui_draw() {
     if (!GAMESTATE()->imgui.networking_enabled) return;
     ImGui::Begin("Networking");
     {
-        static int serverport = 8888;
         ImGui::SetNextItemWidth(150);
-        ImGui::PushID(&serverport);
-        ImGui::InputInt("port", &serverport);
-        ImGui::PopID();
+        ImGui::InputInt("port", &GAMESTATE()->imgui.network_port);
         if (ImGui::Button("Create server")) {
-            setup_server(serverport);
+            setup_server(GAMESTATE()->imgui.network_port);
         }
         if (server_listening) {
             ImGui::SameLine();
@@ -333,15 +330,14 @@ void Network::imgui_draw() {
         ImGui::Separator();
 
         static char ip[64] = "127.0.0.1";
-        static int connectport = 8888;
         ImGui::SetNextItemWidth(150);
         ImGui::InputText("server address", ip, LEN(ip));
         ImGui::SetNextItemWidth(150);
-        ImGui::PushID(&connectport);
-        ImGui::InputInt("port", &connectport);
+        ImGui::PushID(&GAMESTATE()->imgui.network_port);
+        ImGui::InputInt("port", &GAMESTATE()->imgui.network_port);
         ImGui::PopID();
         if (ImGui::Button("Connect to server")) {
-            connect_to_server(ip, connectport);
+            connect_to_server(ip, GAMESTATE()->imgui.network_port);
         }
         if (server_handle.active) {
             ImGui::AlignTextToFramePadding();

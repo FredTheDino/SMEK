@@ -324,6 +324,10 @@ int main(int argc, char **argv) { // Game entrypoint
         game_state.network.client_server_addr = network_client_server_addr;
         game_state.network.autostart_port = network_port;
     }
+#ifdef IMGUI_ENABLE
+    game_state.imgui.network_port = network_port;
+#endif
+
     game_lib.init(&game_state, width, height);
     platform_audio_init();
     game_state.audio_struct = &platform_audio_struct;
