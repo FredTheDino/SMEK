@@ -21,6 +21,7 @@ BIN_DIR = "bin/"
 reload_action = Action("(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
 
 IMGUI_FILES_SRC = [
+        # ImGui
         "vendor/imgui/imgui.cpp",
         "vendor/imgui/imgui.h",
         "vendor/imgui/imgui_demo.cpp",
@@ -34,6 +35,13 @@ IMGUI_FILES_SRC = [
         "vendor/imgui/imstb_rectpack.h",
         "vendor/imgui/imstb_textedit.h",
         "vendor/imgui/imstb_truetype.h",
+
+        # ImGui Plot files
+        "vendor/implot/implot.cpp",
+        "vendor/implot/implot.h",
+        "vendor/implot/implot_demo.cpp",
+        "vendor/implot/implot_internal.h",
+        "vendor/implot/implot_items.cpp",
         ]
 
 system = platform.uname().system
