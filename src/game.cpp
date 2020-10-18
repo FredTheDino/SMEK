@@ -1,3 +1,4 @@
+#include "SDL_video.h"
 #include "util/util.h"
 
 #include "game.h"
@@ -29,18 +30,17 @@ void toggle_full_screen() {
     // TODO(ed): Maybe we want to remember the resolution before
     // we change to fullscreen and use that when we turn back?
     SDL_DisplayMode dm;
-    if (SDL_GetDesktopDisplayMode(0, &dm) == 0) {
-        GAMESTATE()->renderer.width = dm.w;
-        GAMESTATE()->renderer.height = dm.h;
-    } else if (SDL_GetCurrentDisplayMode(0, &dm) == 0) {
-        GAMESTATE()->renderer.width = dm.w;
-        GAMESTATE()->renderer.height = dm.h;
-    } else {
-        WARN("Failed to get desktop dimensions for full screen");
-        return;
+    int index = SDL_GetWindowDisplayIndex(GAMESTATE()->window);
+    if (SDL_GetCurrentDisplayMode(index, &dm) != 0) {
+        if (SDL_GetWindowDisplayMode(GAMESTATE()->window, &dm) != 0) {
+            WARN("Failed to get desktop dimensions for full screen");
+            return;
+        }
     }
 
-    if (!GAMESTATE()->full_screen_window) {
+    GAMESTATE()->renderer.width = dm.w;
+    GAMESTATE()->renderer.height = dm.h;
+    if (should_be_full_screen) {
         f32 screen_percent = 0.75;
         GAMESTATE()->renderer.width *= screen_percent;
         GAMESTATE()->renderer.height *= screen_percent;

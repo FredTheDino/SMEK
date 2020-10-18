@@ -228,19 +228,16 @@ static void imgui_end_frame() {}
 bool update_to_default_window_size(int *width, int *height, f32 screen_percent) {
     SDL_DisplayMode dm;
     // TODO(ed): First argument is display, maybe try multiple?
-    if (SDL_GetDesktopDisplayMode(0, &dm) == 0) {
-        *width = dm.w * screen_percent;
-        *height = dm.h * screen_percent;
-        return true;
+    if (SDL_GetDesktopDisplayMode(0, &dm) != 0) {
+        WARN("Failed to read Desktop Display Mode");
+        if (SDL_GetCurrentDisplayMode(0, &dm) != 0) {
+            WARN("Failed to read Current Display Mode");
+            return false;
+        }
     }
-    WARN("Failed to read Desktop Display Mode");
-    if (SDL_GetCurrentDisplayMode(0, &dm) == 0) {
-        *width = dm.w * screen_percent;
-        *height = dm.h * screen_percent;
-        return true;
-    }
-    WARN("Failed to read Current Display Mode");
-    return false;
+    *width = dm.w * screen_percent;
+    *height = dm.h * screen_percent;
+    return true;
 }
 
 #include "util/log.cpp"           // I know, just meh.
@@ -316,7 +313,6 @@ int main(int argc, char **argv) { // Game entrypoint
     game_lib.init(&game_state, width, height);
     platform_audio_init();
     game_state.audio_struct = &platform_audio_struct;
-
 
     // IMGUI
     if (gladLoadGL() == 0) {
