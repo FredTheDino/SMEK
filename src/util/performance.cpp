@@ -49,6 +49,26 @@ void end_time_block(u64 hash_uuid) {
     ref.total_nano_seconds += duration_cast<nanoseconds>(end - start).count();
 }
 
+#ifdef IMGUI_ENABLE
+void report() {
+    ImGui::Begin("Performance");
+    gpc.frame += 1;
+    gpc.frame %= HISTORY_LENGTH;
+    for (auto &[hash, counter] : gpc.metrics) {
+        if (ImPlot::BeginPlot(counter.name, "Frame", "Time")) {
+            counter.total_hist[gpc.frame] = counter.total_nano_seconds;
+            counter.time_per_hist[gpc.frame] = counter.total_nano_seconds / (counter.num_calls != 0 ?: 1);
+
+            ImPlot::PlotLine("Total Time", counter.total_hist, HISTORY_LENGTH);
+            ImPlot::PlotLine("Time Per Frame", counter.time_per_hist, HISTORY_LENGTH);
+            ImPlot::EndPlot();
+        }
+        counter.num_calls = 0;
+        counter.total_nano_seconds = 0;
+    }
+    ImGui::End();
+}
+#else // Without IMGUI
 void report() {
     for (auto &[hash, counter] : gpc.metrics) {
         LOG("{} - #{} {}ns {}ns/call",
@@ -60,6 +80,8 @@ void report() {
         counter.total_nano_seconds = 0;
     }
 }
+#endif
+
 #else
 u64 begin_time_block(const char *name,
                      u64 hash_uuid,

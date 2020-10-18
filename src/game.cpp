@@ -12,6 +12,7 @@
 #include "math/smek_math.h"
 
 #include "imgui/imgui.h"
+#include "imgui/implot.h"
 
 GameState *_global_gs;
 #ifndef TESTS
@@ -106,6 +107,7 @@ void reload_game(GameState *game) {
     Asset::reload();
 #ifdef IMGUI_ENABLE
     ImGui::SetCurrentContext((ImGuiContext *)game->imgui.context);
+    ImPlot::SetCurrentContext((ImPlotContext *)game->imgui.implot_context);
 #endif
     GFX::remake_render_target();
 }

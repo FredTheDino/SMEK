@@ -5,6 +5,8 @@
 
 namespace Performance {
 
+constexpr u32 HISTORY_LENGTH = 1001;
+
 using Clock = std::chrono::high_resolution_clock;
 using TimePoint = std::chrono::time_point<Clock>;
 struct PerformanceCounter {
@@ -16,6 +18,9 @@ struct PerformanceCounter {
 
     u32 num_calls;
     u32 total_nano_seconds; // This is around 4 seconds, should be enough.
+
+    u32 total_hist[HISTORY_LENGTH];
+    u32 time_per_hist[HISTORY_LENGTH];
 
     TimePoint start;
 };

@@ -3,6 +3,7 @@
 
 struct ImGuiState {
     void *context;
+    void *implot_context;
 
     // Toggleable views
     bool networking_enabled = false;
