@@ -58,7 +58,13 @@ void report() {
     gpc.frame += 1;
     gpc.frame %= HISTORY_LENGTH;
     ImPlot::SetNextPlotLimits(0, HISTORY_LENGTH, 0, 16);
-    if (ImPlot::BeginPlot("Total Time", "Frame", "Time (ms)", Vec2(-1, 0), ImPlotFlags_None, ImPlotAxisFlags_Lock, ImPlotAxisFlags_Lock)) {
+    if (ImPlot::BeginPlot("Total Time",
+                          "Frame",
+                          "Time (ms)",
+                          Vec2(-1, 0),
+                          ImPlotFlags_None,
+                          ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoDecorations,
+                          ImPlotAxisFlags_Lock)) {
         for (auto &[hash, counter] : gpc.metrics) {
             counter.total_hist[gpc.frame] = NANO_TO_MS * counter.total_nano_seconds;
             ImPlot::PlotLine(counter.name, counter.total_hist, HISTORY_LENGTH);
@@ -67,7 +73,13 @@ void report() {
     }
 
     ImPlot::SetNextPlotLimits(0, HISTORY_LENGTH, 0, 16);
-    if (ImPlot::BeginPlot("Time Per Call", "Frame", "Time (ms)", Vec2(-1, 0), ImPlotFlags_None, ImPlotAxisFlags_Lock, ImPlotAxisFlags_Lock)) {
+    if (ImPlot::BeginPlot("Time Per Call",
+                          "Frame",
+                          "Time (ms)",
+                          Vec2(-1, 0),
+                          ImPlotFlags_None,
+                          ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoDecorations,
+                          ImPlotAxisFlags_Lock)) {
         for (auto &[hash, counter] : gpc.metrics) {
             counter.time_per_hist[gpc.frame] = NANO_TO_MS * counter.total_nano_seconds / (counter.num_calls ?: 1);
             ImPlot::PlotLine(counter.name, counter.time_per_hist, HISTORY_LENGTH);
