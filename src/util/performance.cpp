@@ -1,6 +1,7 @@
 #include "performance.h"
 #include "log.h"
 #include <unordered_map>
+#include "../game.h"
 
 #ifdef IMGUI_ENABLE
 #include "imgui/implot.h"
@@ -52,6 +53,7 @@ void end_time_block(u64 hash_uuid) {
 #ifdef IMGUI_ENABLE
 #define NANO_TO_MS 1e-6
 void report() {
+    if (!GAMESTATE()->imgui.performance_enabled) return;
     ImGui::Begin("Performance");
     gpc.frame += 1;
     gpc.frame %= HISTORY_LENGTH;

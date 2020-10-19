@@ -10,6 +10,7 @@ struct ImGuiState {
     bool entities_enabled = true;
     bool depth_map_enabled = false;
     bool render_target_enabled = false;
+    bool performance_enabled = false;
 
     bool show_create_sound_window = false;
 

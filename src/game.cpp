@@ -229,6 +229,8 @@ void do_imgui_stuff() {
                             &GAMESTATE()->imgui.depth_map_enabled);
             ImGui::MenuItem("Show Entities", "",
                             &GAMESTATE()->imgui.entities_enabled);
+            ImGui::MenuItem("Show Performance", "",
+                            &GAMESTATE()->imgui.performance_enabled);
             static bool full_screen = GAMESTATE()->full_screen_window;
             if (ImGui::MenuItem("Fullscreen", "", &full_screen)) {
                 toggle_full_screen();
