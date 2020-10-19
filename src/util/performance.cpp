@@ -60,6 +60,10 @@ void report() {
     if (!GAMESTATE()->imgui.performance_enabled) return;
     ImGui::Begin("Performance");
 
+    // The height of the graph plots, set to 20ms to make it easier
+    // to see spikes and such.
+    const f32 MAXIMUM_MS = 20;
+
 #define DRAW_NOW_LINE                                  \
     do {                                               \
         f32 xs[] = { (f32)gpc.frame, (f32)gpc.frame }; \
@@ -78,9 +82,8 @@ void report() {
     u32 prev_frame = gpc.frame;
     gpc.frame += 1;
     gpc.frame %= HISTORY_LENGTH;
-    ImPlot::SetNextPlotLimits(0, HISTORY_LENGTH, 0, 16);
 
-    ImPlot::SetNextPlotLimits(0, HISTORY_LENGTH, 0, 20);
+    ImPlot::SetNextPlotLimits(0, HISTORY_LENGTH, 0, MAXIMUM_MS);
     if (ImPlot::BeginPlot("Total Frame Time",
                           "Frame",
                           "Time (ms)",
@@ -101,6 +104,7 @@ void report() {
         ImPlot::EndPlot();
     }
 
+    ImPlot::SetNextPlotLimits(0, HISTORY_LENGTH, 0, MAXIMUM_MS);
     if (ImPlot::BeginPlot("Total Time",
                           "Frame",
                           "Time (ms)",
@@ -116,7 +120,7 @@ void report() {
         ImPlot::EndPlot();
     }
 
-    ImPlot::SetNextPlotLimits(0, HISTORY_LENGTH, 0, 16);
+    ImPlot::SetNextPlotLimits(0, HISTORY_LENGTH, 0, MAXIMUM_MS);
     if (ImPlot::BeginPlot("Time Per Call",
                           "Frame",
                           "Time (ms)",
