@@ -55,6 +55,13 @@ void end_time_block(u64 hash_uuid) {
 void report() {
     if (!GAMESTATE()->imgui.performance_enabled) return;
     ImGui::Begin("Performance");
+
+#define DRAW_NOW_LINE                                  \
+    do {                                               \
+        f32 xs[] = { (f32)gpc.frame, (f32)gpc.frame }; \
+        f32 ys[] = { -10, 30 };                        \
+        ImPlot::PlotLine("NOW", xs, ys, 2);            \
+    } while (false)
     gpc.frame += 1;
     gpc.frame %= HISTORY_LENGTH;
     ImPlot::SetNextPlotLimits(0, HISTORY_LENGTH, 0, 16);
@@ -65,6 +72,7 @@ void report() {
                           ImPlotFlags_None,
                           ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoDecorations,
                           ImPlotAxisFlags_Lock)) {
+        DRAW_NOW_LINE;
         for (auto &[hash, counter] : gpc.metrics) {
             counter.total_hist[gpc.frame] = NANO_TO_MS * counter.total_nano_seconds;
             ImPlot::PlotLine(counter.name, counter.total_hist, HISTORY_LENGTH);
@@ -80,6 +88,7 @@ void report() {
                           ImPlotFlags_None,
                           ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoDecorations,
                           ImPlotAxisFlags_Lock)) {
+        DRAW_NOW_LINE;
         for (auto &[hash, counter] : gpc.metrics) {
             counter.time_per_hist[gpc.frame] = NANO_TO_MS * counter.total_nano_seconds / (counter.num_calls ?: 1);
             ImPlot::PlotLine(counter.name, counter.time_per_hist, HISTORY_LENGTH);
