@@ -74,6 +74,31 @@ void report() {
         }
         ImPlot::EndPlot();
     }
+
+    ImPlot::SetNextPlotLimits(0, 1, 0, 1, ImGuiCond_Always);
+    if (ImPlot::BeginPlot("Number of calls",
+                          nullptr,
+                          nullptr,
+                          Vec2(250, 250),
+                          ImPlotFlags_NoMousePos,
+                          ImPlotAxisFlags_NoDecorations,
+                          ImPlotAxisFlags_NoDecorations)) {
+        const u32 MAX_NUM_PIE_PARTS = 128;
+        const char *labels[MAX_NUM_PIE_PARTS];
+        u32 calls[MAX_NUM_PIE_PARTS];
+        u32 i = 0;
+        u32 total = 0;
+        for (auto &[hash, counter] : gpc.metrics) {
+            if (i >= MAX_NUM_PIE_PARTS) break;
+            labels[i] = counter.name;
+            calls[i] = counter.num_calls;
+            total += counter.num_calls;
+            i++;
+        }
+        ImPlot::PlotPieChart(labels, calls, i, 0.5, 0.5, 0.4, true);
+        ImPlot::EndPlot();
+        ImGui::Text("Total: %d", total);
+    }
     for (auto &[hash, counter] : gpc.metrics) {
         counter.num_calls = 0;
         counter.total_nano_seconds = 0;
