@@ -171,7 +171,7 @@ void EntitySystem::draw_imgui() {
                     sound_entity.asset_id = asset_id;
                     sound_entity.sound_source_settings.gain = gain;
                     sound_entity.sound_source_settings.repeat = repeat;
-                    GAMESTATE()->event_queue.push(entity_event(sound_entity));
+                    GAMESTATE()->entity_system.add(sound_entity);
                 }
                 ImGui::SameLine();
                 if (ImGui::Button("Close")) GAMESTATE()->imgui.show_create_sound_window = false;
