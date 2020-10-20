@@ -115,7 +115,7 @@ void reload_game(GameState *game) {
 }
 
 void update() {
-    PERFORMACE("Update");
+    PERFORMANCE("Update");
     if (Input::released(Ac::MouseToggle)) {
         GAMESTATE()->input.mouse_capture ^= 1;
     }
@@ -139,7 +139,7 @@ void update() {
 
 void draw() {
     Performance::report();
-    PERFORMACE("Draw");
+    PERFORMANCE("Draw");
     if (GAMESTATE()->resized_window) {
         GAMESTATE()->resized_window = false;
         GFX::set_screen_resolution();

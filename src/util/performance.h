@@ -45,5 +45,5 @@ void report();
     defer { Performance::end_time_block(_PERFORMANCE_BLOCK_##line); }
 
 #define _a_performance(name, line) _b_performance(name, line)
-#define PERFORMACE(name)           _a_performance(name, __LINE__)
+#define PERFORMANCE(name)          _a_performance(name, __LINE__)
 }
