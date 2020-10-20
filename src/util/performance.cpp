@@ -72,7 +72,7 @@ void report() {
     do {                                               \
         f32 xs[] = { (f32)gpc.frame, (f32)gpc.frame }; \
         f32 ys[] = { -10, 30 };                        \
-        ImPlot::PlotLine("NOW", xs, ys, 2);            \
+        ImPlot::PlotLine("Now", xs, ys, 2);            \
     } while (false)
 
     TimePoint now = Clock::now();
