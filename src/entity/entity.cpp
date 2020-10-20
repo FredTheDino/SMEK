@@ -91,8 +91,9 @@ void LightUpdate::callback() {
 }
 
 void PlayerInput::callback() {
-    //TODO this shouldn't be bound per player.
-    //     rather, the network should check the client prefixes of players
+    // This could be per client instead. In that case we would iterate all
+    // players and compare their entity id client id prefix with the network
+    // client id prefix.
     if (!GAMESTATE()->entity_system.is_valid(entity_id)) {
         WARN("Received player input for invalid entity id {}", entity_id);
         return;
