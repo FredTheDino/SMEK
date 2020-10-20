@@ -155,6 +155,8 @@ void Player::update_input() {
 }
 
 void Player::update_position() {
+    const f32 VELOCITY_EPSILON = 0.001;
+
     Vec2 turn(last_input.mouse_axis);
     turn = turn * delta(); //TODO *=
     rotation = normalized(H::from(0.0, -turn.x, 0.0)
@@ -179,7 +181,8 @@ void Player::update_position() {
         velocity.y = 0.0;
 
         // If grounded
-        if (last_input.jump && velocity.y == 0.0) {
+        // TODO(gu) check if colliding with floor instead
+        if (last_input.jump && velocity.y < VELOCITY_EPSILON) {
             velocity.y = GAMESTATE()->player_jump_speed;
         }
     }
