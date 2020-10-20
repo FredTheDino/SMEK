@@ -60,7 +60,7 @@ void end_time_block(u64 hash_uuid) {
 }
 
 #ifdef IMGUI_ENABLE
-#define NANO_TO_MS 1e-6
+const f32 NANO_TO_MS = 1e-6;
 void report() {
     if (!GAMESTATE()->imgui.performance_enabled) return;
     ImGui::Begin("Performance");
@@ -84,14 +84,15 @@ void report() {
     gpc.frame_start = now;
 
     u32 prev_frame = gpc.frame;
+    const i32 GRAPH_HEIGHT = 150;
     gpc.frame += 1;
     gpc.frame %= HISTORY_LENGTH;
 
     ImPlot::SetNextPlotLimits(0, HISTORY_LENGTH, 0, MAXIMUM_MS);
-    if (ImPlot::BeginPlot("Total Frame Time",
-                          "Frame",
-                          "Time (ms)",
-                          Vec2(-1, 0),
+    if (ImPlot::BeginPlot("##FrameTimes",
+                          "Total Frame Time (ms)",
+                          "",
+                          Vec2(-1, GRAPH_HEIGHT),
                           ImPlotFlags_None,
                           ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoDecorations,
                           ImPlotAxisFlags_Lock)) {
@@ -109,10 +110,10 @@ void report() {
     }
 
     ImPlot::SetNextPlotLimits(0, HISTORY_LENGTH, 0, MAXIMUM_MS);
-    if (ImPlot::BeginPlot("Total Time",
-                          "Frame",
-                          "Time (ms)",
-                          Vec2(-1, 0),
+    if (ImPlot::BeginPlot("##TotalTimes",
+                          "Total Time (ms)",
+                          "",
+                          Vec2(-1, GRAPH_HEIGHT),
                           ImPlotFlags_None,
                           ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoDecorations,
                           ImPlotAxisFlags_Lock)) {
@@ -144,7 +145,7 @@ void report() {
     if (ImPlot::BeginPlot("Number of calls",
                           nullptr,
                           nullptr,
-                          Vec2(250, 250),
+                          Vec2(GRAPH_HEIGHT * 2, GRAPH_HEIGHT),
                           ImPlotFlags_NoMousePos,
                           ImPlotAxisFlags_NoDecorations,
                           ImPlotAxisFlags_NoDecorations)) {
