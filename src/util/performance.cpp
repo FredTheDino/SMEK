@@ -38,20 +38,25 @@ u64 begin_time_block(const char *name,
 
     PerformanceCounter &ref = gpc.metrics[hash_uuid];
     ASSERT(ref.start == null_time, "Performance block started twice!");
-    ref.start = std::chrono::high_resolution_clock::now();
+    ref.start = Clock::now();
     return hash_uuid;
+}
+
+f32 time_since(TimePoint a, TimePoint b) {
+    using std::chrono::duration_cast;
+    using std::chrono::nanoseconds;
+    return duration_cast<nanoseconds>(b - a).count();
 }
 
 void end_time_block(u64 hash_uuid) {
     using std::chrono::duration_cast;
-    using std::chrono::high_resolution_clock;
     using std::chrono::nanoseconds;
     PerformanceCounter &ref = gpc.metrics[hash_uuid];
     ref.num_calls += 1;
     TimePoint start = ref.start;
-    TimePoint end = high_resolution_clock::now();
+    TimePoint end = Clock::now();
     ref.start = null_time;
-    ref.total_nano_seconds += duration_cast<nanoseconds>(end - start).count();
+    ref.total_nano_seconds += time_since(start, end);
 }
 
 #ifdef IMGUI_ENABLE
@@ -71,12 +76,11 @@ void report() {
         ImPlot::PlotLine("NOW", xs, ys, 2);            \
     } while (false)
 
-    using std::chrono::duration_cast;
-    using std::chrono::high_resolution_clock;
-    using std::chrono::nanoseconds;
-    TimePoint now = high_resolution_clock::now();
-    f32 frame_time = duration_cast<nanoseconds>(now - gpc.frame_start).count() * NANO_TO_MS;
-    frame_time = frame_time < 40 ? frame_time : 40;
+    TimePoint now = Clock::now();
+    if (gpc.frame_start.time_since_epoch().count() == 0) {
+        gpc.frame_start = now;
+    }
+    f32 frame_time = time_since(gpc.frame_start, now) * NANO_TO_MS;
     gpc.frame_start = now;
 
     u32 prev_frame = gpc.frame;
