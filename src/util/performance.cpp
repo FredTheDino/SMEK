@@ -16,7 +16,6 @@ struct PerformanceMetrics {
 
     TimePoint frame_start = {};
     f32 frame_time[HISTORY_LENGTH] = {};
-    f32 average_frame_time[HISTORY_LENGTH] = {};
     u32 frame = 0;
 } gpc;
 
@@ -83,7 +82,6 @@ void report() {
     f32 frame_time = time_since(gpc.frame_start, now) * NANO_TO_MS;
     gpc.frame_start = now;
 
-    u32 prev_frame = gpc.frame;
     const i32 GRAPH_HEIGHT = 150;
     gpc.frame += 1;
     gpc.frame %= HISTORY_LENGTH;
@@ -98,14 +96,22 @@ void report() {
                           ImPlotAxisFlags_Lock)) {
 
         DRAW_NOW_LINE;
-        f32 prev_average = gpc.average_frame_time[prev_frame];
-        f32 oldest_frame_time = gpc.frame_time[gpc.frame];
-        f32 delta_frame_time = frame_time - oldest_frame_time;
-        f32 new_average = prev_average + delta_frame_time / HISTORY_LENGTH;
-        gpc.average_frame_time[gpc.frame] = new_average;
         gpc.frame_time[gpc.frame] = frame_time;
-        ImPlot::PlotLine("Raw Frametime", gpc.frame_time, HISTORY_LENGTH);
-        ImPlot::PlotLine("Average Frametime", gpc.average_frame_time, HISTORY_LENGTH);
+        ImPlot::PlotLine("Raw", gpc.frame_time, HISTORY_LENGTH);
+
+        const u32 SAMPLES_IN_AVERAGE = Math::min<u32>(30, HISTORY_LENGTH);
+        u32 start_index = (HISTORY_LENGTH + gpc.frame - SAMPLES_IN_AVERAGE) % HISTORY_LENGTH;
+        f32 average = 0.0;
+        for (u32 i = 0; i < SAMPLES_IN_AVERAGE; i++) {
+            u32 sample_index = (start_index + i) % HISTORY_LENGTH;
+            average += gpc.frame_time[sample_index];
+        }
+        average /= SAMPLES_IN_AVERAGE;
+
+        f32 xs[] = { -100, (f32)start_index, (f32)gpc.frame, HISTORY_LENGTH };
+        f32 ys[] = { average, average, average, average };
+        ImPlot::PlotLine("Avg.", xs, ys, LEN(xs));
+        ImPlot::PlotScatter("Avg.", xs, ys, LEN(xs));
         ImPlot::EndPlot();
     }
 
@@ -121,20 +127,7 @@ void report() {
         for (auto &[hash, counter] : gpc.metrics) {
             counter.total_hist[gpc.frame] = NANO_TO_MS * counter.total_nano_seconds;
             ImPlot::PlotLine(counter.name, counter.total_hist, HISTORY_LENGTH);
-        }
-        ImPlot::EndPlot();
-    }
 
-    ImPlot::SetNextPlotLimits(0, HISTORY_LENGTH, 0, MAXIMUM_MS);
-    if (ImPlot::BeginPlot("Time Per Call",
-                          "Frame",
-                          "Time (ms)",
-                          Vec2(-1, 0),
-                          ImPlotFlags_None,
-                          ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoDecorations,
-                          ImPlotAxisFlags_Lock)) {
-        DRAW_NOW_LINE;
-        for (auto &[hash, counter] : gpc.metrics) {
             counter.time_per_hist[gpc.frame] = NANO_TO_MS * counter.total_nano_seconds / (counter.num_calls ?: 1);
             ImPlot::PlotLine(counter.name, counter.time_per_hist, HISTORY_LENGTH);
         }
