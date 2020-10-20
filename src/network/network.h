@@ -18,6 +18,7 @@
 #include "SDL.h"
 
 #include "package.h"
+#include "events.h"
 #include "../math/smek_math.h"
 #include "../util/util.h"
 

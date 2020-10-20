@@ -144,7 +144,22 @@ int start_client_handle(void *data) {
     }
     close(handle->sockfd);
     handle->wip_entities.free();
+    if (SDL_LockMutex(GAMESTATE()->m_event_queue) != 0) {
+        ERR("Unable to lock mutex: {}", SDL_GetError());
+    } else {
+        Event event;
+        event.type = EventType::DROP_CLIENT;
+        event.DROP_CLIENT = {
+            .client_id = handle->client_id,
+        };
+        GAMESTATE()->event_queue.push(event);
+        SDL_UnlockMutex(GAMESTATE()->m_event_queue);
+    }
     return 0;
+}
+
+void DropClientEvent::callback() {
+    GAMESTATE()->entity_system.drop_client(client_id);
 }
 
 bool Network::setup_server(int portno) {

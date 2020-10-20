@@ -20,6 +20,7 @@ void handle_events() {
             HANDLE(LIGHT_UPDATE);
             HANDLE(PLAYER_INPUT);
             HANDLE(PLAYER_UPDATE);
+            HANDLE(DROP_CLIENT);
         default:
             ERR("Unkown event type {}", e.type);
         }
