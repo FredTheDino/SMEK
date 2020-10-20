@@ -167,7 +167,7 @@ void Player::update_position() {
     }
     f32 drag_coef = Math::pow(0.05, delta());
     velocity.x = velocity.x * drag_coef;
-    velocity.y = -4.82 * delta(); // temp gravity
+    velocity.y += -4.82 * delta(); // temp gravity
     velocity.z = velocity.z * drag_coef;
     velocity += rotation
         * Vec3(move.x, 0.0, move.z)
