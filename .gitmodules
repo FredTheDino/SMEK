@@ -4,4 +4,4 @@
 	branch = docking
 [submodule "vendor/implot"]
 	path = vendor/implot
-	url = git@github.com:epezent/implot.git
+	url = https://github.com/epezent/implot.git
