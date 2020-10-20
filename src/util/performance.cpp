@@ -197,4 +197,4 @@ u64 begin_time_block(const char *name,
 void end_time_block(u64 hash_uuid) {}
 void report() {}
 #endif
-}
+} // namespace Performance

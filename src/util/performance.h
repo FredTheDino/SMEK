@@ -17,7 +17,7 @@ struct PerformanceCounter {
     u32 line;
 
     u32 num_calls;
-    u32 total_nano_seconds; // This is around 4 seconds, should be enough.
+    u32 total_nano_seconds; // Wraps via overflow every ~4.3 seconds
 
     f32 total_hist[HISTORY_LENGTH];
     f32 time_per_hist[HISTORY_LENGTH];
@@ -46,4 +46,4 @@ void report();
 
 #define _a_performance(name, line) _b_performance(name, line)
 #define PERFORMANCE(name)          _a_performance(name, __LINE__)
-}
+} // namespace Performance
