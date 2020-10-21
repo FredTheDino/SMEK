@@ -197,6 +197,29 @@ void push_line(Vec3 a, Vec3 b, Color4 a_color, Color4 b_color, f32 width) {
     push_debug_triangle(p2, a_color, p3, b_color, p4, b_color);
 }
 
+void push_circle(Vec3 center,
+                 Vec3 normal,
+                 f32 scale,
+                 Color4 c,
+                 f32 line_size,
+                 u32 segments) {
+    Vec3 z = normalized(normal);
+    Vec3 s = cross(Vec3(0, 1, 0), z);
+    if (length_squared(s) < 0.1) {
+        s = cross(Vec3(1, 0, 0), z);
+    }
+    Vec3 t = cross(z, s);
+
+    const f32 step = 2 * PI / segments;
+    Vec3 last_offset = s * scale;
+    for (f32 a = step; a < 2 * PI; a += step) {
+        Vec3 offset = (Math::cos(a) * s + Math::sin(a) * t) * scale;
+        push_line(center + last_offset, center + offset, c, line_size);
+        last_offset = offset;
+    }
+    push_line(center + last_offset, center + s * scale, c, line_size);
+}
+
 void Mesh::destroy() {
     glDeleteVertexArrays(11, &vao);
     glDeleteBuffers(1, &vbo);

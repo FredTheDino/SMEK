@@ -419,6 +419,15 @@ void push_line(Vec3 a, Vec3 b, Color4 c = color(), f32 width = 0.1);
 void push_line(Vec3 a, Vec3 b, Color4 a_color, Color4 b_color, f32 width = 0.1);
 
 ///*
+// Draws a circle, facing the direction of the normal.
+void push_circle(Vec3 center,
+                 Vec3 normal,
+                 f32 scale,
+                 Color4 c = color(),
+                 f32 line_size = 0.01,
+                 u32 segments = 8);
+
+///*
 // Adds one triangle to be drawn during
 // the debug render call.
 void push_debug_triangle(Vec3 p1, Color4 c1, Vec3 p2, Color4 c2, Vec3 p3, Color4 c3);
