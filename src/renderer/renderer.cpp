@@ -47,6 +47,23 @@ Vec3 Camera::get_forward() {
     return Mat::from(rotation) * Vec3(0, 0, -1);
 }
 
+void Camera::debug_draw() {
+    if (current_camera() == this) {
+        return;
+    }
+    Color4 color = Color4(0.9, 0.9, 0.5, 1.0);
+
+    f32 size = 0.01;
+    f32 inner_radius = 0.1;
+    f32 outer_radius = 0.3;
+
+    Vec3 forward = get_forward();
+
+    push_line(position, position + forward * 0.5, Color4(), color, size * 2);
+    push_circle(position, forward, inner_radius, color, 0.01);
+    push_circle(position + forward * 0.2, forward, outer_radius, color, 0.01);
+}
+
 template <>
 void Camera::upload(const MasterShader &shader) {
     if (dirty_perspective) {

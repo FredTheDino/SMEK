@@ -59,6 +59,8 @@ struct Camera {
 
     Vec3 get_forward();
 
+    void debug_draw();
+
     template <typename S>
     void upload(const S &s);
 };

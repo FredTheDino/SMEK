@@ -165,6 +165,9 @@ void draw() {
     GFX::current_camera()->upload(shader);
     shader.upload_bones(0, nullptr);
 
+    GFX::debug_camera()->debug_draw();
+    GFX::gameplay_camera()->debug_draw();
+
     shader.upload_sun_dir(GFX::lighting()->sun_direction);
     shader.upload_sun_color(GFX::lighting()->sun_color);
     shader.upload_ambient_color(GFX::lighting()->ambient_color);
