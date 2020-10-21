@@ -163,7 +163,7 @@ void report() {
             total += counter.num_calls;
             i++;
         }
-        ImPlot::PlotPieChart(labels, calls, i, 0.5, 0.5, 0.4, true);
+        ImPlot::PlotPieChart(labels, calls, i, 0.5, 0.5, 0.4, true, "%.0f");
         ImPlot::EndPlot();
         ImGui::SameLine();
         ImGui::Text("Total Number of Calls: %d", total);
