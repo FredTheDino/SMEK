@@ -6,11 +6,15 @@
 #include "renderer/renderer.h"
 #include "asset/asset.h"
 #include "physics/physics.h"
+#include "util/performance.h"
 
 #include "math/smek_mat4.h"
 #include "math/smek_math.h"
 
+#ifdef IMGUI_ENABLE
 #include "imgui/imgui.h"
+#include "imgui/implot.h"
+#endif
 
 GameState *_global_gs;
 #ifndef TESTS
@@ -105,11 +109,13 @@ void reload_game(GameState *game) {
     Asset::reload();
 #ifdef IMGUI_ENABLE
     ImGui::SetCurrentContext((ImGuiContext *)game->imgui.context);
+    ImPlot::SetCurrentContext((ImPlotContext *)game->imgui.implot_context);
 #endif
     GFX::remake_render_target();
 }
 
 void update() {
+    PERFORMANCE("Update");
     if (Input::released(Ac::MouseToggle)) {
         GAMESTATE()->input.mouse_capture ^= 1;
     }
@@ -132,6 +138,8 @@ void update() {
 }
 
 void draw() {
+    Performance::report();
+    PERFORMANCE("Draw");
     if (GAMESTATE()->resized_window) {
         GAMESTATE()->resized_window = false;
         GFX::set_screen_resolution();
@@ -221,6 +229,8 @@ void do_imgui_stuff() {
                             &GAMESTATE()->imgui.depth_map_enabled);
             ImGui::MenuItem("Show Entities", "",
                             &GAMESTATE()->imgui.entities_enabled);
+            ImGui::MenuItem("Show Performance", "",
+                            &GAMESTATE()->imgui.performance_enabled);
             static bool full_screen = GAMESTATE()->full_screen_window;
             if (ImGui::MenuItem("Fullscreen", "", &full_screen)) {
                 toggle_full_screen();

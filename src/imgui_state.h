@@ -3,12 +3,14 @@
 
 struct ImGuiState {
     void *context;
+    void *implot_context;
 
     // Toggleable views
     bool networking_enabled = false;
     bool entities_enabled = true;
     bool depth_map_enabled = false;
     bool render_target_enabled = false;
+    bool performance_enabled = false;
 
     bool show_create_sound_window = false;
 

@@ -19,6 +19,13 @@ inc/imgui/imstb_rectpack.h
 inc/imgui/imstb_textedit.h
 inc/imgui/imstb_truetype.h
 
+# implot
+inc/imgui/implot.cpp
+inc/imgui/implot.h
+inc/imgui/implot_demo.cpp
+inc/imgui/implot_internal.h
+inc/imgui/implot_items.cpp
+
 # scons
 .sconsign.dblite
 

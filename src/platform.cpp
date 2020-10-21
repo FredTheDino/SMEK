@@ -2,6 +2,7 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl3.h"
+#include "imgui/implot.h"
 #endif
 
 #include "glad/glad.h"
@@ -172,6 +173,7 @@ void platform_audio_init() {
 static void imgui_platform_start() {
     IMGUI_CHECKVERSION();
     game_state.imgui.context = (void *)ImGui::CreateContext();
+    game_state.imgui.implot_context = (void *)ImPlot::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     (void)io;
     // Enable Keyboard and gamepad Controls
@@ -316,7 +318,6 @@ int main(int argc, char **argv) { // Game entrypoint
     game_lib.init(&game_state, width, height);
     platform_audio_init();
     game_state.audio_struct = &platform_audio_struct;
-
 
     // IMGUI
     if (gladLoadGL() == 0) {

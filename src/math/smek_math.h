@@ -26,6 +26,8 @@ struct AssetID {
     }
 };
 
+u64 hash(const char *string);
+
 namespace Math {
 
 ///# Numbers

@@ -21,6 +21,7 @@ BIN_DIR = "bin/"
 reload_action = Action("(pidof SMEK >/dev/null && kill -USR1 $$(pidof SMEK)) || true")
 
 IMGUI_FILES_SRC = [
+        # ImGui
         "vendor/imgui/imgui.cpp",
         "vendor/imgui/imgui.h",
         "vendor/imgui/imgui_demo.cpp",
@@ -34,6 +35,13 @@ IMGUI_FILES_SRC = [
         "vendor/imgui/imstb_rectpack.h",
         "vendor/imgui/imstb_textedit.h",
         "vendor/imgui/imstb_truetype.h",
+
+        # ImGui Plot files
+        "vendor/implot/implot.cpp",
+        "vendor/implot/implot.h",
+        "vendor/implot/implot_demo.cpp",
+        "vendor/implot/implot_internal.h",
+        "vendor/implot/implot_items.cpp",
         ]
 
 system = platform.uname().system
@@ -114,6 +122,11 @@ AddOption("--full-screen",
           dest="full_screen",
           action="store_true",
           help="Defaults the game to be in full screen")
+
+AddOption("--no-performance",
+          dest="no_performance",
+          action="store_true",
+          help="Disables the performance counters")
 
 
 #
@@ -262,6 +275,11 @@ def create_smek_target():
         env.Append(CPPDEFINES="IMGUI_DISABLE")
     else:
         env.Append(CPPDEFINES="IMGUI_ENABLE")
+
+    if GetOption("no_performance"):
+        env.Append(CPPDEFINES="PERFORMANCE_DISABLE")
+    else:
+        env.Append(CPPDEFINES="PERFORMANCE_ENABLE")
 
     imgui_files_dest = [f"inc/imgui/{os.path.basename(f)}" for f in IMGUI_FILES_SRC]
     for src, dest in zip(IMGUI_FILES_SRC, imgui_files_dest):
