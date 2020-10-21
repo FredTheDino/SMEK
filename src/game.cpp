@@ -273,7 +273,7 @@ void do_imgui_stuff() {
         const i32 grid_size = 10;
         const f32 width = 0.005;
         const Color4 color = GFX::color(7) * 0.4;
-        for (f32 x = 0; x <= grid_size; x += 0.5) {
+        for (f32 x = 0; x < grid_size + 0.001; x += 0.5) {
             GFX::push_line(Vec3(x, 0, grid_size), Vec3(x, 0, -grid_size), color, width);
             GFX::push_line(Vec3(-x, 0, grid_size), Vec3(-x, 0, -grid_size), color, width);
             GFX::push_line(Vec3(grid_size, 0, x), Vec3(-grid_size, 0, x), color, width);
