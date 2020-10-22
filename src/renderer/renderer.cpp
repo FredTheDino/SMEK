@@ -54,14 +54,20 @@ void Camera::upload(const MasterShader &shader) {
         dirty_perspective = false;
     }
     shader.upload_proj(perspective);
-    Mat view = (Mat::translate(position) * Mat::from(rotation)).invert();
+    Mat view = (Mat::translate(position)
+                * Mat::from(rotation)
+                * Mat::scale(Vec3(1, 1, -1)))
+                   .invert();
     shader.upload_view(view);
 }
 
 template <>
 void Camera::upload(const DebugShader &shader) {
     shader.upload_proj(perspective);
-    Mat view = (Mat::translate(position) * Mat::from(rotation)).invert();
+    Mat view = (Mat::translate(position)
+                * Mat::from(rotation)
+                * Mat::scale(Vec3(1, 1, -1)))
+                   .invert();
     shader.upload_view(view);
 }
 
