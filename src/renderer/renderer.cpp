@@ -229,7 +229,9 @@ void push_circle(Vec3 center,
 
     const f32 step = 2 * PI / segments;
     Vec3 last_offset = s * scale;
-    for (f32 a = step; a < 2 * PI; a += step) {
+    for (u32 i = 1; i < segments; i++) {
+        f32 a = i * step;
+
         Vec3 offset = (Math::cos(a) * s + Math::sin(a) * t) * scale;
         push_line(center + last_offset, center + offset, c, line_size);
         last_offset = offset;
