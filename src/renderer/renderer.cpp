@@ -31,7 +31,7 @@ void Camera::set_aspect_ratio(f32 aspect_ratio) {
 }
 
 void Camera::turn(f32 jaw, f32 pitch) {
-    rotation = normalized(H::from(0.0, -pitch, 0.0) * rotation * H::from(-jaw, 0.0, 0.0));
+    rotation = normalized(H::from(0.0, pitch, 0.0) * rotation * H::from(jaw, 0.0, 0.0));
 }
 
 void Camera::move(Vec3 movement) {
@@ -39,12 +39,12 @@ void Camera::move(Vec3 movement) {
 }
 
 void Camera::move_relative(Vec3 movement) {
-    Vec3 relative_move = rotation * movement;
+    Vec3 relative_move = rotation * hadamard(movement, Vec3(1, 1, -1));
     position = position + relative_move;
 }
 
 Vec3 Camera::get_forward() {
-    return Mat::from(rotation) * Vec3(0, 0, -1);
+    return Mat::from(rotation) * Vec3(0, 0, 1);
 }
 
 template <>

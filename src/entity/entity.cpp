@@ -95,7 +95,7 @@ void Player::update() {
 
     Vec2 turn = Input::mouse_move();
     turn = turn * delta() * GAMESTATE()->player_mouse_sensitivity;
-    rotation = normalized(H::from(0.0, -turn.x, 0.0) * rotation * H::from(-turn.y, 0.0, 0.0));
+    rotation = normalized(H::from(0.0, turn.x, 0.0) * rotation * H::from(turn.y, 0.0, 0.0));
 
     f32 drag_coef = Math::pow(0.05, delta());
     velocity.x = velocity.x * drag_coef;
