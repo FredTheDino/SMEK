@@ -101,7 +101,7 @@ void Player::update() {
     velocity.x = velocity.x * drag_coef;
     velocity.y -= 4.82 * delta(); // Temporary gravity
     velocity.z = velocity.z * drag_coef;
-    velocity += rotation * Vec3(Input::value(Ac::MoveX), 0.0, Input::value(Ac::MoveZ)) * GAMESTATE()->player_movement_speed * delta();
+    velocity += rotation * Vec3(Input::value(Ac::MoveX), 0.0, -Input::value(Ac::MoveZ)) * GAMESTATE()->player_movement_speed * delta();
     // Plane collision
     if (position.y <= floor) {
         position.y = floor;
