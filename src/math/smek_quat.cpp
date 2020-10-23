@@ -11,10 +11,10 @@ i32 format(char *buffer, u32 size, FormatHint args, H q) {
 }
 
 void H::to(real *arr) const {
-    arr[0] = _[0];
-    arr[1] = _[1];
-    arr[2] = _[2];
-    arr[3] = _[3];
+    arr[0] = x;
+    arr[1] = y;
+    arr[2] = z;
+    arr[3] = w;
 }
 
 real &H::operator[](std::size_t idx) {

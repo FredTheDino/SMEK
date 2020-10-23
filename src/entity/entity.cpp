@@ -133,9 +133,13 @@ void Player::update_input() {
     pkg.EVENT.event.type = EventType::PLAYER_INPUT;
     PlayerInput player_input;
     player_input.entity_id = this->entity_id;
-    Vec2 v_mouse_turn = Input::mouse_move()
-        * GAMESTATE()->player_mouse_sensitivity;
-    v_mouse_turn.to(player_input.mouse_axis);
+    Vec2 turn = Input::mouse_move()
+        * GAMESTATE()->player_mouse_sensitivity
+        * delta();
+    rotation = normalized(H::from(0.0, -turn.x, 0.0)
+                            * rotation
+                            * H::from(-turn.y, 0.0, 0.0));
+    rotation.to(player_input.rotation);
     Vec3 v_move = {
         Input::value(Ac::MoveX),
         Input::value(Ac::MoveY),
@@ -157,12 +161,12 @@ void Player::update_input() {
 void Player::update_position() {
     const f32 VELOCITY_EPSILON = 0.001;
 
-    Vec2 turn(last_input.mouse_axis);
-    turn = turn * delta(); //TODO *=
-    rotation = normalized(H::from(0.0, -turn.x, 0.0)
-                            * rotation
-                            * H::from(-turn.y, 0.0, 0.0));
-
+    if (!GAMESTATE()->entity_system.have_ownership(entity_id)) {
+        Quat input_rotation = Quat(last_input.rotation);
+        if (length_squared(input_rotation) != 0.0) {
+            rotation = input_rotation;
+        }
+    }
     Vec3 move(last_input.move_axis);
     if (length_squared(move) > 1.0) {
         move = move / length(move); //TODO /=
@@ -198,17 +202,6 @@ void Player::update_camera() {
 }
 
 IMPL_IMGUI(Player, ([&]() {
-               ImGui::VSliderFloat("Mouse x",
-                                   Vec2(18, 160),
-                                   &last_input.mouse_axis[0],
-                                   -10.0,
-                                   +10.0);
-               ImGui::SameLine(0, 10);
-               ImGui::VSliderFloat("Mouse y",
-                                   Vec2(18, 160),
-                                   &last_input.mouse_axis[1],
-                                   -10.0,
-                                   +10.0);
                ImGui::SliderFloat("Jump speed",
                                   &GAMESTATE()->player_jump_speed,
                                   0.0, 10.0,
@@ -235,7 +228,9 @@ void PlayerUpdate::callback() {
     }
     Player *p = GAMESTATE()->entity_system.fetch<Player>(entity_id);
     p->position = Vec3(position);
-    p->rotation = H(rotation);
+    if (!GAMESTATE()->entity_system.have_ownership(entity_id)) {
+        p->rotation = H(rotation);
+    }
 }
 
 void SoundEntity::update() {

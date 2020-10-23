@@ -88,7 +88,7 @@ struct LightUpdate {
 
 struct PlayerInput {
     EntityID entity_id;
-    f32 mouse_axis[2]; // mouse sensitivity included
+    f32 rotation[4];
     f32 move_axis[3];
     bool jump;
     bool shot;
