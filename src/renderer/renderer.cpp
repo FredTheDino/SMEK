@@ -47,6 +47,23 @@ Vec3 Camera::get_forward() {
     return Mat::from(rotation) * Vec3(0, 0, -1);
 }
 
+void Camera::debug_draw() {
+    if (current_camera() == this) {
+        return;
+    }
+    Color4 color = Color4(0.9, 0.9, 0.5, 1.0);
+
+    f32 size = 0.01;
+    f32 inner_radius = 0.1;
+    f32 outer_radius = 0.3;
+
+    Vec3 forward = get_forward();
+
+    push_line(position, position + forward * 0.5, Color4(), color, size * 2);
+    push_circle(position, forward, inner_radius, color, 0.01);
+    push_circle(position + forward * 0.2, forward, outer_radius, color, 0.01);
+}
+
 template <>
 void Camera::upload(const MasterShader &shader) {
     if (dirty_perspective) {
@@ -195,6 +212,31 @@ void push_line(Vec3 a, Vec3 b, Color4 a_color, Color4 b_color, f32 width) {
     p4 = b - sideways;
     push_debug_triangle(p1, a_color, p2, a_color, p3, b_color);
     push_debug_triangle(p2, a_color, p3, b_color, p4, b_color);
+}
+
+void push_circle(Vec3 center,
+                 Vec3 normal,
+                 f32 scale,
+                 Color4 c,
+                 f32 line_size,
+                 u32 segments) {
+    Vec3 z = normalized(normal);
+    Vec3 s = cross(Vec3(0, 1, 0), z);
+    if (length_squared(s) < 0.1) {
+        s = cross(Vec3(1, 0, 0), z);
+    }
+    Vec3 t = cross(z, s);
+
+    const f32 step = 2 * PI / segments;
+    Vec3 last_offset = s * scale;
+    for (u32 i = 1; i < segments; i++) {
+        f32 a = i * step;
+
+        Vec3 offset = (Math::cos(a) * s + Math::sin(a) * t) * scale;
+        push_line(center + last_offset, center + offset, c, line_size);
+        last_offset = offset;
+    }
+    push_line(center + last_offset, center + s * scale, c, line_size);
 }
 
 void Mesh::destroy() {
