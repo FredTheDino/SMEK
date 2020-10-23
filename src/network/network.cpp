@@ -9,11 +9,13 @@
 #include "imgui/imgui.h"
 
 void NetworkHandle::send(u8 *data, u32 data_len) {
-    int n = write(sockfd, data, data_len);
-    if (n < 0) {
-        ERR("Error writing to socket, errno: {}", errno);
-    } else if ((u32)n < data_len) {
-        ERR("write did not write all data to socket, n={}, data_len={}", n, data_len);
+    int data_written = 0;
+    while (data_written < data_len) {
+        int n = write(sockfd, data + data_written, data_len - data_written);
+        if (n < 0) {
+            UNREACHABLE("Error writing to socket, errno: {}", errno);
+        }
+        data_written += n;
     }
 }
 
@@ -34,20 +36,22 @@ void NetworkHandle::close() {
 }
 
 bool NetworkHandle::recv(u8 *buf, u32 data_len, Package *package) {
-    int n = read(sockfd, buf, data_len);
-    if (n < 0) {
-        ERR("{}: Error reading from socket, errno={}", thread_name, errno);
-    } else if (n == 0) {
-        LOG("{}: Connection closed", thread_name);
-        active = false;
-    } else if ((u32)n < data_len) {
-        WARN("{}: Did not read entire buffer, connection closed?", thread_name);
-    } else {
-        unpack(package, buf);
-        //package_log.push_front(*package);
-        handle_package(package);
-        return true;
+    int data_read = 0;
+    while (data_read < data_len) {
+        int n = read(sockfd, buf + data_read, data_len - data_read);
+        if (n < 0) {
+            UNREACHABLE("{}: Error reading from socket, errno={}", thread_name, errno); //TODO do something smart
+        } else if (n == 0) {
+            LOG("{}: Connection closed", thread_name);
+            active = false;
+            return false;
+        }
+        data_read += n;
     }
+    unpack(package, buf);
+    //package_log.push_front(*package);
+    handle_package(package);
+    return true;
     return false;
 }
 
