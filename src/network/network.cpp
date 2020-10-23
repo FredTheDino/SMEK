@@ -9,16 +9,18 @@
 #include "imgui/imgui.h"
 
 void NetworkHandle::send(u8 *data, u32 data_len) {
-    int n = write(sockfd, data, data_len);
-    if (n < 0) {
-        ERR("Error writing to socket, errno: {}", errno);
-    } else if ((u32)n < data_len) {
-        ERR("write did not write all data to socket, n={}, data_len={}", n, data_len);
+    int data_written = 0;
+    while (data_written < data_len) {
+        int n = write(sockfd, data + data_written, data_len - data_written);
+        if (n < 0) {
+            UNREACHABLE("Error writing to socket, errno: {}", errno);
+        }
+        data_written += n;
     }
 }
 
 void NetworkHandle::send(Package *package) {
-    u8 buf[sizeof(Package)];
+    u8 buf[sizeof(Package)] = {};
     package->header.client = client_id;
     package->header.id = next_package_id++;
     pack(buf, package);
@@ -34,20 +36,22 @@ void NetworkHandle::close() {
 }
 
 bool NetworkHandle::recv(u8 *buf, u32 data_len, Package *package) {
-    int n = read(sockfd, buf, data_len);
-    if (n < 0) {
-        ERR("{}: Error reading from socket, errno={}", thread_name, errno);
-    } else if (n == 0) {
-        LOG("{}: Connection closed", thread_name);
-        active = false;
-    } else if ((u32)n < data_len) {
-        WARN("{}: Did not read entire buffer, connection closed?", thread_name);
-    } else {
-        unpack(package, buf);
-        //package_log.push_front(*package);
-        handle_package(package);
-        return true;
+    int data_read = 0;
+    while (data_read < data_len) {
+        int n = read(sockfd, buf + data_read, data_len - data_read);
+        if (n < 0) {
+            UNREACHABLE("{}: Error reading from socket, errno={}", thread_name, errno); //TODO do something smart
+        } else if (n == 0) {
+            LOG("{}: Connection closed", thread_name);
+            active = false;
+            return false;
+        }
+        data_read += n;
     }
+    unpack(package, buf);
+    //package_log.push_front(*package);
+    handle_package(package);
+    return true;
     return false;
 }
 
@@ -100,6 +104,7 @@ int start_server_handle(void *data) {
                     GAMESTATE()->entity_system.client_id = handle->client_id;
                     SDL_UnlockMutex(GAMESTATE()->entity_system.m_client_id);
                 }
+                on_connect_to_server();
                 break;
             case PackageType::HEARTBEAT:
                 handle->recv_heartbeat(package.HEARTBEAT.id);
@@ -143,7 +148,22 @@ int start_client_handle(void *data) {
     }
     close(handle->sockfd);
     handle->wip_entities.free();
+    if (SDL_LockMutex(GAMESTATE()->m_event_queue) != 0) {
+        ERR("Unable to lock mutex: {}", SDL_GetError());
+    } else {
+        Event event;
+        event.type = EventType::DROP_CLIENT;
+        event.DROP_CLIENT = {
+            .client_id = handle->client_id,
+        };
+        GAMESTATE()->event_queue.push(event);
+        SDL_UnlockMutex(GAMESTATE()->m_event_queue);
+    }
     return 0;
+}
+
+void DropClientEvent::callback() {
+    GAMESTATE()->entity_system.drop_client(client_id);
 }
 
 bool Network::setup_server(int portno) {
@@ -282,13 +302,10 @@ void Network::imgui_draw() {
     if (!GAMESTATE()->imgui.networking_enabled) return;
     ImGui::Begin("Networking");
     {
-        static int serverport = 8888;
         ImGui::SetNextItemWidth(150);
-        ImGui::PushID(&serverport);
-        ImGui::InputInt("port", &serverport);
-        ImGui::PopID();
+        ImGui::InputInt("port", &GAMESTATE()->imgui.network_port);
         if (ImGui::Button("Create server")) {
-            setup_server(serverport);
+            setup_server(GAMESTATE()->imgui.network_port);
         }
         if (server_listening) {
             ImGui::SameLine();
@@ -332,15 +349,14 @@ void Network::imgui_draw() {
         ImGui::Separator();
 
         static char ip[64] = "127.0.0.1";
-        static int connectport = 8888;
         ImGui::SetNextItemWidth(150);
         ImGui::InputText("server address", ip, LEN(ip));
         ImGui::SetNextItemWidth(150);
-        ImGui::PushID(&connectport);
-        ImGui::InputInt("port", &connectport);
+        ImGui::PushID(&GAMESTATE()->imgui.network_port);
+        ImGui::InputInt("port", &GAMESTATE()->imgui.network_port);
         ImGui::PopID();
         if (ImGui::Button("Connect to server")) {
-            connect_to_server(ip, connectport);
+            connect_to_server(ip, GAMESTATE()->imgui.network_port);
         }
         if (server_handle.active) {
             ImGui::AlignTextToFramePadding();

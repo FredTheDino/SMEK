@@ -27,4 +27,5 @@ struct ImGuiState {
         int width;
         int height;
     } screen_resolution = {};
+    int network_port = 8888;
 };

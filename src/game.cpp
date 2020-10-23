@@ -61,6 +61,16 @@ void init_game(GameState *gamestate, int width, int height) {
     GAMESTATE()->entity_system.m_client_id = SDL_CreateMutex();
     GAMESTATE()->m_event_queue = SDL_CreateMutex();
 
+    Player player = {};
+    GAMESTATE()->entity_system.add(player);
+
+    Network *n = &GAMESTATE()->network;
+    if (n->autostart_server) {
+        n->setup_server(n->autostart_port);
+    } else if (n->autostart_client) {
+        n->connect_to_server(n->client_server_addr, n->autostart_port);
+    }
+
     Asset::load("assets.bin");
 
 #if IMGUI_ENABLE
@@ -93,9 +103,6 @@ void init_game(GameState *gamestate, int width, int height) {
     GAMESTATE()->lights[0] = GAMESTATE()->entity_system.add(l);
     GAMESTATE()->lights[1] = GAMESTATE()->entity_system.add(l);
 
-    Player player = {};
-    GAMESTATE()->entity_system.add(player);
-
     Physics::AABody b;
     b.position = { 0, 0, 0 };
     b.half_size = { 5, 1, 5 };
@@ -112,6 +119,15 @@ void reload_game(GameState *game) {
     ImPlot::SetCurrentContext((ImPlotContext *)game->imgui.implot_context);
 #endif
     GFX::remake_render_target();
+}
+
+void on_connect_to_server() {
+    Player player = {};
+    player.entity_id = GAMESTATE()->entity_system.add(player);
+    Package player_package;
+    player_package.header.type = PackageType::EVENT;
+    player_package.EVENT.event = entity_event(player);
+    GAMESTATE()->network.server_handle.send(&player_package);
 }
 
 void update() {

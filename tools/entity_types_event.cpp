@@ -7,7 +7,7 @@ Event entity_event($entity_type *entity, bool generate_id) {
         .type = EventType::CREATE_ENTITY,
         .CREATE_ENTITY = {
             .generate_id = generate_id,
-            .type = EntityType::$entity_type_enum
+            .type = EntityType::$entity_type_enum,
         }
     };
     std::memcpy(event.CREATE_ENTITY.${entity_type_enum}, ((u8 *)entity) + sizeof(u8 *), sizeof($entity_type) - sizeof(u8 *));

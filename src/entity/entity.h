@@ -86,15 +86,36 @@ struct LightUpdate {
     void callback();
 };
 
+struct PlayerInput {
+    EntityID entity_id;
+    f32 rotation[4];
+    f32 move_axis[3];
+    bool jump;
+    bool shot;
+    void callback();
+};
+
 ///*
 // A playable character
 struct Player : public Entity {
+    static constexpr f32 FLOOR = 0.2;
+    PlayerInput last_input;
     Vec3 velocity;
 
     void imgui() override;
 
     void update() override;
+    void update_camera();
+    void update_input();
+    void update_position();
     void draw() override;
+};
+
+struct PlayerUpdate {
+    EntityID entity_id;
+    real position[3];
+    real rotation[4];
+    void callback();
 };
 
 struct ServerHandle;
@@ -102,6 +123,7 @@ struct ClientHandle;
 ///*
 struct EntitySystem {
     static const u64 ID_MASK = 0x00FFFFFFFFFFFFFF;
+    static const u64 CLIENT_MASK = 0xFF00000000000000;
     SDL_mutex *m_client_id;
     u64 client_id = 0;
     u64 id_counter = 0;
@@ -127,6 +149,9 @@ struct EntitySystem {
     void send_state(ClientHandle *handle);
     void send_initial_state(ClientHandle *handle);
     void update();
+
+    // Remove all entities owned by client_id
+    void drop_client(u64 client_id);
 
     template <typename E>
     E *fetch(EntityID id);

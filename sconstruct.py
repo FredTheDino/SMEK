@@ -128,6 +128,22 @@ AddOption("--no-performance",
           action="store_true",
           help="Disables the performance counters")
 
+AddOption("--server",
+          dest="server",
+          action="store_true",
+          help="Autostart the server on startup")
+
+AddOption("--client",
+          dest="client",
+          action="store",
+          type="string",
+          help="Autostart the client and connect to the specified server")
+
+AddOption("--port",
+          dest="port",
+          action="store",
+          type="int",
+          help="Set the port used by the autostarting client or server")
 
 #
 # Enviroment setup
@@ -332,6 +348,13 @@ if native:
         run_command.append("--allow-resize")
     if GetOption("full_screen"):
         run_command.append("--full-screen")
+    if GetOption("server"):
+        run_command.append("--server")
+    elif client := GetOption("client"):
+        run_command.append(f"--client {client}")
+    if port := GetOption("port"):
+        run_command.append(f"--port {port}")
+
     AlwaysBuild(env.Alias("run", smek_target,  " ".join(run_command)))
 
     debug_command = [move_to_dir, "gdb", smek[0].abspath]
