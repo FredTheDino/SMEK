@@ -61,7 +61,7 @@ int main(int argc, char **argv) { // Test entry point
     return _global_tests.run(ci, write_report, report_path);
 }
 
-void init_tests_state(GameState *tests_state ) {
+void init_tests_state(GameState *tests_state) {
     tests_state->entity_system.m_client_id = SDL_CreateMutex();
 }
 

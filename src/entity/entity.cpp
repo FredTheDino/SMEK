@@ -134,11 +134,11 @@ void Player::update_input() {
     PlayerInput player_input;
     player_input.entity_id = this->entity_id;
     Vec2 turn = Input::mouse_move()
-        * GAMESTATE()->player_mouse_sensitivity
-        * delta();
+                * GAMESTATE()->player_mouse_sensitivity
+                * delta();
     rotation = normalized(H::from(0.0, -turn.x, 0.0)
-                            * rotation
-                            * H::from(-turn.y, 0.0, 0.0));
+                          * rotation
+                          * H::from(-turn.y, 0.0, 0.0));
     rotation.to(player_input.rotation);
     Vec3 v_move = {
         Input::value(Ac::MoveX),
@@ -176,9 +176,9 @@ void Player::update_position() {
     velocity.y += -4.82 * delta(); // temp gravity
     velocity.z = velocity.z * drag_coef;
     velocity += rotation
-        * Vec3(move.x, 0.0, move.z)
-        * GAMESTATE()->player_movement_speed
-        * delta();
+                * Vec3(move.x, 0.0, move.z)
+                * GAMESTATE()->player_movement_speed
+                * delta();
     // Plane collision
     if (position.y <= FLOOR) {
         position.y = FLOOR;
@@ -411,15 +411,15 @@ void EntitySystem::send_initial_state(ClientHandle *handle) {
     for (const auto &[_, entity] : entities) {
         bool send = true;
         switch (entity->type) {
-            case EntityType::LIGHT:
-                entity_package.EVENT.event = entity_event(static_cast<Light *>(entity));
-                break;
-            case EntityType::PLAYER:
-                entity_package.EVENT.event = entity_event(static_cast<Player *>(entity));
-                break;
-            default:
-                send = false;
-                break;
+        case EntityType::LIGHT:
+            entity_package.EVENT.event = entity_event(static_cast<Light *>(entity));
+            break;
+        case EntityType::PLAYER:
+            entity_package.EVENT.event = entity_event(static_cast<Player *>(entity));
+            break;
+        default:
+            send = false;
+            break;
         }
         if (send) {
             handle->send(&entity_package);
