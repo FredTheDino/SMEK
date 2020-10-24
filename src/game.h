@@ -58,6 +58,7 @@ struct GameState {
 #ifdef PERFORMANCE_ENABLE
     struct PerformanceStats {
         SDL_threadID id;
+        const char *name;
         SDL_mutex *lock;
         Performance::MetricCollection *metrics;
     };

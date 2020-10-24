@@ -21,6 +21,7 @@ static void register_thread_for_performance_counting() {
     metrics_thread_lock = SDL_CreateMutex();
     GAMESTATE()->perf_states.push_back({
         SDL_ThreadID(),
+        SDL_GetThreadName(nullptr), // TODO(ed): This isn't working, no name is given.
         metrics_thread_lock,
         &metrics,
     });
