@@ -10,14 +10,7 @@
 namespace Performance {
 
 #ifdef PERFORMANCE_ENABLE
-struct PerformanceMetrics {
-    // TODO(ed): Locks and working with different threads.
-    std::unordered_map<u64, PerformanceCounter> metrics;
-
-    TimePoint frame_start = {};
-    f32 frame_time[HISTORY_LENGTH] = {};
-    u32 frame = 0;
-} gpc;
+thread_local std::unordered_map<u64, PerformanceCounter> metrics;
 
 const TimePoint null_time = {};
 
@@ -26,16 +19,16 @@ u64 begin_time_block(const char *name,
                      const char *func,
                      const char *file,
                      u32 line) {
-    if (!gpc.metrics.contains(hash_uuid)) {
+    if (!metrics.contains(hash_uuid)) {
         PerformanceCounter counter = {};
         counter.name = name;
         counter.function = func;
         counter.file = file;
         counter.line = line;
-        gpc.metrics[hash_uuid] = counter;
+        metrics[hash_uuid] = counter;
     }
 
-    PerformanceCounter &ref = gpc.metrics[hash_uuid];
+    PerformanceCounter &ref = metrics[hash_uuid];
     ASSERT(ref.start == null_time, "Performance block started twice!");
     ref.start = Clock::now();
     return hash_uuid;
@@ -50,7 +43,7 @@ f32 time_since(TimePoint a, TimePoint b) {
 void end_time_block(u64 hash_uuid) {
     using std::chrono::duration_cast;
     using std::chrono::nanoseconds;
-    PerformanceCounter &ref = gpc.metrics[hash_uuid];
+    PerformanceCounter &ref = metrics[hash_uuid];
     ref.num_calls += 1;
     TimePoint start = ref.start;
     TimePoint end = Clock::now();
@@ -60,6 +53,11 @@ void end_time_block(u64 hash_uuid) {
 
 #ifdef IMGUI_ENABLE
 const f32 NANO_TO_MS = 1e-6;
+
+TimePoint frame_start = {};
+f32 frame_time[HISTORY_LENGTH] = {};
+u32 frame = 0;
+
 void report() {
     if (!GAMESTATE()->imgui.performance_enabled) return;
     ImGui::Begin("Performance");
@@ -68,23 +66,23 @@ void report() {
     // to see spikes and such.
     const f32 MAXIMUM_MS = 20;
 
-#define DRAW_NOW_LINE                                  \
-    do {                                               \
-        f32 xs[] = { (f32)gpc.frame, (f32)gpc.frame }; \
-        f32 ys[] = { -10, 30 };                        \
-        ImPlot::PlotLine("Now", xs, ys, 2);            \
+#define DRAW_NOW_LINE                          \
+    do {                                       \
+        f32 xs[] = { (f32)frame, (f32)frame }; \
+        f32 ys[] = { -10, 30 };                \
+        ImPlot::PlotLine("Now", xs, ys, 2);    \
     } while (false)
 
     TimePoint now = Clock::now();
-    if (gpc.frame_start.time_since_epoch().count() == 0) {
-        gpc.frame_start = now;
+    if (frame_start.time_since_epoch().count() == 0) {
+        frame_start = now;
     }
-    f32 frame_time = time_since(gpc.frame_start, now) * NANO_TO_MS;
-    gpc.frame_start = now;
+    f32 current_frame_time = time_since(frame_start, now) * NANO_TO_MS;
+    frame_start = now;
 
     const i32 GRAPH_HEIGHT = 150;
-    gpc.frame += 1;
-    gpc.frame %= HISTORY_LENGTH;
+    frame += 1;
+    frame %= HISTORY_LENGTH;
 
     ImPlotStyle &style = ImPlot::GetStyle();
     style.PlotBorderSize = 0;
@@ -103,19 +101,19 @@ void report() {
                           ImPlotAxisFlags_Lock)) {
         ImPlot::SetLegendLocation(ImPlotLocation_North, ImPlotOrientation_Horizontal, true);
         DRAW_NOW_LINE;
-        gpc.frame_time[gpc.frame] = frame_time;
-        ImPlot::PlotLine("Raw", gpc.frame_time, HISTORY_LENGTH);
+        frame_time[frame] = current_frame_time;
+        ImPlot::PlotLine("Raw", frame_time, HISTORY_LENGTH);
 
         const u32 SAMPLES_IN_AVERAGE = Math::min<u32>(30, HISTORY_LENGTH);
-        u32 start_index = (HISTORY_LENGTH + gpc.frame - SAMPLES_IN_AVERAGE) % HISTORY_LENGTH;
+        u32 start_index = (HISTORY_LENGTH + frame - SAMPLES_IN_AVERAGE) % HISTORY_LENGTH;
         f32 average = 0.0;
         for (u32 i = 0; i < SAMPLES_IN_AVERAGE; i++) {
             u32 sample_index = (start_index + i) % HISTORY_LENGTH;
-            average += gpc.frame_time[sample_index];
+            average += frame_time[sample_index];
         }
         average /= SAMPLES_IN_AVERAGE;
 
-        f32 xs[] = { -100, (f32)start_index, (f32)gpc.frame, HISTORY_LENGTH };
+        f32 xs[] = { -100, (f32)start_index, (f32)frame, HISTORY_LENGTH };
         f32 ys[] = { average, average, average, average };
         ImPlot::PlotLine("Avg.", xs, ys, LEN(xs));
         ImPlot::PlotScatter("Avg.", xs, ys, LEN(xs));
@@ -132,11 +130,11 @@ void report() {
                           ImPlotAxisFlags_Lock)) {
         ImPlot::SetLegendLocation(ImPlotLocation_North, ImPlotOrientation_Horizontal, true);
         DRAW_NOW_LINE;
-        for (auto &[hash, counter] : gpc.metrics) {
-            counter.total_hist[gpc.frame] = NANO_TO_MS * counter.total_nano_seconds;
+        for (auto &[hash, counter] : metrics) {
+            counter.total_hist[frame] = NANO_TO_MS * counter.total_nano_seconds;
             ImPlot::PlotLine(counter.name, counter.total_hist, HISTORY_LENGTH);
 
-            counter.time_per_hist[gpc.frame] = NANO_TO_MS * counter.total_nano_seconds / (counter.num_calls ?: 1);
+            counter.time_per_hist[frame] = NANO_TO_MS * counter.total_nano_seconds / (counter.num_calls ?: 1);
             ImPlot::PlotLine(counter.name, counter.time_per_hist, HISTORY_LENGTH);
         }
         ImPlot::EndPlot();
@@ -156,7 +154,7 @@ void report() {
         u32 calls[MAX_NUM_PIE_PARTS];
         u32 i = 0;
         u32 total = 0;
-        for (auto &[hash, counter] : gpc.metrics) {
+        for (auto &[hash, counter] : metrics) {
             if (i >= MAX_NUM_PIE_PARTS) break;
             labels[i] = counter.name;
             calls[i] = counter.num_calls;
@@ -168,7 +166,7 @@ void report() {
         ImGui::SameLine();
         ImGui::Text("Total Number of Calls: %d", total);
     }
-    for (auto &[hash, counter] : gpc.metrics) {
+    for (auto &[hash, counter] : metrics) {
         counter.num_calls = 0;
         counter.total_nano_seconds = 0;
     }
@@ -176,7 +174,7 @@ void report() {
 }
 #else // Without IMGUI
 void report() {
-    for (auto &[hash, counter] : gpc.metrics) {
+    for (auto &[hash, counter] : metrics) {
         LOG("{} - #{} {}ns {}ns/call",
             counter.name,
             counter.num_calls,
