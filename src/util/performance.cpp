@@ -174,28 +174,37 @@ void report() {
         ImPlot::EndPlot();
     }
 
-    ImPlot::SetNextPlotLimits(0, HISTORY_LENGTH, 0, MAXIMUM_MS);
-    if (ImPlot::BeginPlot("##TotalTimes",
-                          "Total Time (ms)",
-                          "",
-                          Vec2(-1, GRAPH_HEIGHT),
-                          ImPlotFlags_None,
-                          ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoDecorations,
-                          ImPlotAxisFlags_Lock)) {
-        ImPlot::SetLegendLocation(ImPlotLocation_North, ImPlotOrientation_Horizontal, true);
-        DRAW_NOW_LINE;
+    SDL_LockMutex(GAMESTATE()->performance_list_lock);
+    for (auto state : GAMESTATE()->perf_states) {
+        ImPlot::SetNextPlotLimits(0, HISTORY_LENGTH, 0, MAXIMUM_MS);
 
-        LOCK();
-        for (auto &[hash, counter] : metrics) {
-            counter.total_hist[frame] = NANO_TO_MS * counter.total_nano_seconds;
-            ImPlot::PlotLine(counter.name, counter.total_hist, HISTORY_LENGTH);
+        char title[50];
+        sntprint(title, LEN(title), "Total Time - {} - (ms)", state.id);
 
-            counter.time_per_hist[frame] = NANO_TO_MS * counter.total_nano_seconds / (counter.num_calls ?: 1);
-            ImPlot::PlotLine(counter.name, counter.time_per_hist, HISTORY_LENGTH);
+        char unique_id[50];
+        sntprint(unique_id, LEN(unique_id), "##TotalTime-{}", state.id);
+        if (ImPlot::BeginPlot(unique_id,
+                              title,
+                              "",
+                              Vec2(-1, GRAPH_HEIGHT),
+                              ImPlotFlags_None,
+                              ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoDecorations,
+                              ImPlotAxisFlags_Lock)) {
+            ImPlot::SetLegendLocation(ImPlotLocation_North, ImPlotOrientation_Horizontal, true);
+            DRAW_NOW_LINE;
+
+            SDL_LockMutex(state.lock);
+            for (auto &[hash, counter] : *state.metrics) {
+                counter.total_hist[frame] = NANO_TO_MS * counter.total_nano_seconds;
+                ImPlot::PlotLine(counter.name, counter.total_hist, HISTORY_LENGTH);
+
+                counter.time_per_hist[frame] = NANO_TO_MS * counter.total_nano_seconds / (counter.num_calls ?: 1);
+                ImPlot::PlotLine(counter.name, counter.time_per_hist, HISTORY_LENGTH);
+            }
+            SDL_UnlockMutex(state.lock);
+
+            ImPlot::EndPlot();
         }
-        UNLOCK();
-
-        ImPlot::EndPlot();
     }
 
     ImPlot::SetNextPlotLimits(0, 1, 0, 1, ImGuiCond_Always);
@@ -229,12 +238,16 @@ void report() {
         ImGui::Text("Total Number of Calls: %d", total);
     }
 
-    LOCK();
-    for (auto &[hash, counter] : metrics) {
-        counter.num_calls = 0;
-        counter.total_nano_seconds = 0;
+    SDL_LockMutex(GAMESTATE()->performance_list_lock);
+    for (auto state : GAMESTATE()->perf_states) {
+        SDL_LockMutex(state.lock);
+        for (auto &[hash, counter] : *state.metrics) {
+            counter.num_calls = 0;
+            counter.total_nano_seconds = 0;
+        }
+        SDL_UnlockMutex(state.lock);
     }
-    UNLOCK();
+    SDL_UnlockMutex(GAMESTATE()->performance_list_lock);
 
     ImGui::End();
 }
