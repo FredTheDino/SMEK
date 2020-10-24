@@ -1,6 +1,5 @@
 #include "performance.h"
 #include "log.h"
-#include <unordered_map>
 #include "../game.h"
 
 #ifdef IMGUI_ENABLE
@@ -10,27 +9,78 @@
 namespace Performance {
 
 #ifdef PERFORMANCE_ENABLE
-thread_local std::unordered_map<u64, PerformanceCounter> metrics;
+thread_local SDL_mutex *metrics_thread_lock = nullptr;
+thread_local MetricCollection metrics;
 
-const TimePoint null_time = {};
+const TimePoint NULL_TIME = {};
+
+static void register_thread_for_performance_counting() {
+    SDL_LockMutex(GAMESTATE()->performance_list_lock);
+    defer { SDL_UnlockMutex(GAMESTATE()->performance_list_lock); };
+
+    metrics_thread_lock = SDL_CreateMutex();
+    GAMESTATE()->perf_states.push_back({
+        SDL_ThreadID(),
+        metrics_thread_lock,
+        &metrics,
+    });
+}
+
+static void unregister_thread_for_performance_counting() {
+    SDL_LockMutex(GAMESTATE()->performance_list_lock);
+    defer { SDL_UnlockMutex(GAMESTATE()->performance_list_lock); };
+
+    for (auto it = GAMESTATE()->perf_states.begin();
+         it != GAMESTATE()->perf_states.end();
+         ++it) {
+        if (it->id == SDL_threadID()) {
+            GAMESTATE()->perf_states.erase(it);
+            break;
+        }
+    }
+    SDL_DestroyMutex(metrics_thread_lock);
+}
+
+// Automatically remove the element from the list
+// when the thread is killed.
+thread_local defer_expl[]() { unregister_thread_for_performance_counting(); };
+
+#define LOCK() \
+    SDL_LockMutex(metrics_thread_lock)
+
+#define UNLOCK() \
+    SDL_UnlockMutex(metrics_thread_lock)
 
 u64 begin_time_block(const char *name,
                      u64 hash_uuid,
                      const char *func,
                      const char *file,
                      u32 line) {
-    if (!metrics.contains(hash_uuid)) {
-        PerformanceCounter counter = {};
+    if (!metrics_thread_lock) {
+        register_thread_for_performance_counting();
+    }
+
+    LOCK();
+    bool contains = metrics.contains(hash_uuid);
+    UNLOCK();
+
+    if (!contains) {
+        Metric counter = {};
         counter.name = name;
         counter.function = func;
         counter.file = file;
         counter.line = line;
+
+        LOCK();
         metrics[hash_uuid] = counter;
+        UNLOCK();
     }
 
-    PerformanceCounter &ref = metrics[hash_uuid];
-    ASSERT(ref.start == null_time, "Performance block started twice!");
+    LOCK();
+    Metric &ref = metrics[hash_uuid];
+    ASSERT(ref.start == NULL_TIME, "Performance block started twice!");
     ref.start = Clock::now();
+    UNLOCK();
     return hash_uuid;
 }
 
@@ -43,12 +93,15 @@ f32 time_since(TimePoint a, TimePoint b) {
 void end_time_block(u64 hash_uuid) {
     using std::chrono::duration_cast;
     using std::chrono::nanoseconds;
-    PerformanceCounter &ref = metrics[hash_uuid];
+    TimePoint end = Clock::now();
+
+    LOCK();
+    Metric &ref = metrics[hash_uuid];
     ref.num_calls += 1;
     TimePoint start = ref.start;
-    TimePoint end = Clock::now();
-    ref.start = null_time;
+    ref.start = NULL_TIME;
     ref.total_nano_seconds += time_since(start, end);
+    UNLOCK();
 }
 
 #ifdef IMGUI_ENABLE
@@ -130,6 +183,8 @@ void report() {
                           ImPlotAxisFlags_Lock)) {
         ImPlot::SetLegendLocation(ImPlotLocation_North, ImPlotOrientation_Horizontal, true);
         DRAW_NOW_LINE;
+
+        LOCK();
         for (auto &[hash, counter] : metrics) {
             counter.total_hist[frame] = NANO_TO_MS * counter.total_nano_seconds;
             ImPlot::PlotLine(counter.name, counter.total_hist, HISTORY_LENGTH);
@@ -137,6 +192,8 @@ void report() {
             counter.time_per_hist[frame] = NANO_TO_MS * counter.total_nano_seconds / (counter.num_calls ?: 1);
             ImPlot::PlotLine(counter.name, counter.time_per_hist, HISTORY_LENGTH);
         }
+        UNLOCK();
+
         ImPlot::EndPlot();
     }
 
@@ -154,6 +211,8 @@ void report() {
         u32 calls[MAX_NUM_PIE_PARTS];
         u32 i = 0;
         u32 total = 0;
+
+        LOCK();
         for (auto &[hash, counter] : metrics) {
             if (i >= MAX_NUM_PIE_PARTS) break;
             labels[i] = counter.name;
@@ -161,19 +220,26 @@ void report() {
             total += counter.num_calls;
             i++;
         }
+        UNLOCK();
+
         ImPlot::PlotPieChart(labels, calls, i, 0.5, 0.5, 0.4, true, "%.0f");
         ImPlot::EndPlot();
         ImGui::SameLine();
         ImGui::Text("Total Number of Calls: %d", total);
     }
+
+    LOCK();
     for (auto &[hash, counter] : metrics) {
         counter.num_calls = 0;
         counter.total_nano_seconds = 0;
     }
+    UNLOCK();
+
     ImGui::End();
 }
 #else // Without IMGUI
 void report() {
+    LOCK();
     for (auto &[hash, counter] : metrics) {
         LOG("{} - #{} {}ns {}ns/call",
             counter.name,
@@ -183,6 +249,7 @@ void report() {
         counter.num_calls = 0;
         counter.total_nano_seconds = 0;
     }
+    UNLOCK();
 }
 #endif
 

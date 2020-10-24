@@ -338,6 +338,10 @@ int main(int argc, char **argv) { // Game entrypoint
     game_state.imgui.network_port = network_port;
 #endif
 
+#ifdef PERFORMANCE_ENABLE
+    game_state.performance_list_lock = SDL_CreateMutex();
+#endif
+
     game_lib.init(&game_state, width, height);
     platform_audio_init();
     game_state.audio_struct = &platform_audio_struct;
