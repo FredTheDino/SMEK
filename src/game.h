@@ -8,6 +8,7 @@
 #include "physics/physics.h"
 #include "entity/entity.h"
 #include "network/network.h"
+#include "util/performance.h"
 
 #include <queue>
 
@@ -52,6 +53,17 @@ struct GameState {
 
 #ifdef IMGUI_ENABLE
     ImGuiState imgui = {};
+#endif
+
+#ifdef PERFORMANCE_ENABLE
+    struct PerformanceStats {
+        SDL_threadID id;
+        const char *name;
+        SDL_mutex *lock;
+        Performance::MetricCollection *metrics;
+    };
+    SDL_mutex *performance_list_lock;
+    std::vector<PerformanceStats> perf_states;
 #endif
 };
 

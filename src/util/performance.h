@@ -2,6 +2,7 @@
 #include "../math/types.h"
 #include "../math/smek_math.h"
 #include <chrono>
+#include <unordered_map>
 
 namespace Performance {
 
@@ -9,7 +10,7 @@ constexpr u32 HISTORY_LENGTH = 1001;
 
 using Clock = std::chrono::steady_clock;
 using TimePoint = std::chrono::time_point<Clock>;
-struct PerformanceCounter {
+struct Metric {
     const char *name;
 
     const char *function;
@@ -24,6 +25,7 @@ struct PerformanceCounter {
 
     TimePoint start;
 };
+using MetricCollection = std::unordered_map<u64, Metric>;
 
 u64 begin_time_block(const char *name,
                      u64 hash_uuid,

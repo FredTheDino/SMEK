@@ -28,3 +28,6 @@ Defer<F> operator<<(defer_dummy, F &&f) {
 }
 
 #define defer auto _defer(__LINE__) = defer_dummy() << [&]()
+
+// This macro exists for places where you cannot explicitly capture everything.
+#define defer_expl auto _defer(__LINE__) = defer_dummy() <<
