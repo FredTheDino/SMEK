@@ -18,6 +18,10 @@ const TimePoint NULL_TIME = {};
     ASSERT_EQ(SDL_LockMutex(mutex), 0); \
     defer { ASSERT_EQ(SDL_UnlockMutex(mutex), 0); }
 
+SDL_mutex *file_mutex = SDL_CreateMutex();
+int frames_to_dump = 0;
+FILE *dump_file = nullptr;
+
 static void register_thread_for_performance_counting() {
     metrics_thread_lock = SDL_CreateMutex();
 
@@ -83,6 +87,18 @@ u64 begin_time_block(const char *name,
         ASSERT(ref.start == NULL_TIME, "Performance block started twice!");
         ref.start = Clock::now();
     }
+
+    if (frames_to_dump) {
+        char buffer[256];
+        u32 size = sntprint(buffer, LEN(buffer),
+                            R"(,%{"cat":"{}","tid":"{}","ts":{},"name":"{}")"
+                            R"(,"args":%{"func":"{}","file":"{}","line":{}})"
+                            R"(,"pid":0,"ph":"B"})",
+                            "PERFORMANCE", SDL_ThreadID(), Clock::now().time_since_epoch().count(),
+                            name, func, file, line);
+        fwrite((void *)buffer, 1, size, dump_file);
+    }
+
     return hash_uuid;
 }
 
@@ -103,6 +119,17 @@ void end_time_block(u64 hash_uuid) {
     TimePoint start = ref.start;
     ref.start = NULL_TIME;
     ref.total_nano_seconds += time_since(start, end);
+
+    if (frames_to_dump) {
+        char buffer[256];
+        u32 size = sntprint(buffer, LEN(buffer),
+                            R"(,%{"cat":"{}","tid":"{}","ts":{},"name":"{}")"
+                            R"(,"args":%{"func":"{}","file":"{}","line":{}})"
+                            R"(,"pid":0,"ph":"E"})",
+                            "PERFORMANCE", SDL_ThreadID(), Clock::now().time_since_epoch().count(),
+                            ref.function, ref.file, ref.line);
+        fwrite((void *)buffer, 1, size, dump_file);
+    }
 }
 
 #ifdef IMGUI_ENABLE
@@ -115,6 +142,33 @@ u32 frame = 0;
 void report() {
     if (!GAMESTATE()->imgui.performance_enabled) return;
     ImGui::Begin("Performance");
+
+    if (frames_to_dump >= 1) {
+        frames_to_dump--;
+
+        TimePoint now = Clock::now();
+        char buffer[256];
+        u32 size = sntprint(buffer, LEN(buffer),
+                            R"(,%{"cat":"{}","tid":"{}","ts":{},"name":"{}")"
+                            R"(,"args":{})"
+                            R"(,"pid":0,"ph":"I"})",
+                            "PERFORMANCE", SDL_ThreadID(), now.time_since_epoch().count(), "FRAME");
+        fwrite((void *)buffer, 1, size, dump_file);
+
+        if (frames_to_dump == 0) {
+            char postamble[] = "]";
+            fwrite((void *)postamble, 1, LEN(postamble) - 1, dump_file);
+            fclose(dump_file);
+            dump_file = nullptr;
+        }
+    }
+
+    if (ImGui::Button("Save Performance Dump")) {
+        dump_file = fopen("performance_dump.json", "w");
+        char preamble[] = "[{}";
+        fwrite((void *)preamble, 1, LEN(preamble) - 1, dump_file);
+        frames_to_dump = 100;
+    }
 
     // The height of the graph plots, set to 20ms to make it easier
     // to see spikes and such.
