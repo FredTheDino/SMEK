@@ -258,19 +258,7 @@ void report() {
     ImGui::End();
 }
 #else // Without IMGUI
-void report() {
-    LOCK();
-    for (auto &[hash, counter] : metrics) {
-        LOG("{} - #{} {}ns {}ns/call",
-            counter.name,
-            counter.num_calls,
-            counter.total_nano_seconds,
-            counter.total_nano_seconds / (counter.num_calls ?: 1));
-        counter.num_calls = 0;
-        counter.total_nano_seconds = 0;
-    }
-    UNLOCK();
-}
+void report() {}
 #endif
 
 #else
