@@ -14,11 +14,14 @@ thread_local MetricCollection metrics;
 
 const TimePoint NULL_TIME = {};
 
-static void register_thread_for_performance_counting() {
-    SDL_LockMutex(GAMESTATE()->performance_list_lock);
-    defer { SDL_UnlockMutex(GAMESTATE()->performance_list_lock); };
+#define LOCK_FOR_BLOCK(mutex)           \
+    ASSERT_EQ(SDL_LockMutex(mutex), 0); \
+    defer { ASSERT_EQ(SDL_UnlockMutex(mutex), 0); }
 
+static void register_thread_for_performance_counting() {
     metrics_thread_lock = SDL_CreateMutex();
+
+    LOCK_FOR_BLOCK(GAMESTATE()->performance_list_lock);
     GAMESTATE()->perf_states.push_back({
         SDL_ThreadID(),
         SDL_GetThreadName(nullptr), // TODO(ed): This isn't working, no name is given.
@@ -28,9 +31,8 @@ static void register_thread_for_performance_counting() {
 }
 
 static void unregister_thread_for_performance_counting() {
-    SDL_LockMutex(GAMESTATE()->performance_list_lock);
-    defer { SDL_UnlockMutex(GAMESTATE()->performance_list_lock); };
 
+    LOCK_FOR_BLOCK(GAMESTATE()->performance_list_lock);
     for (auto it = GAMESTATE()->perf_states.begin();
          it != GAMESTATE()->perf_states.end();
          ++it) {
@@ -39,18 +41,13 @@ static void unregister_thread_for_performance_counting() {
             break;
         }
     }
+
     SDL_DestroyMutex(metrics_thread_lock);
 }
 
 // Automatically remove the element from the list
 // when the thread is killed.
 thread_local defer_expl[]() { unregister_thread_for_performance_counting(); };
-
-#define LOCK() \
-    SDL_LockMutex(metrics_thread_lock)
-
-#define UNLOCK() \
-    SDL_UnlockMutex(metrics_thread_lock)
 
 u64 begin_time_block(const char *name,
                      u64 hash_uuid,
@@ -61,9 +58,11 @@ u64 begin_time_block(const char *name,
         register_thread_for_performance_counting();
     }
 
-    LOCK();
-    bool contains = metrics.contains(hash_uuid);
-    UNLOCK();
+    bool contains;
+    {
+        LOCK_FOR_BLOCK(GAMESTATE()->performance_list_lock);
+        contains = metrics.contains(hash_uuid);
+    }
 
     if (!contains) {
         Metric counter = {};
@@ -72,16 +71,18 @@ u64 begin_time_block(const char *name,
         counter.file = file;
         counter.line = line;
 
-        LOCK();
-        metrics[hash_uuid] = counter;
-        UNLOCK();
+        {
+            LOCK_FOR_BLOCK(GAMESTATE()->performance_list_lock);
+            metrics[hash_uuid] = counter;
+        }
     }
 
-    LOCK();
-    Metric &ref = metrics[hash_uuid];
-    ASSERT(ref.start == NULL_TIME, "Performance block started twice!");
-    ref.start = Clock::now();
-    UNLOCK();
+    {
+        LOCK_FOR_BLOCK(GAMESTATE()->performance_list_lock);
+        Metric &ref = metrics[hash_uuid];
+        ASSERT(ref.start == NULL_TIME, "Performance block started twice!");
+        ref.start = Clock::now();
+    }
     return hash_uuid;
 }
 
@@ -96,13 +97,12 @@ void end_time_block(u64 hash_uuid) {
     using std::chrono::nanoseconds;
     TimePoint end = Clock::now();
 
-    LOCK();
+    LOCK_FOR_BLOCK(metrics_thread_lock);
     Metric &ref = metrics[hash_uuid];
     ref.num_calls += 1;
     TimePoint start = ref.start;
     ref.start = NULL_TIME;
     ref.total_nano_seconds += time_since(start, end);
-    UNLOCK();
 }
 
 #ifdef IMGUI_ENABLE
@@ -174,36 +174,41 @@ void report() {
         ImPlot::EndPlot();
     }
 
-    SDL_LockMutex(GAMESTATE()->performance_list_lock);
-    for (auto state : GAMESTATE()->perf_states) {
-        ImPlot::SetNextPlotLimits(0, HISTORY_LENGTH, 0, MAXIMUM_MS);
+    {
+        LOCK_FOR_BLOCK(GAMESTATE()->performance_list_lock);
+        for (auto state : GAMESTATE()->perf_states) {
+            ImPlot::SetNextPlotLimits(0, HISTORY_LENGTH, 0, MAXIMUM_MS);
 
-        char title[50];
-        sntprint(title, LEN(title), "Total Time - {} - (ms)", state.id);
+            char title[50];
+            sntprint(title, LEN(title), "Total Time - {} - (ms)", state.id);
 
-        char unique_id[50];
-        sntprint(unique_id, LEN(unique_id), "##TotalTime-{}", state.id);
-        if (ImPlot::BeginPlot(unique_id,
-                              title,
-                              "",
-                              Vec2(-1, GRAPH_HEIGHT),
-                              ImPlotFlags_None,
-                              ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoDecorations,
-                              ImPlotAxisFlags_Lock)) {
-            ImPlot::SetLegendLocation(ImPlotLocation_North, ImPlotOrientation_Horizontal, true);
-            DRAW_NOW_LINE;
+            char unique_id[50];
+            sntprint(unique_id, LEN(unique_id), "##TotalTime-{}", state.id);
+            if (ImPlot::BeginPlot(unique_id,
+                                  title,
+                                  "",
+                                  Vec2(-1, GRAPH_HEIGHT),
+                                  ImPlotFlags_None,
+                                  ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoDecorations,
+                                  ImPlotAxisFlags_Lock)) {
+                ImPlot::SetLegendLocation(ImPlotLocation_North,
+                                          ImPlotOrientation_Horizontal,
+                                          true);
+                DRAW_NOW_LINE;
 
-            SDL_LockMutex(state.lock);
-            for (auto &[hash, counter] : *state.metrics) {
-                counter.total_hist[frame] = NANO_TO_MS * counter.total_nano_seconds;
-                ImPlot::PlotLine(counter.name, counter.total_hist, HISTORY_LENGTH);
+                {
+                    LOCK_FOR_BLOCK(state.lock);
+                    for (auto &[hash, counter] : *state.metrics) {
+                        counter.total_hist[frame] = NANO_TO_MS * counter.total_nano_seconds;
+                        ImPlot::PlotLine(counter.name, counter.total_hist, HISTORY_LENGTH);
 
-                counter.time_per_hist[frame] = NANO_TO_MS * counter.total_nano_seconds / (counter.num_calls ?: 1);
-                ImPlot::PlotLine(counter.name, counter.time_per_hist, HISTORY_LENGTH);
+                        counter.time_per_hist[frame] = NANO_TO_MS * counter.total_nano_seconds / (counter.num_calls ?: 1);
+                        ImPlot::PlotLine(counter.name, counter.time_per_hist, HISTORY_LENGTH);
+                    }
+                }
+
+                ImPlot::EndPlot();
             }
-            SDL_UnlockMutex(state.lock);
-
-            ImPlot::EndPlot();
         }
     }
 
@@ -222,15 +227,16 @@ void report() {
         u32 i = 0;
         u32 total = 0;
 
-        LOCK();
-        for (auto &[hash, counter] : metrics) {
-            if (i >= MAX_NUM_PIE_PARTS) break;
-            labels[i] = counter.name;
-            calls[i] = counter.num_calls;
-            total += counter.num_calls;
-            i++;
+        {
+            LOCK_FOR_BLOCK(metrics_thread_lock);
+            for (auto &[hash, counter] : metrics) {
+                if (i >= MAX_NUM_PIE_PARTS) break;
+                labels[i] = counter.name;
+                calls[i] = counter.num_calls;
+                total += counter.num_calls;
+                i++;
+            }
         }
-        UNLOCK();
 
         ImPlot::PlotPieChart(labels, calls, i, 0.5, 0.5, 0.4, true, "%.0f");
         ImPlot::EndPlot();
@@ -238,16 +244,16 @@ void report() {
         ImGui::Text("Total Number of Calls: %d", total);
     }
 
-    SDL_LockMutex(GAMESTATE()->performance_list_lock);
-    for (auto state : GAMESTATE()->perf_states) {
-        SDL_LockMutex(state.lock);
-        for (auto &[hash, counter] : *state.metrics) {
-            counter.num_calls = 0;
-            counter.total_nano_seconds = 0;
+    {
+        LOCK_FOR_BLOCK(GAMESTATE()->performance_list_lock);
+        for (auto state : GAMESTATE()->perf_states) {
+            LOCK_FOR_BLOCK(state.lock);
+            for (auto &[hash, counter] : *state.metrics) {
+                counter.num_calls = 0;
+                counter.total_nano_seconds = 0;
+            }
         }
-        SDL_UnlockMutex(state.lock);
     }
-    SDL_UnlockMutex(GAMESTATE()->performance_list_lock);
 
     ImGui::End();
 }
