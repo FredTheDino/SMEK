@@ -48,17 +48,25 @@ u32 smek_snprint(char *out_buffer, u32 buf_size, const char *in_buffer) {
 template <>
 i32 sntprint<>(char *buffer, u32 buf_size, const char *fmt) {
     if (buf_size == 0) return 0;
+    u32 write = 0;
     u32 head = 0;
-    while (fmt[head] && head != buf_size) {
-        buffer[head] = fmt[head];
-        head++;
+    for (; fmt[head] && head != buf_size; head++) {
+        if (fmt[head] == '%') {
+            if (fmt[head + 1] == '{') { continue; }
+        } else if (fmt[head] == '{') {
+            WARN("Invalid format string, unexpected '{}'", fmt + head);
+            buffer[write] = '\0';
+            return write;
+        } else {
+            buffer[write++] = fmt[head];
+        }
     }
     if (head == buf_size) {
-        buffer[head - 1] = '\0';
+        buffer[write - 1] = '\0';
     } else {
-        buffer[head] = '\0';
+        buffer[write] = '\0';
     }
-    return head;
+    return write;
 }
 
 #include "../test.h"
