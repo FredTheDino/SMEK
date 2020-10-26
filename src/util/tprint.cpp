@@ -156,3 +156,24 @@ TEST_CASE("reuse sntprint buffer - with formatting over buf_size", {
     ASSERT(std::strcmp(buffer, "3") == 0, "Got '{}', '3' expected", buffer);
     return true;
 });
+
+TEST_CASE("sntprint - extra {}", {
+    char buffer[4] = {};
+    sntprint(buffer, LEN(buffer), "{}{}", 1);
+    ASSERT(std::strcmp(buffer, "1") == 0, "Got '{}', '1' expected", buffer);
+    return true;
+});
+
+TEST_CASE("sntprint - extra {}", {
+    char buffer[4] = {};
+    sntprint(buffer, LEN(buffer), "{}{}{}{}{}{}", 2);
+    ASSERT(std::strcmp(buffer, "2") == 0, "Got '{}', '2' expected", buffer);
+    return true;
+});
+
+TEST_CASE("sntprint - just enough", {
+    char buffer[10] = {};
+    sntprint(buffer, LEN(buffer), "{}-{}-{}%{", 3, 2, 1);
+    ASSERT(std::strcmp(buffer, "3-2-1") == 0, "Got '{}', '3-2-1{' expected", buffer);
+    return true;
+});
