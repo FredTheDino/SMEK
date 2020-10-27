@@ -183,8 +183,23 @@ void report() {
     }
     if (frames_to_capture != 0) {
         ImGui::SameLine();
+        if (ImGui::Button("+100 frames")) {
+            frames_to_capture = Math::max(0, frames_to_capture) + 100;
+        }
+        ImGui::SameLine();
         if (ImGui::Button("End Capture")) {
             frames_to_capture = 1;
+        }
+        ImGui::SameLine();
+        if (frames_to_capture < 0) {
+            ImGui::Text("Frames To Capture: Inf");
+        } else {
+            ImGui::Text("Frames To Capture: %d", frames_to_capture);
+        }
+    } else {
+        ImGui::SameLine();
+        if (ImGui::Button("Capture 100 frames")) {
+            frames_to_capture = 100;
         }
     }
     // The height of the graph plots, set to 20ms to make it easier
