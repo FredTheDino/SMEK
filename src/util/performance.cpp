@@ -65,7 +65,7 @@ void record_to_performance_capture_file(char type,
     u32 size = sntprint(buffer, LEN(buffer),
                         R"(,%{"cat":"{}","tid":"{}","ts":{},"name":"{}")"
                         R"(,"args":%{"func":"{}","file":"{}","line":{}})"
-                        R"(,"pid":0,"ph":"{}"})",
+                        R"(,"pid":0,"ph":"{}","s":"g"})",
                         "PERFORMANCE",
                         SDL_ThreadID(),
                         Clock::now().time_since_epoch().count() / 1000.0,
@@ -213,7 +213,7 @@ void report() {
     frame_time[frame_index] = current_frame_time;
     frame_start = now;
 
-    record_to_performance_capture_file('I', "FRAME", "NA", "NA", 0);
+    record_to_performance_capture_file('i', "FRAME", "NA", "NA", 0);
     capture_handle();
 
     if (!GAMESTATE()->imgui.performance_enabled) return;
