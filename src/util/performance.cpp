@@ -21,7 +21,6 @@ const TimePoint NULL_TIME = {};
 SDL_mutex *file_mutex = SDL_CreateMutex();
 SDL_mutex *capture_file_mutex = SDL_CreateMutex();
 FILE *capture_file = nullptr;
-int frames_to_capture = 0;
 
 static void register_thread_for_performance_counting() {
     metrics_thread_lock = SDL_CreateMutex();
@@ -138,6 +137,61 @@ void end_time_block(u64 hash_uuid) {
     record_to_performance_capture_file('E', ref.name, ref.func, ref.file, ref.line);
 }
 
+//
+// Functions related to performance capture
+//
+// State for the capture, shouldn't be neeeded
+// outside of this code.
+namespace Capture {
+    const char CAPTURE_FILE_NAME[] = "perf-capture.json";
+    i32 frames_to_capture = 0;
+}
+
+void capture_handle() {
+    if (Capture::frames_to_capture != 0 && !capture_file) {
+        LOCK_FOR_BLOCK(capture_file_mutex);
+        capture_file = fopen(Capture::CAPTURE_FILE_NAME, "w");
+        const char preamble[] = "[{}";
+        fwrite((void *)preamble, 1, LEN(preamble) - 1, capture_file);
+    }
+
+    if (Capture::frames_to_capture != 0) {
+        if (Capture::frames_to_capture > 0)
+            Capture::frames_to_capture--;
+
+        if (Capture::frames_to_capture == 0) {
+            LOCK_FOR_BLOCK(capture_file_mutex);
+            const char postamble[] = "]";
+            fwrite((void *)postamble, 1, LEN(postamble) - 1, capture_file);
+            fclose(capture_file);
+            capture_file = nullptr;
+        }
+    }
+}
+
+void capture_begin() {
+    // Capture indefinately.
+    Capture::frames_to_capture = -1;
+}
+
+void capture_end() {
+    // Capture until next frame.
+    Capture::frames_to_capture = 1;
+}
+
+void capture_frames(i32 n) {
+    ASSERT_NE(n, 0);
+    Capture::frames_to_capture = Math::max(0, Capture::frames_to_capture) + 100;
+}
+
+bool capture_is_running() {
+    return capture_frames_left() != 0;
+}
+
+i32 capture_frames_left() {
+    return Capture::frames_to_capture;
+}
+
 #ifdef IMGUI_ENABLE
 const f32 NANO_TO_MS = 1e-6;
 
@@ -152,54 +206,37 @@ u32 frame = 0;
 // Add a begin/end capture
 // Varying number of frames captured?
 
+// The main report entry.
+
 void report() {
     record_to_performance_capture_file('I', "FRAME", "NA", "NA", 0);
-
-    if (frames_to_capture != 0 && !capture_file) {
-        LOCK_FOR_BLOCK(capture_file_mutex);
-        capture_file = fopen("performance_capture.json", "w");
-        const char preamble[] = "[{}";
-        fwrite((void *)preamble, 1, LEN(preamble) - 1, capture_file);
-    }
-
-    if (frames_to_capture != 0) {
-        if (frames_to_capture > 0)
-            frames_to_capture--;
-
-        if (frames_to_capture == 0) {
-            const char postamble[] = "]";
-            LOCK_FOR_BLOCK(capture_file_mutex);
-            fwrite((void *)postamble, 1, LEN(postamble) - 1, capture_file);
-            fclose(capture_file);
-            capture_file = nullptr;
-        }
-    }
+    capture_handle();
 
     if (!GAMESTATE()->imgui.performance_enabled) return;
     ImGui::Begin("Performance");
 
     if (ImGui::Button("Start Capture")) {
-        frames_to_capture = -1;
+        capture_begin();
     }
-    if (frames_to_capture != 0) {
+    if (capture_is_running()) {
         ImGui::SameLine();
         if (ImGui::Button("+100 frames")) {
-            frames_to_capture = Math::max(0, frames_to_capture) + 100;
+            capture_frames(100);
         }
         ImGui::SameLine();
         if (ImGui::Button("End Capture")) {
-            frames_to_capture = 1;
+            capture_end();
         }
         ImGui::SameLine();
-        if (frames_to_capture < 0) {
+        if (capture_frames_left() < 0) {
             ImGui::Text("Frames To Capture: Inf");
         } else {
-            ImGui::Text("Frames To Capture: %d", frames_to_capture);
+            ImGui::Text("Frames To Capture: %d", capture_frames_left());
         }
     } else {
         ImGui::SameLine();
         if (ImGui::Button("Capture 100 frames")) {
-            frames_to_capture = 100;
+            capture_frames(100);
         }
     }
     // The height of the graph plots, set to 20ms to make it easier
