@@ -19,8 +19,9 @@ const TimePoint NULL_TIME = {};
     defer { ASSERT_EQ(SDL_UnlockMutex(mutex), 0); }
 
 SDL_mutex *file_mutex = SDL_CreateMutex();
-int frames_to_dump = 0;
-FILE *dump_file = nullptr;
+SDL_mutex *capture_file_mutex = SDL_CreateMutex();
+FILE *capture_file = nullptr;
+int frames_to_capture = 0;
 
 static void register_thread_for_performance_counting() {
     metrics_thread_lock = SDL_CreateMutex();
@@ -53,12 +54,13 @@ static void unregister_thread_for_performance_counting() {
 // when the thread is killed.
 thread_local defer_expl[]() { unregister_thread_for_performance_counting(); };
 
-void record_to_performance_dump_file(char type,
-                                     const char *name,
-                                     const char *func,
-                                     const char *file,
-                                     u32 line) {
-    if (!frames_to_dump) return;
+void record_to_performance_capture_file(char type,
+                                        const char *name,
+                                        const char *func,
+                                        const char *file,
+                                        u32 line) {
+    LOCK_FOR_BLOCK(capture_file_mutex);
+    if (!capture_file) return;
 
     char buffer[256];
     u32 size = sntprint(buffer, LEN(buffer),
@@ -73,7 +75,7 @@ void record_to_performance_dump_file(char type,
                         file,
                         line,
                         type);
-    fwrite((void *)buffer, 1, size, dump_file);
+    fwrite((void *)buffer, 1, size, capture_file);
 }
 
 u64 begin_time_block(const char *name,
@@ -110,7 +112,7 @@ u64 begin_time_block(const char *name,
         ASSERT(ref.start == NULL_TIME, "Performance block started twice!");
         ref.start = Clock::now();
     }
-    record_to_performance_dump_file('B', name, func, file, line);
+    record_to_performance_capture_file('B', name, func, file, line);
 
     return hash_uuid;
 }
@@ -133,7 +135,7 @@ void end_time_block(u64 hash_uuid) {
     ref.start = NULL_TIME;
     ref.total_nano_seconds += time_since(start, end);
 
-    record_to_performance_dump_file('E', ref.name, ref.func, ref.file, ref.line);
+    record_to_performance_capture_file('E', ref.name, ref.func, ref.file, ref.line);
 }
 
 #ifdef IMGUI_ENABLE
@@ -151,28 +153,40 @@ u32 frame = 0;
 // Varying number of frames captured?
 
 void report() {
-    if (!GAMESTATE()->imgui.performance_enabled) return;
-    ImGui::Begin("Performance");
+    record_to_performance_capture_file('I', "FRAME", "NA", "NA", 0);
 
-    if (frames_to_dump >= 1) {
-        frames_to_dump--;
+    if (frames_to_capture != 0 && !capture_file) {
+        LOCK_FOR_BLOCK(capture_file_mutex);
+        capture_file = fopen("performance_capture.json", "w");
+        const char preamble[] = "[{}";
+        fwrite((void *)preamble, 1, LEN(preamble) - 1, capture_file);
+    }
 
-        record_to_performance_dump_file('I', "FRAME", "NA", "NA", 0);
-        if (frames_to_dump == 0) {
-            char postamble[] = "]";
-            fwrite((void *)postamble, 1, LEN(postamble) - 1, dump_file);
-            fclose(dump_file);
-            dump_file = nullptr;
+    if (frames_to_capture != 0) {
+        if (frames_to_capture > 0)
+            frames_to_capture--;
+
+        if (frames_to_capture == 0) {
+            const char postamble[] = "]";
+            LOCK_FOR_BLOCK(capture_file_mutex);
+            fwrite((void *)postamble, 1, LEN(postamble) - 1, capture_file);
+            fclose(capture_file);
+            capture_file = nullptr;
         }
     }
 
-    if (ImGui::Button("Save Performance Dump")) {
-        dump_file = fopen("performance_dump.json", "w");
-        char preamble[] = "[{}";
-        fwrite((void *)preamble, 1, LEN(preamble) - 1, dump_file);
-        frames_to_dump = 100;
-    }
+    if (!GAMESTATE()->imgui.performance_enabled) return;
+    ImGui::Begin("Performance");
 
+    if (ImGui::Button("Start Capture")) {
+        frames_to_capture = -1;
+    }
+    if (frames_to_capture != 0) {
+        ImGui::SameLine();
+        if (ImGui::Button("End Capture")) {
+            frames_to_capture = 1;
+        }
+    }
     // The height of the graph plots, set to 20ms to make it easier
     // to see spikes and such.
     const f32 MAXIMUM_MS = 20;
