@@ -201,12 +201,6 @@ u32 frame = 0;
 
 // TODO(ed):
 // Break this function into sub-functions
-// Fix the sntprint problem with unmatched arguments and stuff
-// Make the sntprint functions prettier, wrap it in a function?
-// Add a begin/end capture
-// Varying number of frames captured?
-
-// The main report entry.
 
 void report() {
     record_to_performance_capture_file('I', "FRAME", "NA", "NA", 0);
