@@ -53,6 +53,29 @@ static void unregister_thread_for_performance_counting() {
 // when the thread is killed.
 thread_local defer_expl[]() { unregister_thread_for_performance_counting(); };
 
+void record_to_performance_dump_file(char type,
+                                     const char *name,
+                                     const char *func,
+                                     const char *file,
+                                     u32 line) {
+    if (!frames_to_dump) return;
+
+    char buffer[256];
+    u32 size = sntprint(buffer, LEN(buffer),
+                        R"(,%{"cat":"{}","tid":"{}","ts":{},"name":"{}")"
+                        R"(,"args":%{"func":"{}","file":"{}","line":{}})"
+                        R"(,"pid":0,"ph":"{}"})",
+                        "PERFORMANCE",
+                        SDL_ThreadID(),
+                        Clock::now().time_since_epoch().count(),
+                        name,
+                        func,
+                        file,
+                        line,
+                        type);
+    fwrite((void *)buffer, 1, size, dump_file);
+}
+
 u64 begin_time_block(const char *name,
                      u64 hash_uuid,
                      const char *func,
@@ -71,7 +94,7 @@ u64 begin_time_block(const char *name,
     if (!contains) {
         Metric counter = {};
         counter.name = name;
-        counter.function = func;
+        counter.func = func;
         counter.file = file;
         counter.line = line;
 
@@ -87,17 +110,7 @@ u64 begin_time_block(const char *name,
         ASSERT(ref.start == NULL_TIME, "Performance block started twice!");
         ref.start = Clock::now();
     }
-
-    if (frames_to_dump) {
-        char buffer[256];
-        u32 size = sntprint(buffer, LEN(buffer),
-                            R"(,%{"cat":"{}","tid":"{}","ts":{},"name":"{}")"
-                            R"(,"args":%{"func":"{}","file":"{}","line":{}})"
-                            R"(,"pid":0,"ph":"B"})",
-                            "PERFORMANCE", SDL_ThreadID(), Clock::now().time_since_epoch().count(),
-                            name, func, file, line);
-        fwrite((void *)buffer, 1, size, dump_file);
-    }
+    record_to_performance_dump_file('B', name, func, file, line);
 
     return hash_uuid;
 }
@@ -120,16 +133,7 @@ void end_time_block(u64 hash_uuid) {
     ref.start = NULL_TIME;
     ref.total_nano_seconds += time_since(start, end);
 
-    if (frames_to_dump) {
-        char buffer[256];
-        u32 size = sntprint(buffer, LEN(buffer),
-                            R"(,%{"cat":"{}","tid":"{}","ts":{},"name":"{}")"
-                            R"(,"args":%{"func":"{}","file":"{}","line":{}})"
-                            R"(,"pid":0,"ph":"E"})",
-                            "PERFORMANCE", SDL_ThreadID(), Clock::now().time_since_epoch().count(),
-                            ref.function, ref.file, ref.line);
-        fwrite((void *)buffer, 1, size, dump_file);
-    }
+    record_to_performance_dump_file('E', ref.name, ref.func, ref.file, ref.line);
 }
 
 #ifdef IMGUI_ENABLE
@@ -139,6 +143,13 @@ TimePoint frame_start = {};
 f32 frame_time[HISTORY_LENGTH] = {};
 u32 frame = 0;
 
+// TODO(ed):
+// Break this function into sub-functions
+// Fix the sntprint problem with unmatched arguments and stuff
+// Make the sntprint functions prettier, wrap it in a function?
+// Add a begin/end capture
+// Varying number of frames captured?
+
 void report() {
     if (!GAMESTATE()->imgui.performance_enabled) return;
     ImGui::Begin("Performance");
@@ -146,15 +157,7 @@ void report() {
     if (frames_to_dump >= 1) {
         frames_to_dump--;
 
-        TimePoint now = Clock::now();
-        char buffer[256];
-        u32 size = sntprint(buffer, LEN(buffer),
-                            R"(,%{"cat":"{}","tid":"{}","ts":{},"name":"{}")"
-                            R"(,"args":{})"
-                            R"(,"pid":0,"ph":"I"})",
-                            "PERFORMANCE", SDL_ThreadID(), now.time_since_epoch().count(), "FRAME");
-        fwrite((void *)buffer, 1, size, dump_file);
-
+        record_to_performance_dump_file('I', "FRAME", "NA", "NA", 0);
         if (frames_to_dump == 0) {
             char postamble[] = "]";
             fwrite((void *)postamble, 1, LEN(postamble) - 1, dump_file);

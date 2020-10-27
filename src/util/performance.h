@@ -13,7 +13,7 @@ using TimePoint = std::chrono::time_point<Clock>;
 struct Metric {
     const char *name;
 
-    const char *function;
+    const char *func;
     const char *file;
     u32 line;
 
