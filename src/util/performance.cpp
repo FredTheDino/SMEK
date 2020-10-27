@@ -197,12 +197,22 @@ const f32 NANO_TO_MS = 1e-6;
 
 TimePoint frame_start = {};
 f32 frame_time[HISTORY_LENGTH] = {};
-u32 frame = 0;
 
 // TODO(ed):
 // Break this function into sub-functions
 
 void report() {
+
+    TimePoint now = Clock::now();
+    if (frame_start.time_since_epoch().count() == 0) {
+        frame_start = now;
+    }
+    u32 frame_index = frame() % HISTORY_LENGTH;
+
+    f32 current_frame_time = time_since(frame_start, now) * NANO_TO_MS;
+    frame_time[frame_index] = current_frame_time;
+    frame_start = now;
+
     record_to_performance_capture_file('I', "FRAME", "NA", "NA", 0);
     capture_handle();
 
@@ -237,23 +247,14 @@ void report() {
     // to see spikes and such.
     const f32 MAXIMUM_MS = 20;
 
-#define DRAW_NOW_LINE                          \
-    do {                                       \
-        f32 xs[] = { (f32)frame, (f32)frame }; \
-        f32 ys[] = { -10, 30 };                \
-        ImPlot::PlotLine("Now", xs, ys, 2);    \
+#define DRAW_NOW_LINE                                      \
+    do {                                                   \
+        f32 xs[] = { (f32)frame_index, (f32)frame_index }; \
+        f32 ys[] = { -10, 30 };                            \
+        ImPlot::PlotLine("Now", xs, ys, 2);                \
     } while (false)
 
-    TimePoint now = Clock::now();
-    if (frame_start.time_since_epoch().count() == 0) {
-        frame_start = now;
-    }
-    f32 current_frame_time = time_since(frame_start, now) * NANO_TO_MS;
-    frame_start = now;
-
     const i32 GRAPH_HEIGHT = 150;
-    frame += 1;
-    frame %= HISTORY_LENGTH;
 
     ImPlotStyle &style = ImPlot::GetStyle();
     style.PlotBorderSize = 0;
@@ -272,11 +273,10 @@ void report() {
                           ImPlotAxisFlags_Lock)) {
         ImPlot::SetLegendLocation(ImPlotLocation_North, ImPlotOrientation_Horizontal, true);
         DRAW_NOW_LINE;
-        frame_time[frame] = current_frame_time;
         ImPlot::PlotLine("Raw", frame_time, HISTORY_LENGTH);
 
         const u32 SAMPLES_IN_AVERAGE = Math::min<u32>(30, HISTORY_LENGTH);
-        u32 start_index = (HISTORY_LENGTH + frame - SAMPLES_IN_AVERAGE) % HISTORY_LENGTH;
+        u32 start_index = (HISTORY_LENGTH + frame_index - SAMPLES_IN_AVERAGE) % HISTORY_LENGTH;
         f32 average = 0.0;
         for (u32 i = 0; i < SAMPLES_IN_AVERAGE; i++) {
             u32 sample_index = (start_index + i) % HISTORY_LENGTH;
@@ -284,7 +284,7 @@ void report() {
         }
         average /= SAMPLES_IN_AVERAGE;
 
-        f32 xs[] = { -100, (f32)start_index, (f32)frame, HISTORY_LENGTH };
+        f32 xs[] = { -100, (f32)start_index, (f32)frame_index, HISTORY_LENGTH };
         f32 ys[] = { average, average, average, average };
         ImPlot::PlotLine("Avg.", xs, ys, LEN(xs));
         ImPlot::PlotScatter("Avg.", xs, ys, LEN(xs));
@@ -316,10 +316,10 @@ void report() {
                 {
                     LOCK_FOR_BLOCK(state.lock);
                     for (auto &[hash, counter] : *state.metrics) {
-                        counter.total_hist[frame] = NANO_TO_MS * counter.total_nano_seconds;
+                        counter.total_hist[frame_index] = NANO_TO_MS * counter.total_nano_seconds;
                         ImPlot::PlotLine(counter.name, counter.total_hist, HISTORY_LENGTH);
 
-                        counter.time_per_hist[frame] = NANO_TO_MS * counter.total_nano_seconds / (counter.num_calls ?: 1);
+                        counter.time_per_hist[frame_index] = NANO_TO_MS * counter.total_nano_seconds / (counter.num_calls ?: 1);
                         ImPlot::PlotLine(counter.name, counter.time_per_hist, HISTORY_LENGTH);
                     }
                 }
