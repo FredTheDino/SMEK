@@ -193,72 +193,86 @@ i32 capture_frames_left() {
 }
 
 #ifdef IMGUI_ENABLE
-const f32 NANO_TO_MS = 1e-6;
 
-TimePoint frame_start = {};
+f32 calculate_frame_time() {
+    static TimePoint frame_start = {};
+
+    TimePoint now = Clock::now();
+    if (frame_start.time_since_epoch().count() == 0) {
+        frame_start = now;
+    }
+
+    f32 current_frame_time = time_since(frame_start, now) * NANO_TO_MS;
+    frame_start = now;
+    return current_frame_time;
+}
 f32 frame_time[HISTORY_LENGTH] = {};
+
+void performance_capture_gui() {
+    ImGui::Text("Performance Capture");
+    static int capture_length = 100;
+    ImGui::PushItemWidth(100);
+    ImGui::InputInt("", &capture_length, 10, 100);
+    capture_length = Math::max(1, capture_length);
+
+    if (ImGui::Button("Cap. Begin")) {
+        capture_begin();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Cap. Length")) {
+        capture_frames(capture_length);
+    }
+    if (capture_is_running()) {
+        ImGui::SameLine();
+        if (ImGui::Button("Cap. End")) {
+            capture_end();
+        }
+        ImGui::SameLine();
+        if (capture_frames_left() < 0) {
+            ImGui::Text("Frames Left: Inf");
+        } else {
+            ImGui::Text("Frames Left: %d", capture_frames_left());
+        }
+    }
+}
 
 // TODO(ed):
 // Break this function into sub-functions
 
 void report() {
-    TimePoint now = Clock::now();
-    if (frame_start.time_since_epoch().count() == 0) {
-        frame_start = now;
-    }
-    u32 frame_index = frame() % HISTORY_LENGTH;
-
-    f32 current_frame_time = time_since(frame_start, now) * NANO_TO_MS;
-    frame_time[frame_index] = current_frame_time;
-    frame_start = now;
 
     record_to_performance_capture_file('i', "FRAME", "NA", "NA", 0);
     capture_handle();
+
+    u32 frame_index = frame() % HISTORY_LENGTH;
+    frame_time[frame_index] = calculate_frame_time();
+
+    {
+        LOCK_FOR_BLOCK(GAMESTATE()->performance_list_lock);
+        for (auto state : GAMESTATE()->perf_states) {
+            LOCK_FOR_BLOCK(state.lock);
+            for (auto &[hash, counter] : *state.metrics) {
+                counter.new_frame(frame_index);
+            }
+        }
+    }
 
     if (!GAMESTATE()->imgui.performance_enabled) return;
     ImGui::Begin("Performance");
 
     if (ImGui::BeginChild("Capture", Vec2(0.0, 75.0), true)) {
-        ImGui::Text("Performance Capture");
-        static int capture_length = 100;
-        ImGui::PushItemWidth(100);
-        ImGui::InputInt("", &capture_length, 10, 100);
-        capture_length = Math::max(1, capture_length);
-
-        if (ImGui::Button("Cap. Begin")) {
-            capture_begin();
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Cap. Length")) {
-            capture_frames(capture_length);
-        }
-        if (capture_is_running()) {
-            ImGui::SameLine();
-            if (ImGui::Button("Cap. End")) {
-                capture_end();
-            }
-            ImGui::SameLine();
-            if (capture_frames_left() < 0) {
-                ImGui::Text("Frames Left: Inf");
-            } else {
-                ImGui::Text("Frames Left: %d", capture_frames_left());
-            }
-        }
+        performance_capture_gui();
     }
     ImGui::EndChild();
+
+    // TODO(ed): If we spike the FPS, we usually go above this.
+    //
     // The height of the graph plots, set to 20ms to make it easier
     // to see spikes and such.
     const f32 MAXIMUM_MS = 20;
 
-#define DRAW_NOW_LINE                                      \
-    do {                                                   \
-        f32 xs[] = { (f32)frame_index, (f32)frame_index }; \
-        f32 ys[] = { -10, 30 };                            \
-        ImPlot::PlotLine("Now", xs, ys, 2);                \
-    } while (false)
-
+    // Style the graphs
     const i32 GRAPH_HEIGHT = 150;
-
     ImPlotStyle &style = ImPlot::GetStyle();
     style.PlotBorderSize = 0;
     style.LegendPadding = Vec2(0.0, 0.0);
@@ -267,6 +281,29 @@ void report() {
     style.PlotPadding = Vec2();
     style.PlotBorderSize = 0.0;
     ImPlot::SetNextPlotLimits(0, HISTORY_LENGTH, 0, MAXIMUM_MS);
+
+    // Utility function for drawing a horizontal line for the
+    // specified frame.
+    auto draw_frame_line = [](i32 frame) {
+        f32 xs[] = { (f32)frame, (f32)frame };
+        f32 ys[] = { -10, 30 };
+        ImPlot::PlotLine("Now", xs, ys, 2);
+    };
+
+    // Averages the time per frame for a cirtain history.
+    auto calculate_average_frame_time = [](i32 frame, i32 lookback) {
+        const u32 num_samples = Math::min<u32>(lookback, HISTORY_LENGTH);
+        u32 start_index = (HISTORY_LENGTH + frame - num_samples) % HISTORY_LENGTH;
+        f32 average = 0.0;
+        for (u32 i = 0; i < num_samples; i++) {
+            u32 sample_index = (start_index + i) % HISTORY_LENGTH;
+            average += frame_time[sample_index];
+        }
+        average /= num_samples;
+        return average;
+    };
+
+    // The length of previous frames, and the average frame time.
     if (ImPlot::BeginPlot("##FrameTimes",
                           "Total Frame Time (ms)",
                           "",
@@ -275,25 +312,18 @@ void report() {
                           ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoDecorations,
                           ImPlotAxisFlags_Lock)) {
         ImPlot::SetLegendLocation(ImPlotLocation_North, ImPlotOrientation_Horizontal, true);
-        DRAW_NOW_LINE;
+
+        draw_frame_line(frame_index);
         ImPlot::PlotLine("Raw", frame_time, HISTORY_LENGTH);
-
-        const u32 SAMPLES_IN_AVERAGE = Math::min<u32>(30, HISTORY_LENGTH);
-        u32 start_index = (HISTORY_LENGTH + frame_index - SAMPLES_IN_AVERAGE) % HISTORY_LENGTH;
-        f32 average = 0.0;
-        for (u32 i = 0; i < SAMPLES_IN_AVERAGE; i++) {
-            u32 sample_index = (start_index + i) % HISTORY_LENGTH;
-            average += frame_time[sample_index];
-        }
-        average /= SAMPLES_IN_AVERAGE;
-
-        f32 xs[] = { -100, (f32)start_index, (f32)frame_index, HISTORY_LENGTH };
+        f32 average = calculate_average_frame_time(frame_index, 30);
+        f32 xs[] = { -100, (f32)frame_index, HISTORY_LENGTH };
         f32 ys[] = { average, average, average, average };
         ImPlot::PlotLine("Avg.", xs, ys, LEN(xs));
         ImPlot::PlotScatter("Avg.", xs, ys, LEN(xs));
         ImPlot::EndPlot();
     }
 
+    // Time per call and total time for all threads.
     {
         LOCK_FOR_BLOCK(GAMESTATE()->performance_list_lock);
         for (auto state : GAMESTATE()->perf_states) {
@@ -314,15 +344,11 @@ void report() {
                 ImPlot::SetLegendLocation(ImPlotLocation_North,
                                           ImPlotOrientation_Horizontal,
                                           true);
-                DRAW_NOW_LINE;
-
+                draw_frame_line(frame_index);
                 {
                     LOCK_FOR_BLOCK(state.lock);
                     for (auto &[hash, counter] : *state.metrics) {
-                        counter.total_hist[frame_index] = NANO_TO_MS * counter.total_nano_seconds;
                         ImPlot::PlotLine(counter.name, counter.total_hist, HISTORY_LENGTH);
-
-                        counter.time_per_hist[frame_index] = NANO_TO_MS * counter.total_nano_seconds / (counter.num_calls ?: 1);
                         ImPlot::PlotLine(counter.name, counter.time_per_hist, HISTORY_LENGTH);
                     }
                 }
@@ -332,6 +358,7 @@ void report() {
         }
     }
 
+    // Pie chart for number of calls, only for mainthread.
     ImPlot::SetNextPlotLimits(0, 1, 0, 1, ImGuiCond_Always);
     if (ImPlot::BeginPlot("Number of calls",
                           nullptr,
@@ -351,9 +378,10 @@ void report() {
             LOCK_FOR_BLOCK(metrics_thread_lock);
             for (auto &[hash, counter] : metrics) {
                 if (i >= MAX_NUM_PIE_PARTS) break;
+                u32 counter_calls = counter.num_calls_hist[frame_index];
+                total += counter_calls;
+                calls[i] = counter_calls;
                 labels[i] = counter.name;
-                calls[i] = counter.num_calls;
-                total += counter.num_calls;
                 i++;
             }
         }
@@ -362,17 +390,6 @@ void report() {
         ImPlot::EndPlot();
         ImGui::SameLine();
         ImGui::Text("Total Number of Calls: %d", total);
-    }
-
-    {
-        LOCK_FOR_BLOCK(GAMESTATE()->performance_list_lock);
-        for (auto state : GAMESTATE()->perf_states) {
-            LOCK_FOR_BLOCK(state.lock);
-            for (auto &[hash, counter] : *state.metrics) {
-                counter.num_calls = 0;
-                counter.total_nano_seconds = 0;
-            }
-        }
     }
 
     ImGui::End();
