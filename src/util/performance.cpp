@@ -241,15 +241,15 @@ void report() {
     record_to_performance_capture_file('i', "FRAME", "NA", "NA", 0);
     capture_handle();
 
-    u32 frame_index = frame() % HISTORY_LENGTH;
-    frame_time[frame_index] = calculate_frame_time();
+    u32 mod_frame = frame() % HISTORY_LENGTH;
+    frame_time[mod_frame] = calculate_frame_time();
 
     {
         LOCK_FOR_BLOCK(GAMESTATE()->performance_list_lock);
         for (auto state : GAMESTATE()->perf_states) {
             LOCK_FOR_BLOCK(state.lock);
             for (auto &[hash, counter] : *state.metrics) {
-                counter.new_frame(frame_index);
+                counter.new_frame(mod_frame);
             }
         }
     }
@@ -310,10 +310,10 @@ void report() {
                           ImPlotAxisFlags_Lock)) {
         ImPlot::SetLegendLocation(ImPlotLocation_North, ImPlotOrientation_Horizontal, true);
 
-        draw_frame_line(frame_index);
+        draw_frame_line(mod_frame);
         ImPlot::PlotLine("Raw", frame_time, HISTORY_LENGTH);
-        f32 average = calculate_average_frame_time(frame_index, 30);
-        f32 xs[] = { -100, (f32)frame_index, HISTORY_LENGTH };
+        f32 average = calculate_average_frame_time(mod_frame, 30);
+        f32 xs[] = { -100, (f32)mod_frame, HISTORY_LENGTH };
         f32 ys[] = { average, average, average, average };
         ImPlot::PlotLine("Avg.", xs, ys, LEN(xs));
         ImPlot::PlotScatter("Avg.", xs, ys, LEN(xs));
@@ -341,7 +341,7 @@ void report() {
                 ImPlot::SetLegendLocation(ImPlotLocation_North,
                                           ImPlotOrientation_Horizontal,
                                           true);
-                draw_frame_line(frame_index);
+                draw_frame_line(mod_frame);
                 {
                     LOCK_FOR_BLOCK(state.lock);
                     for (auto &[hash, counter] : *state.metrics) {
@@ -375,7 +375,7 @@ void report() {
             LOCK_FOR_BLOCK(metrics_thread_lock);
             for (auto &[hash, counter] : metrics) {
                 if (i >= MAX_NUM_PIE_PARTS) break;
-                u32 counter_calls = counter.num_calls_hist[frame_index];
+                u32 counter_calls = counter.num_calls_hist[mod_frame];
                 total += counter_calls;
                 calls[i] = counter_calls;
                 labels[i] = counter.name;
