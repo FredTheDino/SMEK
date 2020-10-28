@@ -181,7 +181,7 @@ void capture_end() {
 
 void capture_frames(i32 n) {
     ASSERT_NE(n, 0);
-    Capture::frames_to_capture = Math::max(0, Capture::frames_to_capture) + 100;
+    Capture::frames_to_capture = Math::max(0, Capture::frames_to_capture) + n;
 }
 
 bool capture_is_running() {
@@ -202,7 +202,6 @@ f32 frame_time[HISTORY_LENGTH] = {};
 // Break this function into sub-functions
 
 void report() {
-
     TimePoint now = Clock::now();
     if (frame_start.time_since_epoch().count() == 0) {
         frame_start = now;
@@ -219,30 +218,34 @@ void report() {
     if (!GAMESTATE()->imgui.performance_enabled) return;
     ImGui::Begin("Performance");
 
-    if (ImGui::Button("Start Capture")) {
-        capture_begin();
+    if (ImGui::BeginChild("Capture", Vec2(0.0, 75.0), true)) {
+        ImGui::Text("Performance Capture");
+        static int capture_length = 100;
+        ImGui::PushItemWidth(100);
+        ImGui::InputInt("", &capture_length, 10, 100);
+        capture_length = Math::max(1, capture_length);
+
+        if (ImGui::Button("Cap. Begin")) {
+            capture_begin();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Cap. Length")) {
+            capture_frames(capture_length);
+        }
+        if (capture_is_running()) {
+            ImGui::SameLine();
+            if (ImGui::Button("Cap. End")) {
+                capture_end();
+            }
+            ImGui::SameLine();
+            if (capture_frames_left() < 0) {
+                ImGui::Text("Frames Left: Inf");
+            } else {
+                ImGui::Text("Frames Left: %d", capture_frames_left());
+            }
+        }
     }
-    if (capture_is_running()) {
-        ImGui::SameLine();
-        if (ImGui::Button("+100 frames")) {
-            capture_frames(100);
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("End Capture")) {
-            capture_end();
-        }
-        ImGui::SameLine();
-        if (capture_frames_left() < 0) {
-            ImGui::Text("Frames To Capture: Inf");
-        } else {
-            ImGui::Text("Frames To Capture: %d", capture_frames_left());
-        }
-    } else {
-        ImGui::SameLine();
-        if (ImGui::Button("Capture 100 frames")) {
-            capture_frames(100);
-        }
-    }
+    ImGui::EndChild();
     // The height of the graph plots, set to 20ms to make it easier
     // to see spikes and such.
     const f32 MAXIMUM_MS = 20;
