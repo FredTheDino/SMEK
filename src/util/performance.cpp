@@ -206,7 +206,6 @@ f32 calculate_frame_time() {
     frame_start = now;
     return current_frame_time;
 }
-f32 frame_time[HISTORY_LENGTH] = {};
 
 void performance_capture_gui() {
     ImGui::Text("Performance Capture");
@@ -236,8 +235,8 @@ void performance_capture_gui() {
     }
 }
 
+f32 frame_time[HISTORY_LENGTH] = {};
 void report() {
-
     record_to_performance_capture_file('i', "FRAME", "NA", "NA", 0);
     capture_handle();
 
