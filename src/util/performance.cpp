@@ -236,9 +236,6 @@ void performance_capture_gui() {
     }
 }
 
-// TODO(ed):
-// Break this function into sub-functions
-
 void report() {
 
     record_to_performance_capture_file('i', "FRAME", "NA", "NA", 0);
