@@ -261,7 +261,9 @@ void report() {
     }
     ImGui::EndChild();
 
-    // TODO(ed): If we spike the FPS, we usually go above this.
+    // TODO(ed): Spikes are hard to see in this graph, we can also
+    // not change the height of the viewport each frame. Needs futher
+    // investigation.
     //
     // The height of the graph plots, set to 20ms to make it easier
     // to see spikes and such.
@@ -300,14 +302,17 @@ void report() {
     };
 
     // The length of previous frames, and the average frame time.
-    if (ImPlot::BeginPlot("##FrameTimes",
-                          "Total Frame Time (ms)",
-                          "",
+    ImGui::Text("> Total Frame Time");
+    if (ImPlot::BeginPlot("##???I'm Confused",
+                          NULL,
+                          NULL,
                           Vec2(-1, GRAPH_HEIGHT),
-                          ImPlotFlags_None,
-                          ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoDecorations,
-                          ImPlotAxisFlags_Lock)) {
-        ImPlot::SetLegendLocation(ImPlotLocation_North, ImPlotOrientation_Horizontal, true);
+                          ImPlotFlags_NoLegend,
+                          ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoTickLabels,
+                          ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoTickLabels)) {
+        ImPlot::SetLegendLocation(ImPlotLocation_NorthEast,
+                                  ImPlotOrientation_Vertical,
+                                  true);
 
         draw_frame_line(mod_frame);
         ImPlot::PlotLine("Raw", frame_time, HISTORY_LENGTH);
@@ -319,37 +324,36 @@ void report() {
         ImPlot::EndPlot();
     }
 
+    ImPlot::ShowDemoWindow();
     // Time per call and total time for all threads.
     {
+        ImGui::Text("> Counters");
         LOCK_FOR_BLOCK(GAMESTATE()->performance_list_lock);
         for (auto state : GAMESTATE()->perf_states) {
-            ImPlot::SetNextPlotLimits(0, HISTORY_LENGTH, 0, MAXIMUM_MS);
+            LOCK_FOR_BLOCK(state.lock);
+            for (auto &[hash, counter] : *state.metrics) {
+                ImPlot::SetNextPlotLimits(0, HISTORY_LENGTH, 0, MAXIMUM_MS);
 
-            char title[50];
-            sntprint(title, LEN(title), "Total Time - {} - (ms)", state.id);
+                char title[50];
+                sntprint(title, LEN(title), "##{}", counter.name);
+                ImGui::Text("%*s %*d", 20, counter.name, 5, counter.num_calls_hist[mod_frame]);
+                ImGui::SameLine();
+                ImPlotAxisFlags flags = ImPlotAxisFlags_Lock
+                                        | ImPlotAxisFlags_NoTickLabels
+                                        | ImPlotAxisFlags_NoTickMarks;
+                if (ImPlot::BeginPlot(title,
+                                      NULL,
+                                      NULL,
+                                      Vec2(-1, 25),
+                                      ImPlotFlags_NoLegend | ImPlotAxisFlags_NoTickLabels,
+                                      flags,
+                                      flags)) {
+                    draw_frame_line(mod_frame);
+                    ImPlot::PlotShaded("Total", counter.total_hist, HISTORY_LENGTH);
+                    ImPlot::PlotShaded("Per Call", counter.time_per_hist, HISTORY_LENGTH);
 
-            char unique_id[50];
-            sntprint(unique_id, LEN(unique_id), "##TotalTime-{}", state.id);
-            if (ImPlot::BeginPlot(unique_id,
-                                  title,
-                                  "",
-                                  Vec2(-1, GRAPH_HEIGHT),
-                                  ImPlotFlags_None,
-                                  ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoDecorations,
-                                  ImPlotAxisFlags_Lock)) {
-                ImPlot::SetLegendLocation(ImPlotLocation_North,
-                                          ImPlotOrientation_Horizontal,
-                                          true);
-                draw_frame_line(mod_frame);
-                {
-                    LOCK_FOR_BLOCK(state.lock);
-                    for (auto &[hash, counter] : *state.metrics) {
-                        ImPlot::PlotLine(counter.name, counter.total_hist, HISTORY_LENGTH);
-                        ImPlot::PlotLine(counter.name, counter.time_per_hist, HISTORY_LENGTH);
-                    }
+                    ImPlot::EndPlot();
                 }
-
-                ImPlot::EndPlot();
             }
         }
     }
