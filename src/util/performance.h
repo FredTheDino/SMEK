@@ -77,7 +77,11 @@ void report();
     defer { Performance::end_time_block(_PERFORMANCE_BLOCK_##line); }
 
 #define _a_performance(name, line) _b_performance(name, line)
-#define PERFORMANCE(name)          _a_performance(name, __LINE__)
+
+///*
+// A macro that creates a new performance counter for the
+// rest of the block.
+#define PERFORMANCE(name) _a_performance(name, __LINE__)
 
 #define JSON_ARG(name) \
     "\"" STR(name) "\":\"{}\","
@@ -115,5 +119,10 @@ void write_to_capture_file(i32 size, const char *buf);
     }
 
 #define _a_capture(line, ...) _b_capture(line, __VA_ARGS__)
-#define CAPTURE(...)          _a_capture(__LINE__, __VA_ARGS__)
+
+///*
+// Writes the varaibles passed as arguments to the capture file,
+// and records the time for the remainder of the block.
+#define CAPTURE(...) _a_capture(__LINE__, __VA_ARGS__)
+
 } // namespace Performance
