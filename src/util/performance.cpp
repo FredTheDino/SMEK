@@ -71,30 +71,6 @@ void dump_frame_to_capture_file() {
     write_to_capture_file(size, buffer);
 }
 
-void record_to_performance_capture_file(char type,
-                                        const char *name,
-                                        const char *func,
-                                        const char *file,
-                                        u32 line) {
-    LOCK_FOR_BLOCK(capture_file_mutex);
-    if (!capture_file) return;
-
-    char buffer[256];
-    u32 size = sntprint(buffer, LEN(buffer),
-                        R"(,%{"cat":"{}","tid":"{}","ts":{},"name":"{}")"
-                        R"(,"args":%{"func":"{}","file":"{}","line":{}})"
-                        R"(,"pid":0,"ph":"{}","s":"g"})",
-                        "PERFORMANCE",
-                        SDL_ThreadID(),
-                        Clock::now().time_since_epoch().count() / 1000.0,
-                        name,
-                        func,
-                        file,
-                        line,
-                        type);
-    fwrite((void *)buffer, 1, size, capture_file);
-}
-
 void write_to_capture_file(i32 size, const char *buffer) {
     LOCK_FOR_BLOCK(capture_file_mutex);
     if (capture_file) {
