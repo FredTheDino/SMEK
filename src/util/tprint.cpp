@@ -54,7 +54,7 @@ i32 sntprint<>(char *buffer, u32 buf_size, const char *fmt) {
         if (fmt[head] == '{') {
             WARN("Invalid format string, unexpected '{}'", fmt + head);
         }
-        if (fmt[head] == '%' && fmt[head + 1] == '{') {
+        if (fmt[head] == '!' && fmt[head + 1] == '{') {
             head++;
         }
         buffer[write++] = fmt[head];
@@ -165,42 +165,42 @@ TEST_CASE("sntprint - extra {}", {
 TEST_CASE("sntprint - extra {}", {
     char buffer[4] = {};
     sntprint(buffer, LEN(buffer), "{}{}{}{}{}{}", 2);
-    ASSERT(std::strcmp(buffer, "2") == 0, "Got '{}', '2' expected", buffer);
+    ASSERT(std::strcmp(buffer, "2{}") == 0, "Got '{}', '2' expected", buffer);
     return true;
 });
 
 TEST_CASE("sntprint - just enough", {
     char buffer[15] = {};
-    sntprint(buffer, LEN(buffer), "{}-%{}{}-{}%{}", 3, 2, 1);
+    sntprint(buffer, LEN(buffer), "{}-!{}{}-{}!{}", 3, 2, 1);
     LOG("{}", buffer);
     bool success = std::strcmp(buffer, "3-{}2-1{}") == 0;
     ASSERT(success, "Invalid test result");
     return true;
 });
 
-TEST_CASE("sntprint - random %", {
+TEST_CASE("sntprint - random !", {
     char buffer[15] = {};
-    int ret = sntprint(buffer, LEN(buffer), "{}%-%{}{}-{}%", 3, 2, 1);
+    int ret = sntprint(buffer, LEN(buffer), "{}!-!{}{}-{}!", 3, 2, 1);
     LOG("{} -> {}", buffer, ret);
-    bool success = std::strcmp(buffer, "3%-{}2-1%") == 0;
+    bool success = std::strcmp(buffer, "3!-{}2-1!") == 0;
     ASSERT(success, "Invalid test result");
     return true;
 });
 
-TEST_CASE("sntprint - random %", {
+TEST_CASE("sntprint - random !", {
     char buffer[15] = {};
-    int ret = sntprint(buffer, LEN(buffer), "%{}{}%", 1);
+    int ret = sntprint(buffer, LEN(buffer), "!{}{}!", 1);
     LOG("{} -> {}", buffer, ret);
-    bool success = std::strcmp(buffer, "{}1%") == 0;
+    bool success = std::strcmp(buffer, "{}1!") == 0;
     ASSERT(success, "Invalid test result");
     return true;
 });
 
-TEST_CASE("sntprint - even more random %", {
+TEST_CASE("sntprint - even more random !", {
     char buffer[15] = {};
-    int ret = sntprint(buffer, LEN(buffer), "%{}{}%-{}%", 1, 2);
+    int ret = sntprint(buffer, LEN(buffer), "!{}{}!-{}!", 1, 2);
     LOG("{} -> {}", buffer, ret);
-    bool success = std::strcmp(buffer, "{}1%-2") == 0;
+    bool success = std::strcmp(buffer, "{}1!-2!") == 0;
     ASSERT(success, "Invalid test result");
     return true;
 });
