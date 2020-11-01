@@ -74,7 +74,6 @@ void dump_frame_to_capture_file() {
 void write_to_capture_file(i32 size, const char *buffer) {
     LOCK_FOR_BLOCK(capture_file_mutex);
     if (capture_file) {
-        LOG("Writing: {}", buffer);
         fwrite((void *)buffer, 1, size, capture_file);
     }
 }
