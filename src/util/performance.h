@@ -95,12 +95,12 @@ void write_to_capture_file(i32 size, const char *buf);
     if (Performance::should_capture()) {                                                                 \
         char buffer[256];                                                                                \
         u32 size = sntprint(buffer, LEN(buffer),                                                         \
-                            R"(,%{"cat":"CAPTURE","tid":"{}","ts":{},"name":"{}")"                       \
+                            R"(,%{"cat":"CAPTURE","tid":"{}","ts":{},"name":"{}:{}")"                    \
                             R"(,"pid":0,"ph":"B","s":"g")"                                               \
                             ",\"args\":%{" MAP(JSON_ARG, func, file, line, __VA_ARGS__) "\"-\":\"-\"}}", \
                             SDL_ThreadID(),                                                              \
                             Performance::Clock::now().time_since_epoch().count() / 1000.0,               \
-                            STR(__func__) ":" STR(line),                                                 \
+                            __func__, STR(line),                                                         \
                             __func__, __FILE__, __LINE__, __VA_ARGS__);                                  \
         Performance::write_to_capture_file(size, buffer);                                                \
     }                                                                                                    \
