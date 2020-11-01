@@ -83,9 +83,6 @@ void report();
 // rest of the block.
 #define PERFORMANCE(name) _a_performance(name, __LINE__)
 
-#define JSON_ARG(name) \
-    "\"" STR(name) "\":\"{}\","
-
 ///*
 // Returns true if the capture is currently enabled.
 bool should_capture();
@@ -94,6 +91,9 @@ bool should_capture();
 // Writs a string to the capture file, only if the capture
 // file is open and available, otherwise does nothing.
 void write_to_capture_file(i32 size, const char *buf);
+
+#define JSON_ARG(name) \
+    "\"" STR(name) "\":\"{}\","
 
 #define _b_capture(line, ...)                                                                            \
     if (Performance::should_capture()) {                                                                 \
