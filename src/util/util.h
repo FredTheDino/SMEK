@@ -6,5 +6,6 @@
 #include "color.h"
 #include "defer.h"
 #include "log.h"
+#include "mapmacro.h"
 #include "tprint.h"
 #include "performance.h"
