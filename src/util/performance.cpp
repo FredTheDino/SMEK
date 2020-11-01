@@ -60,6 +60,17 @@ bool should_capture() {
     return capture_enabled;
 }
 
+void dump_frame_to_capture_file() {
+    if (!should_capture()) return;
+    char buffer[256];
+    u32 size = sntprint(buffer, LEN(buffer),
+                        R"(,%{"cat":"CAPTURE","tid":"{}","ts":{},"name":"FRAME")"
+                        R"(,"pid":0,"ph":"i","s":"g"})",
+                        SDL_ThreadID(),
+                        Clock::now().time_since_epoch().count() / 1000.0);
+    write_to_capture_file(size, buffer);
+}
+
 void record_to_performance_capture_file(char type,
                                         const char *name,
                                         const char *func,
@@ -126,7 +137,6 @@ u64 begin_time_block(const char *name,
         ASSERT(ref.start == NULL_TIME, "Performance block started twice!");
         ref.start = Clock::now();
     }
-    record_to_performance_capture_file('B', name, func, file, line);
 
     return hash_uuid;
 }
@@ -148,8 +158,6 @@ void end_time_block(u64 hash_uuid) {
     TimePoint start = ref.start;
     ref.start = NULL_TIME;
     ref.total_nano_seconds += time_since(start, end);
-
-    record_to_performance_capture_file('E', ref.name, ref.func, ref.file, ref.line);
 }
 
 //
@@ -252,7 +260,7 @@ void performance_capture_gui() {
 
 f32 frame_time[HISTORY_LENGTH] = {};
 void report() {
-    record_to_performance_capture_file('i', "FRAME", "NA", "NA", 0);
+    dump_frame_to_capture_file();
     capture_handle();
 
     u32 mod_frame = frame() % HISTORY_LENGTH;
