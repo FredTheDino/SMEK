@@ -155,52 +155,26 @@ TEST_CASE("reuse sntprint buffer - with formatting over buf_size", {
     return true;
 });
 
-TEST_CASE("sntprint - extra {}", {
-    char buffer[4] = {};
-    sntprint(buffer, LEN(buffer), "{}{}", 1);
-    ASSERT(std::strcmp(buffer, "1{}") == 0, "Got '{}', '1{}' expected", buffer);
-    return true;
-});
+#define SNTPRINT_TEST(name, buflen, exp, fmt, ...)                                       \
+    TEST_CASE("sntprint - " name, {                                                      \
+        char buf[buflen] = {};                                                           \
+        const char *fmt_str = fmt;                                                       \
+        const char *exp_str = exp;                                                       \
+        sntprint(buf, buflen, fmt_str, __VA_ARGS__);                                     \
+        ASSERT(std::strcmp(buf, exp_str) == 0, "Got '{}', '{}' expected", buf, exp_str); \
+        return true;                                                                     \
+    })
 
-TEST_CASE("sntprint - extra {}", {
-    char buffer[4] = {};
-    sntprint(buffer, LEN(buffer), "{}{}{}{}{}{}", 2);
-    ASSERT(std::strcmp(buffer, "2{}") == 0, "Got '{}', '2' expected", buffer);
-    return true;
-});
+SNTPRINT_TEST("extra fmt #1", 4, "1{}", "{}{}", 1);
 
-TEST_CASE("sntprint - just enough", {
-    char buffer[15] = {};
-    sntprint(buffer, LEN(buffer), "{}-!{}{}-{}!{}", 3, 2, 1);
-    LOG("{}", buffer);
-    bool success = std::strcmp(buffer, "3-{}2-1{}") == 0;
-    ASSERT(success, "Invalid test result");
-    return true;
-});
+SNTPRINT_TEST("extra fmt #2", 4, "2{}", "{}{}{}{}{}{}", 2);
 
-TEST_CASE("sntprint - random !", {
-    char buffer[15] = {};
-    int ret = sntprint(buffer, LEN(buffer), "{}!-!{}{}-{}!", 3, 2, 1);
-    LOG("{} -> {}", buffer, ret);
-    bool success = std::strcmp(buffer, "3!-{}2-1!") == 0;
-    ASSERT(success, "Invalid test result");
-    return true;
-});
+SNTPRINT_TEST("escape fmt #1", 15, "3-{}2-1{}", "{}-!{}{}-{}!{}", 3, 2, 1);
 
-TEST_CASE("sntprint - random !", {
-    char buffer[15] = {};
-    int ret = sntprint(buffer, LEN(buffer), "!{}{}!", 1);
-    LOG("{} -> {}", buffer, ret);
-    bool success = std::strcmp(buffer, "{}1!") == 0;
-    ASSERT(success, "Invalid test result");
-    return true;
-});
+SNTPRINT_TEST("escape fmt #2", 15, "3!-{}2-1!", "{}!-!{}{}-{}!", 3, 2, 1);
 
-TEST_CASE("sntprint - even more random !", {
-    char buffer[15] = {};
-    int ret = sntprint(buffer, LEN(buffer), "!{}{}!-{}!", 1, 2);
-    LOG("{} -> {}", buffer, ret);
-    bool success = std::strcmp(buffer, "{}1!-2!") == 0;
-    ASSERT(success, "Invalid test result");
-    return true;
-});
+SNTPRINT_TEST("escape fmt #3", 15, "{}1!", "!{}{}!", 1);
+
+SNTPRINT_TEST("escape fmt #4", 15, "!{}! 1!!", "!!{}! {}!!", 1);
+
+SNTPRINT_TEST("escape fmt #5", 15, "{}1!-2!", "!{}{}!-{}!", 1, 2);
