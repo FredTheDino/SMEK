@@ -35,7 +35,7 @@
 #include <cstring>
 
 #include "util/util.h"
-#include "game.h"
+struct GameState;
 
 #define PP_CAT(a, b)   PP_CAT_I(a, b)
 #define PP_CAT_I(a, b) PP_CAT_II(a##b)

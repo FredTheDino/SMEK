@@ -2,6 +2,7 @@
 #include <cstdlib>
 
 #include "test.h"
+#include "game.h"
 
 static GameState *_test_gs;
 GameState *GAMESTATE() { return _test_gs; }
