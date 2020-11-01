@@ -357,41 +357,6 @@ void report() {
             }
         }
     }
-
-    // Pie chart for number of calls, only for mainthread.
-    ImPlot::SetNextPlotLimits(0, 1, 0, 1, ImGuiCond_Always);
-    if (ImPlot::BeginPlot("Number of calls",
-                          nullptr,
-                          nullptr,
-                          Vec2(GRAPH_HEIGHT * 2, GRAPH_HEIGHT),
-                          ImPlotFlags_NoMousePos,
-                          ImPlotAxisFlags_NoDecorations,
-                          ImPlotAxisFlags_NoDecorations)) {
-        ImPlot::SetLegendLocation(ImPlotLocation_NorthEast, ImPlotOrientation_Vertical, true);
-        const u32 MAX_NUM_PIE_PARTS = 128;
-        const char *labels[MAX_NUM_PIE_PARTS];
-        u32 calls[MAX_NUM_PIE_PARTS];
-        u32 i = 0;
-        u32 total = 0;
-
-        {
-            LOCK_FOR_BLOCK(metrics_thread_lock);
-            for (auto &[hash, counter] : metrics) {
-                if (i >= MAX_NUM_PIE_PARTS) break;
-                u32 counter_calls = counter.num_calls_hist[mod_frame];
-                total += counter_calls;
-                calls[i] = counter_calls;
-                labels[i] = counter.name;
-                i++;
-            }
-        }
-
-        ImPlot::PlotPieChart(labels, calls, i, 0.5, 0.5, 0.4, true, "%.0f");
-        ImPlot::EndPlot();
-        ImGui::SameLine();
-        ImGui::Text("Total Number of Calls: %d", total);
-    }
-
     ImGui::End();
 }
 #else // Without IMGUI
