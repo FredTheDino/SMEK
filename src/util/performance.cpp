@@ -53,6 +53,13 @@ static void unregister_thread_for_performance_counting() {
 // when the thread is killed.
 thread_local defer_expl[]() { unregister_thread_for_performance_counting(); };
 
+const bool capture_enabled = true;
+bool should_capture() {
+    LOCK_FOR_BLOCK(capture_file_mutex);
+    if (!capture_file) return false;
+    return capture_enabled;
+}
+
 void record_to_performance_capture_file(char type,
                                         const char *name,
                                         const char *func,
@@ -75,6 +82,14 @@ void record_to_performance_capture_file(char type,
                         line,
                         type);
     fwrite((void *)buffer, 1, size, capture_file);
+}
+
+void write_to_capture_file(i32 size, const char *buffer) {
+    LOCK_FOR_BLOCK(capture_file_mutex);
+    if (capture_file) {
+        LOG("Writing: {}", buffer);
+        fwrite((void *)buffer, 1, size, capture_file);
+    }
 }
 
 u64 begin_time_block(const char *name,
