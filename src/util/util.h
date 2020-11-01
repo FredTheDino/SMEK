@@ -7,3 +7,4 @@
 #include "defer.h"
 #include "log.h"
 #include "tprint.h"
+#include "performance.h"

@@ -13,7 +13,7 @@ using TimePoint = std::chrono::time_point<Clock>;
 struct Metric {
     const char *name;
 
-    const char *function;
+    const char *func;
     const char *file;
     u32 line;
 
@@ -34,6 +34,26 @@ u64 begin_time_block(const char *name,
                      u32 line);
 
 void end_time_block(u64 hash_uuid);
+
+///*
+// Capture performance data, either between
+// the call of "capture_begin" and "capture_end",
+// or for a number of frames by calling "capture_frames".
+//
+// If "capture_frames" is called in a capture, "n" more
+// frames will be captured.
+void capture_begin();
+void capture_end();
+void capture_frames(i32 n = 100);
+
+///*
+// Returns true when a capture is running.
+bool capture_is_running();
+
+///*
+// Returns how many frames are left for the current
+// capture. -1 means unkown/infinite.
+i32 capture_frames_left();
 
 void report();
 
