@@ -324,7 +324,6 @@ void report() {
         ImPlot::EndPlot();
     }
 
-    ImPlot::ShowDemoWindow();
     // Time per call and total time for all threads.
     {
         ImGui::Text("> Counters");
