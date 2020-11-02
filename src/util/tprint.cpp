@@ -6,30 +6,37 @@ i32 format(char *buffer, u32 size, FormatHint args, f64 a) {
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, u64 a) {
+    if (args.hex) return snprintf(buffer, size, "0x%lX", a);
     return snprintf(buffer, size, "%0*lu", args.num_zero_pad, a);
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, i64 a) {
+    if (args.hex) return snprintf(buffer, size, "0x%lX", a);
     return snprintf(buffer, size, "%0*ld", args.num_zero_pad, a);
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, i32 a) {
+    if (args.hex) return snprintf(buffer, size, "0x%X", a);
     return snprintf(buffer, size, "%0*d", args.num_zero_pad, a);
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, u32 a) {
+    if (args.hex) return snprintf(buffer, size, "0x%X", a);
     return snprintf(buffer, size, "%0*u", args.num_zero_pad, a);
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, i16 a) {
+    if (args.hex) return snprintf(buffer, size, "0x%X", a);
     return snprintf(buffer, size, "%0*d", args.num_zero_pad, a);
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, u16 a) {
+    if (args.hex) return snprintf(buffer, size, "0x%X", a);
     return snprintf(buffer, size, "%0*u", args.num_zero_pad, a);
 }
 
 i32 format(char *buffer, u32 size, FormatHint args, char a) {
+    if (args.hex) return snprintf(buffer, size, "0x%X", a);
     return snprintf(buffer, size, "%c", a);
 }
 

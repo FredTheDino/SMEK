@@ -5,6 +5,7 @@
 ///*
 // The extra information passed to each format.
 struct FormatHint {
+    bool hex;
     int num_decimals;
     int num_zero_pad;
 };
@@ -96,12 +97,16 @@ i32 sntprint_helper(char *buffer, u32 buf_size, const char *fmt, T first, Args..
             FormatHint hint; // Setting some sane defaults
             hint.num_decimals = 5;
             hint.num_zero_pad = 0;
+            hint.hex = false;
             while (*fmt != '}') {
                 if (!*fmt) {
                     WARN("Invalid format string");
                     return -1;
                 }
-                if (*fmt == '.') {
+                if (*fmt == 'x') {
+                    SKIP;
+                    hint.hex = true;
+                } else if (*fmt == '.') {
                     SKIP;
                     if ('0' <= *fmt && *fmt <= '9') {
                         hint.num_decimals = *fmt - '0';
