@@ -48,17 +48,23 @@ u32 smek_snprint(char *out_buffer, u32 buf_size, const char *in_buffer) {
 template <>
 i32 sntprint<>(char *buffer, u32 buf_size, const char *fmt) {
     if (buf_size == 0) return 0;
+    u32 write = 0;
     u32 head = 0;
-    while (fmt[head] && head != buf_size) {
-        buffer[head] = fmt[head];
-        head++;
+    for (; fmt[head] && head != buf_size; head++) {
+        if (fmt[head] == '{') {
+            WARN("Invalid format string, unexpected '{}'", fmt + head);
+        }
+        if (fmt[head] == '!' && fmt[head + 1] == '{') {
+            head++;
+        }
+        buffer[write++] = fmt[head];
     }
     if (head == buf_size) {
-        buffer[head - 1] = '\0';
+        buffer[write - 1] = '\0';
     } else {
-        buffer[head] = '\0';
+        buffer[write] = '\0';
     }
-    return head;
+    return write;
 }
 
 #include "../test.h"
@@ -148,3 +154,27 @@ TEST_CASE("reuse sntprint buffer - with formatting over buf_size", {
     ASSERT(std::strcmp(buffer, "3") == 0, "Got '{}', '3' expected", buffer);
     return true;
 });
+
+#define SNTPRINT_TEST(name, buflen, exp, fmt, ...)                                       \
+    TEST_CASE("sntprint - " name, {                                                      \
+        char buf[buflen] = {};                                                           \
+        const char *fmt_str = fmt;                                                       \
+        const char *exp_str = exp;                                                       \
+        sntprint(buf, buflen, fmt_str, __VA_ARGS__);                                     \
+        ASSERT(std::strcmp(buf, exp_str) == 0, "Got '{}', '{}' expected", buf, exp_str); \
+        return true;                                                                     \
+    })
+
+SNTPRINT_TEST("extra fmt #1", 4, "1{}", "{}{}", 1);
+
+SNTPRINT_TEST("extra fmt #2", 4, "2{}", "{}{}{}{}{}{}", 2);
+
+SNTPRINT_TEST("escape fmt #1", 15, "3-{}2-1{}", "{}-!{}{}-{}!{}", 3, 2, 1);
+
+SNTPRINT_TEST("escape fmt #2", 15, "3!-{}2-1!", "{}!-!{}{}-{}!", 3, 2, 1);
+
+SNTPRINT_TEST("escape fmt #3", 15, "{}1!", "!{}{}!", 1);
+
+SNTPRINT_TEST("escape fmt #4", 15, "!{}! 1!!", "!!{}! {}!!", 1);
+
+SNTPRINT_TEST("escape fmt #5", 15, "{}1!-2!", "!{}{}!-{}!", 1, 2);

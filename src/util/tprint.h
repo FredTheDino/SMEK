@@ -88,7 +88,7 @@ i32 sntprint_helper(char *buffer, u32 buf_size, const char *fmt, T first, Args..
 #define SKIP fmt++
 
     while (*fmt) {
-        if (*fmt == '%') {
+        if (*fmt == '!') {
             if (*(fmt + 1) == '{') { SKIP; }
             EAT;
         } else if (*fmt == '{') {
