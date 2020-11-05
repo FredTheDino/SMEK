@@ -7,6 +7,7 @@
 namespace Performance {
 
 constexpr u32 HISTORY_LENGTH = 1001;
+const f32 NANO_TO_MS = 1e-6;
 
 using Clock = std::chrono::steady_clock;
 using TimePoint = std::chrono::time_point<Clock>;
@@ -22,8 +23,17 @@ struct Metric {
 
     f32 total_hist[HISTORY_LENGTH];
     f32 time_per_hist[HISTORY_LENGTH];
+    u32 num_calls_hist[HISTORY_LENGTH];
 
     TimePoint start;
+
+    void new_frame(u32 frame) {
+        total_hist[frame] = NANO_TO_MS * total_nano_seconds;
+        time_per_hist[frame] = NANO_TO_MS * total_nano_seconds / (num_calls ?: 1);
+        num_calls_hist[frame] = num_calls;
+        num_calls = 0;
+        total_nano_seconds = 0;
+    }
 };
 using MetricCollection = std::unordered_map<u64, Metric>;
 
