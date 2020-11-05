@@ -12,6 +12,10 @@ Vec2 mouse_pos() {
     return GAMESTATE()->input.mouse_pos;
 }
 
+void add_callback(u32 button, u32 mods, void (*callback)()) {
+    GAMESTATE()->input.callback_func(button, mods, callback);
+}
+
 void rebind(Action name, u32 slot, f32 value) {
     GAMESTATE()->input.rebind_func(name, slot, value);
 }

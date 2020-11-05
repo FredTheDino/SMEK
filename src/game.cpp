@@ -54,6 +54,10 @@ void toggle_full_screen() {
     GAMESTATE()->full_screen_window = should_be_full_screen;
 }
 
+void something() {
+    LOG("SOMETHIGN!");
+}
+
 void init_game(GameState *gamestate, int width, int height) {
     _global_gs = gamestate;
     GAMESTATE()->main_thread = SDL_GetThreadID(NULL);
@@ -98,6 +102,8 @@ void init_game(GameState *gamestate, int width, int height) {
     Input::bind(Ac::MouseToggle, 0, SDLK_m);
     Input::bind(Ac::Rebind, 1, SDLK_r);
     Input::bind(Ac::ESelect, 1, SDLK_y);
+
+    Input::add_callback(SDLK_a, KMOD_LCTRL, something);
 
     Light l = Light();
     GAMESTATE()->lights[0] = GAMESTATE()->entity_system.add(l);

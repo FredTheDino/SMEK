@@ -321,8 +321,7 @@ int main(int argc, char **argv) { // Game entrypoint
     game_state.input.mouse_capture = false;
     game_state.input.rebind_func = platform_rebind;
     game_state.input.bind_func = platform_bind;
-    game_state.input.rebind_func = platform_rebind;
-    game_state.input.bind_func = platform_bind;
+    game_state.input.callback_func = platform_callback;
     game_state.m_reload_lib = m_reload_lib;
     game_state.reload_lib = &reload_lib;
 
@@ -397,6 +396,7 @@ int main(int argc, char **argv) { // Game entrypoint
                     bool down = key.state == SDL_PRESSED;
                     if (down && global_input.eaten_by_rebind(button)) continue;
                     global_input.update_press(button, down);
+                    if (down) global_input.trigger_callbacks(button, key.keysym.mod);
                 }
                 if (event.type == SDL_MOUSEMOTION) {
                     if (!game_state.input.mouse_capture) continue;
