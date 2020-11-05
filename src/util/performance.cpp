@@ -53,28 +53,29 @@ static void unregister_thread_for_performance_counting() {
 // when the thread is killed.
 thread_local defer_expl[]() { unregister_thread_for_performance_counting(); };
 
-void record_to_performance_capture_file(char type,
-                                        const char *name,
-                                        const char *func,
-                                        const char *file,
-                                        u32 line) {
+const bool capture_enabled = true;
+bool should_capture() {
     LOCK_FOR_BLOCK(capture_file_mutex);
-    if (!capture_file) return;
+    if (!capture_file) return false;
+    return capture_enabled;
+}
 
+void dump_frame_to_capture_file() {
+    if (!should_capture()) return;
     char buffer[256];
     u32 size = sntprint(buffer, LEN(buffer),
-                        R"(,%{"cat":"{}","tid":"{}","ts":{},"name":"{}")"
-                        R"(,"args":%{"func":"{}","file":"{}","line":{}})"
-                        R"(,"pid":0,"ph":"{}","s":"g"})",
-                        "PERFORMANCE",
+                        R"(,%{"cat":"CAPTURE","tid":"{}","ts":{},"name":"FRAME")"
+                        R"(,"pid":0,"ph":"i","s":"g"})",
                         SDL_ThreadID(),
-                        Clock::now().time_since_epoch().count() / 1000.0,
-                        name,
-                        func,
-                        file,
-                        line,
-                        type);
-    fwrite((void *)buffer, 1, size, capture_file);
+                        Clock::now().time_since_epoch().count() / 1000.0);
+    write_to_capture_file(size, buffer);
+}
+
+void write_to_capture_file(u32 size, const char *buffer) {
+    LOCK_FOR_BLOCK(capture_file_mutex);
+    if (capture_file) {
+        fwrite((void *)buffer, 1, size, capture_file);
+    }
 }
 
 u64 begin_time_block(const char *name,
@@ -111,7 +112,6 @@ u64 begin_time_block(const char *name,
         ASSERT(ref.start == NULL_TIME, "Performance block started twice!");
         ref.start = Clock::now();
     }
-    record_to_performance_capture_file('B', name, func, file, line);
 
     return hash_uuid;
 }
@@ -133,8 +133,6 @@ void end_time_block(u64 hash_uuid) {
     TimePoint start = ref.start;
     ref.start = NULL_TIME;
     ref.total_nano_seconds += time_since(start, end);
-
-    record_to_performance_capture_file('E', ref.name, ref.func, ref.file, ref.line);
 }
 
 //
@@ -237,7 +235,7 @@ void performance_capture_gui() {
 
 f32 frame_time[HISTORY_LENGTH] = {};
 void report() {
-    record_to_performance_capture_file('i', "FRAME", "NA", "NA", 0);
+    dump_frame_to_capture_file();
     capture_handle();
 
     u32 mod_frame = frame() % HISTORY_LENGTH;

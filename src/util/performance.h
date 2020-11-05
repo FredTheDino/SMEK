@@ -77,5 +77,52 @@ void report();
     defer { Performance::end_time_block(_PERFORMANCE_BLOCK_##line); }
 
 #define _a_performance(name, line) _b_performance(name, line)
-#define PERFORMANCE(name)          _a_performance(name, __LINE__)
+
+///*
+// A macro that creates a new performance counter for the
+// rest of the block.
+#define PERFORMANCE(name) _a_performance(name, __LINE__)
+
+///*
+// Returns true if the capture is currently enabled.
+bool should_capture();
+
+///*
+// Writs a string to the capture file, only if the capture
+// file is open and available, otherwise does nothing.
+void write_to_capture_file(u32 size, const char *buf);
+
+#define JSON_ARG(name) \
+    "\"" STR(name) "\":\"{}\","
+
+#define _b_capture(line, ...)                                                                            \
+    if (Performance::should_capture()) {                                                                 \
+        char buffer[256];                                                                                \
+        u32 size = sntprint(buffer, LEN(buffer),                                                         \
+                            R"(,%{"cat":"CAPTURE","tid":"{}","ts":{},"name":"{}:{}")"                    \
+                            R"(,"pid":0,"ph":"B","s":"g")"                                               \
+                            ",\"args\":%{" MAP(JSON_ARG, func, file, line, __VA_ARGS__) "\"-\":\"-\"}}", \
+                            SDL_ThreadID(),                                                              \
+                            Performance::Clock::now().time_since_epoch().count() / 1000.0,               \
+                            __func__, STR(line),                                                         \
+                            __func__, __FILE__, __LINE__, __VA_ARGS__);                                  \
+        Performance::write_to_capture_file(size, buffer);                                                \
+    }                                                                                                    \
+    defer {                                                                                              \
+        if (Performance::should_capture) {                                                               \
+            char buffer[256];                                                                            \
+            u32 size = sntprint(buffer, LEN(buffer), R"(,%{"ph":"E","pid":0,"tid":{},"ts":{}})",         \
+                                SDL_ThreadID(),                                                          \
+                                Performance::Clock::now().time_since_epoch().count() / 1000.0);          \
+            Performance::write_to_capture_file(size, buffer);                                            \
+        }                                                                                                \
+    }
+
+#define _a_capture(line, ...) _b_capture(line, __VA_ARGS__)
+
+///*
+// Writes the varaibles passed as arguments to the capture file,
+// and records the time for the remainder of the block.
+#define CAPTURE(...) _a_capture(__LINE__, __VA_ARGS__)
+
 } // namespace Performance
