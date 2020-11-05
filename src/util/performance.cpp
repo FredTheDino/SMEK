@@ -71,7 +71,7 @@ void dump_frame_to_capture_file() {
     write_to_capture_file(size, buffer);
 }
 
-void write_to_capture_file(i32 size, const char *buffer) {
+void write_to_capture_file(u32 size, const char *buffer) {
     LOCK_FOR_BLOCK(capture_file_mutex);
     if (capture_file) {
         fwrite((void *)buffer, 1, size, capture_file);
