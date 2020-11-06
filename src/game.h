@@ -9,6 +9,7 @@
 #include "entity/entity.h"
 #include "network/network.h"
 #include "util/performance.h"
+#include "util/log.h"
 
 #include <queue>
 
@@ -50,6 +51,7 @@ struct GameState {
     bool resized_window;
     bool full_screen_window;
     bool allow_user_resize_window;
+    LogLevel lowest_log =  LogLevel::INFO;
 
 #ifdef IMGUI_ENABLE
     ImGuiState imgui = {};

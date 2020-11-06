@@ -3,11 +3,31 @@
 #include "../math/types.h"
 #include "color.h"
 
-// https://stackoverflow.com/a/5891370/4904628, info on ##__VA_ARGS__
-#define ERR(...)              _smek_log_err(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
-#define WARN(...)             _smek_log_warn(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
-#define LOG(...)              _smek_log_info(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
-#define UNREACHABLE(msg, ...) _smek_unreachable(__FILE__, __LINE__, __func__, msg, ##__VA_ARGS__)
+enum class LogLevel {
+    TRACE,
+    INFO,
+    WARNING,
+    ERROR,
+    NOTHING,
+};
+
+#define _LOGLEVEL(LEVEL, FUNC, ...)                             \
+    do {                                                        \
+        if (GAMESTATE()->lowest_log <= (LEVEL))                 \
+            FUNC(__FILE__, __LINE__, __func__, __VA_ARGS__);   \
+    } while (0)
+
+#define ERR(...)   _LOGLEVEL(LogLevel::ERROR, _smek_log_err, __VA_ARGS__)
+#define WARN(...)  _LOGLEVEL(LogLevel::WARNING, _smek_log_warn, __VA_ARGS__)
+#define INFO(...)  _LOGLEVEL(LogLevel::INFO, _smek_log_info, __VA_ARGS__)
+#define TRACE(...) _LOGLEVEL(LogLevel::TRACE, _smek_log_trace, __VA_ARGS__)
+
+#define ERR_ALWAYS(...)   _smek_log_err(__FILE__, __LINE__, __func__, __VA_ARGS__)
+#define WARN_ALWAYS(...)  _smek_log_warn(__FILE__, __LINE__, __func__, __VA_ARGS__)
+#define INFO_ALWAYS(...)  _smek_log_info(__FILE__, __LINE__, __func__, __VA_ARGS__)
+#define TRACE_ALWAYS(...) _smek_log_trace(__FILE__, __LINE__, __func__, __VA_ARGS__)
+
+#define UNREACHABLE(...) _smek_unreachable(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 #define STR(x) #x
 
@@ -66,6 +86,9 @@ template <typename... Args>
 void _smek_log_info(const char *file, u32 line, const char *func, const char *message, Args... args);
 
 template <typename... Args>
+void _smek_log_trace(const char *file, u32 line, const char *func, const char *message, Args... args);
+
+template <typename... Args>
 void _smek_unreachable(const char *file, u32 line, const char *func, const char *message, Args... args);
 
 template <typename... Args>
@@ -106,6 +129,16 @@ void _smek_log_info(const char *file, u32 line, const char *func, const char *me
     char buffer[LOG_BUFFER_SIZE] = {};
     u32 len = 0;
     len += sntprint(buffer, LOG_BUFFER_SIZE, WHITE "I {}" RESET " @ {} ({}): ", file, line, func);
+    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
+    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n");
+    smek_print(buffer);
+}
+
+template <typename... Args>
+void _smek_log_trace(const char *file, u32 line, const char *func, const char *message, Args... args) {
+    char buffer[LOG_BUFFER_SIZE] = {};
+    u32 len = 0;
+    len += sntprint(buffer, LOG_BUFFER_SIZE, "D {} @ {} ({}): ", file, line, func);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n");
     smek_print(buffer);
@@ -164,7 +197,10 @@ bool _smek_check(const char *file, u32 line, const char *func, bool passed, cons
 // least a string to be printed. The output is always on stderr.
 
 ///*
-LOG(...)
+TRACE(...)
+
+///*
+INFO(...)
 
 ///*
 WARN(...)
