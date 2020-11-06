@@ -228,15 +228,39 @@ void draw() {
 
 #ifdef IMGUI_ENABLE
 void do_imgui_stuff() {
+
+    Input::add_callback(SDLK_n, KMOD_LCTRL,
+                        []() { GAMESTATE()->imgui.networking_enabled ^= 1; });
+
+    Input::add_callback(SDLK_t, KMOD_LCTRL,
+                        []() { GAMESTATE()->imgui.render_target_enabled ^= 1; });
+
+    Input::add_callback(SDLK_m, KMOD_LCTRL,
+                        []() { GAMESTATE()->imgui.depth_map_enabled ^= 1; });
+
+    Input::add_callback(SDLK_e, KMOD_LCTRL,
+                        []() { GAMESTATE()->imgui.entities_enabled ^= 1; });
+
+    Input::add_callback(SDLK_p, KMOD_LCTRL,
+                        []() { GAMESTATE()->imgui.performance_enabled ^= 1; });
+
+    Input::add_callback(SDLK_f, KMOD_LCTRL, toggle_full_screen);
+
+    auto reload_game = []() {
+        if (SDL_LockMutex(GAMESTATE()->m_reload_lib) == 0) {
+            *GAMESTATE()->reload_lib = true;
+            SDL_UnlockMutex(GAMESTATE()->m_reload_lib);
+        } else {
+            ERR("Unable to lock mutex: {}", SDL_GetError());
+        }
+    };
+
+    Input::add_callback(SDLK_r, KMOD_LCTRL, reload_game);
+
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
-            if (ImGui::MenuItem("Reload")) {
-                if (SDL_LockMutex(GAMESTATE()->m_reload_lib) == 0) {
-                    *GAMESTATE()->reload_lib = true;
-                    SDL_UnlockMutex(GAMESTATE()->m_reload_lib);
-                } else {
-                    ERR("Unable to lock mutex: {}", SDL_GetError());
-                }
+            if (ImGui::MenuItem("Reload", "C-r")) {
+                reload_game();
             }
             if (ImGui::MenuItem("Exit")) {
                 SDL_Event quit_event;
@@ -246,18 +270,18 @@ void do_imgui_stuff() {
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("View")) {
-            ImGui::MenuItem("Show Networking", "",
+            ImGui::MenuItem("Show Networking", "C-n",
                             &GAMESTATE()->imgui.networking_enabled);
-            ImGui::MenuItem("Show Rendered Target", "",
+            ImGui::MenuItem("Show Rendered Target", "C-t",
                             &GAMESTATE()->imgui.render_target_enabled);
-            ImGui::MenuItem("Show Depth Map", "",
+            ImGui::MenuItem("Show Depth Map", "C-m",
                             &GAMESTATE()->imgui.depth_map_enabled);
-            ImGui::MenuItem("Show Entities", "",
+            ImGui::MenuItem("Show Entities", "C-e",
                             &GAMESTATE()->imgui.entities_enabled);
-            ImGui::MenuItem("Show Performance", "",
+            ImGui::MenuItem("Show Performance", "C-p",
                             &GAMESTATE()->imgui.performance_enabled);
             static bool full_screen = GAMESTATE()->full_screen_window;
-            if (ImGui::MenuItem("Fullscreen", "", &full_screen)) {
+            if (ImGui::MenuItem("Fullscreen", "C-f", &full_screen)) {
                 toggle_full_screen();
             }
             ImGui::EndMenu();

@@ -158,6 +158,7 @@ void capture_handle() {
             Capture::frames_to_capture--;
 
         if (Capture::frames_to_capture == 0) {
+            LOG("End of performance capture.");
             LOCK_FOR_BLOCK(capture_file_mutex);
             const char postamble[] = "]";
             fwrite((void *)postamble, 1, LEN(postamble) - 1, capture_file);
@@ -174,7 +175,9 @@ void capture_begin() {
 
 void capture_end() {
     // Capture until next frame.
-    Capture::frames_to_capture = 1;
+    if (Capture::frames_to_capture != 0) {
+        Capture::frames_to_capture = 1;
+    }
 }
 
 void capture_frames(i32 n) {
@@ -250,6 +253,9 @@ void report() {
             }
         }
     }
+
+    Input::add_callback(SDLK_PAGEUP, KMOD_LCTRL, capture_begin);
+    Input::add_callback(SDLK_PAGEDOWN, KMOD_LCTRL, capture_end);
 
     if (!GAMESTATE()->imgui.performance_enabled) return;
     ImGui::Begin("Performance");
