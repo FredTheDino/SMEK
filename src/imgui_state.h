@@ -6,8 +6,9 @@ struct ImGuiState {
     void *implot_context;
 
     // Toggleable views
+    bool debug_enabled = false;
     bool networking_enabled = false;
-    bool entities_enabled = true;
+    bool entities_enabled = false;
     bool depth_map_enabled = false;
     bool render_target_enabled = false;
     bool performance_enabled = false;

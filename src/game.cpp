@@ -229,6 +229,9 @@ void draw() {
 #ifdef IMGUI_ENABLE
 void do_imgui_stuff() {
 
+    Input::add_callback(SDLK_d, KMOD_LCTRL,
+                        []() { GAMESTATE()->imgui.debug_enabled ^= 1; });
+
     Input::add_callback(SDLK_n, KMOD_LCTRL,
                         []() { GAMESTATE()->imgui.networking_enabled ^= 1; });
 
@@ -270,6 +273,8 @@ void do_imgui_stuff() {
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("View")) {
+            ImGui::MenuItem("Show Debug", "C-d",
+                            &GAMESTATE()->imgui.debug_enabled);
             ImGui::MenuItem("Show Networking", "C-n",
                             &GAMESTATE()->imgui.networking_enabled);
             ImGui::MenuItem("Show Rendered Target", "C-t",
@@ -293,47 +298,52 @@ void do_imgui_stuff() {
         ImGui::EndMainMenuBar();
     }
 
-    ImGui::SliderFloat("Time",
-                       &GAMESTATE()->imgui.t,
-                       GAMESTATE()->imgui.min_t,
-                       GAMESTATE()->imgui.max_t, "%.2f");
+    if (GAMESTATE()->imgui.debug_enabled) {
+        if (ImGui::Begin("Debug")) {
+            ImGui::SliderFloat("Time",
+                               &GAMESTATE()->imgui.t,
+                               GAMESTATE()->imgui.min_t,
+                               GAMESTATE()->imgui.max_t, "%.2f");
 
-    {
-        static int dim[2] = { 100, 100 };
-        ImGui::SliderInt2("Screen size", dim, 100, 1600);
-        if (ImGui::Button("Resize window")) {
-            GFX::set_screen_resolution(dim[0], dim[1]);
+            {
+                static int dim[2] = { 100, 100 };
+                ImGui::SliderInt2("Screen size", dim, 100, 1600);
+                if (ImGui::Button("Resize window")) {
+                    GFX::set_screen_resolution(dim[0], dim[1]);
+                }
+            }
+
+            ImGui::Checkbox("Debug Draw Physics", &GAMESTATE()->imgui.debug_draw_physics);
+            if (GAMESTATE()->imgui.debug_draw_physics) {
+                GAMESTATE()->physics_engine.draw();
+            }
+
+            ImGui::Checkbox("Debug Camera", &GAMESTATE()->imgui.use_debug_camera);
+            GFX::set_camera_mode(GAMESTATE()->imgui.use_debug_camera);
+
+            ImGui::Checkbox("Show Grid", &GAMESTATE()->imgui.show_grid);
+            if (GAMESTATE()->imgui.show_grid) {
+                const i32 grid_size = 10;
+                const f32 width = 0.005;
+                const Color4 color = GFX::color(7) * 0.4;
+                for (u32 i = 0; i < 2 * grid_size; i++) {
+                    f32 x = i / 2.0;
+                    GFX::push_line(Vec3(x, 0, grid_size), Vec3(x, 0, -grid_size), color, width);
+                    GFX::push_line(Vec3(-x, 0, grid_size), Vec3(-x, 0, -grid_size), color, width);
+                    GFX::push_line(Vec3(grid_size, 0, x), Vec3(-grid_size, 0, x), color, width);
+                    GFX::push_line(Vec3(grid_size, 0, -x), Vec3(-grid_size, 0, -x), color, width);
+                }
+            }
+
+            // TODO(ed): The lighting should have better default values.
+            GFX::Lighting *lighting = GFX::lighting();
+            ImGui::InputFloat3("Sun Color", lighting->sun_color._, 3);
+            ImGui::InputFloat3("Sun Direction", lighting->sun_direction._, 3);
+            lighting->sun_direction = normalized(lighting->sun_direction);
+            ImGui::InputFloat3("Ambient Color", lighting->ambient_color._, 3);
         }
+        ImGui::End();
     }
-
-    ImGui::Checkbox("Debug Draw Physics", &GAMESTATE()->imgui.debug_draw_physics);
-    if (GAMESTATE()->imgui.debug_draw_physics) {
-        GAMESTATE()->physics_engine.draw();
-    }
-
-    ImGui::Checkbox("Debug Camera", &GAMESTATE()->imgui.use_debug_camera);
-    GFX::set_camera_mode(GAMESTATE()->imgui.use_debug_camera);
-
-    ImGui::Checkbox("Show Grid", &GAMESTATE()->imgui.show_grid);
-    if (GAMESTATE()->imgui.show_grid) {
-        const i32 grid_size = 10;
-        const f32 width = 0.005;
-        const Color4 color = GFX::color(7) * 0.4;
-        for (u32 i = 0; i < 2 * grid_size; i++) {
-            f32 x = i / 2.0;
-            GFX::push_line(Vec3(x, 0, grid_size), Vec3(x, 0, -grid_size), color, width);
-            GFX::push_line(Vec3(-x, 0, grid_size), Vec3(-x, 0, -grid_size), color, width);
-            GFX::push_line(Vec3(grid_size, 0, x), Vec3(-grid_size, 0, x), color, width);
-            GFX::push_line(Vec3(grid_size, 0, -x), Vec3(-grid_size, 0, -x), color, width);
-        }
-    }
-
-    // TODO(ed): The lighting should have better default values.
-    GFX::Lighting *lighting = GFX::lighting();
-    ImGui::InputFloat3("Sun Color", lighting->sun_color._, 3);
-    ImGui::InputFloat3("Sun Direction", lighting->sun_direction._, 3);
-    lighting->sun_direction = normalized(lighting->sun_direction);
-    ImGui::InputFloat3("Ambient Color", lighting->ambient_color._, 3);
 
     // Draws what is drawn to the internal buffers.
     auto draw_render_target = [](i32 tex, i32 width, i32 height) {
