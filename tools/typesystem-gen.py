@@ -211,14 +211,20 @@ if __name__ == "__main__":
         def gen():
             out = []
             for field in fields:
-                out.append(f"{{ typeid({field['TYPE']}), FieldName::{field['NAME']}, sizeof({field['TYPE']}), (int)offsetof({name}, {field['NAME']}) }}")
+                out.append(f"{{ typeid({field['TYPE']}),"
+                           f"FieldName::{field['NAME']},"
+                           f"sizeof({field['TYPE']}),"
+                           f"(int)offsetof({name}, {field['NAME']}),"
+                           f"{int('INTERNAL' in field)},"
+                           "}")
             return ",\n    ".join(out)
         return f"Field gen_{name}[] = {{\n    {gen()}\n}};"
 
     def gen_fields_switch(names):
         out = []
         for name in names:
-            out.append(f"{' '*4}case EntityType::{to_enum(name)}: return {{ LEN(gen_{name}), gen_{name} }};")
+            out.append(f"{' '*4}case EntityType::{to_enum(name)}:"
+                       f"return {{ LEN(gen_{name}), gen_{name} }};")
         return "\n".join(out)
 
     fields_data = [gen_fields_data(name, struct.fields) for name, struct in entity_structs.items()]

@@ -14,9 +14,9 @@
 #include "../math/types.h"
 
 enum class EntityType {
-$types
+    $types
 
-    NUM_ENTITY_TYPES,
+        NUM_ENTITY_TYPES,
 };
 
 using FieldNameType = const char *;
@@ -25,7 +25,7 @@ $all_field_names
 };
 
 static const char *entity_type_names[] = {
-$type_names
+    $type_names
 };
 
 i32 format(char *, u32, FormatHint, EntityType);
@@ -35,6 +35,7 @@ struct Field {
     const char *name;
     int size;
     int offset;
+    bool internal;
 };
 
 struct FieldList {
@@ -51,15 +52,15 @@ FieldList get_fields_for(EntityType type);
  */
 
 $type_ofs
-/*
+    /*
  * End of `tools/entity_types_type_of.h`
  */
 
-struct EventCreateEntity {
+    struct EventCreateEntity {
     bool generate_id;
     EntityType type;
     union {
-$event_entity_bytes_union
+        $event_entity_bytes_union
     };
 
     void callback();
