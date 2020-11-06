@@ -64,7 +64,7 @@ void dump_frame_to_capture_file() {
     if (!should_capture()) return;
     char buffer[256];
     u32 size = sntprint(buffer, LEN(buffer),
-                        R"(,%{"cat":"CAPTURE","tid":"{}","ts":{},"name":"FRAME")"
+                        R"(,!{"cat":"CAPTURE","tid":"{}","ts":{},"name":"FRAME")"
                         R"(,"pid":0,"ph":"i","s":"g"})",
                         SDL_ThreadID(),
                         Clock::now().time_since_epoch().count() / 1000.0);
