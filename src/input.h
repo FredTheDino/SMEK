@@ -57,6 +57,9 @@ Vec2 mouse_pos();
 
 ///*
 // Calls the callback when the key combination is pressed.
+//
+// The callback is only added until the end of the frame,
+// thus it works similar to ImGui and can be used with it.
 void add_callback(u32 button, u32 mods, void (*callback)());
 
 ///*

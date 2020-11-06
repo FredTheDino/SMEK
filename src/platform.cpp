@@ -376,7 +376,6 @@ int main(int argc, char **argv) { // Game entrypoint
             // Read in input
             SDL_Event event;
             while (SDL_PollEvent(&event)) {
-                if (imgui_eats_input(&event)) continue;
                 if (event.type == SDL_QUIT) {
                     game_state.running = false;
                 }
@@ -394,11 +393,13 @@ int main(int argc, char **argv) { // Game entrypoint
                     if (key.repeat) continue;
                     GameInput::Button button = key.keysym.sym;
                     bool down = key.state == SDL_PRESSED;
+                    if (down && global_input.trigger_callbacks(button, key.keysym.mod)) continue;
+                    if (imgui_eats_input(&event)) continue;
                     if (down && global_input.eaten_by_rebind(button)) continue;
                     global_input.update_press(button, down);
-                    if (down) global_input.trigger_callbacks(button, key.keysym.mod);
                 }
                 if (event.type == SDL_MOUSEMOTION) {
+                    if (imgui_eats_input(&event)) continue;
                     if (!game_state.input.mouse_capture) continue;
                     SDL_MouseMotionEvent mouse = event.motion;
                     // TODO(ed): This mousemovement is wrong for lower refreshrate screens,
@@ -407,6 +408,7 @@ int main(int argc, char **argv) { // Game entrypoint
                     global_input.mouse_pos = Vec2(mouse.x, mouse.y);
                 }
             }
+            global_input.clear_callbacks();
 
             for (u32 i = 0; i < (u32)Ac::NUM_ACTIONS; i++) {
                 game_state.input.last_frame[i] = game_state.input.current_frame[i];

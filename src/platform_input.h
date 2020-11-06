@@ -83,14 +83,20 @@ struct GameInput {
         return button | (mod << 5);
     }
 
+    void clear_callbacks() {
+        callback_table = std::unordered_map<Button, Callback>();
+    }
+
     void add_callback(Button button, i32 mod, Callback callback) {
         callback_table[as_modded(button, mod)] = callback;
     }
 
-    void trigger_callbacks(Button button, i32 mod) {
+    bool trigger_callbacks(Button button, i32 mod) {
         if (callback_table.contains(as_modded(button, mod))) {
             callback_table[as_modded(button, mod)]();
+            return true;
         }
+        return false;
     }
 } global_input = {};
 
