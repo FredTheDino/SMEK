@@ -14,13 +14,13 @@
 #include "../math/types.h"
 
 enum class EntityType {
-    BASEENTITY,
+        BASEENTITY,
     ENTITY,
     LIGHT,
     PLAYER,
     SOUNDENTITY,
 
-    NUM_ENTITY_TYPES,
+        NUM_ENTITY_TYPES,
 };
 
 using FieldNameType = const char *;
@@ -42,7 +42,7 @@ extern FieldNameType velocity;
 };
 
 static const char *entity_type_names[] = {
-    "BaseEntity",
+        "BaseEntity",
     "Entity",
     "Light",
     "Player",
@@ -56,6 +56,7 @@ struct Field {
     const char *name;
     int size;
     int offset;
+    bool internal;
 };
 
 struct FieldList {
@@ -86,15 +87,15 @@ EntityType type_of(Player *);
 struct SoundEntity;
 EntityType type_of(SoundEntity *);
 
-/*
+    /*
  * End of `tools/entity_types_type_of.h`
  */
 
-struct EventCreateEntity {
+    struct EventCreateEntity {
     bool generate_id;
     EntityType type;
     union {
-        u8 BASEENTITY[sizeof(BaseEntity) - sizeof(void *)];
+                u8 BASEENTITY[sizeof(BaseEntity) - sizeof(void *)];
         u8 ENTITY[sizeof(Entity) - sizeof(void *)];
         u8 LIGHT[sizeof(Light) - sizeof(void *)];
         u8 PLAYER[sizeof(Player) - sizeof(void *)];
