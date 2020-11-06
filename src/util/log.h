@@ -31,8 +31,8 @@ enum class LogLevel {
 
 #define STR(x) #x
 
-#define ASSERT(pass, msg, ...) _smek_assert(__FILE__, __LINE__, __func__, pass, STR(pass), msg, ##__VA_ARGS__)
-#define CHECK(pass, msg, ...)  _smek_check(__FILE__, __LINE__, __func__, pass, STR(pass), msg, ##__VA_ARGS__)
+#define ASSERT(pass, ...) _smek_assert(__FILE__, __LINE__, __func__, pass, STR(pass), __VA_ARGS__)
+#define CHECK(pass, ...)  _smek_check(__FILE__, __LINE__, __func__, pass, STR(pass), __VA_ARGS__)
 
 #define ASSERT_EQ(LHS, RHS)                                                                           \
     do {                                                                                              \
