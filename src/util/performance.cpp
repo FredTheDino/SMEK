@@ -254,9 +254,6 @@ void report() {
         }
     }
 
-    Input::add_callback(SDLK_PAGEUP, KMOD_LCTRL, capture_begin);
-    Input::add_callback(SDLK_PAGEDOWN, KMOD_LCTRL, capture_end);
-
     if (!GAMESTATE()->imgui.performance_enabled) return;
     ImGui::Begin("Performance");
 

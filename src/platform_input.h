@@ -84,7 +84,7 @@ struct GameInput {
     }
 
     void clear_callbacks() {
-        callback_table = std::unordered_map<Button, Callback>();
+        callback_table.clear();
     }
 
     void add_callback(Button button, i32 mod, Callback callback) {

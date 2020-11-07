@@ -249,6 +249,12 @@ void do_imgui_stuff() {
 
     Input::add_callback(SDLK_f, KMOD_LCTRL, toggle_full_screen);
 
+    if (Performance::capture_is_running()) {
+        Input::add_callback(SDLK_c, KMOD_LCTRL, Performance::capture_end);
+    } else {
+        Input::add_callback(SDLK_c, KMOD_LCTRL, Performance::capture_begin);
+    }
+
     auto reload_game = []() {
         if (SDL_LockMutex(GAMESTATE()->m_reload_lib) == 0) {
             *GAMESTATE()->reload_lib = true;
@@ -288,6 +294,18 @@ void do_imgui_stuff() {
             static bool full_screen = GAMESTATE()->full_screen_window;
             if (ImGui::MenuItem("Fullscreen", "C-f", &full_screen)) {
                 toggle_full_screen();
+            }
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Tools")) {
+            if (Performance::capture_is_running()) {
+                if (ImGui::MenuItem("End Performance Capture", "C-c")) {
+                    Performance::capture_end();
+                }
+            } else {
+                if (ImGui::MenuItem("Start Performance Capture", "C-c")) {
+                    Performance::capture_begin();
+                }
             }
             ImGui::EndMenu();
         }
