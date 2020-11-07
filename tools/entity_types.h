@@ -16,9 +16,9 @@
 #include "../math/types.h"
 
 enum class EntityType {
-    $types
+$types
 
-        NUM_ENTITY_TYPES,
+    NUM_ENTITY_TYPES,
 };
 
 using FieldNameType = const char *;
@@ -27,7 +27,7 @@ $all_field_names
 };
 
 static const char *entity_type_names[] = {
-    $type_names
+$type_names
 };
 
 i32 format(char *, u32, FormatHint, EntityType);
@@ -70,7 +70,7 @@ $type_ofs
     bool generate_id;
     EntityType type;
     union {
-        $event_entity_bytes_union
+$event_entity_bytes_union
     };
 
     void callback();
