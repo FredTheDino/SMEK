@@ -141,6 +141,8 @@ struct EntitySystem {
     template <typename E>
     EntityID add(E entity) { return add_with_id(entity, next_id()); }
 
+    EntityID add_unknown_type(BaseEntity *e);
+
     void remove(EntityID entity);
     void remove_all();
 
