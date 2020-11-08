@@ -14,7 +14,7 @@
 i32 format(char *buffer, u32 size, FormatHint args, EntityType type) {
     switch (type) {
 $type_formats
-    default: UNREACHABLE("Unknown entity type");
+    default: return snprintf(buffer, size, "?ENITY TYPE?");
     }
     return 0;
 }
