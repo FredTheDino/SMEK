@@ -9,7 +9,7 @@
 #include "imgui/imgui.h"
 
 void NetworkHandle::send(u8 *data, u32 data_len) {
-    int data_written = 0;
+    u32 data_written = 0;
     while (data_written < data_len) {
         int n = write(sockfd, data + data_written, data_len - data_written);
         if (n < 0) {
@@ -36,7 +36,7 @@ void NetworkHandle::close() {
 }
 
 bool NetworkHandle::recv(u8 *buf, u32 data_len, Package *package) {
-    int data_read = 0;
+    u32 data_read = 0;
     while (data_read < data_len) {
         int n = read(sockfd, buf + data_read, data_len - data_read);
         if (n < 0) {
