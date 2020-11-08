@@ -368,7 +368,7 @@ u64 begin_time_block(const char *name,
                      u64 hash_uuid,
                      const char *func,
                      const char *file,
-                     u32 line) {}
+                     u32 line) { return {}; }
 void end_time_block(u64 hash_uuid) {}
 void report() {}
 #endif
