@@ -412,7 +412,7 @@ void AnimatedMesh::draw_at(float time) {
     Animation *anim = Asset::fetch_animation(animation);
     // TODO(ed): This could be a method.
     f32 blend = 1.0;
-    Animation::Frame *a, *b;
+    Animation::Frame *a = nullptr, *b = nullptr;
     for (i32 i = 0; i < anim->num_frames - 1; i++) {
         a = anim->frames + i;
         b = anim->frames + i + 1;
@@ -421,6 +421,7 @@ void AnimatedMesh::draw_at(float time) {
             break;
         }
     }
+    ASSERT(a && b, "No frames given.");
 
     Mat *pose_mat = new Mat[anim->trans_per_frame];
     defer { delete[] pose_mat; };
