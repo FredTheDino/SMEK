@@ -130,7 +130,7 @@ template <typename... Args>
 void _smek_log_trace(const char *file, u32 line, const char *func, const char *message, Args... args) {
     char buffer[LOG_BUFFER_SIZE] = {};
     u32 len = 0;
-    len += sntprint(buffer, LOG_BUFFER_SIZE, "D {} @ {} ({}): ", file, line, func);
+    len += sntprint(buffer, LOG_BUFFER_SIZE, "T {} @ {} ({}): ", file, line, func);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n");
     _smek_log(buffer, LogLevel::TRACE);
