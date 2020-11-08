@@ -651,7 +651,7 @@ Shader Shader::compile(const char *asset, const char *source) {
 }
 
 Texture Texture::upload(u32 width, u32 height, u32 components, u8 *data, Sampling sampling) {
-    u32 texture;
+    u32 texture = 0;
 #ifndef TESTS
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
