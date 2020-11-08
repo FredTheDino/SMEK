@@ -44,9 +44,11 @@ struct GameLibrary {
 GameState game_state = {};
 Audio::AudioStruct platform_audio_struct = {};
 
+#ifndef TESTS
 GameState *GAMESTATE() {
     return &game_state;
 }
+#endif
 
 SDL_mutex *m_reload_lib;
 bool hot_reload_active = true;
