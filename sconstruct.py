@@ -255,7 +255,7 @@ if native and PLATFORMS["linux"]:
 #
 
 #TODO(gu) don't execute on clean
-Execute("./tools/typesystem-gen.py")  # creates `src/entity/entity_types.{cpp,h}` so has to be run before the glob
+Execute("python3 tools/typesystem-gen.py")  # creates `src/entity/entity_types.{cpp,h}` so has to be run before the glob
 source = glob("src/**/*.c*", recursive=True)
 
 def create_test_target():

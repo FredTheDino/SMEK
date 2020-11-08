@@ -13,7 +13,7 @@ jobs:
       - name: Install dependencies
         run: |
           pacman -Syy
-          pacman --noconfirm -S binutils gcc clang python python-pip python-wheel sdl2 scons git glibc
+          pacman --noconfirm -S binutils gcc clang python python-pip python-wheel sdl2 git glibc
       - uses: actions/checkout@v2
         with:
           submodules: "recursive"
@@ -26,16 +26,16 @@ jobs:
           git diff --exit-code
       - name: Try to build release version (g++)
         run: |
-          scons -Q --clean
-          scons -Q --release --no-imgui --jumbo CXX=g++
+          python3 -m SCons -Q --clean
+          python3 -m SCons -Q --release --no-imgui --jumbo CXX=g++
       - name: Try to build release version (clang++)
         run: |
-          scons -Q --clean
-          scons -Q --release --no-imgui --jumbo CXX=clang++
+          python3 -m SCons -Q --clean
+          python3 -m SCons -Q --release --no-imgui --jumbo CXX=clang++
       - name: Run tests
         run: |
-          scons -Q --clean
-          scons -Q tests --ci --report --jumbo --no-imgui
+          python3 -m SCons -Q --clean
+          python3 -m SCons -Q tests --ci --report --jumbo --no-imgui
       - name: Upload build
         if: ${{ !success() }}
         uses: actions/upload-artifact@v2
