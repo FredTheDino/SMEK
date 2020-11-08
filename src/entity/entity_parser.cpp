@@ -1,7 +1,10 @@
 #include "entity_parser.h"
 #include "../test.h"
 #include "entity_types.h"
+
 #include <cstring>
+#include <functional>
+#include <cxxabi.h>
 
 //
 // # <type>
@@ -160,10 +163,47 @@ struct FileParser {
         skipp_line();
         return nullptr;
     }
+
+    f32 parse_float() {
+        char floatstr[32] = {};
+        eat_word(floatstr, LEN(floatstr));
+        try {
+            return std::stof(floatstr);
+        } catch (std::invalid_argument *i) {
+            error("Failed to parse as float", floatstr);
+            return 0;
+        }
+    }
 };
+
+using ParseFunc = std::function<void(FileParser, void *)>;
+std::unordered_map<std::size_t, ParseFunc> parse_funcs;
+
+namespace ParseFuncs {
+void empty_f(FileParser p, void *d) {}
+
+void parse_Vec3(FileParser p, void *d) {
+    Vec3 *out = (Vec3 *)d;
+    p.skipp_whitespace();
+    out->x = p.parse_float();
+    p.skipp_whitespace();
+    out->y = p.parse_float();
+    p.skipp_whitespace();
+    out->z = p.parse_float();
+    INFO("{}", *out);
+}
+}
+
+void initalize_parse_funcs() {
+#define F(T) parse_funcs[typeid(T).hash_code()] = ParseFuncs::parse_##T
+    F(Vec3);
+#undef F
+}
 
 std::vector<BaseEntity *> parse_entities(const char *data) {
     std::vector<BaseEntity *> entities;
+
+    initalize_parse_funcs();
 
     FileParser parser("UNKOWN", data);
     while (parser.peek()) {
@@ -180,7 +220,21 @@ std::vector<BaseEntity *> parse_entities(const char *data) {
         for (; parser.peek() && parser.peek() != '#'; parser.skipp_whitespace()) {
             Field *field = parser.parse_field(fields);
             if (!field) continue;
-            INFO("Field {} {}", type, field->name);
+
+            std::size_t hash = field->typeinfo.hash_code();
+            if (parse_funcs.contains(hash)) {
+                parse_funcs[hash](parser, (void *)(entity + field->offset));
+                parser.skipp_line();
+            } else {
+                const char *name = field->typeinfo.name();
+                int status;
+                char *demangled = abi::__cxa_demangle(name, 0, 0, &status);
+                ASSERT_EQ(status, 0);
+                ERR("Failed to 'parse' field '{}' with unsupported type '{}'",
+                    field->name, demangled);
+                parse_funcs[hash] = ParseFuncs::empty_f;
+                delete[] demangled;
+            }
 
             // TODO(ed): Parse the actual data and set it.
             parser.skipp_line();
@@ -191,5 +245,5 @@ std::vector<BaseEntity *> parse_entities(const char *data) {
 }
 
 TEST_CASE("parser-simple", {
-    parse_entities(" # Light\nposition 1 2 3\n# Something\n");
+    parse_entities("# Light\nposition 1 2 3\ndraw_as_point 1\n");
 });
