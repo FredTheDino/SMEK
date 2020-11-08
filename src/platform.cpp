@@ -291,7 +291,7 @@ int main(int argc, char **argv) { // Game entrypoint
 
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         ERR("Failed to initalize SDL \"{}\"", SDL_GetError());
-        return false;
+        return 1;
     }
 
     if (!passed_resolution) {
