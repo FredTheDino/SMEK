@@ -417,18 +417,21 @@ int network_listen_for_clients(void *data) {
     system->server_listening = true;
     while (system->server_listening) {
         newsockfd = accept(system->listen_sockfd, (sockaddr *)&system->cli_addr, &system->cli_len);
+        if (!system->server_listening) {
+            break;
+        }
         if (newsockfd < 0) {
             ERR("ListenForClients: Error accepting client connection, errno={}", errno);
             continue;
         }
-        INFO("ListenForClients: New client connected");
+        TRACE("ListenForClients: New client connected");
         if (!system->new_client_handle(newsockfd)) {
             ERR("ListenForClients: Unable to accept client connection, closing");
             //TODO(gu) send reason
             close(newsockfd);
         }
     }
-    INFO("Stopped listening for new clients");
+    TRACE("Stopped listening for new clients");
     return 0;
 }
 
