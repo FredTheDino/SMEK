@@ -117,7 +117,7 @@ void EntitySystem::draw_imgui() {
                         int status;
                         char *demangled = abi::__cxa_demangle(name, 0, 0, &status);
                         ASSERT_EQ(status, 0);
-                        LOG("Failed to 'ImGui show' field '{}' with unsupported type '{}'", f.name, demangled);
+                        TRACE("Failed to 'ImGui show' field '{}' with unsupported type '{}'", f.name, demangled);
                         func_map[hash] = ImGuiFuncs::empty_f;
                         delete[] demangled;
                     }

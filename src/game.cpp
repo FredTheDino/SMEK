@@ -55,7 +55,7 @@ void toggle_full_screen() {
 }
 
 void something() {
-    LOG("SOMETHIGN!");
+    INFO("SOMETHIGN!");
 }
 
 void init_game(GameState *gamestate, int width, int height) {

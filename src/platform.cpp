@@ -360,7 +360,7 @@ int main(int argc, char **argv) { // Game entrypoint
     u32 next_update = SDL_GetTicks() - MS_PER_FRAME;
     while (game_state.running) {
         if (load_gamelib()) {
-            LOG("PLATFORM LAYER RELOAD!");
+            INFO("Platform layer reload");
             game_lib.reload(&game_state);
         }
 

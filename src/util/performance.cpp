@@ -158,7 +158,7 @@ void capture_handle() {
             Capture::frames_to_capture--;
 
         if (Capture::frames_to_capture == 0) {
-            LOG("End of performance capture.");
+            TRACE("End of performance capture.");
             LOCK_FOR_BLOCK(capture_file_mutex);
             const char postamble[] = "]";
             fwrite((void *)postamble, 1, LEN(postamble) - 1, capture_file);

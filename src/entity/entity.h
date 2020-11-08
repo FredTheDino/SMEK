@@ -173,7 +173,7 @@ E *EntitySystem::fetch(EntityID id) {
 template <typename E>
 EntityID EntitySystem::add_with_id(E entity, EntityID id) {
     ASSERT(!is_valid(id), "Adding multiple entities for id {}", id);
-    LOG("Adding with id {}", id);
+    TRACE("Adding with id {}", id);
     E *e = new E();
     *e = entity;
     e->type = type_of(e);
