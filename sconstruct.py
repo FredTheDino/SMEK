@@ -73,6 +73,11 @@ AddOption("--ci",
           action="store_true",
           help="Print tests-output without \\r.")
 
+AddOption("--no-warn",
+          dest="no_warn",
+          action="store_true",
+          help="Makes all warnings into noisy errors.")
+
 AddOption("--report",
           dest="report",
           action="store_true",
@@ -189,6 +194,9 @@ else:
         env.Append(LINKFLAGS="-rdynamic")  # Gives backtrace information
         smek_game_lib = "./libSMEK.so"
         env.Replace(SHLIBSUFFIX="so")
+
+if GetOption("no_warn"):
+    env.MergeFlags("-Werror")
 
 env.MergeFlags(WARNINGS)
 env.MergeFlags(f"-std={CPPSTD}")
