@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "tprint.h"
+#include "../game.h"
 
 i32 format(char *buffer, u32 size, FormatHint args, f64 a) {
     return snprintf(buffer, size, "%0*.*f", args.num_zero_pad, args.num_decimals, a);
@@ -164,6 +165,7 @@ TEST_CASE("reuse sntprint buffer - with formatting over buf_size", {
 
 #define SNTPRINT_TEST(name, buflen, exp, fmt, ...)                                       \
     TEST_CASE("sntprint - " name, {                                                      \
+        GAMESTATE()->log_levels &= ~LogLevel::WARNING;                                   \
         char buf[buflen] = {};                                                           \
         const char *fmt_str = fmt;                                                       \
         const char *exp_str = exp;                                                       \
