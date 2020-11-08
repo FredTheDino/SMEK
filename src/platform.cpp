@@ -258,8 +258,7 @@ int main(int argc, char **argv) { // Game entrypoint
     bool allow_resize = false;
     bool full_screen = false;
     bool network_start_server = false;
-    bool network_start_client = false;
-    char *network_client_server_addr;
+    char *network_client_server_addr = nullptr;
     int network_port = 8888;
 #define ARGUMENT(LONG, SHORT) (std::strcmp((LONG), argv[index]) == 0 || std::strcmp((SHORT), argv[index]) == 0)
     for (int index = 1; index < argc; index++) {
@@ -281,7 +280,6 @@ int main(int argc, char **argv) { // Game entrypoint
         } else if ARGUMENT ("--server", "-s") {
             network_start_server = true;
         } else if ARGUMENT ("--client", "-c") {
-            network_start_client = true;
             network_client_server_addr = argv[++index];
         } else if ARGUMENT ("--port", "-p") {
             network_port = std::atoi(argv[++index]);
@@ -333,7 +331,7 @@ int main(int argc, char **argv) { // Game entrypoint
     if (network_start_server) {
         game_state.network.autostart_server = true;
         game_state.network.autostart_port = network_port;
-    } else if (network_start_client) {
+    } else if (network_client_server_addr) {
         game_state.network.autostart_client = true;
         game_state.network.client_server_addr = network_client_server_addr;
         game_state.network.autostart_port = network_port;
