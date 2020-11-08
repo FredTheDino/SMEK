@@ -12,21 +12,10 @@ static const u32 ERROR   = 1 << 3;
 static const u32 ALL     =(1 << 4) - 1; // update this if changing log levels
 }
 
-#define _LOGLEVEL(LEVEL, FUNC, ...)                             \
-    do {                                                        \
-        if (GAMESTATE()->log_levels & (LEVEL))                  \
-            FUNC(__FILE__, __LINE__, __func__, __VA_ARGS__);    \
-    } while (0)
-
-#define ERR(...)   _LOGLEVEL(LogLevel::ERROR, _smek_log_err, __VA_ARGS__)
-#define WARN(...)  _LOGLEVEL(LogLevel::WARNING, _smek_log_warn, __VA_ARGS__)
-#define INFO(...)  _LOGLEVEL(LogLevel::INFO, _smek_log_info, __VA_ARGS__)
-#define TRACE(...) _LOGLEVEL(LogLevel::TRACE, _smek_log_trace, __VA_ARGS__)
-
-#define ERR_ALWAYS(...)   _smek_log_err(__FILE__, __LINE__, __func__, __VA_ARGS__)
-#define WARN_ALWAYS(...)  _smek_log_warn(__FILE__, __LINE__, __func__, __VA_ARGS__)
-#define INFO_ALWAYS(...)  _smek_log_info(__FILE__, __LINE__, __func__, __VA_ARGS__)
-#define TRACE_ALWAYS(...) _smek_log_trace(__FILE__, __LINE__, __func__, __VA_ARGS__)
+#define ERR(...)   _smek_log_err(__FILE__, __LINE__, __func__, __VA_ARGS__)
+#define WARN(...)  _smek_log_warn(__FILE__, __LINE__, __func__, __VA_ARGS__)
+#define INFO(...)  _smek_log_info(__FILE__, __LINE__, __func__, __VA_ARGS__)
+#define TRACE(...) _smek_log_trace(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 #define UNREACHABLE(...) _smek_unreachable(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
@@ -77,6 +66,8 @@ static const u32 ALL     =(1 << 4) - 1; // update this if changing log levels
         ASSERT((lhs) >= (rhs), STR(LHS) " ({}) should be greater than or equal to " STR(RHS) " ({})", (lhs), (rhs)); \
     } while (false)
 
+void _smek_log(const char *buffer, u32 log_level);
+
 template <typename... Args>
 void _smek_log_err(const char *file, u32 line, const char *func, const char *message, Args... args);
 
@@ -112,7 +103,7 @@ void _smek_log_err(const char *file, u32 line, const char *func, const char *mes
     len += sntprint(buffer, LOG_BUFFER_SIZE, RED "E {}" RESET " @ {} ({}): ", file, line, func);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n");
-    smek_print(buffer);
+    _smek_log(buffer, LogLevel::ERROR);
 }
 
 template <typename... Args>
@@ -122,7 +113,7 @@ void _smek_log_warn(const char *file, u32 line, const char *func, const char *me
     len += sntprint(buffer, LOG_BUFFER_SIZE, YELLOW "W {}" RESET " @ {} ({}): ", file, line, func);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n");
-    smek_print(buffer);
+    _smek_log(buffer, LogLevel::WARNING);
 }
 
 template <typename... Args>
@@ -132,7 +123,7 @@ void _smek_log_info(const char *file, u32 line, const char *func, const char *me
     len += sntprint(buffer, LOG_BUFFER_SIZE, WHITE "I {}" RESET " @ {} ({}): ", file, line, func);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n");
-    smek_print(buffer);
+    _smek_log(buffer, LogLevel::INFO);
 }
 
 template <typename... Args>
@@ -142,7 +133,7 @@ void _smek_log_trace(const char *file, u32 line, const char *func, const char *m
     len += sntprint(buffer, LOG_BUFFER_SIZE, "D {} @ {} ({}): ", file, line, func);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n");
-    smek_print(buffer);
+    _smek_log(buffer, LogLevel::TRACE);
 }
 
 template <typename... Args>
@@ -153,7 +144,7 @@ void _smek_unreachable(const char *file, u32 line, const char *func, const char 
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, BOLDRED "| " RESET);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n" BOLDRED "|" RESET " Stacktrace:\n");
-    smek_print(buffer);
+    _smek_log(buffer, LogLevel::ERROR);
     print_stacktrace();
 
     throw std::runtime_error("Unreachable");
@@ -169,7 +160,7 @@ void _smek_assert(const char *file, u32 line, const char *func, bool passed, con
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, BOLDRED "| " RESET);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n" BOLDRED "|" RESET " Stacktrace:\n");
-    smek_print(buffer);
+    _smek_log(buffer, LogLevel::ERROR);
     print_stacktrace();
 
     throw std::runtime_error("Assert");
@@ -184,7 +175,7 @@ bool _smek_check(const char *file, u32 line, const char *func, bool passed, cons
         len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, YELLOW "| " RESET);
         len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, msg, args...);
         len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n");
-        smek_print(buffer);
+        _smek_log(buffer, LogLevel::WARNING);
     }
     return passed;
 }
