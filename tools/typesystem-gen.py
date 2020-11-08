@@ -211,11 +211,11 @@ if __name__ == "__main__":
         def gen():
             out = []
             for field in fields:
-                out.append(f"{{ typeid({field['TYPE']}),"
-                           f"FieldName::{field['NAME']},"
-                           f"sizeof({field['TYPE']}),"
-                           f"(int)offsetof({name}, {field['NAME']}),"
-                           f"{int('INTERNAL' in field)},"
+                out.append(f"{{ typeid({field['TYPE']}), "
+                           f"FieldName::{field['NAME']}, "
+                           f"sizeof({field['TYPE']}), "
+                           f"(int)offsetof({name}, {field['NAME']}), "
+                           f"{int('INTERNAL' in field)}, "
                            "}")
             return ",\n    ".join(out)
         return f"Field gen_{name}[] = {{\n    {gen()}\n}};"
@@ -229,17 +229,17 @@ if __name__ == "__main__":
 
     def gen_emplace(name):
         out = []
-        out.append(f"case EntityType::{to_enum(name)}:");
-        out.append(f"*(({name} *) buffer) = {name}();")
-        out.append(f"(({name} *) buffer)->type = EntityType::{to_enum(name)};");
-        out.append("return;");
-        return (f"\n{' '*8}").join(out)
+        out.append(f"{' '*4}case EntityType::{to_enum(name)}:")
+        out.append(f"{' '*8}*(({name} *) buffer) = {name}();")
+        out.append(f"{' '*8}(({name} *) buffer)->type = EntityType::{to_enum(name)};")
+        out.append(f"{' '*8}return;")
+        return (f"\n").join(out)
 
     def gen_add_unkown_type(name):
         out = []
-        out.append(f"case EntityType::{to_enum(name)}:");
-        out.append(f"return add<{name}>(*({name} *) e);")
-        return (f"\n{' '*8}").join(out)
+        out.append(f"{' '*4}case EntityType::{to_enum(name)}:")
+        out.append(f"{' '*8}return add<{name}>(*({name} *) e);")
+        return (f"\n").join(out)
 
     all_field_names = set()
     for struct in entity_structs.values():

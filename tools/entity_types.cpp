@@ -47,6 +47,7 @@ EntityID EntitySystem::add_unknown_type(BaseEntity *e) {
 $add_switch
     default:
         UNREACHABLE("Unknown entity type");
+        return {};
     }
 }
 

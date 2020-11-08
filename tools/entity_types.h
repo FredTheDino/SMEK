@@ -66,7 +66,7 @@ $type_ofs
  * End of `tools/entity_types_type_of.h`
  */
 
-    struct EventCreateEntity {
+struct EventCreateEntity {
     bool generate_id;
     EntityType type;
     union {
