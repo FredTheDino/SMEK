@@ -99,9 +99,9 @@ void write_to_capture_file(u32 size, const char *buf);
     if (Performance::should_capture()) {                                                                 \
         char buffer[256];                                                                                \
         u32 size = sntprint(buffer, LEN(buffer),                                                         \
-                            R"(,%{"cat":"CAPTURE","tid":"{}","ts":{},"name":"{}:{}")"                    \
+                            R"(,!{"cat":"CAPTURE","tid":"{}","ts":{},"name":"{}:{}")"                    \
                             R"(,"pid":0,"ph":"B","s":"g")"                                               \
-                            ",\"args\":%{" MAP(JSON_ARG, func, file, line, __VA_ARGS__) "\"-\":\"-\"}}", \
+                            ",\"args\":!{" MAP(JSON_ARG, func, file, line, __VA_ARGS__) "\"-\":\"-\"}}", \
                             SDL_ThreadID(),                                                              \
                             Performance::Clock::now().time_since_epoch().count() / 1000.0,               \
                             __func__, STR(line),                                                         \
@@ -111,7 +111,7 @@ void write_to_capture_file(u32 size, const char *buf);
     defer {                                                                                              \
         if (Performance::should_capture) {                                                               \
             char buffer[256];                                                                            \
-            u32 size = sntprint(buffer, LEN(buffer), R"(,%{"ph":"E","pid":0,"tid":{},"ts":{}})",         \
+            u32 size = sntprint(buffer, LEN(buffer), R"(,!{"ph":"E","pid":0,"tid":{},"ts":{}})",         \
                                 SDL_ThreadID(),                                                          \
                                 Performance::Clock::now().time_since_epoch().count() / 1000.0);          \
             Performance::write_to_capture_file(size, buffer);                                            \

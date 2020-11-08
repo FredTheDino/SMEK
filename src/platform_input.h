@@ -32,6 +32,11 @@ struct GameInput {
     u32 rebind_slot;
     f32 rebind_value;
 
+    // Callback state
+
+    using Callback = void (*)();
+    std::unordered_map<Button, Callback> callback_table;
+
     void bind(Ac action, u32 slot, Button button, f32 value = 1.0) {
         ASSERT(slot < LEN(action_to_input[0]), "Invalid binding slot, max %d. (%d)",
                LEN(action_to_input[0]), slot);
@@ -73,6 +78,26 @@ struct GameInput {
             }
         }
     }
+
+    Button as_modded(Button button, i32 mod) {
+        return button | (mod << 5);
+    }
+
+    void clear_callbacks() {
+        callback_table.clear();
+    }
+
+    void add_callback(Button button, i32 mod, Callback callback) {
+        callback_table[as_modded(button, mod)] = callback;
+    }
+
+    bool trigger_callbacks(Button button, i32 mod) {
+        if (callback_table.contains(as_modded(button, mod))) {
+            callback_table[as_modded(button, mod)]();
+            return true;
+        }
+        return false;
+    }
 } global_input = {};
 
 ///# Input wrappers
@@ -95,4 +120,8 @@ void platform_rebind(Ac action, u32 slot, f32 value) {
 void platform_bind(Ac action, u32 slot, u32 button, f32 value) {
     global_input.unbind(action, slot);
     global_input.bind(action, slot, button, value);
+}
+
+void platform_callback(u32 button, u32 mods, void (*callback)()) {
+    global_input.add_callback(button, mods, callback);
 }

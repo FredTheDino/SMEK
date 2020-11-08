@@ -64,7 +64,7 @@ void dump_frame_to_capture_file() {
     if (!should_capture()) return;
     char buffer[256];
     u32 size = sntprint(buffer, LEN(buffer),
-                        R"(,%{"cat":"CAPTURE","tid":"{}","ts":{},"name":"FRAME")"
+                        R"(,!{"cat":"CAPTURE","tid":"{}","ts":{},"name":"FRAME")"
                         R"(,"pid":0,"ph":"i","s":"g"})",
                         SDL_ThreadID(),
                         Clock::now().time_since_epoch().count() / 1000.0);
@@ -158,6 +158,7 @@ void capture_handle() {
             Capture::frames_to_capture--;
 
         if (Capture::frames_to_capture == 0) {
+            LOG("End of performance capture.");
             LOCK_FOR_BLOCK(capture_file_mutex);
             const char postamble[] = "]";
             fwrite((void *)postamble, 1, LEN(postamble) - 1, capture_file);
@@ -174,7 +175,9 @@ void capture_begin() {
 
 void capture_end() {
     // Capture until next frame.
-    Capture::frames_to_capture = 1;
+    if (Capture::frames_to_capture != 0) {
+        Capture::frames_to_capture = 1;
+    }
 }
 
 void capture_frames(i32 n) {

@@ -26,8 +26,10 @@ enum class Action {
     NUM_ACTIONS
 };
 
+// TODO(ed): Why are these typedefs?
 typedef void (*RebindFunc)(Action, u32, f32);
 typedef void (*BindFunc)(Action, u32, u32, f32);
+typedef void (*CallbackFunc)(u32, u32, void (*)());
 
 ///* Input
 // Holds the content of this frames input.
@@ -42,6 +44,7 @@ struct Input {
 
     RebindFunc rebind_func;
     BindFunc bind_func;
+    CallbackFunc callback_func;
 };
 
 ///*
@@ -51,6 +54,13 @@ Vec2 mouse_move();
 ///*
 // The current mouse position.
 Vec2 mouse_pos();
+
+///*
+// Calls the callback when the key combination is pressed.
+//
+// The callback is only added until the end of the frame,
+// thus it works similar to ImGui and can be used with it.
+void add_callback(u32 button, u32 mods, void (*callback)());
 
 ///*
 // Rebinds the given Action to the next key pressed down.

@@ -54,6 +54,10 @@ void toggle_full_screen() {
     GAMESTATE()->full_screen_window = should_be_full_screen;
 }
 
+void something() {
+    LOG("SOMETHIGN!");
+}
+
 void init_game(GameState *gamestate, int width, int height) {
     _global_gs = gamestate;
     GAMESTATE()->main_thread = SDL_GetThreadID(NULL);
@@ -98,6 +102,8 @@ void init_game(GameState *gamestate, int width, int height) {
     Input::bind(Ac::MouseToggle, 0, SDLK_m);
     Input::bind(Ac::Rebind, 1, SDLK_r);
     Input::bind(Ac::ESelect, 1, SDLK_y);
+
+    Input::add_callback(SDLK_a, KMOD_LCTRL, something);
 
     Light l = Light();
     GAMESTATE()->lights[0] = GAMESTATE()->entity_system.add(l);
@@ -222,15 +228,48 @@ void draw() {
 
 #ifdef IMGUI_ENABLE
 void do_imgui_stuff() {
+
+    Input::add_callback(SDLK_d, KMOD_LCTRL,
+                        []() { GAMESTATE()->imgui.debug_enabled ^= 1; });
+
+    Input::add_callback(SDLK_n, KMOD_LCTRL,
+                        []() { GAMESTATE()->imgui.networking_enabled ^= 1; });
+
+    Input::add_callback(SDLK_t, KMOD_LCTRL,
+                        []() { GAMESTATE()->imgui.render_target_enabled ^= 1; });
+
+    Input::add_callback(SDLK_m, KMOD_LCTRL,
+                        []() { GAMESTATE()->imgui.depth_map_enabled ^= 1; });
+
+    Input::add_callback(SDLK_e, KMOD_LCTRL,
+                        []() { GAMESTATE()->imgui.entities_enabled ^= 1; });
+
+    Input::add_callback(SDLK_p, KMOD_LCTRL,
+                        []() { GAMESTATE()->imgui.performance_enabled ^= 1; });
+
+    Input::add_callback(SDLK_f, KMOD_LCTRL, toggle_full_screen);
+
+    if (Performance::capture_is_running()) {
+        Input::add_callback(SDLK_c, KMOD_LCTRL, Performance::capture_end);
+    } else {
+        Input::add_callback(SDLK_c, KMOD_LCTRL, Performance::capture_begin);
+    }
+
+    auto reload_game = []() {
+        if (SDL_LockMutex(GAMESTATE()->m_reload_lib) == 0) {
+            *GAMESTATE()->reload_lib = true;
+            SDL_UnlockMutex(GAMESTATE()->m_reload_lib);
+        } else {
+            ERR("Unable to lock mutex: {}", SDL_GetError());
+        }
+    };
+
+    Input::add_callback(SDLK_r, KMOD_LCTRL, reload_game);
+
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
-            if (ImGui::MenuItem("Reload")) {
-                if (SDL_LockMutex(GAMESTATE()->m_reload_lib) == 0) {
-                    *GAMESTATE()->reload_lib = true;
-                    SDL_UnlockMutex(GAMESTATE()->m_reload_lib);
-                } else {
-                    ERR("Unable to lock mutex: {}", SDL_GetError());
-                }
+            if (ImGui::MenuItem("Reload", "C-r")) {
+                reload_game();
             }
             if (ImGui::MenuItem("Exit")) {
                 SDL_Event quit_event;
@@ -240,19 +279,33 @@ void do_imgui_stuff() {
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("View")) {
-            ImGui::MenuItem("Show Networking", "",
+            ImGui::MenuItem("Show Debug", "C-d",
+                            &GAMESTATE()->imgui.debug_enabled);
+            ImGui::MenuItem("Show Networking", "C-n",
                             &GAMESTATE()->imgui.networking_enabled);
-            ImGui::MenuItem("Show Rendered Target", "",
+            ImGui::MenuItem("Show Rendered Target", "C-t",
                             &GAMESTATE()->imgui.render_target_enabled);
-            ImGui::MenuItem("Show Depth Map", "",
+            ImGui::MenuItem("Show Depth Map", "C-m",
                             &GAMESTATE()->imgui.depth_map_enabled);
-            ImGui::MenuItem("Show Entities", "",
+            ImGui::MenuItem("Show Entities", "C-e",
                             &GAMESTATE()->imgui.entities_enabled);
-            ImGui::MenuItem("Show Performance", "",
+            ImGui::MenuItem("Show Performance", "C-p",
                             &GAMESTATE()->imgui.performance_enabled);
             static bool full_screen = GAMESTATE()->full_screen_window;
-            if (ImGui::MenuItem("Fullscreen", "", &full_screen)) {
+            if (ImGui::MenuItem("Fullscreen", "C-f", &full_screen)) {
                 toggle_full_screen();
+            }
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Tools")) {
+            if (Performance::capture_is_running()) {
+                if (ImGui::MenuItem("End Performance Capture", "C-c")) {
+                    Performance::capture_end();
+                }
+            } else {
+                if (ImGui::MenuItem("Start Performance Capture", "C-c")) {
+                    Performance::capture_begin();
+                }
             }
             ImGui::EndMenu();
         }
@@ -263,47 +316,52 @@ void do_imgui_stuff() {
         ImGui::EndMainMenuBar();
     }
 
-    ImGui::SliderFloat("Time",
-                       &GAMESTATE()->imgui.t,
-                       GAMESTATE()->imgui.min_t,
-                       GAMESTATE()->imgui.max_t, "%.2f");
+    if (GAMESTATE()->imgui.debug_enabled) {
+        if (ImGui::Begin("Debug")) {
+            ImGui::SliderFloat("Time",
+                               &GAMESTATE()->imgui.t,
+                               GAMESTATE()->imgui.min_t,
+                               GAMESTATE()->imgui.max_t, "%.2f");
 
-    {
-        static int dim[2] = { 100, 100 };
-        ImGui::SliderInt2("Screen size", dim, 100, 1600);
-        if (ImGui::Button("Resize window")) {
-            GFX::set_screen_resolution(dim[0], dim[1]);
+            {
+                static int dim[2] = { 100, 100 };
+                ImGui::SliderInt2("Screen size", dim, 100, 1600);
+                if (ImGui::Button("Resize window")) {
+                    GFX::set_screen_resolution(dim[0], dim[1]);
+                }
+            }
+
+            ImGui::Checkbox("Debug Draw Physics", &GAMESTATE()->imgui.debug_draw_physics);
+            if (GAMESTATE()->imgui.debug_draw_physics) {
+                GAMESTATE()->physics_engine.draw();
+            }
+
+            ImGui::Checkbox("Debug Camera", &GAMESTATE()->imgui.use_debug_camera);
+            GFX::set_camera_mode(GAMESTATE()->imgui.use_debug_camera);
+
+            ImGui::Checkbox("Show Grid", &GAMESTATE()->imgui.show_grid);
+            if (GAMESTATE()->imgui.show_grid) {
+                const i32 grid_size = 10;
+                const f32 width = 0.005;
+                const Color4 color = GFX::color(7) * 0.4;
+                for (u32 i = 0; i < 2 * grid_size; i++) {
+                    f32 x = i / 2.0;
+                    GFX::push_line(Vec3(x, 0, grid_size), Vec3(x, 0, -grid_size), color, width);
+                    GFX::push_line(Vec3(-x, 0, grid_size), Vec3(-x, 0, -grid_size), color, width);
+                    GFX::push_line(Vec3(grid_size, 0, x), Vec3(-grid_size, 0, x), color, width);
+                    GFX::push_line(Vec3(grid_size, 0, -x), Vec3(-grid_size, 0, -x), color, width);
+                }
+            }
+
+            // TODO(ed): The lighting should have better default values.
+            GFX::Lighting *lighting = GFX::lighting();
+            ImGui::InputFloat3("Sun Color", lighting->sun_color._, 3);
+            ImGui::InputFloat3("Sun Direction", lighting->sun_direction._, 3);
+            lighting->sun_direction = normalized(lighting->sun_direction);
+            ImGui::InputFloat3("Ambient Color", lighting->ambient_color._, 3);
         }
+        ImGui::End();
     }
-
-    ImGui::Checkbox("Debug Draw Physics", &GAMESTATE()->imgui.debug_draw_physics);
-    if (GAMESTATE()->imgui.debug_draw_physics) {
-        GAMESTATE()->physics_engine.draw();
-    }
-
-    ImGui::Checkbox("Debug Camera", &GAMESTATE()->imgui.use_debug_camera);
-    GFX::set_camera_mode(GAMESTATE()->imgui.use_debug_camera);
-
-    ImGui::Checkbox("Show Grid", &GAMESTATE()->imgui.show_grid);
-    if (GAMESTATE()->imgui.show_grid) {
-        const i32 grid_size = 10;
-        const f32 width = 0.005;
-        const Color4 color = GFX::color(7) * 0.4;
-        for (u32 i = 0; i < 2 * grid_size; i++) {
-            f32 x = i / 2.0;
-            GFX::push_line(Vec3(x, 0, grid_size), Vec3(x, 0, -grid_size), color, width);
-            GFX::push_line(Vec3(-x, 0, grid_size), Vec3(-x, 0, -grid_size), color, width);
-            GFX::push_line(Vec3(grid_size, 0, x), Vec3(-grid_size, 0, x), color, width);
-            GFX::push_line(Vec3(grid_size, 0, -x), Vec3(-grid_size, 0, -x), color, width);
-        }
-    }
-
-    // TODO(ed): The lighting should have better default values.
-    GFX::Lighting *lighting = GFX::lighting();
-    ImGui::InputFloat3("Sun Color", lighting->sun_color._, 3);
-    ImGui::InputFloat3("Sun Direction", lighting->sun_direction._, 3);
-    lighting->sun_direction = normalized(lighting->sun_direction);
-    ImGui::InputFloat3("Ambient Color", lighting->ambient_color._, 3);
 
     // Draws what is drawn to the internal buffers.
     auto draw_render_target = [](i32 tex, i32 width, i32 height) {
