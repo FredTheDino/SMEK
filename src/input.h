@@ -26,10 +26,9 @@ enum class Action {
     NUM_ACTIONS
 };
 
-// TODO(ed): Why are these typedefs?
-typedef void (*RebindFunc)(Action, u32, f32);
-typedef void (*BindFunc)(Action, u32, u32, f32);
-typedef void (*CallbackFunc)(u32, u32, void (*)());
+using RebindFunc = void (*)(Action, u32, f32);
+using BindFunc = void (*)(Action, u32, u32, f32);
+using CallbackFunc = void (*)(u32, u32, void (*)());
 
 ///* Input
 // Holds the content of this frames input.

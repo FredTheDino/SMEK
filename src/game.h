@@ -80,7 +80,7 @@ GameState *GAMESTATE();
 // things like that. The gamestate is expected to have
 // a GLContext on it.
 extern "C" void init_game(GameState *gamestate, int width, int height);
-typedef void (*GameInitFunc)(GameState *, int, int);
+using GameInitFunc = void (*)(GameState *, int, int);
 
 void on_connect_to_server();
 
@@ -100,7 +100,7 @@ u32 frame();
 // things on the global game state you should, but this is useful
 // for certain callbacks and opengl function pointers.
 extern "C" void reload_game(GameState *gamestate);
-typedef void (*GameReloadFunc)(GameState *);
+using GameReloadFunc = void (*)(GameState *);
 
 #ifdef __clang__
 #pragma clang diagnostic ignored "-Wreturn-type-c-linkage"
@@ -110,9 +110,9 @@ typedef void (*GameReloadFunc)(GameState *);
 // Steps the game one frame forward. Doesn't have side-effects
 // outside of the GameState object, but the new one is returned.
 extern "C" GameState update_game(GameState *gamestate, GSUM mode);
-typedef GameState (*GameUpdateFunc)(GameState *, GSUM);
+using GameUpdateFunc = GameState (*)(GameState *, GSUM);
 
 ///*
 // Shutdown everything nicely.
 extern "C" void shutdown_game(GameState *gamestate);
-typedef void (*GameShutdownFunc)(GameState *);
+using GameShutdownFunc = void (*)(GameState *);
