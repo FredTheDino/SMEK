@@ -52,7 +52,7 @@
 
 //// Macros
 // All output can be colored with different color-macros.
-LOG(RED "R" GREEN "G" BLUE "B" RESET);
+INFO(RED "R" GREEN "G" BLUE "B" RESET);
 // Make sure to always reset to normal output.
 
 //// CLEAR

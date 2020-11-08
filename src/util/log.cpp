@@ -1,4 +1,11 @@
 #include "log.h"
+#include "../game.h"
+
+void _smek_log(const char *buffer, u32 log_level) {
+    if (GAMESTATE()->log_levels & log_level) {
+        smek_print(buffer);
+    }
+}
 
 #ifdef WINDOWS
 void print_stacktrace(unsigned int max_frames) {

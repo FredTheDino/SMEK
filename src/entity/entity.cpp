@@ -191,7 +191,7 @@ void Player::update_position() {
         }
     }
     if (last_input.shot) {
-        LOG("Pew!");
+        INFO("Pew!");
     }
     position += velocity * delta();
 }
@@ -405,7 +405,7 @@ void EntitySystem::send_state(ClientHandle *handle) {
 }
 
 void EntitySystem::send_initial_state(ClientHandle *handle) {
-    LOG("Sending initial state to client");
+    TRACE("Sending initial state to client");
     Package entity_package;
     entity_package.header.type = PackageType::EVENT;
     for (const auto &[_, entity] : entities) {
@@ -430,7 +430,7 @@ void EntitySystem::send_initial_state(ClientHandle *handle) {
 void EntitySystem::drop_client(u64 client_id) {
     for (const auto &[id, entity] : entities) {
         if ((id & CLIENT_MASK) == client_id) {
-            LOG("Dropping entity with id {}", id);
+            TRACE("Dropping entity with id {}", id);
             entity->remove = true;
         }
     }

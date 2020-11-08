@@ -3,16 +3,26 @@
 #include "../math/types.h"
 #include "color.h"
 
-// https://stackoverflow.com/a/5891370/4904628, info on ##__VA_ARGS__
-#define ERR(...)              _smek_log_err(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
-#define WARN(...)             _smek_log_warn(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
-#define LOG(...)              _smek_log_info(__FILE__, __LINE__, __func__, ##__VA_ARGS__)
-#define UNREACHABLE(msg, ...) _smek_unreachable(__FILE__, __LINE__, __func__, msg, ##__VA_ARGS__)
+namespace LogLevel {
+static const u32 NONE    = 0;
+static const u32 TRACE   = 1 << 0;
+static const u32 INFO    = 1 << 1;
+static const u32 WARNING = 1 << 2;
+static const u32 ERROR   = 1 << 3;
+static const u32 ALL     =(1 << 4) - 1; // update this if changing log levels
+}
+
+#define ERR(...)   _smek_log_err(__FILE__, __LINE__, __func__, __VA_ARGS__)
+#define WARN(...)  _smek_log_warn(__FILE__, __LINE__, __func__, __VA_ARGS__)
+#define INFO(...)  _smek_log_info(__FILE__, __LINE__, __func__, __VA_ARGS__)
+#define TRACE(...) _smek_log_trace(__FILE__, __LINE__, __func__, __VA_ARGS__)
+
+#define UNREACHABLE(...) _smek_unreachable(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 #define STR(x) #x
 
-#define ASSERT(pass, msg, ...) _smek_assert(__FILE__, __LINE__, __func__, pass, STR(pass), msg, ##__VA_ARGS__)
-#define CHECK(pass, msg, ...)  _smek_check(__FILE__, __LINE__, __func__, pass, STR(pass), msg, ##__VA_ARGS__)
+#define ASSERT(pass, ...) _smek_assert(__FILE__, __LINE__, __func__, pass, STR(pass), __VA_ARGS__)
+#define CHECK(pass, ...)  _smek_check(__FILE__, __LINE__, __func__, pass, STR(pass), __VA_ARGS__)
 
 #define ASSERT_EQ(LHS, RHS)                                                                           \
     do {                                                                                              \
@@ -56,6 +66,8 @@
         ASSERT((lhs) >= (rhs), STR(LHS) " ({}) should be greater than or equal to " STR(RHS) " ({})", (lhs), (rhs)); \
     } while (false)
 
+void _smek_log(const char *buffer, u32 log_level);
+
 template <typename... Args>
 void _smek_log_err(const char *file, u32 line, const char *func, const char *message, Args... args);
 
@@ -64,6 +76,9 @@ void _smek_log_warn(const char *file, u32 line, const char *func, const char *me
 
 template <typename... Args>
 void _smek_log_info(const char *file, u32 line, const char *func, const char *message, Args... args);
+
+template <typename... Args>
+void _smek_log_trace(const char *file, u32 line, const char *func, const char *message, Args... args);
 
 template <typename... Args>
 void _smek_unreachable(const char *file, u32 line, const char *func, const char *message, Args... args);
@@ -88,7 +103,7 @@ void _smek_log_err(const char *file, u32 line, const char *func, const char *mes
     len += sntprint(buffer, LOG_BUFFER_SIZE, RED "E {}" RESET " @ {} ({}): ", file, line, func);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n");
-    smek_print(buffer);
+    _smek_log(buffer, LogLevel::ERROR);
 }
 
 template <typename... Args>
@@ -98,7 +113,7 @@ void _smek_log_warn(const char *file, u32 line, const char *func, const char *me
     len += sntprint(buffer, LOG_BUFFER_SIZE, YELLOW "W {}" RESET " @ {} ({}): ", file, line, func);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n");
-    smek_print(buffer);
+    _smek_log(buffer, LogLevel::WARNING);
 }
 
 template <typename... Args>
@@ -108,7 +123,17 @@ void _smek_log_info(const char *file, u32 line, const char *func, const char *me
     len += sntprint(buffer, LOG_BUFFER_SIZE, WHITE "I {}" RESET " @ {} ({}): ", file, line, func);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n");
-    smek_print(buffer);
+    _smek_log(buffer, LogLevel::INFO);
+}
+
+template <typename... Args>
+void _smek_log_trace(const char *file, u32 line, const char *func, const char *message, Args... args) {
+    char buffer[LOG_BUFFER_SIZE] = {};
+    u32 len = 0;
+    len += sntprint(buffer, LOG_BUFFER_SIZE, "D {} @ {} ({}): ", file, line, func);
+    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
+    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n");
+    _smek_log(buffer, LogLevel::TRACE);
 }
 
 template <typename... Args>
@@ -119,7 +144,7 @@ void _smek_unreachable(const char *file, u32 line, const char *func, const char 
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, BOLDRED "| " RESET);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n" BOLDRED "|" RESET " Stacktrace:\n");
-    smek_print(buffer);
+    _smek_log(buffer, LogLevel::ERROR);
     print_stacktrace();
 
     throw std::runtime_error("Unreachable");
@@ -135,7 +160,7 @@ void _smek_assert(const char *file, u32 line, const char *func, bool passed, con
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, BOLDRED "| " RESET);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
     len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n" BOLDRED "|" RESET " Stacktrace:\n");
-    smek_print(buffer);
+    _smek_log(buffer, LogLevel::ERROR);
     print_stacktrace();
 
     throw std::runtime_error("Assert");
@@ -150,7 +175,7 @@ bool _smek_check(const char *file, u32 line, const char *func, bool passed, cons
         len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, YELLOW "| " RESET);
         len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, msg, args...);
         len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n");
-        smek_print(buffer);
+        _smek_log(buffer, LogLevel::WARNING);
     }
     return passed;
 }
@@ -164,7 +189,10 @@ bool _smek_check(const char *file, u32 line, const char *func, bool passed, cons
 // least a string to be printed. The output is always on stderr.
 
 ///*
-LOG(...)
+TRACE(...)
+
+///*
+INFO(...)
 
 ///*
 WARN(...)

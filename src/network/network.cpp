@@ -42,7 +42,7 @@ bool NetworkHandle::recv(u8 *buf, u32 data_len, Package *package) {
         if (n < 0) {
             UNREACHABLE("{}: Error reading from socket, errno={}", thread_name, errno); //TODO do something smart
         } else if (n == 0) {
-            LOG("{}: Connection closed", thread_name);
+            INFO("{}: Connection closed", thread_name);
             active = false;
             return false;
         }
@@ -83,7 +83,7 @@ void ServerHandle::recv_heartbeat(u32 id) {
         ERR("Received heartbeat from the future");
     } else {
         auto now = steady_clock::now();
-        LOG("Heartbeat latency: {} ms", (f32)std::chrono::duration_cast<std::chrono::microseconds>(now - heartbeat_time_start).count() / 1000);
+        TRACE("Heartbeat latency: {} ms", (f32)std::chrono::duration_cast<std::chrono::microseconds>(now - heartbeat_time_start).count() / 1000);
     }
 }
 
@@ -173,7 +173,7 @@ bool Network::setup_server(int portno) {
     }
     m_prev_package = SDL_CreateMutex();
     ASSERT(m_prev_package, "Unable to create mutex");
-    LOG("Setting up server on port {}", portno);
+    INFO("Setting up server on port {}", portno);
     listen_sockfd = socket(AF_INET, SOCK_STREAM, 0);
     sockaddr_in serv_addr = {};
     serv_addr.sin_family = AF_INET;
@@ -208,7 +208,7 @@ void Network::stop_server() {
             client_handles[i].wip_entities.free();
         }
     }
-    LOG("Server stopped");
+    INFO("Server stopped");
 }
 
 bool Network::connect_to_server(char *hostname, int portno) {
@@ -234,7 +234,7 @@ bool Network::connect_to_server(char *hostname, int portno) {
         WARN("Unable to connect to server, errno={}", errno);
         return false;
     }
-    LOG("Connected");
+    INFO("Connected");
     server_handle.wip_entities.alloc();
     GAMESTATE()->entity_system.remove_all();
     sntprint(server_handle.thread_name, sizeof(server_handle.thread_name), "ServerHandle");
@@ -262,7 +262,7 @@ bool Network::new_client_handle(int newsockfd) {
     for (u32 i = 0; i < MAX_CLIENTS; i++) {
         handle = client_handles + i;
         if (handle->active) continue;
-        LOG("Found client handle");
+        TRACE("Found client handle");
         *handle = {};
         handle->sockfd = newsockfd;
         handle->client_id = next_handle_id;
@@ -391,7 +391,7 @@ void Network::imgui_draw() {
                         sntprint(buf, 32, "(hidden)");
                     }
                     if (ImGui::Selectable(buf, false)) {
-                        LOG("{}", package);
+                        TRACE("{}", package);
                     }
                     if (++i == package_log_limit) {
                         ImGui::PopID();
@@ -421,14 +421,14 @@ int network_listen_for_clients(void *data) {
             ERR("ListenForClients: Error accepting client connection, errno={}", errno);
             continue;
         }
-        LOG("ListenForClients: New client connected");
+        INFO("ListenForClients: New client connected");
         if (!system->new_client_handle(newsockfd)) {
             ERR("ListenForClients: Unable to accept client connection, closing");
             //TODO(gu) send reason
             close(newsockfd);
         }
     }
-    LOG("Stopped listening for new clients");
+    INFO("Stopped listening for new clients");
     return 0;
 }
 

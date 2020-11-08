@@ -44,6 +44,12 @@ struct GameLibrary {
 GameState game_state = {};
 Audio::AudioStruct platform_audio_struct = {};
 
+#ifndef TESTS
+GameState *GAMESTATE() {
+    return &game_state;
+}
+#endif
+
 SDL_mutex *m_reload_lib;
 bool hot_reload_active = true;
 bool reload_lib = false;
@@ -245,7 +251,6 @@ bool update_to_default_window_size(int *width, int *height, f32 screen_percent) 
     return false;
 }
 
-#include "util/log.cpp"           // I know, just meh.
 int main(int argc, char **argv) { // Game entrypoint
     int width = 500;
     int height = 500;
@@ -360,7 +365,7 @@ int main(int argc, char **argv) { // Game entrypoint
     u32 next_update = SDL_GetTicks() - MS_PER_FRAME;
     while (game_state.running) {
         if (load_gamelib()) {
-            LOG("PLATFORM LAYER RELOAD!");
+            INFO("Platform layer reload");
             game_lib.reload(&game_state);
         }
 
