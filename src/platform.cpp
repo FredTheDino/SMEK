@@ -245,7 +245,6 @@ bool update_to_default_window_size(int *width, int *height, f32 screen_percent) 
     return false;
 }
 
-#include "util/log.cpp"           // I know, just meh.
 int main(int argc, char **argv) { // Game entrypoint
     int width = 500;
     int height = 500;

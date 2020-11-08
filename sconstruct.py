@@ -314,7 +314,7 @@ def create_smek_target():
         libsmek = jumbo_env.SharedLibrary(smek_dir + smek_game_lib, [smek_dir + "game.cpp"])
 
         plt_env = env.Clone()
-        plt_env.Append(CXXFLAGS=["-include", "src/util/tprint.cpp"])
+        plt_env.Append(CXXFLAGS=["-include", "src/util/tprint.cpp", "-include", "src/util/log.cpp"]) #TODO(gu) list comprehension and *-operator
         platform_source = plt_env.Object(smek_dir + "platform.cpp")
         smek = env.Program(smek_dir + "SMEK", [platform_source, glad, imgui])
     else:
@@ -323,7 +323,7 @@ def create_smek_target():
         smek_source.remove(smek_dir + "platform.cpp")
         libsmek = env.SharedLibrary(smek_dir + smek_game_lib, [*smek_source])
 
-        platform_source = [smek_dir + "platform.cpp", smek_dir + "util/tprint.cpp"]
+        platform_source = [smek_dir + "platform.cpp", smek_dir + "util/tprint.cpp", smek_dir + "util/log.cpp"]
         smek = env.Program(smek_dir + "SMEK", [*platform_source, glad, imgui])
 
     if native and PLATFORMS["linux"]:
