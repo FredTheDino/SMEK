@@ -51,7 +51,7 @@ struct GameState {
     bool resized_window;
     bool full_screen_window;
     bool allow_user_resize_window;
-    LogLevel lowest_log =  LogLevel::INFO;
+    u32 log_levels = LogLevel::ALL;
 
 #ifdef IMGUI_ENABLE
     ImGuiState imgui = {};

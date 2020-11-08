@@ -3,18 +3,19 @@
 #include "../math/types.h"
 #include "color.h"
 
-enum class LogLevel {
-    TRACE,
-    INFO,
-    WARNING,
-    ERROR,
-    NOTHING,
-};
+namespace LogLevel {
+static const u32 NONE    = 0;
+static const u32 TRACE   = 1 << 0;
+static const u32 INFO    = 1 << 1;
+static const u32 WARNING = 1 << 2;
+static const u32 ERROR   = 1 << 3;
+static const u32 ALL     =(1 << 4) - 1; // update this if changing log levels
+}
 
 #define _LOGLEVEL(LEVEL, FUNC, ...)                             \
     do {                                                        \
-        if (GAMESTATE()->lowest_log <= (LEVEL))                 \
-            FUNC(__FILE__, __LINE__, __func__, __VA_ARGS__);   \
+        if (GAMESTATE()->log_levels & (LEVEL))                  \
+            FUNC(__FILE__, __LINE__, __func__, __VA_ARGS__);    \
     } while (0)
 
 #define ERR(...)   _LOGLEVEL(LogLevel::ERROR, _smek_log_err, __VA_ARGS__)
