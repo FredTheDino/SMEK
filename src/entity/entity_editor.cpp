@@ -8,68 +8,115 @@
 #include <cxxabi.h>
 
 #ifdef IMGUI_ENABLE
-using ImGuiDisplayFunc = std::function<void(const char *, void *)>;
+using ImGuiDisplayFunc = std::function<void(const char *, void *, bool)>;
 static std::unordered_map<std::size_t, ImGuiDisplayFunc> func_map;
 
 namespace ImGuiFuncs {
-void empty_f(const char *name, void *) {}
+void empty_f(const char *name, void *, bool) {}
 
-void show_bool(const char *name, void *v) {
-    ImGui::Checkbox(name, (bool *)v);
+void show_bool(const char *name, void *v, bool readonly) {
+    bool x = *(bool *)v;
+    if (ImGui::Checkbox(name, &x) && !readonly) {
+        *(bool *)v = x;
+    }
 }
 
-void show_Color3(const char *name, void *v) {
+void show_Color3(const char *name, void *v, bool readonly) {
     ImGui::ColorEdit3(name, (f32 *)v);
+    if (readonly) {
+        ImGui::SameLine();
+        ImGui::Text("*");
+    }
 }
 
-void show_Vec3(const char *name, void *v) {
+void show_Vec3(const char *name, void *v, bool readonly) {
+    if (readonly) {
+        ImGui::Text("*");
+        ImGui::SameLine();
+    }
     ImGui::InputFloat3(name, (f32 *)v);
 }
 
-void show_EntityType(const char *name, void *v) {
+void show_EntityType(const char *name, void *v, bool readonly) {
     EntityType *e = (EntityType *)v;
     char buffer[20];
     sntprint(buffer, LEN(buffer), "{}", *e);
     ImGui::Text("Type: %s", buffer);
 }
 
-void show_u64(const char *name, void *v) {
+void show_u64(const char *name, void *v, bool readonly) {
     ImGui::InputScalar(name, ImGuiDataType_U64, v);
+    if (readonly) {
+        ImGui::SameLine();
+        ImGui::Text("*");
+    }
 }
 
-void show_u32(const char *name, void *v) {
+void show_u32(const char *name, void *v, bool readonly) {
     ImGui::InputScalar(name, ImGuiDataType_U32, v);
+    if (readonly) {
+        ImGui::SameLine();
+        ImGui::Text("*");
+    }
 }
 
-void show_u16(const char *name, void *v) {
+void show_u16(const char *name, void *v, bool readonly) {
     ImGui::InputScalar(name, ImGuiDataType_U16, v);
+    if (readonly) {
+        ImGui::SameLine();
+        ImGui::Text("*");
+    }
 }
 
-void show_u8(const char *name, void *v) {
+void show_u8(const char *name, void *v, bool readonly) {
     ImGui::InputScalar(name, ImGuiDataType_U8, v);
+    if (readonly) {
+        ImGui::SameLine();
+        ImGui::Text("*");
+    }
 }
 
-void show_i64(const char *name, void *v) {
+void show_i64(const char *name, void *v, bool readonly) {
     ImGui::InputScalar(name, ImGuiDataType_S64, v);
+    if (readonly) {
+        ImGui::SameLine();
+        ImGui::Text("*");
+    }
 }
 
-void show_i32(const char *name, void *v) {
+void show_i32(const char *name, void *v, bool readonly) {
     ImGui::InputScalar(name, ImGuiDataType_S32, v);
+    if (readonly) {
+        ImGui::SameLine();
+        ImGui::Text("*");
+    }
 }
 
-void show_i16(const char *name, void *v) {
+void show_i16(const char *name, void *v, bool readonly) {
     ImGui::InputScalar(name, ImGuiDataType_S16, v);
+    if (readonly) {
+        ImGui::SameLine();
+        ImGui::Text("*");
+    }
 }
 
-void show_i8(const char *name, void *v) {
+void show_i8(const char *name, void *v, bool readonly) {
+    if (readonly) {
+        ImGui::Text("*");
+        ImGui::SameLine();
+    }
     ImGui::InputScalar(name, ImGuiDataType_S8, v);
 }
 
-void show_H(const char *name, void *v) {
+void show_H(const char *name, void *v, bool readonly) {
     H *quat = (H *)v;
     Vec3 euler = to_euler(*quat);
     if (ImGui::InputFloat3(name, euler._)) {
         *quat = H::from(euler.x, euler.y, euler.z);
+    }
+    if (readonly) {
+        ImGui::SameLine();
+        ImGui::Text("*");
     }
 }
 }
@@ -111,7 +158,7 @@ void EntitySystem::draw_imgui() {
                     std::size_t hash = f.typeinfo.hash_code();
                     if (func_map.contains(hash)) {
                         void *data = (void *)((u8 *)e + f.offset);
-                        func_map[hash](f.name, data);
+                        func_map[hash](f.name, data, f.internal);
                     } else {
                         const char *name = f.typeinfo.name();
                         int status;

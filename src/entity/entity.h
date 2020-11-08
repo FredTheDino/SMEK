@@ -100,7 +100,7 @@ struct PlayerInput {
 // A playable character
 struct Player : public Entity {
     static constexpr f32 FLOOR = 0.2;
-    PlayerInput last_input;
+    INTERNAL PlayerInput last_input;
     Vec3 velocity;
 
     void imgui() override;
