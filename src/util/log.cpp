@@ -1,10 +1,28 @@
 #include "log.h"
 #include "../game.h"
+#include "imgui/imgui.h"
 
-void _smek_log(const char *buffer, u32 log_level) {
-    if (GAMESTATE()->log_levels & log_level) {
-        smek_print(buffer);
+#include <cstdio>
+
+void _smek_log(const char *print_message, const char *file_message, u32 log_level, LogMessage message) {
+    Logger *logger = &GAMESTATE()->logger;
+    if (logger->log_levels & log_level) {
+        smek_print(print_message);
     }
+    if (logger->file) {
+        std::fprintf(logger->file, file_message);
+    }
+    logger->messages.push_back(message);
+}
+
+void Logger::imgui_draw() {
+#ifdef IMGUI_ENABLE
+    ImGui::Begin("Messages");
+    for (const auto &message : GAMESTATE()->logger.messages) {
+        ImGui::Text("%s", message.message);
+    }
+    ImGui::End();
+#endif
 }
 
 #ifdef WINDOWS

@@ -1,7 +1,11 @@
 #pragma once
+#include <cstring>
 #include <stdexcept>
+#include <vector>
 #include "../math/types.h"
 #include "color.h"
+
+const u32 LOG_BUFFER_SIZE = 512;
 
 namespace LogLevel {
 static const u32 NONE    = 0;
@@ -11,6 +15,22 @@ static const u32 WARNING = 1 << 2;
 static const u32 ERROR   = 1 << 3;
 static const u32 ALL     =(1 << 4) - 1; // update this if changing log levels
 }
+
+struct LogMessage {
+    const char *file;
+    u32   line;
+    const char *func;
+    char  message[LOG_BUFFER_SIZE] = {};
+};
+
+struct Logger {
+    u32 log_levels      = LogLevel::ALL;
+    u32 log_levels_file = LogLevel::ALL;
+    FILE *file          = nullptr;
+    std::vector<LogMessage> messages;
+
+    void imgui_draw();
+};
 
 #define ERR(...)   _smek_log_err(__FILE__, __LINE__, __func__, __VA_ARGS__)
 #define WARN(...)  _smek_log_warn(__FILE__, __LINE__, __func__, __VA_ARGS__)
@@ -66,7 +86,7 @@ static const u32 ALL     =(1 << 4) - 1; // update this if changing log levels
         ASSERT((lhs) >= (rhs), STR(LHS) " ({}) should be greater than or equal to " STR(RHS) " ({})", (lhs), (rhs)); \
     } while (false)
 
-void _smek_log(const char *buffer, u32 log_level);
+void _smek_log(const char *print_buffer, const char *file_buffer, u32 log_level, LogMessage message);
 
 template <typename... Args>
 void _smek_log_err(const char *file, u32 line, const char *func, const char *message, Args... args);
@@ -93,58 +113,96 @@ void print_stacktrace(unsigned int max_frames = 63);
 
 #include "tprint.h"
 
-const u32 LOG_BUFFER_SIZE = 512;
-
 // These have to live here now, because of templates.
 template <typename... Args>
 void _smek_log_err(const char *file, u32 line, const char *func, const char *message, Args... args) {
-    char buffer[LOG_BUFFER_SIZE] = {};
+    char message_buffer[LOG_BUFFER_SIZE] = {};
+    char print_buffer[LOG_BUFFER_SIZE] = {};
+    sntprint(message_buffer, LOG_BUFFER_SIZE, message, args...);
     u32 len = 0;
-    len += sntprint(buffer, LOG_BUFFER_SIZE, RED "E {}" RESET " @ {} ({}): ", file, line, func);
-    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
-    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n");
-    _smek_log(buffer, LogLevel::ERROR);
+    len += sntprint(print_buffer, LOG_BUFFER_SIZE, RED "E {}" RESET " @ {} ({}): ", file, line, func);
+    len += sntprint(print_buffer + len, LOG_BUFFER_SIZE - len, "{}", message_buffer);
+    len += sntprint(print_buffer + len, LOG_BUFFER_SIZE - len, "\n");
+    LogMessage log_message = {
+        file,
+        line,
+        func,
+    };
+    std::memcpy(&log_message.message, message_buffer, LOG_BUFFER_SIZE);
+    _smek_log(print_buffer, print_buffer, LogLevel::ERROR, log_message);
 }
 
 template <typename... Args>
 void _smek_log_warn(const char *file, u32 line, const char *func, const char *message, Args... args) {
-    char buffer[LOG_BUFFER_SIZE] = {};
+    char message_buffer[LOG_BUFFER_SIZE] = {};
+    char print_buffer[LOG_BUFFER_SIZE] = {};
+    sntprint(message_buffer, LOG_BUFFER_SIZE, message, args...);
     u32 len = 0;
-    len += sntprint(buffer, LOG_BUFFER_SIZE, YELLOW "W {}" RESET " @ {} ({}): ", file, line, func);
-    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
-    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n");
-    _smek_log(buffer, LogLevel::WARNING);
+    len += sntprint(print_buffer, LOG_BUFFER_SIZE, YELLOW "W {}" RESET " @ {} ({}): ", file, line, func);
+    len += sntprint(print_buffer + len, LOG_BUFFER_SIZE - len, "{}", message_buffer);
+    len += sntprint(print_buffer + len, LOG_BUFFER_SIZE - len, "\n");
+    LogMessage log_message = {
+        file,
+        line,
+        func,
+    };
+    std::memcpy(&log_message.message, message_buffer, LOG_BUFFER_SIZE);
+    _smek_log(print_buffer, print_buffer, LogLevel::WARNING, log_message);
 }
 
 template <typename... Args>
 void _smek_log_info(const char *file, u32 line, const char *func, const char *message, Args... args) {
-    char buffer[LOG_BUFFER_SIZE] = {};
+    char message_buffer[LOG_BUFFER_SIZE] = {};
+    char print_buffer[LOG_BUFFER_SIZE] = {};
+    sntprint(message_buffer, LOG_BUFFER_SIZE, message, args...);
     u32 len = 0;
-    len += sntprint(buffer, LOG_BUFFER_SIZE, WHITE "I {}" RESET " @ {} ({}): ", file, line, func);
-    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
-    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n");
-    _smek_log(buffer, LogLevel::INFO);
+    len += sntprint(print_buffer, LOG_BUFFER_SIZE, WHITE "I {}" RESET " @ {} ({}): ", file, line, func);
+    len += sntprint(print_buffer + len, LOG_BUFFER_SIZE - len, message_buffer);
+    len += sntprint(print_buffer + len, LOG_BUFFER_SIZE - len, "\n");
+    LogMessage log_message = {
+        file,
+        line,
+        func,
+    };
+    std::memcpy(&log_message.message, message_buffer, LOG_BUFFER_SIZE);
+    _smek_log(print_buffer, print_buffer, LogLevel::INFO, log_message);
 }
 
 template <typename... Args>
 void _smek_log_trace(const char *file, u32 line, const char *func, const char *message, Args... args) {
-    char buffer[LOG_BUFFER_SIZE] = {};
+    char message_buffer[LOG_BUFFER_SIZE] = {};
+    char print_buffer[LOG_BUFFER_SIZE] = {};
+    sntprint(message_buffer, LOG_BUFFER_SIZE, message, args...);
     u32 len = 0;
-    len += sntprint(buffer, LOG_BUFFER_SIZE, "T {} @ {} ({}): ", file, line, func);
-    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
-    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n");
-    _smek_log(buffer, LogLevel::TRACE);
+    len += sntprint(print_buffer, LOG_BUFFER_SIZE, "T {} @ {} ({}): ", file, line, func);
+    len += sntprint(print_buffer + len, LOG_BUFFER_SIZE - len, message_buffer);
+    len += sntprint(print_buffer + len, LOG_BUFFER_SIZE - len, "\n");
+    LogMessage log_message = {
+        file,
+        line,
+        func,
+    };
+    std::memcpy(&log_message.message, message_buffer, LOG_BUFFER_SIZE);
+    _smek_log(print_buffer, print_buffer, LogLevel::TRACE, log_message);
 }
 
 template <typename... Args>
 void _smek_unreachable(const char *file, u32 line, const char *func, const char *message, Args... args) {
-    char buffer[LOG_BUFFER_SIZE] = {};
+    char message_buffer[LOG_BUFFER_SIZE] = {};
+    char print_buffer[LOG_BUFFER_SIZE] = {};
+    sntprint(message_buffer, LOG_BUFFER_SIZE, message, args...);
     u32 len = 0;
-    len += sntprint(buffer, LOG_BUFFER_SIZE, RED "U {}" RESET " @ {} ({}) unreachable:\n", file, line, func);
-    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, BOLDRED "| " RESET);
-    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
-    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n" BOLDRED "|" RESET " Stacktrace:\n");
-    _smek_log(buffer, LogLevel::ERROR);
+    len += sntprint(print_buffer, LOG_BUFFER_SIZE, RED "U {}" RESET " @ {} ({}) unreachable:\n", file, line, func);
+    len += sntprint(print_buffer + len, LOG_BUFFER_SIZE - len, BOLDRED "| " RESET);
+    len += sntprint(print_buffer + len, LOG_BUFFER_SIZE - len, message_buffer);
+    len += sntprint(print_buffer + len, LOG_BUFFER_SIZE - len, "\n" BOLDRED "|" RESET " Stacktrace:\n");
+    LogMessage log_message = {
+        file,
+        line,
+        func,
+    };
+    std::memcpy(&log_message.message, message_buffer, LOG_BUFFER_SIZE);
+    _smek_log(print_buffer, print_buffer, LogLevel::ERROR, log_message);
     print_stacktrace();
 
     throw std::runtime_error("Unreachable");
@@ -154,28 +212,44 @@ template <typename... Args>
 void _smek_assert(const char *file, u32 line, const char *func, bool passed, const char *expr, const char *message, Args... args) {
     if (passed) return;
 
-    char buffer[LOG_BUFFER_SIZE] = {};
+    char message_buffer[LOG_BUFFER_SIZE] = {};
+    char print_buffer[LOG_BUFFER_SIZE] = {};
+    sntprint(message_buffer, LOG_BUFFER_SIZE, message, args...);
     u32 len = 0;
-    len += sntprint(buffer, LOG_BUFFER_SIZE, RED "A {}" RESET " @ {} ({}) assert({}):\n", file, line, func, expr);
-    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, BOLDRED "| " RESET);
-    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, message, args...);
-    len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n" BOLDRED "|" RESET " Stacktrace:\n");
-    _smek_log(buffer, LogLevel::ERROR);
+    len += sntprint(print_buffer, LOG_BUFFER_SIZE, RED "A {}" RESET " @ {} ({}) assert({}):\n", file, line, func, expr);
+    len += sntprint(print_buffer + len, LOG_BUFFER_SIZE - len, BOLDRED "| " RESET);
+    len += sntprint(print_buffer + len, LOG_BUFFER_SIZE - len, message_buffer);
+    len += sntprint(print_buffer + len, LOG_BUFFER_SIZE - len, "\n" BOLDRED "|" RESET " Stacktrace:\n");
+    LogMessage log_message = {
+        file,
+        line,
+        func,
+    };
+    std::memcpy(&log_message.message, message_buffer, LOG_BUFFER_SIZE);
+    _smek_log(print_buffer, print_buffer, LogLevel::ERROR, log_message);
     print_stacktrace();
 
     throw std::runtime_error("Assert");
 }
 
 template <typename... Args>
-bool _smek_check(const char *file, u32 line, const char *func, bool passed, const char *expr, const char *msg, Args... args) {
+bool _smek_check(const char *file, u32 line, const char *func, bool passed, const char *expr, const char *message, Args... args) {
     if (!passed) {
-        char buffer[LOG_BUFFER_SIZE] = {};
+        char message_buffer[LOG_BUFFER_SIZE] = {};
+        char print_buffer[LOG_BUFFER_SIZE] = {};
+        sntprint(message_buffer, LOG_BUFFER_SIZE, message, args...);
         u32 len = 0;
-        len += sntprint(buffer, LOG_BUFFER_SIZE, YELLOW "C" RESET " {} @ {} ({}) check({}):\n", file, line, func, expr);
-        len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, YELLOW "| " RESET);
-        len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, msg, args...);
-        len += sntprint(buffer + len, LOG_BUFFER_SIZE - len, "\n");
-        _smek_log(buffer, LogLevel::WARNING);
+        len += sntprint(print_buffer, LOG_BUFFER_SIZE, YELLOW "C" RESET " {} @ {} ({}) check({}):\n", file, line, func, expr);
+        len += sntprint(print_buffer + len, LOG_BUFFER_SIZE - len, YELLOW "| " RESET);
+        len += sntprint(print_buffer + len, LOG_BUFFER_SIZE - len, message_buffer);
+        len += sntprint(print_buffer + len, LOG_BUFFER_SIZE - len, "\n");
+        LogMessage log_message = {
+            file,
+            line,
+            func,
+        };
+        std::memcpy(&log_message.message, message_buffer, LOG_BUFFER_SIZE);
+        _smek_log(print_buffer, print_buffer, LogLevel::ERROR, log_message);
     }
     return passed;
 }

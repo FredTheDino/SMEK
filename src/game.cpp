@@ -308,21 +308,21 @@ void do_imgui_stuff() {
                 }
             }
             if (ImGui::BeginMenu("Log")) {
-                bool trace = (GAMESTATE()->log_levels & LogLevel::TRACE) != 0;
+                bool trace = (GAMESTATE()->logger.log_levels & LogLevel::TRACE) != 0;
                 if (ImGui::MenuItem("TRACE", "", &trace)) {
-                    GAMESTATE()->log_levels ^= LogLevel::TRACE;
+                    GAMESTATE()->logger.log_levels ^= LogLevel::TRACE;
                 }
-                bool info = (GAMESTATE()->log_levels & LogLevel::INFO) != 0;
+                bool info = (GAMESTATE()->logger.log_levels & LogLevel::INFO) != 0;
                 if (ImGui::MenuItem("INFO", "", &info)) {
-                    GAMESTATE()->log_levels ^= LogLevel::INFO;
+                    GAMESTATE()->logger.log_levels ^= LogLevel::INFO;
                 }
-                bool warning = (GAMESTATE()->log_levels & LogLevel::WARNING) != 0;
+                bool warning = (GAMESTATE()->logger.log_levels & LogLevel::WARNING) != 0;
                 if (ImGui::MenuItem("WARNING", "", &warning)) {
-                    GAMESTATE()->log_levels ^= LogLevel::WARNING;
+                    GAMESTATE()->logger.log_levels ^= LogLevel::WARNING;
                 }
-                bool error = (GAMESTATE()->log_levels & LogLevel::ERROR) != 0;
+                bool error = (GAMESTATE()->logger.log_levels & LogLevel::ERROR) != 0;
                 if (ImGui::MenuItem("ERROR", "", &error)) {
-                    GAMESTATE()->log_levels ^= LogLevel::ERROR;
+                    GAMESTATE()->logger.log_levels ^= LogLevel::ERROR;
                 }
                 ImGui::EndMenu();
             }
@@ -416,6 +416,7 @@ void do_imgui_stuff() {
     }
 
     GAMESTATE()->network.imgui_draw();
+    GAMESTATE()->logger.imgui_draw();
 }
 #else
 void do_imgui_stuff() {}
