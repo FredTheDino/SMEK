@@ -585,4 +585,27 @@ TEST_CASE("entity on_remove", {
     return true;
 });
 
+TEST_CASE("entity add_emplace", {
+    u8 buffer[MAX_ENTITY_SIZE];
+    emplace_entity((void *)buffer, EntityType::PLAYER);
+    Player *a_ptr = (Player *)buffer;
+    ASSERT_EQ(a_ptr->type, EntityType::PLAYER);
+    ASSERT_EQ(a_ptr->position.x, 0);
+    ASSERT_EQ(a_ptr->position.y, 0);
+    ASSERT_EQ(a_ptr->position.z, 0);
+    return true;
+});
+
+TEST_CASE("entity add_unknown_type", {
+    Player a;
+    a.type = EntityType::PLAYER;
+    a.position = Vec3(1, 2, 3);
+    auto id = entity_system()->add_unknown_type(&a);
+    Player *a_ptr = entity_system()->fetch<Player>(id);
+    ASSERT_EQ(a_ptr->position.x, a.position.x);
+    ASSERT_EQ(a_ptr->position.y, a.position.y);
+    ASSERT_EQ(a_ptr->position.z, a.position.z);
+    return true;
+});
+
 #undef IMPL_IMGUI

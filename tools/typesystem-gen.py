@@ -211,18 +211,35 @@ if __name__ == "__main__":
         def gen():
             out = []
             for field in fields:
-                out.append(f"{{ typeid({field['TYPE']}), FieldName::{field['NAME']}, sizeof({field['TYPE']}), (int)offsetof({name}, {field['NAME']}) }}")
+                out.append(f"{{ typeid({field['TYPE']}), "
+                           f"FieldName::{field['NAME']}, "
+                           f"sizeof({field['TYPE']}), "
+                           f"(int)offsetof({name}, {field['NAME']}), "
+                           f"{int('INTERNAL' in field)}, "
+                           "}")
             return ",\n    ".join(out)
         return f"Field gen_{name}[] = {{\n    {gen()}\n}};"
 
     def gen_fields_switch(names):
         out = []
         for name in names:
-            out.append(f"{' '*4}case EntityType::{to_enum(name)}: return {{ LEN(gen_{name}), gen_{name} }};")
+            out.append(f"{' '*4}case EntityType::{to_enum(name)}:"
+                       f"return {{ LEN(gen_{name}), gen_{name} }};")
         return "\n".join(out)
 
-    fields_data = [gen_fields_data(name, struct.fields) for name, struct in entity_structs.items()]
-    fields_switch = gen_fields_switch(entity_structs.keys())
+    def gen_emplace(name):
+        out = []
+        out.append(f"{' '*4}case EntityType::{to_enum(name)}:")
+        out.append(f"{' '*8}*(({name} *) buffer) = {name}();")
+        out.append(f"{' '*8}(({name} *) buffer)->type = EntityType::{to_enum(name)};")
+        out.append(f"{' '*8}return;")
+        return (f"\n").join(out)
+
+    def gen_add_unkown_type(name):
+        out = []
+        out.append(f"{' '*4}case EntityType::{to_enum(name)}:")
+        out.append(f"{' '*8}return add<{name}>(*({name} *) e);")
+        return (f"\n").join(out)
 
     all_field_names = set()
     for struct in entity_structs.values():
@@ -242,6 +259,7 @@ if __name__ == "__main__":
     template_kwords_h = {
             "all_field_names": "\n".join([f"extern FieldNameType {name};" for name in all_field_names]),
             "types": "\n".join([f"    {to_enum(t)}," for t in entity_structs.keys()]),
+            "type_sizes": ", ".join([f"sizeof({t})" for t in entity_structs.keys()]),
             "type_names": ",\n".join([f"{' '*4}\"{t}\"" for t in entity_structs.keys()]),
             "type_ofs": "\n".join([template_type_of_h.substitute(entity_type=t) for t in entity_structs.keys()]),
             "event_entity_bytes_union": "\n".join([f"{' '*8}u8 {to_enum(t)}[sizeof({t}) - sizeof(void *)];" for t in entity_structs.keys()]),
@@ -272,12 +290,20 @@ if __name__ == "__main__":
                                                        entity_type_enum=to_enum(name))
                      for name in entity_structs.keys()]
 
+    fields_data = [gen_fields_data(name, struct.fields) for name, struct in entity_structs.items()]
+    fields_switch = gen_fields_switch(entity_structs.keys())
+
+    emplace_switch = "\n".join([gen_emplace(name) for name in entity_structs.keys()])
+    add_switch = "\n".join([gen_add_unkown_type(name) for name in entity_structs.keys()])
+
     template_kwords_cpp = {
             "all_field_names_impl": "\n".join([f"FieldNameType {name} = \"{name}\";" for name in all_field_names]),
             "type_ofs": "\n".join([template_type_of_cpp.substitute(entity_type=t, entity_type_enum=to_enum(t)) for t in entity_structs.keys()]),
             "type_formats": "\n".join([f"{' '*4}case EntityType::{to_enum(t)}: return snprintf(buffer, size, \"{t}\");" for t in entity_structs.keys()]),
             "fields_data": "\n".join(fields_data),
             "fields_switch": fields_switch,
+            "emplace_switch": emplace_switch,
+            "add_switch": add_switch,
             "callbacks": "".join(callbacks),
             "entity_events": "\n".join(entity_events),
     }

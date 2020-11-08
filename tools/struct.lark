@@ -14,7 +14,7 @@ _member: field
       | struct
       | ";"
 
-field: STATIC? (CONST? | CONSTEXPR?) TYPE POINTER* NAME ("[" INT? "]")? ("=" INITIALIZER_VALUE)? ";"
+field: STATIC? INTERNAL? (CONST? | CONSTEXPR?) TYPE POINTER* NAME ("[" INT? "]")? ("=" INITIALIZER_VALUE)? ";"
 
 method: VIRTUAL? (TYPE | DESTRUCTOR)? NAME "(" PARAMETERS? ")" OVERRIDE? "{" METHOD_BODY? "}" ";"?
       | VIRTUAL? (TYPE | DESTRUCTOR)? NAME "(" PARAMETERS? ")" OVERRIDE? ";"
@@ -32,6 +32,7 @@ POINTER: "*"
 DESTRUCTOR: "~"
 STATIC: "static"
 CONST: "const"
+INTERNAL: "INTERNAL"
 CONSTEXPR: "constexpr"
 TYPE: (ALPHANUMWORD "::")* ALPHANUMWORD
 INITIALIZER_VALUE: /[^;]+/
