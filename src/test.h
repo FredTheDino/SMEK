@@ -43,7 +43,7 @@ struct GameState;
 
 #define UNIQUE_NAME(base) PP_CAT(PP_CAT(base, __LINE__), __COUNTER__)
 
-#define TEST_CASE(name, block) static int UNIQUE_NAME(_test_id_) = reg_test((name), [](GameState * game, FILE * report) -> bool block, __FILE__, __LINE__)
+#define TEST_CASE(name, block) static int UNIQUE_NAME(_test_id_) = reg_test((name), [](GameState *game, FILE *report) -> bool block, __FILE__, __LINE__)
 #define TEST_STMT(name, stmt)  static int UNIQUE_NAME(_test_id_) = reg_test((name), [](GameState *game, FILE *report) -> bool { return stmt; }, __FILE__, __LINE__)
 using TestCallback = bool (*)(GameState *game, FILE *report);
 
