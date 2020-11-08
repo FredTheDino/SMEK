@@ -307,6 +307,25 @@ void do_imgui_stuff() {
                     Performance::capture_begin();
                 }
             }
+            if (ImGui::BeginMenu("Log")) {
+                bool trace = (GAMESTATE()->log_levels & LogLevel::TRACE) != 0;
+                if (ImGui::MenuItem("TRACE", "", &trace)) {
+                    GAMESTATE()->log_levels ^= LogLevel::TRACE;
+                }
+                bool info = (GAMESTATE()->log_levels & LogLevel::INFO) != 0;
+                if (ImGui::MenuItem("INFO", "", &info)) {
+                    GAMESTATE()->log_levels ^= LogLevel::INFO;
+                }
+                bool warning = (GAMESTATE()->log_levels & LogLevel::WARNING) != 0;
+                if (ImGui::MenuItem("WARNING", "", &warning)) {
+                    GAMESTATE()->log_levels ^= LogLevel::WARNING;
+                }
+                bool error = (GAMESTATE()->log_levels & LogLevel::ERROR) != 0;
+                if (ImGui::MenuItem("ERROR", "", &error)) {
+                    GAMESTATE()->log_levels ^= LogLevel::ERROR;
+                }
+                ImGui::EndMenu();
+            }
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Help")) {
