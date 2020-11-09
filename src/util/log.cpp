@@ -4,13 +4,51 @@
 
 #include <cstdio>
 
-void _smek_log(const char *print_message, const char *file_message, u32 log_level, LogMessage message) {
+void _smek_log(LogMessage message) {
     Logger *logger = &GAMESTATE()->logger;
-    if (logger->log_levels & log_level) {
-        smek_print(print_message);
+    char print_buffer[LOG_BUFFER_SIZE] = {}; // with color
+    char file_buffer[LOG_BUFFER_SIZE] = {};  // without color
+    u32 print_len = 0;
+    u32 file_len = 0;
+
+    if (LogLevel::ERROR & message.level & logger->log_levels) {
+        print_len += sntprint(print_buffer, LOG_BUFFER_SIZE, RED "E ");
+    } else if (LogLevel::WARNING & message.level & logger->log_levels) {
+        print_len += sntprint(print_buffer, LOG_BUFFER_SIZE, YELLOW "W ");
+    } else if (LogLevel::INFO & message.level & logger->log_levels) {
+        print_len += sntprint(print_buffer, LOG_BUFFER_SIZE, WHITE "I ");
+    } else if (LogLevel::TRACE & message.level & logger->log_levels) {
+        print_len += sntprint(print_buffer, LOG_BUFFER_SIZE, "T ");
+    }
+
+    if (LogLevel::ERROR & message.level & logger->log_levels_file) {
+        file_len += sntprint(file_buffer, LOG_BUFFER_SIZE, "E ");
+    } else if (LogLevel::WARNING & message.level & logger->log_levels_file) {
+        file_len += sntprint(file_buffer, LOG_BUFFER_SIZE, "W ");
+    } else if (LogLevel::INFO & message.level & logger->log_levels_file) {
+        file_len += sntprint(file_buffer, LOG_BUFFER_SIZE, "I ");
+    } else if (LogLevel::TRACE & message.level & logger->log_levels_file) {
+        file_len += sntprint(file_buffer, LOG_BUFFER_SIZE, "T ");
+    }
+
+    print_len += sntprint(print_buffer + print_len, LOG_BUFFER_SIZE - print_len,
+                          "{}" RESET " @ {} ({}): {}\n",
+                          message.file,
+                          message.line,
+                          message.func,
+                          message.message);
+    file_len += sntprint(file_buffer + file_len, LOG_BUFFER_SIZE - file_len,
+                          "{} @ {} ({}): {}\n",
+                          message.file,
+                          message.line,
+                          message.func,
+                          message.message);
+
+    if (message.level & logger->log_levels) {
+        smek_print(print_buffer);
     }
     if (logger->file) {
-        std::fprintf(logger->file, file_message);
+        std::fprintf(logger->file, file_buffer);
     }
     logger->messages.push_back(message);
 }
