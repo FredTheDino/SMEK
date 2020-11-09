@@ -1,5 +1,6 @@
 #include "entity_parser.h"
 #include "../test.h"
+#include "../game.h"
 #include "entity_types.h"
 
 #include <cstring>
@@ -10,6 +11,13 @@
 // # <type>
 // <field> <value?>
 //
+
+void load_level(AssetID level_id) {
+    const char *serialized = Asset::fetch_level(level_id)->data;
+
+    auto callback = [](BaseEntity *e) { GAMESTATE()->entity_system.add_unknown_type(e); };
+    parse_entities_and_do(serialized);
+}
 
 EntityType string_to_entity_type(const char *str) {
     for (u32 t = 0; t < LEN(entity_type_names); t++) {
@@ -24,7 +32,9 @@ struct FileParser {
 
     FileParser(const char *data, const char *filename)
         : data(data)
-        , filename(filename) {};
+        , filename(filename) {
+        ASSERT(data, "No data read, cannot parse nothing!");
+    }
 
     const char *data;
     const char *filename;
@@ -169,7 +179,7 @@ struct FileParser {
         eat_word(floatstr, LEN(floatstr));
         try {
             return std::stod(floatstr);
-        } catch (std::invalid_argument *i) {
+        } catch (std::invalid_argument &i) {
             error("Failed to parse as float", floatstr);
             return 0;
         }
@@ -185,7 +195,7 @@ i64 FileParser::parse_int() {
     eat_word(intstr, LEN(intstr));
     try {
         return std::stoll(intstr);
-    } catch (std::invalid_argument *i) {
+    } catch (std::invalid_argument &i) {
         error("Failed to parse as int", intstr);
         return 0;
     }
@@ -197,7 +207,7 @@ u64 FileParser::parse_int() {
     eat_word(intstr, LEN(intstr));
     try {
         return std::stoull(intstr);
-    } catch (std::invalid_argument *i) {
+    } catch (std::invalid_argument &i) {
         error("Failed to parse as int", intstr);
         return 0;
     }
@@ -283,6 +293,7 @@ void initalize_parse_funcs() {
     F(f32) F(f64)
     F(bool)
     F(Vec2) F(Vec3) F(Vec4)
+    F(Color3) F(Color4)
     // clang-format on
 #undef F
 }
