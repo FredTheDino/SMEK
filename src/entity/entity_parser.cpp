@@ -99,7 +99,7 @@ struct FileParser {
     }
 
     // Writes until next whitespace into the buffer, or until
-    // the buffer runsout.
+    // the buffer runs out.
     u32 eat_word(char *buff, u32 len) {
         u32 i = 0;
         for (; !is_whitespace() && peek(); i++) {
@@ -164,13 +164,24 @@ struct FileParser {
         return nullptr;
     }
 
-    f32 parse_float() {
+    f64 parse_float() {
         char floatstr[32] = {};
         eat_word(floatstr, LEN(floatstr));
         try {
-            return std::stof(floatstr);
+            return std::stod(floatstr);
         } catch (std::invalid_argument *i) {
             error("Failed to parse as float", floatstr);
+            return 0;
+        }
+    }
+
+    i64 parse_int() {
+        char floatstr[32] = {};
+        eat_word(floatstr, LEN(floatstr));
+        try {
+            return std::stoll(floatstr);
+        } catch (std::invalid_argument *i) {
+            error("Failed to parse as int", floatstr);
             return 0;
         }
     }
