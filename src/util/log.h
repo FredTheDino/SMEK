@@ -18,9 +18,9 @@ static const u32 ALL     =(1 << 4) - 1; // update this if changing log levels
 
 struct LogMessage {
     const char *file;
-    u32   line;
+    u32 line;
     const char *func;
-    char  message[LOG_BUFFER_SIZE] = {};
+    char message[LOG_BUFFER_SIZE] = {};
 };
 
 struct Logger {
