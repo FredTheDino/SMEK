@@ -252,6 +252,11 @@ bool update_to_default_window_size(int *width, int *height, f32 screen_percent) 
 }
 
 int main(int argc, char **argv) { // Game entrypoint
+    game_state.logger.file = std::fopen("smek.log", "w");
+    if (!game_state.logger.file) {
+        ERR("Unable to open log file\n");
+    }
+
     int width = 500;
     int height = 500;
     bool passed_resolution = false;
