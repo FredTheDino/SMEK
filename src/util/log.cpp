@@ -1,62 +1,64 @@
 #include "log.h"
 #include "../game.h"
 #include "imgui/imgui.h"
-
 #include <cstdio>
+#include <cstring>
 
-void _smek_log(LogMessage message) {
+void _smek_log(const char *message, LogMessage log) {
     Logger *logger = &GAMESTATE()->logger;
     char print_buffer[LOG_BUFFER_SIZE] = {}; // with color
     char file_buffer[LOG_BUFFER_SIZE] = {};  // without color
     u32 print_len = 0;
     u32 file_len = 0;
 
-    if (LogLevel::ERROR & message.level & logger->log_levels) {
-        print_len += sntprint(print_buffer, LOG_BUFFER_SIZE, RED "E ");
-    } else if (LogLevel::WARNING & message.level & logger->log_levels) {
+    std::memcpy(&log.message, message, LOG_BUFFER_SIZE);
+
+    if (LogLevel::ERROR & log.level & logger->levels) {
+        print_len += sntprint(print_buffer, LOG_BUFFER_SIZE, RED    "E ");
+    } else if (LogLevel::WARNING & log.level & logger->levels) {
         print_len += sntprint(print_buffer, LOG_BUFFER_SIZE, YELLOW "W ");
-    } else if (LogLevel::INFO & message.level & logger->log_levels) {
-        print_len += sntprint(print_buffer, LOG_BUFFER_SIZE, WHITE "I ");
-    } else if (LogLevel::TRACE & message.level & logger->log_levels) {
-        print_len += sntprint(print_buffer, LOG_BUFFER_SIZE, "T ");
+    } else if (LogLevel::INFO & log.level & logger->levels) {
+        print_len += sntprint(print_buffer, LOG_BUFFER_SIZE, WHITE  "I ");
+    } else if (LogLevel::TRACE & log.level & logger->levels) {
+        print_len += sntprint(print_buffer, LOG_BUFFER_SIZE, RESET  "T ");
     }
 
-    if (LogLevel::ERROR & message.level & logger->log_levels_file) {
+    if (LogLevel::ERROR & log.level & logger->levels_file) {
         file_len += sntprint(file_buffer, LOG_BUFFER_SIZE, "E ");
-    } else if (LogLevel::WARNING & message.level & logger->log_levels_file) {
+    } else if (LogLevel::WARNING & log.level & logger->levels_file) {
         file_len += sntprint(file_buffer, LOG_BUFFER_SIZE, "W ");
-    } else if (LogLevel::INFO & message.level & logger->log_levels_file) {
+    } else if (LogLevel::INFO & log.level & logger->levels_file) {
         file_len += sntprint(file_buffer, LOG_BUFFER_SIZE, "I ");
-    } else if (LogLevel::TRACE & message.level & logger->log_levels_file) {
+    } else if (LogLevel::TRACE & log.level & logger->levels_file) {
         file_len += sntprint(file_buffer, LOG_BUFFER_SIZE, "T ");
     }
 
     print_len += sntprint(print_buffer + print_len, LOG_BUFFER_SIZE - print_len,
                           "{}" RESET " @ {} ({}): {}\n",
-                          message.file,
-                          message.line,
-                          message.func,
-                          message.message);
+                          log.file,
+                          log.line,
+                          log.func,
+                          log.message);
     file_len += sntprint(file_buffer + file_len, LOG_BUFFER_SIZE - file_len,
                           "{} @ {} ({}): {}\n",
-                          message.file,
-                          message.line,
-                          message.func,
-                          message.message);
+                          log.file,
+                          log.line,
+                          log.func,
+                          log.message);
 
-    if (message.level & logger->log_levels) {
+    if (log.level & logger->levels) {
         smek_print(print_buffer);
     }
     if (logger->file) {
         std::fprintf(logger->file, file_buffer);
     }
-    logger->messages.push_back(message);
+    logger->logs.push_back(log);
 }
 
 void Logger::imgui_draw() {
 #ifdef IMGUI_ENABLE
     ImGui::Begin("Messages");
-    for (const auto &message : GAMESTATE()->logger.messages) {
+    for (const auto &message : GAMESTATE()->logger.logs) {
         ImGui::Text("%s", message.message);
     }
     ImGui::End();
