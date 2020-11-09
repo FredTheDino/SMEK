@@ -436,7 +436,7 @@ int network_listen_for_clients(void *data) {
 }
 
 TEST_CASE("network start/stop server", {
-    GAMESTATE()->log_levels &= ~(LogLevel::TRACE | LogLevel::INFO);
+    GAMESTATE()->logger.log_levels &= ~(LogLevel::TRACE | LogLevel::INFO);
     ASSERT(GAMESTATE()->network.setup_server(8888), "error setting up server");
     GAMESTATE()->network.stop_server();
     return true;
