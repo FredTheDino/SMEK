@@ -64,7 +64,7 @@ int main(int argc, char **argv) { // Test entry point
 
 void init_tests_state(GameState *tests_state) {
     tests_state->entity_system.m_client_id = SDL_CreateMutex();
-    tests_state->logger.log_levels = LogLevel::ALL;
+    tests_state->logger.levels = LogLevel::ALL;
 }
 
 #define STREAM stderr
