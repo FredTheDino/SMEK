@@ -73,6 +73,11 @@ AddOption("--ci",
           action="store_true",
           help="Print tests-output without \\r.")
 
+AddOption("--no-warn",
+          dest="no_warn",
+          action="store_true",
+          help="Makes all warnings into noisy errors.")
+
 AddOption("--report",
           dest="report",
           action="store_true",
@@ -190,6 +195,9 @@ else:
         smek_game_lib = "./libSMEK.so"
         env.Replace(SHLIBSUFFIX="so")
 
+if GetOption("no_warn"):
+    env.MergeFlags("-Werror")
+
 env.MergeFlags(WARNINGS)
 env.MergeFlags(f"-std={CPPSTD}")
 env.MergeFlags("-Iinc -Llib")
@@ -255,7 +263,7 @@ if native and PLATFORMS["linux"]:
 #
 
 #TODO(gu) don't execute on clean
-Execute("./tools/typesystem-gen.py")  # creates `src/entity/entity_types.{cpp,h}` so has to be run before the glob
+Execute("python3 tools/typesystem-gen.py")  # creates `src/entity/entity_types.{cpp,h}` so has to be run before the glob
 source = glob("src/**/*.c*", recursive=True)
 
 def create_test_target():
