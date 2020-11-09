@@ -259,7 +259,8 @@ void initalize_parse_funcs() {
 #undef F
 }
 
-std::vector<BaseEntity *> parse_entities(const char *data) {
+std::vector<BaseEntity *>
+parse_entities(const char *data) {
     std::vector<BaseEntity *> entities;
 
     initalize_parse_funcs();
@@ -283,7 +284,6 @@ std::vector<BaseEntity *> parse_entities(const char *data) {
             std::size_t hash = field->typeinfo.hash_code();
             if (parse_funcs.contains(hash)) {
                 parse_funcs[hash](parser, (void *)(entity + field->offset));
-                parser.skipp_line();
             } else {
                 const char *name = field->typeinfo.name();
                 int status;
@@ -291,7 +291,7 @@ std::vector<BaseEntity *> parse_entities(const char *data) {
                 ASSERT_EQ(status, 0);
                 ERR("Failed to 'parse' field '{}' with unsupported type '{}'",
                     field->name, demangled);
-                parse_funcs[hash] = ParseFuncs::empty_f;
+                parse_funcs[hash] = ParseFuncs::parse_empty;
                 delete[] demangled;
             }
 
@@ -300,7 +300,7 @@ std::vector<BaseEntity *> parse_entities(const char *data) {
         }
     }
 
-    return {};
+    return entities;
 }
 
 TEST_CASE("parser-simple", {
