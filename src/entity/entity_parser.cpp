@@ -5,6 +5,7 @@
 #include <cstring>
 #include <functional>
 #include <cxxabi.h>
+#include <limits>
 
 //
 // # <type>
@@ -191,23 +192,70 @@ using ParseFunc = std::function<void(FileParser, void *)>;
 std::unordered_map<std::size_t, ParseFunc> parse_funcs;
 
 namespace ParseFuncs {
-void empty_f(FileParser p, void *d) {}
 
-void parse_Vec3(FileParser p, void *d) {
-    Vec3 *out = (Vec3 *)d;
+void parse_empty(FileParser p, void *d) {}
+
+template <typename T>
+concept Ints = std::numeric_limits<T>().is_integer;
+
+template <Ints T>
+void parse(FileParser p, void *d) {
+    auto limit = std::numeric_limits<T>();
+    FileParser before_read = p;
+
+    T *out = (T *)d;
+    // Assumes all values we want to store fit in a 64 bit integer.
+    i64 value = p.parse_int();
+    if (limit.min() > value && limit.max() < value) {
+        char buffer[128];
+        sntprint(buffer, LEN(buffer),
+                 "Won't fit. {} not in [{},{}]. Default to 0.",
+                 value, limit.min(), limit.max());
+        before_read.error(buffer);
+        *out = 0;
+    }
+    *out = (T)value;
+}
+
+template <typename T>
+concept Reals = std::numeric_limits<T>().epsilon() != 0;
+
+template <Reals T>
+void parse(FileParser p, void *d) {
+    T *out = (T *)d;
     p.skipp_whitespace();
-    out->x = p.parse_float();
+    *out = p.parse_float();
+}
+
+template <VectorType T>
+void parse(FileParser p, void *d) {
+    T *out = (T *)d;
+    for (int i = 0; i < DIM<T>(); i++) {
+        // NOTE(ed): Thought about restricting colors to
+        // be in range [0, 1].
+        p.skipp_whitespace();
+        out->_[i] = p.parse_float();
+    }
+}
+
+template <>
+void parse<bool>(FileParser p, void *d) {
+    TRACE("Parsing bool!");
+    bool *out = (bool *)d;
     p.skipp_whitespace();
-    out->y = p.parse_float();
-    p.skipp_whitespace();
-    out->z = p.parse_float();
-    INFO("{}", *out);
+    *out = p.parse_int() != 0;
 }
 }
 
 void initalize_parse_funcs() {
-#define F(T) parse_funcs[typeid(T).hash_code()] = ParseFuncs::parse_##T
-    F(Vec3);
+#define F(T) parse_funcs[typeid(T).hash_code()] = ParseFuncs::parse<T>;
+    // clang-format off
+    F(i64) F(i32) F(i16) F(i8)
+    F(u64) F(u32) F(u16) F(u8)
+    F(f32) F(f64)
+    F(bool)
+    F(Vec2) F(Vec3) F(Vec4)
+    // clang-format on
 #undef F
 }
 
