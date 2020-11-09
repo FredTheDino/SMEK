@@ -24,8 +24,17 @@ jobs:
         run: |
           python3 tools/typesystem-gen.py
           git diff --exit-code
+      - name: Try to build release version (g++)
+        run: |
+          scons -Q --clean
+          scons -Q --release --no-imgui --jumbo CXX=g++
+      - name: Try to build release version (clang++)
+        run: |
+          scons -Q --clean
+          scons -Q --release --no-imgui --jumbo CXX=clang++
       - name: Run tests
         run: |
+          scons -Q --clean
           scons -Q tests --ci --report --jumbo --no-imgui
       - name: Upload build
         if: ${{ !success() }}
@@ -42,9 +51,3 @@ jobs:
           name: report
           path: |
             bin/tests/report.txt
-      - name: Try to build release version (g++)
-        run: |
-          scons -Q --release --no-imgui --jumbo CXX=g++
-      - name: Try to build release version (clang++)
-        run: |
-          scons -Q --release --no-imgui --jumbo CXX=clang++
