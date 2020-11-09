@@ -13,7 +13,7 @@
 //
 
 EntityType string_to_entity_type(const char *str) {
-    for (int t = 0; t < LEN(entity_type_names); t++) {
+    for (u32 t = 0; t < LEN(entity_type_names); t++) {
         if (std::strcmp(str, entity_type_names[t]) == 0) {
             return EntityType(t);
         }
@@ -76,7 +76,7 @@ struct FileParser {
         u32 sol = head;
         while (data[sol] != '\n' && sol != 0) { sol--; }
         sol++;
-        for (int i = 0;
+        for (u32 i = 0;
              i < LEN(faulty_line)
              && data[sol + i] != '\n'
              && data[sol + i] != '\0';
@@ -176,17 +176,33 @@ struct FileParser {
         }
     }
 
-    i64 parse_int() {
-        char floatstr[32] = {};
-        eat_word(floatstr, LEN(floatstr));
-        try {
-            return std::stoll(floatstr);
-        } catch (std::invalid_argument *i) {
-            error("Failed to parse as int", floatstr);
-            return 0;
-        }
-    }
+    template <typename T>
+    T parse_int();
 };
+
+template <>
+i64 FileParser::parse_int() {
+    char intstr[32] = {};
+    eat_word(intstr, LEN(intstr));
+    try {
+        return std::stoll(intstr);
+    } catch (std::invalid_argument *i) {
+        error("Failed to parse as int", intstr);
+        return 0;
+    }
+}
+
+template <>
+u64 FileParser::parse_int() {
+    char intstr[32] = {};
+    eat_word(intstr, LEN(intstr));
+    try {
+        return std::stoull(intstr);
+    } catch (std::invalid_argument *i) {
+        error("Failed to parse as int", intstr);
+        return 0;
+    }
+}
 
 using ParseFunc = std::function<void(FileParser, void *)>;
 std::unordered_map<std::size_t, ParseFunc> parse_funcs;
@@ -198,6 +214,19 @@ void parse_empty(FileParser p, void *d) {}
 template <typename T>
 concept Ints = std::numeric_limits<T>().is_integer;
 
+template <bool b, typename A, typename B>
+struct IfType;
+
+template <typename A, typename B>
+struct IfType<true, A, B> {
+    using T = A;
+};
+
+template <typename A, typename B>
+struct IfType<false, A, B> {
+    using T = B;
+};
+
 template <Ints T>
 void parse(FileParser p, void *d) {
     auto limit = std::numeric_limits<T>();
@@ -205,7 +234,8 @@ void parse(FileParser p, void *d) {
 
     T *out = (T *)d;
     // Assumes all values we want to store fit in a 64 bit integer.
-    i64 value = p.parse_int();
+    using LargestType = typename IfType<std::is_signed<T>::value, i64, u64>::T;
+    LargestType value = p.parse_int<LargestType>();
     if (limit.min() > value && limit.max() < value) {
         char buffer[128];
         sntprint(buffer, LEN(buffer),
@@ -243,7 +273,7 @@ void parse<bool>(FileParser p, void *d) {
     TRACE("Parsing bool!");
     bool *out = (bool *)d;
     p.skipp_whitespace();
-    *out = p.parse_int() != 0;
+    *out = p.parse_int<i64>() != 0;
 }
 }
 
