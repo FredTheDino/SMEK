@@ -17,6 +17,8 @@ static const u32 ALL     =(1 << 4) - 1; // update this if changing log levels
 }
 
 struct LogMessage {
+    //TODO timestamp
+    //TODO thread
     u32 level;
     const char *file;
     u32 line;
@@ -25,7 +27,7 @@ struct LogMessage {
 };
 
 struct Logger {
-    u32 log_levels      = LogLevel::ALL;
+    u32 log_levels      = LogLevel::WARNING | LogLevel::ERROR;
     u32 log_levels_file = LogLevel::ALL;
     FILE *file          = nullptr;
     std::vector<LogMessage> messages;
