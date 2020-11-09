@@ -71,7 +71,7 @@ Field gen_Player[] = {
     { typeid(Vec3), FieldName::position, sizeof(Vec3), (int)offsetof(Player, position), 0, },
     { typeid(Vec3), FieldName::scale, sizeof(Vec3), (int)offsetof(Player, scale), 0, },
     { typeid(Quat), FieldName::rotation, sizeof(Quat), (int)offsetof(Player, rotation), 0, },
-    { typeid(PlayerInput), FieldName::last_input, sizeof(PlayerInput), (int)offsetof(Player, last_input), 0, },
+    { typeid(PlayerInput), FieldName::last_input, sizeof(PlayerInput), (int)offsetof(Player, last_input), 1, },
     { typeid(Vec3), FieldName::velocity, sizeof(Vec3), (int)offsetof(Player, velocity), 0, }
 };
 Field gen_SoundEntity[] = {
