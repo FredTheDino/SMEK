@@ -98,6 +98,7 @@ TYPE_SOUND = 5
 TYPE_SKINNED = 6
 TYPE_SKELETON = 7
 TYPE_ANIMATION = 8
+TYPE_LEVEL = 9
 
 
 def ll(x):
@@ -192,6 +193,23 @@ def string_asset(path, verbose):
 
     yield header, struct.pack(fmt, len(data)+1, 0, str.encode(data, "ascii")), ""
 
+def level_asset(path, verbose):
+    """Load an ASCII text file.
+
+    Data format:
+    - Q  Number of characters
+    - P  Data pointer
+    - s> Data
+    """
+
+    data = "".join(open(path, "r").readlines()).rstrip()
+    fmt = "QP{}s".format(len(data) + 1)
+
+    header = default_header()
+    header["type"] = TYPE_LEVEL
+    header["data_size"] = struct.calcsize(fmt)
+
+    yield header, struct.pack(fmt, len(data)+1, 0, str.encode(data, "ascii")), ""
 
 def shader_asset(path, verbose):
     """Load a shader.
@@ -377,6 +395,7 @@ EXTENSIONS = {
     "obj": model_asset,
     "edan": skinned_asset,
     "wav": wav_asset,
+    "lvl": level_asset,
 }
 
 
