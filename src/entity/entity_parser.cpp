@@ -304,5 +304,22 @@ parse_entities(const char *data) {
 }
 
 TEST_CASE("parser-simple", {
-    parse_entities("# Light\nposition 1 2 3\ndraw_as_point 1\n");
+    Entity::BaseEntity *e = parse_entities("# Light\nposition 1 2 3\ndraw_as_point 1\n")[0];
+    ASSERT_EQ(e->type, EntityType::LIGHT);
+    Light *l = (Light *)e;
+    ASSERT_LT(length(l->position - Vec3(1, 2, 3)), 0.01);
+    ASSERT_EQ(l->draw_as_point, true);
+    return true;
+});
+
+TEST_CASE("parser-multiple", {
+    auto es = parse_entities("# Light\ndraw_as_point 1\n# Light\ndraw_as_point 1\n");
+    ASSERT_EQ(es.size(), 2);
+    ASSERT(es[0] != es[1], "Should not return same entity twice");
+    for (auto e : es) {
+        ASSERT_EQ(e->type, EntityType::LIGHT);
+        Light *l = (Light *)e;
+        ASSERT_EQ(l->draw_as_point, true);
+    }
+    return true;
 });
