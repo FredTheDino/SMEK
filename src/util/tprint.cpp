@@ -165,7 +165,7 @@ TEST_CASE("reuse sntprint buffer - with formatting over buf_size", {
 
 #define SNTPRINT_TEST(name, buflen, exp, fmt, ...)                                       \
     TEST_CASE("sntprint - " name, {                                                      \
-        GAMESTATE()->logger.levels &= ~LogLevel::WARNING;                                   \
+        GAMESTATE()->logger.levels &= ~LogLevel::WARNING;                                \
         char buf[buflen] = {};                                                           \
         const char *fmt_str = fmt;                                                       \
         const char *exp_str = exp;                                                       \

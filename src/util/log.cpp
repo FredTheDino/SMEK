@@ -13,43 +13,40 @@ void _smek_log(const char *message, LogMessage log) {
 
     std::memcpy(&log.message, message, LOG_BUFFER_SIZE);
 
-    if (LogLevel::ERROR & log.level & logger->levels) {
-        print_len += sntprint(print_buffer, LOG_BUFFER_SIZE, RED    "E ");
-    } else if (LogLevel::WARNING & log.level & logger->levels) {
-        print_len += sntprint(print_buffer, LOG_BUFFER_SIZE, YELLOW "W ");
-    } else if (LogLevel::INFO & log.level & logger->levels) {
-        print_len += sntprint(print_buffer, LOG_BUFFER_SIZE, WHITE  "I ");
-    } else if (LogLevel::TRACE & log.level & logger->levels) {
-        print_len += sntprint(print_buffer, LOG_BUFFER_SIZE, RESET  "T ");
-    }
-
-    if (LogLevel::ERROR & log.level & logger->levels_file) {
-        file_len += sntprint(file_buffer, LOG_BUFFER_SIZE, "E ");
-    } else if (LogLevel::WARNING & log.level & logger->levels_file) {
-        file_len += sntprint(file_buffer, LOG_BUFFER_SIZE, "W ");
-    } else if (LogLevel::INFO & log.level & logger->levels_file) {
-        file_len += sntprint(file_buffer, LOG_BUFFER_SIZE, "I ");
-    } else if (LogLevel::TRACE & log.level & logger->levels_file) {
-        file_len += sntprint(file_buffer, LOG_BUFFER_SIZE, "T ");
-    }
-
-    print_len += sntprint(print_buffer + print_len, LOG_BUFFER_SIZE - print_len,
-                          "{}" RESET " @ {} ({}): {}\n",
-                          log.file,
-                          log.line,
-                          log.func,
-                          log.message);
-    file_len += sntprint(file_buffer + file_len, LOG_BUFFER_SIZE - file_len,
-                          "{} @ {} ({}): {}\n",
-                          log.file,
-                          log.line,
-                          log.func,
-                          log.message);
-
     if (log.level & logger->levels) {
+        if (LogLevel::ERROR & log.level) {
+            print_len += sntprint(print_buffer, LOG_BUFFER_SIZE, RED    "E ");
+        } else if (LogLevel::WARNING & log.level) {
+            print_len += sntprint(print_buffer, LOG_BUFFER_SIZE, YELLOW "W ");
+        } else if (LogLevel::INFO & log.level) {
+            print_len += sntprint(print_buffer, LOG_BUFFER_SIZE, WHITE  "I ");
+        } else if (LogLevel::TRACE & log.level) {
+            print_len += sntprint(print_buffer, LOG_BUFFER_SIZE, RESET  "T ");
+        }
+        print_len += sntprint(print_buffer + print_len, LOG_BUFFER_SIZE - print_len,
+                              "{}" RESET " @ {} ({}): {}\n",
+                              log.file,
+                              log.line,
+                              log.func,
+                              log.message);
         smek_print(print_buffer);
     }
-    if (logger->file) {
+    if (logger->file && (log.level & logger->levels_file)) {
+        if (LogLevel::ERROR & log.level) {
+            file_len += sntprint(file_buffer, LOG_BUFFER_SIZE, "E ");
+        } else if (LogLevel::WARNING & log.level) {
+            file_len += sntprint(file_buffer, LOG_BUFFER_SIZE, "W ");
+        } else if (LogLevel::INFO & log.level) {
+            file_len += sntprint(file_buffer, LOG_BUFFER_SIZE, "I ");
+        } else if (LogLevel::TRACE & log.level) {
+            file_len += sntprint(file_buffer, LOG_BUFFER_SIZE, "T ");
+        }
+        file_len += sntprint(file_buffer + file_len, LOG_BUFFER_SIZE - file_len,
+                             "{} @ {} ({}): {}\n",
+                             log.file,
+                             log.line,
+                             log.func,
+                             log.message);
         std::fprintf(logger->file, file_buffer);
     }
     logger->logs.push_back(log);
