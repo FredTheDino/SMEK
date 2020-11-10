@@ -14,7 +14,7 @@
 i32 format(char *buffer, u32 size, FormatHint args, EntityType type) {
     switch (type) {
 $type_formats
-    default: return snprintf(buffer, size, "?ENITY TYPE?");
+    default: return snprintf(buffer, size, "?ENTITY TYPE?");
     }
     return 0;
 }

@@ -152,7 +152,7 @@ struct FileParser {
             Field f = fields.list[i];
             if (std::strcmp(fieldname, f.name) == 0) {
                 if (f.internal) {
-                    before_read.error("Field is marked as internal thus cannot be set.", fieldname);
+                    before_read.error("Field is marked as internal and thus cannot be set.", fieldname);
                     skipp_line();
                     return nullptr;
                 }
@@ -295,7 +295,7 @@ parse_entities(const char *data) {
 
     initalize_parse_funcs();
 
-    FileParser parser("UNKOWN", data);
+    FileParser parser("UNKNOWN", data);
     while (parser.peek()) {
         EntityType type = parser.parse_entity_type();
         if (type == EntityType::NUM_ENTITY_TYPES) continue;

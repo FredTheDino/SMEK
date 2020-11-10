@@ -18,7 +18,7 @@ i32 format(char *buffer, u32 size, FormatHint args, EntityType type) {
     case EntityType::LIGHT: return snprintf(buffer, size, "Light");
     case EntityType::PLAYER: return snprintf(buffer, size, "Player");
     case EntityType::SOUNDENTITY: return snprintf(buffer, size, "SoundEntity");
-    default: return snprintf(buffer, size, "?ENITY TYPE?");
+    default: return snprintf(buffer, size, "?ENTITY TYPE?");
     }
     return 0;
 }
