@@ -412,6 +412,7 @@ void Network::imgui_draw() {
 #endif
 
 int network_listen_for_clients(void *data) {
+    WARN("Starting server");
     Network *system = (Network *)data;
     int newsockfd;
     system->server_listening = true;
