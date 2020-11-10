@@ -3,7 +3,6 @@
 #include "entity_types.h"
 
 #include <cstring>
-#include <functional>
 #include <cxxabi.h>
 #include <limits>
 
@@ -23,12 +22,12 @@ EntityType string_to_entity_type(const char *str) {
 
 struct FileParser {
 
-    FileParser(const char *filename, const char *data)
-        : filename(filename)
-        , data(data) {}
+    FileParser(const char *data, const char *filename)
+        : data(data)
+        , filename(filename) {};
 
-    const char *filename;
     const char *data;
+    const char *filename;
 
     int line = 1; // Lines start at 1 for some reason.
     int column = 0;
@@ -73,15 +72,15 @@ struct FileParser {
     void error(const char *message, const char *extra = nullptr) {
         char faulty_line[128] = {};
 
-        u32 sol = head;
-        while (data[sol] != '\n' && sol != 0) { sol--; }
-        sol++;
+        u32 start_of_line = head;
+        while (data[start_of_line] != '\n' && start_of_line != 0) { start_of_line--; }
+        start_of_line++;
         for (u32 i = 0;
              i < LEN(faulty_line)
-             && data[sol + i] != '\n'
-             && data[sol + i] != '\0';
+             && data[start_of_line + i] != '\n'
+             && data[start_of_line + i] != '\0';
              i++) {
-            faulty_line[i] = data[sol + i];
+            faulty_line[i] = data[start_of_line + i];
         }
 
         if (extra) {
@@ -270,7 +269,6 @@ void parse(FileParser p, void *d) {
 
 template <>
 void parse<bool>(FileParser p, void *d) {
-    TRACE("Parsing bool!");
     bool *out = (bool *)d;
     p.skipp_whitespace();
     *out = p.parse_int<i64>() != 0;
@@ -289,19 +287,17 @@ void initalize_parse_funcs() {
 #undef F
 }
 
-std::vector<BaseEntity *>
-parse_entities(const char *data) {
-    std::vector<BaseEntity *> entities;
-
+void parse_entities_and_do(const char *data,
+                           const char *filename,
+                           EntityParseCallback callback) {
     initalize_parse_funcs();
 
-    FileParser parser("UNKNOWN", data);
+    FileParser parser(data, filename);
     while (parser.peek()) {
         EntityType type = parser.parse_entity_type();
         if (type == EntityType::NUM_ENTITY_TYPES) continue;
 
-        u8 *entity = new u8[MAX_ENTITY_SIZE];
-        entities.push_back((BaseEntity *)entity);
+        u8 entity[MAX_ENTITY_SIZE];
 
         emplace_entity((void *)entity, type);
         FieldList fields = get_fields_for(type);
@@ -328,28 +324,35 @@ parse_entities(const char *data) {
             // TODO(ed): Parse the actual data and set it.
             parser.skipp_line();
         }
-    }
 
-    return entities;
+        callback((BaseEntity *)entity);
+    }
 }
 
 TEST_CASE("parser-simple", {
-    Entity::BaseEntity *e = parse_entities("# Light\nposition 1 2 3\ndraw_as_point 1\n")[0];
-    ASSERT_EQ(e->type, EntityType::LIGHT);
-    Light *l = (Light *)e;
-    ASSERT_LT(length(l->position - Vec3(1, 2, 3)), 0.01);
-    ASSERT_EQ(l->draw_as_point, true);
+    auto callback = [](BaseEntity *e) {
+        ASSERT_EQ(e->type, EntityType::LIGHT);
+        Light *l = (Light *)e;
+        ASSERT_LT(length(l->position - Vec3(1, 2, 3)), 0.01);
+        ASSERT_EQ(l->draw_as_point, true);
+    };
+    parse_entities_and_do("# Light\nposition 1 2 3\ndraw_as_point 1\n",
+                          "PARSE-TEST-1",
+                          callback);
     return true;
 });
 
 TEST_CASE("parser-multiple", {
-    auto es = parse_entities("# Light\ndraw_as_point 1\n# Light\ndraw_as_point 1\n");
-    ASSERT_EQ(es.size(), 2);
-    ASSERT(es[0] != es[1], "Should not return same entity twice");
-    for (auto e : es) {
+    int calls = 0;
+    auto callback = [&calls](BaseEntity *e) {
+        calls++;
         ASSERT_EQ(e->type, EntityType::LIGHT);
         Light *l = (Light *)e;
         ASSERT_EQ(l->draw_as_point, true);
-    }
+    };
+    parse_entities_and_do("# Light\ndraw_as_point 1\n# Light\ndraw_as_point 1\n",
+                          "PARSE-TEST-2",
+                          callback);
+    ASSERT_EQ(calls, 2);
     return true;
 });
