@@ -24,11 +24,11 @@ void _smek_log(const char *message, LogMessage log) {
             print_len += sntprint(print_buffer, LOG_BUFFER_SIZE, RESET  "T ");
         }
         print_len += sntprint(print_buffer + print_len, LOG_BUFFER_SIZE - print_len,
-                              "{}" RESET ":{} @ {} ({}): {}\n",
+                              "{}" RESET " @ {} ({}:{}): {}\n",
                               log.file,
-                              log.thread,
                               log.line,
                               log.func,
+                              log.thread,
                               log.message);
         smek_print(print_buffer);
     }
@@ -43,11 +43,11 @@ void _smek_log(const char *message, LogMessage log) {
             file_len += sntprint(file_buffer, LOG_BUFFER_SIZE, "T ");
         }
         file_len += sntprint(file_buffer + file_len, LOG_BUFFER_SIZE - file_len,
-                             "{}:{} @ {} ({}): {}\n",
+                             "{} @ {} ({}:{}): {}\n",
                              log.file,
-                             log.thread,
                              log.line,
                              log.func,
+                             log.thread,
                              log.message);
         std::fprintf(logger->file, file_buffer);
     }
