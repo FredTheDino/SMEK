@@ -257,6 +257,7 @@ int main(int argc, char **argv) { // Game entrypoint
         return 1;
     }
 
+    game_state.logger.m_logs = SDL_CreateMutex();
     game_state.logger.file = std::fopen("smek.log", "w");
     if (!game_state.logger.file) {
         ERR("Unable to open log file\n");

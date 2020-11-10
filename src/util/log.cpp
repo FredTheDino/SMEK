@@ -51,7 +51,15 @@ void _smek_log(const char *message, LogMessage log) {
                              log.message);
         std::fprintf(logger->file, file_buffer);
     }
-    logger->logs.push_back(log);
+    if (logger->m_logs) {
+        if (SDL_LockMutex(logger->m_logs) == 0) {
+            logger->logs.push_back(log);
+            SDL_UnlockMutex(logger->m_logs);
+        } else {
+            logger->m_logs = nullptr;
+            ERR("Logger mutex broken");
+        }
+    }
 }
 
 void Logger::imgui_draw() {
