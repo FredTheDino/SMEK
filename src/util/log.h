@@ -27,9 +27,9 @@ struct LogMessage {
 };
 
 struct Logger {
-    u32 levels          = LogLevel::WARNING | LogLevel::ERROR;
-    u32 levels_file     = LogLevel::ALL;
-    FILE *file          = nullptr;
+    u32 levels      = LogLevel::WARNING | LogLevel::ERROR;
+    u32 levels_file = LogLevel::ALL;
+    FILE *file      = nullptr;
     std::vector<LogMessage> logs;
 
     void imgui_draw();
