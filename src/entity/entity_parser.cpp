@@ -16,7 +16,7 @@ void load_level(AssetID level_id) {
     const char *serialized = Asset::fetch_level(level_id)->data;
 
     auto callback = [](BaseEntity *e) { GAMESTATE()->entity_system.add_unknown_type(e); };
-    parse_entities_and_do(serialized);
+    parse_entities_and_do(serialized, "LOAD", callback);
 }
 
 EntityType string_to_entity_type(const char *str) {
