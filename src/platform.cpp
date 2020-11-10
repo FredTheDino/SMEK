@@ -252,6 +252,11 @@ bool update_to_default_window_size(int *width, int *height, f32 screen_percent) 
 }
 
 int main(int argc, char **argv) { // Game entrypoint
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+        ERR("Failed to initalize SDL \"{}\"", SDL_GetError());
+        return 1;
+    }
+
     game_state.logger.file = std::fopen("smek.log", "w");
     if (!game_state.logger.file) {
         ERR("Unable to open log file\n");
@@ -293,11 +298,6 @@ int main(int argc, char **argv) { // Game entrypoint
         }
     }
 #undef ARGUMENT
-
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-        ERR("Failed to initalize SDL \"{}\"", SDL_GetError());
-        return 1;
-    }
 
     if (!passed_resolution) {
         f32 screen_percent = 0.75;
