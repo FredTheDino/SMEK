@@ -38,7 +38,7 @@ struct FileParser {
         return data[head];
     }
 
-    // Return the current symbol and skipp to the next one.
+    // Return the current symbol and skip to the next one.
     char eat() {
         char c = peek();
         if (c) {
@@ -58,11 +58,11 @@ struct FileParser {
         return c == '\n' || c == ' ';
     }
 
-    void skipp_whitespace() {
+    void skip_whitespace() {
         while (is_whitespace()) { eat(); }
     }
 
-    void skipp_line() {
+    void skip_line() {
         char c;
         do {
             c = eat();
@@ -117,10 +117,10 @@ struct FileParser {
     // Parses an entity type name, returns NUM_ENTITY_TYPES on
     // error.
     EntityType parse_entity_type() {
-        skipp_whitespace();
+        skip_whitespace();
         if (peek() == '#') {
             eat();
-            skipp_whitespace();
+            skip_whitespace();
 
             FileParser before_read = *this;
 
@@ -137,7 +137,7 @@ struct FileParser {
             return EntityType::NUM_ENTITY_TYPES;
         }
         error("Unexpected symbol, expected new entity.");
-        skipp_line();
+        skip_line();
         return EntityType::NUM_ENTITY_TYPES;
     }
 
@@ -152,7 +152,7 @@ struct FileParser {
             if (std::strcmp(fieldname, f.name) == 0) {
                 if (f.internal) {
                     before_read.error("Field is marked as internal and thus cannot be set.", fieldname);
-                    skipp_line();
+                    skip_line();
                     return nullptr;
                 }
                 return fields.list + i;
@@ -160,7 +160,7 @@ struct FileParser {
         }
 
         before_read.error("No such field.", fieldname);
-        skipp_line();
+        skip_line();
         return nullptr;
     }
 
@@ -252,7 +252,7 @@ concept Reals = std::numeric_limits<T>().epsilon() != 0;
 template <Reals T>
 void parse(FileParser p, void *d) {
     T *out = (T *)d;
-    p.skipp_whitespace();
+    p.skip_whitespace();
     *out = p.parse_float();
 }
 
@@ -262,7 +262,7 @@ void parse(FileParser p, void *d) {
     for (int i = 0; i < DIM<T>(); i++) {
         // NOTE(ed): Thought about restricting colors to
         // be in range [0, 1].
-        p.skipp_whitespace();
+        p.skip_whitespace();
         out->_[i] = p.parse_float();
     }
 }
@@ -270,7 +270,7 @@ void parse(FileParser p, void *d) {
 template <>
 void parse<bool>(FileParser p, void *d) {
     bool *out = (bool *)d;
-    p.skipp_whitespace();
+    p.skip_whitespace();
     *out = p.parse_int<i64>() != 0;
 }
 }
@@ -302,8 +302,8 @@ void parse_entities_and_do(const char *data,
         emplace_entity((void *)entity, type);
         FieldList fields = get_fields_for(type);
 
-        parser.skipp_whitespace();
-        for (; parser.peek() && parser.peek() != '#'; parser.skipp_whitespace()) {
+        parser.skip_whitespace();
+        for (; parser.peek() && parser.peek() != '#'; parser.skip_whitespace()) {
             Field *field = parser.parse_field(fields);
             if (!field) continue;
 
@@ -322,7 +322,7 @@ void parse_entities_and_do(const char *data,
             }
 
             // TODO(ed): Parse the actual data and set it.
-            parser.skipp_line();
+            parser.skip_line();
         }
 
         callback((BaseEntity *)entity);
