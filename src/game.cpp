@@ -67,6 +67,8 @@ void init_game(GameState *gamestate, int width, int height) {
     WARN("{}", 3);
     ERR("{}", 4);
 
+    CHECK(1 > 2, "yikes");
+
     GAMESTATE()->entity_system.m_client_id = SDL_CreateMutex();
     GAMESTATE()->m_event_queue = SDL_CreateMutex();
 
