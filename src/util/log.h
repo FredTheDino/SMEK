@@ -120,37 +120,38 @@ void print_stacktrace(unsigned int max_frames = 63);
 // These have to live here now, because of templates.
 template <typename... Args>
 void _smek_log_err(const char *file, u32 line, const char *func, const char *message, Args... args) {
-    char message_buffer[LOG_BUFFER_SIZE] = {};
-    sntprint(message_buffer, LOG_BUFFER_SIZE, message, args...);
-    _smek_log(message_buffer, { LogLevel::ERROR, file, line, func, SDL_ThreadID() });
+    char msg_buf[LOG_BUFFER_SIZE] = {};
+    sntprint(msg_buf, LOG_BUFFER_SIZE, message, args...);
+    _smek_log(msg_buf, { LogLevel::ERROR, file, line, func, SDL_ThreadID() });
 }
 
 template <typename... Args>
 void _smek_log_warn(const char *file, u32 line, const char *func, const char *message, Args... args) {
-    char message_buffer[LOG_BUFFER_SIZE] = {};
-    sntprint(message_buffer, LOG_BUFFER_SIZE, message, args...);
-    _smek_log(message_buffer, { LogLevel::WARNING, file, line, func, SDL_ThreadID() });
+    char msg_buf[LOG_BUFFER_SIZE] = {};
+    sntprint(msg_buf, LOG_BUFFER_SIZE, message, args...);
+    _smek_log(msg_buf, { LogLevel::WARNING, file, line, func, SDL_ThreadID() });
 }
 
 template <typename... Args>
 void _smek_log_info(const char *file, u32 line, const char *func, const char *message, Args... args) {
-    char message_buffer[LOG_BUFFER_SIZE] = {};
-    sntprint(message_buffer, LOG_BUFFER_SIZE, message, args...);
-    _smek_log(message_buffer, { LogLevel::INFO, file, line, func, SDL_ThreadID() });
+    char msg_buf[LOG_BUFFER_SIZE] = {};
+    sntprint(msg_buf, LOG_BUFFER_SIZE, message, args...);
+    _smek_log(msg_buf, { LogLevel::INFO, file, line, func, SDL_ThreadID() });
 }
 
 template <typename... Args>
 void _smek_log_trace(const char *file, u32 line, const char *func, const char *message, Args... args) {
-    char message_buffer[LOG_BUFFER_SIZE] = {};
-    sntprint(message_buffer, LOG_BUFFER_SIZE, message, args...);
-    _smek_log(message_buffer, { LogLevel::TRACE, file, line, func, SDL_ThreadID() });
+    char msg_buf[LOG_BUFFER_SIZE] = {};
+    sntprint(msg_buf, LOG_BUFFER_SIZE, message, args...);
+    _smek_log(msg_buf, { LogLevel::TRACE, file, line, func, SDL_ThreadID() });
 }
 
 template <typename... Args>
 void _smek_unreachable(const char *file, u32 line, const char *func, const char *message, Args... args) {
-    char message_buffer[LOG_BUFFER_SIZE] = {};
-    sntprint(message_buffer, LOG_BUFFER_SIZE, message, args...);
-    _smek_log(message_buffer, { LogLevel::ERROR, file, line, func, SDL_ThreadID() });
+    char msg_buf[LOG_BUFFER_SIZE] = {};
+    u32 len = sntprint(msg_buf, LOG_BUFFER_SIZE, "Unreachable\n| ");
+    len += sntprint(msg_buf + len, LOG_BUFFER_SIZE - len, message, args...);
+    _smek_log(msg_buf, { LogLevel::ERROR, file, line, func, SDL_ThreadID() });
     print_stacktrace();
 
     throw std::runtime_error("Unreachable");
@@ -160,9 +161,11 @@ template <typename... Args>
 void _smek_assert(const char *file, u32 line, const char *func, bool passed, const char *expr, const char *message, Args... args) {
     if (passed) return;
 
-    char message_buffer[LOG_BUFFER_SIZE] = {};
-    sntprint(message_buffer, LOG_BUFFER_SIZE, message, args...);
-    _smek_log(message_buffer, { LogLevel::ERROR, file, line, func, SDL_ThreadID() });
+    char msg_buf[LOG_BUFFER_SIZE] = {};
+    u32 len = sntprint(msg_buf, LOG_BUFFER_SIZE, "Assert ({}) tripped\n| ", expr);
+    len += sntprint(msg_buf + len, LOG_BUFFER_SIZE - len, message, args...);
+    len += sntprint(msg_buf + len, LOG_BUFFER_SIZE - len, "\n| Stacktrace:");
+    _smek_log(msg_buf, { LogLevel::ERROR, file, line, func, SDL_ThreadID() });
     print_stacktrace();
 
     throw std::runtime_error("Assert");
@@ -171,9 +174,10 @@ void _smek_assert(const char *file, u32 line, const char *func, bool passed, con
 template <typename... Args>
 bool _smek_check(const char *file, u32 line, const char *func, bool passed, const char *expr, const char *message, Args... args) {
     if (!passed) {
-        char message_buffer[LOG_BUFFER_SIZE] = {};
-        sntprint(message_buffer, LOG_BUFFER_SIZE, message, args...);
-        _smek_log(message_buffer, { LogLevel::WARNING, file, line, func, SDL_ThreadID() });
+        char msg_buf[LOG_BUFFER_SIZE] = {};
+        u32 len = sntprint(msg_buf, LOG_BUFFER_SIZE, "Check ({}) failed\n| ", expr);
+        len += sntprint(msg_buf + len, LOG_BUFFER_SIZE - len, message, args...);
+        _smek_log(msg_buf, { LogLevel::WARNING, file, line, func, SDL_ThreadID() });
     }
     return passed;
 }
