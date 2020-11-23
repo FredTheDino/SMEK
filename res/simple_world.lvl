@@ -1,0 +1,14 @@
+# Light
+position 2 0 0 
+color 1.0 0.0 0.0 
+draw_as_point 1
+
+# Light
+position 0 2 0 
+color 0.0 1.0 0.0 
+draw_as_point 1
+
+# Light
+position 0 0 2 
+color 0.0 0.0 1.0 
+draw_as_point 1

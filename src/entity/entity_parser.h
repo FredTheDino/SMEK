@@ -11,4 +11,8 @@ using EntityParseCallback = std::function<void(BaseEntity *)>;
 // valid for that call.
 void parse_entities_and_do(const char *data, const char *filename, EntityParseCallback);
 
+///*
+// Loads the specified level into the world.
+void load_level(AssetID level_id);
+
 // TODO(ed): Add a way to serialize entities.

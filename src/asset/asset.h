@@ -42,6 +42,7 @@ enum AssetType {
     SKINNED = 6,
     SKELETON = 7,
     ANIMATION = 8,
+    LEVEL = 9,
 
     NUM_TYPES,
 };
@@ -85,6 +86,14 @@ struct Sound {
     f32 *data;
 };
 
+///* Level
+struct Level {
+    // TODO(ed): Change this representation
+    // to not store the string. Parsing is slow.
+    u64 size;
+    char *data;
+};
+
 ///* UsableAsset
 struct UsableAsset {
     union {
@@ -96,6 +105,7 @@ struct UsableAsset {
         GFX::Animation animation;
         StringAsset string;
         Sound sound;
+        Level level;
     };
 
     AssetHeader *header;
@@ -157,5 +167,6 @@ Skin *fetch_skin(AssetID id);
 Texture *fetch_texture(AssetID id);
 Sound *fetch_sound(AssetID id);
 StringAsset *fetch_string_asset(AssetID id);
+Level *fetch_level(AssetID id);
 
 } // namespace Asset

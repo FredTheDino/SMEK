@@ -136,6 +136,19 @@ static void load_animation(UsableAsset *asset, FILE *file) {
     asset->animation = GFX::Animation::init(times, num_frames, trans, trans_per_frame);
 }
 
+static void load_level(UsableAsset *asset, FILE *file) {
+    if (asset->loaded) {
+        delete[] asset->level.data;
+    }
+
+    Level source;
+    read(file, &source);
+    source.data = new char[source.size];
+    read<char>(file, source.data, source.size);
+    TRACE("SOURCE: \n{}", source.data);
+    asset->level = source;
+}
+
 static void load_asset(UsableAsset *asset) {
 #ifndef TESTS
     ASSERT(GAMESTATE()->main_thread == SDL_GetThreadID(NULL), "Should only be called from main thread");
@@ -176,6 +189,9 @@ static void load_asset(UsableAsset *asset) {
     } break;
     case AssetType::ANIMATION: {
         load_animation(asset, file);
+    } break;
+    case AssetType::LEVEL: {
+        load_level(asset, file);
     } break;
     default:
         ERR("Unknown asset type {} in asset file {}",
@@ -231,6 +247,10 @@ GFX::Animation *fetch_animation(AssetID id) {
 
 Sound *fetch_sound(AssetID id) {
     return &_raw_fetch(AssetType::SOUND, id)->sound;
+}
+
+Level *fetch_level(AssetID id) {
+    return &_raw_fetch(AssetType::LEVEL, id)->level;
 }
 
 bool needs_reload(AssetID id) {
