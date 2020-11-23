@@ -18,6 +18,7 @@ static const u32 ALL     =(1 << 4) - 1; // update this if changing log levels
 
 struct LogMessage {
     //TODO timestamp
+    //TODO frame
     u32 level;
     const char *file;
     u32 line;
