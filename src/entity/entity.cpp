@@ -478,7 +478,7 @@ EntityID EntitySystem::next_id() {
 }
 
 TEST_CASE("entity_adding", {
-    GAMESTATE()->log_levels &= ~LogLevel::TRACE;
+    GAMESTATE()->logger.levels &= ~LogLevel::TRACE;
     int calls;
     struct TestEnt : public Entity {
         int *value;
@@ -505,7 +505,7 @@ TEST_CASE("entity_adding", {
 });
 
 TEST_CASE("entity_remove", {
-    GAMESTATE()->log_levels &= ~LogLevel::TRACE;
+    GAMESTATE()->logger.levels &= ~LogLevel::TRACE;
     int calls;
     struct TestEnt : public Entity {
         int *value;
@@ -528,7 +528,7 @@ TEST_CASE("entity_remove", {
 });
 
 TEST_CASE("entity_id_valid", {
-    GAMESTATE()->log_levels &= ~LogLevel::TRACE;
+    GAMESTATE()->logger.levels &= ~LogLevel::TRACE;
     struct TestEnt : public Entity {
         void update() {};
         void draw() {}
@@ -543,7 +543,7 @@ TEST_CASE("entity_id_valid", {
 });
 
 TEST_CASE("entity fetch", {
-    GAMESTATE()->log_levels &= ~LogLevel::TRACE;
+    GAMESTATE()->logger.levels &= ~LogLevel::TRACE;
     struct TestEnt : public BaseEntity {
         int value = 1;
     };
@@ -560,7 +560,7 @@ TEST_CASE("entity fetch", {
 });
 
 TEST_CASE("entity on_create", {
-    GAMESTATE()->log_levels &= ~LogLevel::TRACE;
+    GAMESTATE()->logger.levels &= ~LogLevel::TRACE;
     struct TestEnt : public BaseEntity {
         int value = 1;
         void on_create() override {
@@ -576,7 +576,7 @@ TEST_CASE("entity on_create", {
 });
 
 TEST_CASE("entity on_remove", {
-    GAMESTATE()->log_levels &= ~LogLevel::TRACE;
+    GAMESTATE()->logger.levels &= ~LogLevel::TRACE;
     struct TestEnt : public BaseEntity {
         int value = 1;
         void on_remove() override { value = 2; }
@@ -603,7 +603,7 @@ TEST_CASE("entity add_emplace", {
 });
 
 TEST_CASE("entity add_unknown_type", {
-    GAMESTATE()->log_levels &= ~LogLevel::TRACE;
+    GAMESTATE()->logger.levels &= ~LogLevel::TRACE;
     Player a;
     a.type = EntityType::PLAYER;
     a.position = Vec3(1, 2, 3);

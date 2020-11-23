@@ -32,6 +32,7 @@ struct GameState {
     SDL_mutex *m_event_queue;
     std::queue<Event> event_queue;
     Network network = {};
+    Logger logger = {};
 
     SDL_mutex *m_reload_lib;
     bool *reload_lib;
@@ -51,7 +52,6 @@ struct GameState {
     bool resized_window;
     bool full_screen_window;
     bool allow_user_resize_window;
-    u32 log_levels = LogLevel::ALL;
 
 #ifdef IMGUI_ENABLE
     ImGuiState imgui = {};

@@ -62,6 +62,13 @@ void init_game(GameState *gamestate, int width, int height) {
     _global_gs = gamestate;
     GAMESTATE()->main_thread = SDL_GetThreadID(NULL);
 
+    TRACE("{}", 1);
+    INFO("{}", 2);
+    WARN("{}", 3);
+    ERR("{}", 4);
+
+    CHECK(1 > 2, "yikes");
+
     GAMESTATE()->entity_system.m_client_id = SDL_CreateMutex();
     GAMESTATE()->m_event_queue = SDL_CreateMutex();
 
@@ -308,21 +315,21 @@ void do_imgui_stuff() {
                 }
             }
             if (ImGui::BeginMenu("Log")) {
-                bool trace = (GAMESTATE()->log_levels & LogLevel::TRACE) != 0;
+                bool trace = (GAMESTATE()->logger.levels & LogLevel::TRACE) != 0;
                 if (ImGui::MenuItem("TRACE", "", &trace)) {
-                    GAMESTATE()->log_levels ^= LogLevel::TRACE;
+                    GAMESTATE()->logger.levels ^= LogLevel::TRACE;
                 }
-                bool info = (GAMESTATE()->log_levels & LogLevel::INFO) != 0;
+                bool info = (GAMESTATE()->logger.levels & LogLevel::INFO) != 0;
                 if (ImGui::MenuItem("INFO", "", &info)) {
-                    GAMESTATE()->log_levels ^= LogLevel::INFO;
+                    GAMESTATE()->logger.levels ^= LogLevel::INFO;
                 }
-                bool warning = (GAMESTATE()->log_levels & LogLevel::WARNING) != 0;
+                bool warning = (GAMESTATE()->logger.levels & LogLevel::WARNING) != 0;
                 if (ImGui::MenuItem("WARNING", "", &warning)) {
-                    GAMESTATE()->log_levels ^= LogLevel::WARNING;
+                    GAMESTATE()->logger.levels ^= LogLevel::WARNING;
                 }
-                bool error = (GAMESTATE()->log_levels & LogLevel::ERROR) != 0;
+                bool error = (GAMESTATE()->logger.levels & LogLevel::ERROR) != 0;
                 if (ImGui::MenuItem("ERROR", "", &error)) {
-                    GAMESTATE()->log_levels ^= LogLevel::ERROR;
+                    GAMESTATE()->logger.levels ^= LogLevel::ERROR;
                 }
                 ImGui::EndMenu();
             }
@@ -416,6 +423,7 @@ void do_imgui_stuff() {
     }
 
     GAMESTATE()->network.imgui_draw();
+    GAMESTATE()->logger.imgui_draw();
 }
 #else
 void do_imgui_stuff() {}
