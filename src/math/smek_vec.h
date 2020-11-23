@@ -172,6 +172,10 @@ concept VectorType = std::same_as<T, Vec2>
                   || std::same_as<T, Vec4>
                   || std::same_as<T, Color3>
                   || std::same_as<T, Color4>;
+
+template <typename T>
+concept ColorType = std::same_as<T, Color3>
+                 || std::same_as<T, Color4>;
 // clang-format on
 
 template <VectorType T>

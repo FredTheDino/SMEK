@@ -1,5 +1,6 @@
 #pragma once
 #include "types.h"
+#include <concepts>
 
 ///* AssetID
 // A way to identify assets.
