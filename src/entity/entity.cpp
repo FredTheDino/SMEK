@@ -212,7 +212,6 @@ void Player::update_position() {
     if (last_input.shot) {
         INFO("Pew!");
     }
-    position += velocity * delta();
 }
 
 void Player::update_camera() {

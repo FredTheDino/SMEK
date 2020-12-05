@@ -1,3 +1,4 @@
+#include "../game.h"
 #include "physics.h"
 #include "../renderer/renderer.h"
 #include "imgui/imgui.h"
@@ -168,6 +169,21 @@ void PhysicsEngine::add_box(AABody b) {
 }
 
 void PhysicsEngine::update(real delta) {
+    for (u32 i = 0; i < bodies.size(); ) {
+        AABody *body = &bodies[i];
+        if (GAMESTATE()->entity_system.is_valid(body->entity)) {
+            Entity *entity = GAMESTATE()->entity_system.fetch<Entity>(body->entity);
+            body->position = entity->position;
+            if (entity->type == EntityType::PLAYER) {
+                body->velocity = ((Player *)entity)->velocity;
+            }
+            i++;
+        } else {
+            bodies[i] = bodies[bodies.size() - 1];
+            bodies.pop_back();
+        }
+    }
+
     real passed_t = 0;
     const int MAX_COLLISIONS = 100;
 
@@ -213,6 +229,11 @@ void PhysicsEngine::update(real delta) {
     // Move the bodies to the end of the step.
     for (AABody &a : bodies) {
         a.integrate(delta);
+        Entity *entity = GAMESTATE()->entity_system.fetch<Entity>(a.entity);
+        entity->position = a.position;
+        if (entity->type == EntityType::PLAYER) {
+            ((Player *)entity)->velocity = a.velocity;
+        }
     }
 }
 
