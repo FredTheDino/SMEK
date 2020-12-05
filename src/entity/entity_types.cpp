@@ -14,6 +14,7 @@
 i32 format(char *buffer, u32 size, FormatHint args, EntityType type) {
     switch (type) {
     case EntityType::BASEENTITY: return snprintf(buffer, size, "BaseEntity");
+    case EntityType::BLOCK: return snprintf(buffer, size, "Block");
     case EntityType::ENTITY: return snprintf(buffer, size, "Entity");
     case EntityType::LIGHT: return snprintf(buffer, size, "Light");
     case EntityType::PLAYER: return snprintf(buffer, size, "Player");
@@ -44,6 +45,14 @@ Field gen_BaseEntity[] = {
     { typeid(bool), FieldName::remove, sizeof(bool), (int)offsetof(BaseEntity, remove), 0, },
     { typeid(EntityID), FieldName::entity_id, sizeof(EntityID), (int)offsetof(BaseEntity, entity_id), 1, },
     { typeid(EntityType), FieldName::type, sizeof(EntityType), (int)offsetof(BaseEntity, type), 1, }
+};
+Field gen_Block[] = {
+    { typeid(bool), FieldName::remove, sizeof(bool), (int)offsetof(Block, remove), 0, },
+    { typeid(EntityID), FieldName::entity_id, sizeof(EntityID), (int)offsetof(Block, entity_id), 1, },
+    { typeid(EntityType), FieldName::type, sizeof(EntityType), (int)offsetof(Block, type), 1, },
+    { typeid(Vec3), FieldName::position, sizeof(Vec3), (int)offsetof(Block, position), 0, },
+    { typeid(Vec3), FieldName::scale, sizeof(Vec3), (int)offsetof(Block, scale), 0, },
+    { typeid(Quat), FieldName::rotation, sizeof(Quat), (int)offsetof(Block, rotation), 0, }
 };
 Field gen_Entity[] = {
     { typeid(bool), FieldName::remove, sizeof(bool), (int)offsetof(Entity, remove), 0, },
@@ -86,6 +95,7 @@ Field gen_SoundEntity[] = {
 FieldList get_fields_for(EntityType type) {
     switch (type) {
     case EntityType::BASEENTITY:return { LEN(gen_BaseEntity), gen_BaseEntity };
+    case EntityType::BLOCK:return { LEN(gen_Block), gen_Block };
     case EntityType::ENTITY:return { LEN(gen_Entity), gen_Entity };
     case EntityType::LIGHT:return { LEN(gen_Light), gen_Light };
     case EntityType::PLAYER:return { LEN(gen_Player), gen_Player };
@@ -101,6 +111,10 @@ void emplace_entity(void *buffer, EntityType type) {
     case EntityType::BASEENTITY:
         *((BaseEntity *) buffer) = BaseEntity();
         ((BaseEntity *) buffer)->type = EntityType::BASEENTITY;
+        return;
+    case EntityType::BLOCK:
+        *((Block *) buffer) = Block();
+        ((Block *) buffer)->type = EntityType::BLOCK;
         return;
     case EntityType::ENTITY:
         *((Entity *) buffer) = Entity();
@@ -127,6 +141,8 @@ EntityID EntitySystem::add_unknown_type(BaseEntity *e) {
     switch (e->type) {
     case EntityType::BASEENTITY:
         return add<BaseEntity>(*(BaseEntity *) e);
+    case EntityType::BLOCK:
+        return add<Block>(*(Block *) e);
     case EntityType::ENTITY:
         return add<Entity>(*(Entity *) e);
     case EntityType::LIGHT:
@@ -147,6 +163,10 @@ EntityID EntitySystem::add_unknown_type(BaseEntity *e) {
 
 EntityType type_of(BaseEntity *e) {
     return EntityType::BASEENTITY;
+}
+
+EntityType type_of(Block *e) {
+    return EntityType::BLOCK;
 }
 
 EntityType type_of(Entity *e) {
@@ -178,6 +198,16 @@ void EventCreateEntity::callback() {
     case EntityType::BASEENTITY: {
         BaseEntity entity;
         std::memcpy(((u8 *)&entity) + sizeof(u8 *), BASEENTITY, sizeof(BaseEntity) - sizeof(u8 *));
+        if (generate_id) {
+            GAMESTATE()->entity_system.add(entity);
+        } else {
+            GAMESTATE()->entity_system.add_with_id(entity, entity.entity_id);
+        }
+        break;
+    }
+    case EntityType::BLOCK: {
+        Block entity;
+        std::memcpy(((u8 *)&entity) + sizeof(u8 *), BLOCK, sizeof(Block) - sizeof(u8 *));
         if (generate_id) {
             GAMESTATE()->entity_system.add(entity);
         } else {
@@ -253,6 +283,22 @@ Event entity_event(BaseEntity *entity, bool generate_id) {
         }
     };
     std::memcpy(event.CREATE_ENTITY.BASEENTITY, ((u8 *)entity) + sizeof(u8 *), sizeof(BaseEntity) - sizeof(u8 *));
+    return event;
+}
+
+Event entity_event(Block entity, bool generate_id) {
+    return entity_event(&entity, generate_id);
+}
+
+Event entity_event(Block *entity, bool generate_id) {
+    Event event = {
+        .type = EventType::CREATE_ENTITY,
+        .CREATE_ENTITY = {
+            .generate_id = generate_id,
+            .type = EntityType::BLOCK,
+        }
+    };
+    std::memcpy(event.CREATE_ENTITY.BLOCK, ((u8 *)entity) + sizeof(u8 *), sizeof(Block) - sizeof(u8 *));
     return event;
 }
 
