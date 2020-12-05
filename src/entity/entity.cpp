@@ -68,13 +68,6 @@ void Block::draw() {
     GFX::push_mesh("CUBE", "TILES", position, rotation, scale);
 }
 
-void Block::update() {
-    for (auto [_, e] : GAMESTATE()->entity_system.entities) {
-        if (e->type != EntityType::PLAYER) continue;
-
-    }
-}
-
 void Light::draw() {
     if (draw_as_point) {
         if (light_id == NONE) {

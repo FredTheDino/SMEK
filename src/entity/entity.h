@@ -64,7 +64,6 @@ struct Entity : public BaseEntity {
 struct Block : public Entity {
     void on_create() override;
     void draw() override;
-    void update() override;
 };
 
 ///* Light
