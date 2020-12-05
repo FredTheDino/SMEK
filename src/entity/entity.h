@@ -111,6 +111,7 @@ struct Player : public Entity {
 
     void imgui() override;
 
+    void on_create() override;
     void update() override;
     void update_camera();
     void update_input();

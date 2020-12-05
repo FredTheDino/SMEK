@@ -117,6 +117,10 @@ void PlayerInput::callback() {
     p->last_input = *this;
 }
 
+void Player::on_create() {
+    GAMESTATE()->physics_engine.add_box({ entity_id, Vec3(), Vec3(), scale, 1 });
+}
+
 void Player::update() {
     bool own = GAMESTATE()->entity_system.have_ownership(entity_id);
     bool debug_camera = GFX::current_camera() == GFX::debug_camera();
