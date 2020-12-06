@@ -89,7 +89,10 @@ void init_game(GameState *gamestate, int width, int height) {
 #endif
     GFX::init(GAMESTATE(), width, height);
 
-    GFX::lighting()->sun_direction = Vec3(0.0, 1.0, 0.0);
+    GFX::lighting()->sun_direction = normalized(Vec3(0.7, 1.0, 0.5));
+    GFX::lighting()->sun_color = Vec3(1.3, 1.2, 1.2);
+    GFX::lighting()->ambient_color = Vec3(0.3, 0.3, 0.4);
+
     *GFX::debug_camera() = GFX::Camera::init();
     GFX::debug_camera()->position = Vec3(0.0, 0.2, 0.0);
 
