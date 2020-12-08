@@ -13,7 +13,7 @@ jobs:
       - name: Install dependencies
         run: |
           pacman -Syy
-          pacman --noconfirm -S binutils gcc clang python python-pip python-wheel sdl2 git glibc
+          pacman --noconfirm -S binutils gcc clang python python-pip python-wheel sdl2 git glibc libjpeg
       - uses: actions/checkout@v2
         with:
           submodules: "recursive"
