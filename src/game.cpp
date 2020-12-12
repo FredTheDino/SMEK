@@ -11,6 +11,8 @@
 #include "math/smek_mat4.h"
 #include "math/smek_math.h"
 
+#include "entity/entity_parser.h"
+
 #ifdef IMGUI_ENABLE
 #include "imgui/imgui.h"
 #include "imgui/implot.h"
@@ -61,13 +63,6 @@ void something() {
 void init_game(GameState *gamestate, int width, int height) {
     _global_gs = gamestate;
     GAMESTATE()->main_thread = SDL_GetThreadID(NULL);
-
-    TRACE("{}", 1);
-    INFO("{}", 2);
-    WARN("{}", 3);
-    ERR("{}", 4);
-
-    CHECK(1 > 2, "yikes");
 
     GAMESTATE()->entity_system.m_client_id = SDL_CreateMutex();
     GAMESTATE()->m_event_queue = SDL_CreateMutex();
@@ -124,6 +119,8 @@ void init_game(GameState *gamestate, int width, int height) {
     b.half_size = { 5, 1, 5 };
     b.mass = 0.0;
     GAMESTATE()->physics_engine.add_box(b);
+
+    load_level("SIMPLE_WORLD");
 }
 
 void reload_game(GameState *game) {

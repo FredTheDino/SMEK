@@ -1,5 +1,6 @@
 #pragma once
 #include "../math/smek_vec.h"
+#include "../entity/entity.h"
 #include <vector>
 
 namespace Physics {
@@ -8,6 +9,8 @@ namespace Physics {
 // An axis aligned body that
 // is always shaped like a box.
 struct AABody {
+    EntityID entity;
+
     Vec3 position;
     Vec3 velocity;
 

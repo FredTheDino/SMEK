@@ -17,6 +17,7 @@
 
 enum class EntityType {
     BASEENTITY,
+    BLOCK,
     ENTITY,
     LIGHT,
     PLAYER,
@@ -45,6 +46,7 @@ extern FieldNameType velocity;
 
 static const char *entity_type_names[] = {
     "BaseEntity",
+    "Block",
     "Entity",
     "Light",
     "Player",
@@ -66,7 +68,7 @@ struct FieldList {
     Field *list;
 };
 
-static constexpr int MAX_ENTITY_SIZE = std::max({sizeof(BaseEntity), sizeof(Entity), sizeof(Light), sizeof(Player), sizeof(SoundEntity)});
+static constexpr int MAX_ENTITY_SIZE = std::max({sizeof(BaseEntity), sizeof(Block), sizeof(Entity), sizeof(Light), sizeof(Player), sizeof(SoundEntity)});
 
 ///*
 // Returns a list of fields on the specified struct type.
@@ -84,6 +86,9 @@ void emplace_entity(void *buffer, EntityType type);
 
 struct BaseEntity;
 EntityType type_of(BaseEntity *);
+
+struct Block;
+EntityType type_of(Block *);
 
 struct Entity;
 EntityType type_of(Entity *);
@@ -106,6 +111,7 @@ struct EventCreateEntity {
     EntityType type;
     union {
         u8 BASEENTITY[sizeof(BaseEntity) - sizeof(void *)];
+        u8 BLOCK[sizeof(Block) - sizeof(void *)];
         u8 ENTITY[sizeof(Entity) - sizeof(void *)];
         u8 LIGHT[sizeof(Light) - sizeof(void *)];
         u8 PLAYER[sizeof(Player) - sizeof(void *)];
@@ -119,6 +125,8 @@ struct Event;
 
 Event entity_event(BaseEntity entity, bool generate_id = false);
 Event entity_event(BaseEntity *entity, bool generate_id = false);
+Event entity_event(Block entity, bool generate_id = false);
+Event entity_event(Block *entity, bool generate_id = false);
 Event entity_event(Entity entity, bool generate_id = false);
 Event entity_event(Entity *entity, bool generate_id = false);
 Event entity_event(Light entity, bool generate_id = false);

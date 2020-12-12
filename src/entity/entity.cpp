@@ -60,6 +60,14 @@ IMPL_IMGUI(Light, ([&] {
                ImGui::Checkbox("Draw As Point", &draw_as_point);
            }))
 
+void Block::on_create() {
+    GAMESTATE()->physics_engine.add_box({ entity_id, Vec3(), Vec3(), scale });
+}
+
+void Block::draw() {
+    GFX::push_mesh("CUBE", "TILES", position, rotation, scale);
+}
+
 void Light::draw() {
     if (draw_as_point) {
         if (light_id == NONE) {
@@ -100,6 +108,10 @@ void PlayerInput::callback() {
     }
     Player *p = GAMESTATE()->entity_system.fetch<Player>(entity_id);
     p->last_input = *this;
+}
+
+void Player::on_create() {
+    GAMESTATE()->physics_engine.add_box({ entity_id, Vec3(), Vec3(), scale, 1 });
 }
 
 void Player::update() {
@@ -193,7 +205,6 @@ void Player::update_position() {
     if (last_input.shot) {
         INFO("Pew!");
     }
-    position += velocity * delta();
 }
 
 void Player::update_camera() {

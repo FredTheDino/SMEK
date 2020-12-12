@@ -61,6 +61,11 @@ struct Entity : public BaseEntity {
     Quat rotation;
 };
 
+struct Block : public Entity {
+    void on_create() override;
+    void draw() override;
+};
+
 ///* Light
 // A light source in the world. Interfaces with the
 // renderer under the hood and abstracts away the interface.
@@ -105,6 +110,7 @@ struct Player : public Entity {
 
     void imgui() override;
 
+    void on_create() override;
     void update() override;
     void update_camera();
     void update_input();

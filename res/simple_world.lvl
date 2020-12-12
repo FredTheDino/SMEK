@@ -12,3 +12,7 @@ draw_as_point 1
 position 0 0 2 
 color 0.0 0.0 1.0 
 draw_as_point 1
+
+# Block
+position 3 0 0
+scale 1 1 1
