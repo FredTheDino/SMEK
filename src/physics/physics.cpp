@@ -169,6 +169,7 @@ Manifold PhysicsEngine::hitscan(Vec3 origin, Vec3 direction, EntityID sender) {
         if (body.entity == sender) continue;
         Manifold hit = collision_line_aabody(origin, direction, &body);
         if (hit) {
+            hit.a = &body;
             return hit;
         }
     }

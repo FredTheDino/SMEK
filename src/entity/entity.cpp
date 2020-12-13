@@ -111,6 +111,8 @@ void PlayerInput::callback() {
 }
 
 void Player::on_create() {
+    // TODO(ed): We don't want to be this fat.
+    scale = { 1.0, 1.0, 1.0 };
     GAMESTATE()->physics_engine.add_box({ entity_id, Vec3(), Vec3(), scale, 1 });
 }
 
@@ -201,6 +203,12 @@ void Player::update_position() {
         hit = GAMESTATE()->physics_engine.hitscan(position,
                                                   rotation * Vec3(0, 0, -1),
                                                   entity_id);
+        if (hit.a) {
+            Player *target = GAMESTATE()->entity_system.fetch<Player>(hit.a->entity);
+            if (target) {
+                target->velocity -= hit.normal;
+            }
+        }
     }
 }
 
