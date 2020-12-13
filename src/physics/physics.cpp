@@ -164,12 +164,23 @@ void solve_collision(Manifold hit, real delta) {
     }
 }
 
+Manifold PhysicsEngine::hitscan(Vec3 origin, Vec3 direction, EntityID sender) {
+    for (auto &body : bodies) {
+        if (body.entity == sender) continue;
+        Manifold hit = collision_line_aabody(origin, direction, &body);
+        if (hit) {
+            return hit;
+        }
+    }
+    return {};
+}
+
 void PhysicsEngine::add_box(AABody b) {
     bodies.push_back(b);
 }
 
 void PhysicsEngine::update(real delta) {
-    for (u32 i = 0; i < bodies.size(); ) {
+    for (u32 i = 0; i < bodies.size();) {
         AABody *body = &bodies[i];
         if (GAMESTATE()->entity_system.is_valid(body->entity)) {
             Entity *entity = GAMESTATE()->entity_system.fetch<Entity>(body->entity);

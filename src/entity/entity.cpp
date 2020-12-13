@@ -196,8 +196,11 @@ void Player::update_position() {
             velocity.y = GAMESTATE()->player_jump_speed;
         }
     }
+
     if (last_input.shot) {
-        INFO("Pew!");
+        hit = GAMESTATE()->physics_engine.hitscan(position,
+                                                  rotation * Vec3(0, 0, -1),
+                                                  entity_id);
     }
 }
 
@@ -224,6 +227,10 @@ IMPL_IMGUI(Player, ([&]() {
 void Player::draw() {
     scale = Vec3(1., 2., 3.) * 0.3;
     GFX::push_mesh("MONKEY", "TILES", position, rotation, scale);
+
+    if (hit) {
+        Physics::draw_manifold(hit, Color4(1.0, 1.0, 1.0, 1.0));
+    }
 }
 
 void PlayerUpdate::callback() {

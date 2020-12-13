@@ -46,3 +46,8 @@ using real = f32;
 constexpr real PI = 3.1415926535;
 ///* E
 constexpr real E = 2.7182818284;
+
+///* EntityID
+using EntityID = u64;
+const EntityID INVALID_ENTITY_ID = -1;
+

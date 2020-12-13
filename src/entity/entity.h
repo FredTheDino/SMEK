@@ -5,11 +5,11 @@
 #include "../math/smek_vec.h"
 #include "../math/smek_quat.h"
 #include "../audio.h"
+#include "../physics/physics.h"
 
 ///# Entity system
 //
 
-using EntityID = u64;
 #define INTERNAL
 
 ///* EntityType
@@ -107,6 +107,7 @@ struct Player : public Entity {
     static constexpr f32 FLOOR = 0.2;
     INTERNAL PlayerInput last_input;
     Vec3 velocity;
+    Physics::Manifold hit;
 
     void imgui() override;
 
@@ -134,9 +135,11 @@ struct EntitySystem {
     SDL_mutex *m_client_id;
     u64 client_id = 0;
     u64 id_counter = 0;
-    u64 next_id();
+
     std::unordered_map<EntityID, BaseEntity *> entities;
     std::set<EntityID> selected;
+
+    u64 next_id();
 
     bool is_valid(EntityID id);
     bool have_ownership(EntityID id);
