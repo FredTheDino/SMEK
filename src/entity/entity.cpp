@@ -117,24 +117,18 @@ void Player::on_create() {
 void Player::update() {
     bool own = GAMESTATE()->entity_system.have_ownership(entity_id);
     bool debug_camera = GFX::current_camera() == GFX::debug_camera();
-    if (GAMESTATE()->network.server_listening) {
-        if (own && !debug_camera) {
-            update_input();
-        }
-        update_position();
-        if (own && !debug_camera) {
-            update_camera();
-        }
-    } else if (GAMESTATE()->network.server_handle.active) {
-        if (own) {
-            if (!debug_camera) {
-                update_input();
-                update_camera();
-            }
-        }
-    } else if (!debug_camera) {
+    bool is_controlled = own && !debug_camera;
+
+    bool is_connected = GAMESTATE()->network.server_handle.active;
+    bool is_server = GAMESTATE()->network.server_listening;
+
+    if (is_controlled) {
         update_input();
+    }
+    if (is_server || (!is_connected && is_controlled)) {
         update_position();
+    }
+    if (is_controlled) {
         update_camera();
     }
 }
