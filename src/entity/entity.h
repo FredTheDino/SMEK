@@ -99,6 +99,27 @@ struct PlayerInput {
     bool jump;
     bool shot;
     void callback();
+
+    void combine(PlayerInput other) {
+        entity_id = other.entity_id;
+
+        rotation[0] = other.rotation[0];
+        rotation[1] = other.rotation[1];
+        rotation[2] = other.rotation[2];
+        rotation[3] = other.rotation[3];
+
+        move_axis[0] = other.move_axis[0];
+        move_axis[1] = other.move_axis[1];
+        move_axis[2] = other.move_axis[2];
+
+        jump |= other.jump;
+        shot |= other.shot;
+    }
+
+    void reset() {
+        jump = {};
+        shot = {};
+    }
 };
 
 ///*

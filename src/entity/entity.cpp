@@ -107,7 +107,7 @@ void PlayerInput::callback() {
         return;
     }
     Player *p = GAMESTATE()->entity_system.fetch<Player>(entity_id);
-    p->last_input = *this;
+    p->last_input.combine(*this);
 }
 
 void Player::on_create() {
@@ -205,6 +205,8 @@ void Player::update_position() {
     if (last_input.shot) {
         INFO("Pew!");
     }
+
+    last_input.reset();
 }
 
 void Player::update_camera() {
