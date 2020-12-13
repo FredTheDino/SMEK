@@ -188,6 +188,12 @@ template <VectorType T>
 T operator+=(T &a, const T &b);
 
 template <VectorType T>
+T operator*=(T &a, const real &b);
+
+template <VectorType T>
+T operator/=(T &a, const real &b);
+
+template <VectorType T>
 T operator*(const T &a, const real &s);
 
 template <VectorType T>
@@ -267,6 +273,16 @@ template <VectorType T>
 T operator-=(T &a, const T &b) {
     for (i32 i = 0; i < DIM<T>(); i++) a._[i] -= b._[i];
     return a;
+}
+
+template <VectorType T>
+T operator*=(T &a, const real &b) {
+    a = a * b;
+}
+
+template <VectorType T>
+T operator/=(T &a, const real &b) {
+    a = a / b;
 }
 
 template <VectorType T>
