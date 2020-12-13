@@ -157,7 +157,7 @@ void Player::update_input() {
         Input::value(Ac::MoveY),
         Input::value(Ac::MoveZ),
     };
-    v_move = v_move * GAMESTATE()->player_movement_speed; //TODO *=
+    v_move *= GAMESTATE()->player_movement_speed;
     v_move.to(player_input.move_axis);
     player_input.jump = Input::pressed(Ac::Jump);
     player_input.shot = Input::pressed(Ac::Shoot);
@@ -181,7 +181,7 @@ void Player::update_position() {
     }
     Vec3 move(last_input.move_axis);
     if (length_squared(move) > 1.0) {
-        move = move / length(move); //TODO /=
+        move /= length(move);
     }
     f32 drag_coef = Math::pow(0.05, delta());
     velocity.x = velocity.x * drag_coef;
