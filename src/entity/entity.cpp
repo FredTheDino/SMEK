@@ -203,7 +203,7 @@ void Player::update_position() {
         hit = GAMESTATE()->physics_engine.hitscan(position,
                                                   rotation * Vec3(0, 0, -1),
                                                   entity_id);
-        if (hit.a) {
+        if (hit && hit.a) {
             Player *target = GAMESTATE()->entity_system.fetch<Player>(hit.a->entity);
             if (target) {
                 target->velocity -= hit.normal;

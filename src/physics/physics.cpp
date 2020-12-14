@@ -173,7 +173,7 @@ Manifold PhysicsEngine::hitscan(Vec3 origin, Vec3 direction, EntityID sender) {
             return hit;
         }
     }
-    return {};
+    return { -1 };
 }
 
 void PhysicsEngine::add_box(AABody b) {
