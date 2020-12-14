@@ -278,11 +278,13 @@ T operator-=(T &a, const T &b) {
 template <VectorType T>
 T operator*=(T &a, const real &b) {
     a = a * b;
+    return a;
 }
 
 template <VectorType T>
 T operator/=(T &a, const real &b) {
     a = a / b;
+    return a;
 }
 
 template <VectorType T>
