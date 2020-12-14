@@ -33,6 +33,7 @@ extern FieldNameType audio_id;
 extern FieldNameType color;
 extern FieldNameType draw_as_point;
 extern FieldNameType entity_id;
+extern FieldNameType hit;
 extern FieldNameType last_input;
 extern FieldNameType light_id;
 extern FieldNameType position;

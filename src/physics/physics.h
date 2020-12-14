@@ -1,6 +1,5 @@
 #pragma once
 #include "../math/smek_vec.h"
-#include "../entity/entity.h"
 #include <vector>
 
 namespace Physics {
@@ -56,6 +55,7 @@ struct Manifold {
 struct PhysicsEngine {
     std::vector<AABody> bodies;
 
+    Manifold hitscan(Vec3 origin, Vec3 direction, EntityID sender = INVALID_ENTITY_ID);
     void add_box(AABody b);
     void update(real delta);
     void draw();

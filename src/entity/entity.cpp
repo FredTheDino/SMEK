@@ -111,30 +111,26 @@ void PlayerInput::callback() {
 }
 
 void Player::on_create() {
+    // TODO(ed): We don't want to be this fat.
+    scale = { 1.0, 1.0, 1.0 };
     GAMESTATE()->physics_engine.add_box({ entity_id, Vec3(), Vec3(), scale, 1 });
 }
 
 void Player::update() {
     bool own = GAMESTATE()->entity_system.have_ownership(entity_id);
     bool debug_camera = GFX::current_camera() == GFX::debug_camera();
-    if (GAMESTATE()->network.server_listening) {
-        if (own && !debug_camera) {
-            update_input();
-        }
-        update_position();
-        if (own && !debug_camera) {
-            update_camera();
-        }
-    } else if (GAMESTATE()->network.server_handle.active) {
-        if (own) {
-            if (!debug_camera) {
-                update_input();
-                update_camera();
-            }
-        }
-    } else if (!debug_camera) {
+    bool is_controlled = own && !debug_camera;
+
+    bool is_connected = GAMESTATE()->network.server_handle.active;
+    bool is_server = GAMESTATE()->network.server_listening;
+
+    if (is_controlled) {
         update_input();
+    }
+    if (is_server || (!is_connected && is_controlled)) {
         update_position();
+    }
+    if (is_controlled) {
         update_camera();
     }
 }
@@ -157,7 +153,7 @@ void Player::update_input() {
         Input::value(Ac::MoveY),
         Input::value(Ac::MoveZ),
     };
-    v_move = v_move * GAMESTATE()->player_movement_speed; //TODO *=
+    v_move *= GAMESTATE()->player_movement_speed;
     v_move.to(player_input.move_axis);
     player_input.jump = Input::pressed(Ac::Jump);
     player_input.shot = Input::pressed(Ac::Shoot);
@@ -181,7 +177,7 @@ void Player::update_position() {
     }
     Vec3 move(last_input.move_axis);
     if (length_squared(move) > 1.0) {
-        move = move / length(move); //TODO /=
+        move /= length(move);
     }
     f32 drag_coef = Math::pow(0.05, delta());
     velocity.x = velocity.x * drag_coef;
@@ -202,8 +198,17 @@ void Player::update_position() {
             velocity.y = GAMESTATE()->player_jump_speed;
         }
     }
+
     if (last_input.shot) {
-        INFO("Pew!");
+        hit = GAMESTATE()->physics_engine.hitscan(position,
+                                                  rotation * Vec3(0, 0, -1),
+                                                  entity_id);
+        if (hit && hit.a) {
+            Player *target = GAMESTATE()->entity_system.fetch<Player>(hit.a->entity);
+            if (target) {
+                target->velocity -= hit.normal;
+            }
+        }
     }
 }
 
@@ -230,6 +235,10 @@ IMPL_IMGUI(Player, ([&]() {
 void Player::draw() {
     scale = Vec3(1., 2., 3.) * 0.3;
     GFX::push_mesh("MONKEY", "TILES", position, rotation, scale);
+
+    if (hit) {
+        Physics::draw_manifold(hit, Color4(1.0, 1.0, 1.0, 1.0));
+    }
 }
 
 void PlayerUpdate::callback() {
