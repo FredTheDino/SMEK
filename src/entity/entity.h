@@ -126,12 +126,15 @@ struct PlayerInput {
 // A playable character
 struct Player : public Entity {
     static constexpr f32 FLOOR = 0.2;
+    static constexpr f32 STARTING_HP = 1.0;
     INTERNAL PlayerInput last_input;
     Vec3 velocity;
     Physics::Manifold hit;
+    real hp;
 
     void imgui() override;
 
+    void on_hit(Physics::Manifold hit, EntityID by);
     void on_create() override;
     void update() override;
     void update_camera();

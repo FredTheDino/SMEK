@@ -111,6 +111,7 @@ void PlayerInput::callback() {
 }
 
 void Player::on_create() {
+    hp = STARTING_HP;
     // TODO(ed): We don't want to be this fat.
     scale = { 1.0, 1.0, 1.0 };
     GAMESTATE()->physics_engine.add_box({ entity_id, Vec3(), Vec3(), scale, 1 });
@@ -206,12 +207,21 @@ void Player::update_position() {
         if (hit && hit.a) {
             Player *target = GAMESTATE()->entity_system.fetch<Player>(hit.a->entity);
             if (target) {
-                target->velocity -= hit.normal;
+                target->on_hit(hit, entity_id);
             }
         }
     }
 
     last_input.reset();
+}
+
+void Player::on_hit(Physics::Manifold hit, EntityID by) {
+    hp -= 0.5;
+    if (hp < 0) {
+        INFO("DEAD!");
+        position = {};
+        hp = STARTING_HP;
+    }
 }
 
 void Player::update_camera() {
