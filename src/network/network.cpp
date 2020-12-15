@@ -227,12 +227,21 @@ bool Network::connect_to_server(char *hostname, int portno) {
         return false;
     }
     sockaddr_in serv_addr = {};
-    serv_addr.sin_family = AF_INET;
-    std::memcpy(&serv_addr.sin_addr.s_addr, server->h_addr, server->h_length);
-    serv_addr.sin_port = htons(portno);
-    if (connect(server_handle.sockfd, (sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-        WARN("Unable to connect to server, errno={}", errno);
-        return false;
+    int tries_left = 3;
+    for (;;) {
+        serv_addr.sin_family = AF_INET;
+        std::memcpy(&serv_addr.sin_addr.s_addr, server->h_addr, server->h_length);
+        serv_addr.sin_port = htons(portno);
+        if (connect(server_handle.sockfd, (sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+            WARN("Unable to connect to server, tries_left={} errno={}", tries_left, errno);
+            if (tries_left--) {
+                SDL_Delay(50);
+                continue;
+            } else {
+                return false;
+            }
+        }
+        break;
     }
     INFO("Connected");
     server_handle.wip_entities.alloc();
