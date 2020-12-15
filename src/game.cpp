@@ -70,13 +70,6 @@ void init_game(GameState *gamestate, int width, int height) {
     Player player = {};
     GAMESTATE()->entity_system.add(player);
 
-    Network *n = &GAMESTATE()->network;
-    if (n->autostart_server) {
-        n->setup_server(n->autostart_port);
-    } else if (n->autostart_client) {
-        n->connect_to_server(n->client_server_addr, n->autostart_port);
-    }
-
     Asset::load("assets.bin");
 
 #if IMGUI_ENABLE
@@ -121,6 +114,13 @@ void init_game(GameState *gamestate, int width, int height) {
     GAMESTATE()->physics_engine.add_box(b);
 
     load_level("SIMPLE_WORLD");
+
+    Network *n = &GAMESTATE()->network;
+    if (n->autostart_server) {
+        n->setup_server(n->autostart_port);
+    } else if (n->autostart_client) {
+        n->connect_to_server(n->client_server_addr, n->autostart_port);
+    }
 }
 
 void reload_game(GameState *game) {
